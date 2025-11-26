@@ -11,9 +11,10 @@ const Auth = () => {
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [parentEmail, setParentEmail] = useState("");
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -29,21 +30,35 @@ const Auth = () => {
 
     try {
       if (isLogin) {
+        // First, get the parent's email from the username
+        const { data: emailData, error: lookupError } = await supabase
+          .rpc('get_email_from_username', { input_username: username });
+        
+        if (lookupError) throw lookupError;
+        if (!emailData) {
+          toast.error("Username not found");
+          setLoading(false);
+          return;
+        }
+
+        // Now authenticate with the parent's email
         const { error } = await supabase.auth.signInWithPassword({
-          email,
+          email: emailData,
           password,
         });
         if (error) throw error;
         toast.success("Logged in successfully!");
         navigate("/dashboard");
       } else {
+        // Sign up with parent's email but store username
         const { error } = await supabase.auth.signUp({
-          email,
+          email: parentEmail,
           password,
           options: {
             emailRedirectTo: `${window.location.origin}/dashboard`,
             data: {
               full_name: fullName,
+              username: username,
             },
           },
         });
@@ -74,26 +89,42 @@ const Auth = () => {
         <CardContent>
           <form onSubmit={handleAuth} className="space-y-4">
             {!isLogin && (
-              <div className="space-y-2">
-                <Label htmlFor="fullName">Full Name</Label>
-                <Input
-                  id="fullName"
-                  type="text"
-                  placeholder="John Doe"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  required
-                />
-              </div>
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="fullName">Student's Full Name</Label>
+                  <Input
+                    id="fullName"
+                    type="text"
+                    placeholder="John Doe"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="parentEmail">Parent's Email</Label>
+                  <Input
+                    id="parentEmail"
+                    type="email"
+                    placeholder="parent@example.com"
+                    value={parentEmail}
+                    onChange={(e) => setParentEmail(e.target.value)}
+                    required
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    This email will be used for password recovery
+                  </p>
+                </div>
+              </>
             )}
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="username">Username</Label>
               <Input
-                id="email"
-                type="email"
-                placeholder="student@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                id="username"
+                type="text"
+                placeholder="student123"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 required
               />
             </div>
