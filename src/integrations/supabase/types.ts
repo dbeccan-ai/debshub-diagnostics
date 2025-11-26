@@ -14,16 +14,244 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      certificates: {
+        Row: {
+          attempt_id: string
+          certificate_url: string | null
+          id: string
+          issued_at: string
+          strengths: string[]
+          student_name: string
+          test_name: string
+          tier: string
+          weaknesses: string[]
+        }
+        Insert: {
+          attempt_id: string
+          certificate_url?: string | null
+          id?: string
+          issued_at?: string
+          strengths: string[]
+          student_name: string
+          test_name: string
+          tier: string
+          weaknesses: string[]
+        }
+        Update: {
+          attempt_id?: string
+          certificate_url?: string | null
+          id?: string
+          issued_at?: string
+          strengths?: string[]
+          student_name?: string
+          test_name?: string
+          tier?: string
+          weaknesses?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "certificates_attempt_id_fkey"
+            columns: ["attempt_id"]
+            isOneToOne: true
+            referencedRelation: "test_attempts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          full_name: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          full_name: string
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          full_name?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      test_attempts: {
+        Row: {
+          completed_at: string | null
+          correct_answers: number | null
+          created_at: string
+          id: string
+          payment_status: string | null
+          score: number | null
+          started_at: string
+          strengths: string[] | null
+          test_id: string
+          tier: string | null
+          total_questions: number | null
+          user_id: string
+          weaknesses: string[] | null
+        }
+        Insert: {
+          completed_at?: string | null
+          correct_answers?: number | null
+          created_at?: string
+          id?: string
+          payment_status?: string | null
+          score?: number | null
+          started_at?: string
+          strengths?: string[] | null
+          test_id: string
+          tier?: string | null
+          total_questions?: number | null
+          user_id: string
+          weaknesses?: string[] | null
+        }
+        Update: {
+          completed_at?: string | null
+          correct_answers?: number | null
+          created_at?: string
+          id?: string
+          payment_status?: string | null
+          score?: number | null
+          started_at?: string
+          strengths?: string[] | null
+          test_id?: string
+          tier?: string | null
+          total_questions?: number | null
+          user_id?: string
+          weaknesses?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "test_attempts_test_id_fkey"
+            columns: ["test_id"]
+            isOneToOne: false
+            referencedRelation: "tests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "test_attempts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      test_responses: {
+        Row: {
+          answer: string
+          attempt_id: string
+          created_at: string
+          id: string
+          is_correct: boolean | null
+          question_id: string
+        }
+        Insert: {
+          answer: string
+          attempt_id: string
+          created_at?: string
+          id?: string
+          is_correct?: boolean | null
+          question_id: string
+        }
+        Update: {
+          answer?: string
+          attempt_id?: string
+          created_at?: string
+          id?: string
+          is_correct?: boolean | null
+          question_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "test_responses_attempt_id_fkey"
+            columns: ["attempt_id"]
+            isOneToOne: false
+            referencedRelation: "test_attempts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tests: {
+        Row: {
+          created_at: string
+          description: string | null
+          duration_minutes: number
+          id: string
+          is_paid: boolean
+          name: string
+          price: number | null
+          questions: Json
+          test_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          duration_minutes: number
+          id?: string
+          is_paid?: boolean
+          name: string
+          price?: number | null
+          questions?: Json
+          test_type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number
+          id?: string
+          is_paid?: boolean
+          name?: string
+          price?: number | null
+          questions?: Json
+          test_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "student"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +378,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "student"],
+    },
   },
 } as const
