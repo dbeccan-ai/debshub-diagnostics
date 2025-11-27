@@ -466,7 +466,7 @@ serve(async (req) => {
 
     <div class="contact-info">
       <strong>Contact D.E.Bs LEARNING ACADEMY</strong>
-      📧 Email: info@debslearnacademy.com | 📞 Phone: (555) 123-4567<br>
+      📧 Email: info@debslearnacademy.com | 📞 Phone: 347-364-1906<br>
       🌐 Website: www.debslearnacademy.com
     </div>
 
