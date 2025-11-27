@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.send-test-results]
 verify_jwt = false
+
+[functions.generate-result-download]
+verify_jwt = false
