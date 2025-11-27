@@ -224,7 +224,7 @@ serve(async (req) => {
     .report-page {
       max-width: 800px;
       margin: 0 auto;
-      padding: 40px;
+      padding: 25px;
       background: white;
       border: 2px solid ${tierColor.primary};
     }
@@ -232,12 +232,12 @@ serve(async (req) => {
       display: flex;
       justify-content: center;
       align-items: center;
-      margin: 30px 0;
-      gap: 40px;
+      margin: 15px 0;
+      gap: 30px;
     }
     .pie-chart {
-      width: 200px;
-      height: 200px;
+      width: 140px;
+      height: 140px;
       border-radius: 50%;
       background: conic-gradient(
         ${tierColor.primary} 0% ${correctPercentage}%,
@@ -248,17 +248,17 @@ serve(async (req) => {
     .pie-legend {
       display: flex;
       flex-direction: column;
-      gap: 15px;
+      gap: 10px;
     }
     .legend-item {
       display: flex;
       align-items: center;
-      gap: 10px;
-      font-size: 16px;
+      gap: 8px;
+      font-size: 14px;
     }
     .legend-color {
-      width: 24px;
-      height: 24px;
+      width: 20px;
+      height: 20px;
       border-radius: 4px;
     }
     .legend-color.correct {
@@ -268,57 +268,71 @@ serve(async (req) => {
       background: #ef4444;
     }
     .report-section {
-      margin: 30px 0;
-      padding: 25px;
+      margin: 15px 0;
+      padding: 15px;
       background: ${tierColor.bg};
-      border-radius: 8px;
-      border-left: 5px solid ${tierColor.primary};
+      border-radius: 6px;
+      border-left: 4px solid ${tierColor.primary};
     }
     .report-title {
-      font-size: 22px;
+      font-size: 18px;
       font-weight: bold;
       color: ${tierColor.primary};
-      margin-bottom: 15px;
+      margin-bottom: 10px;
     }
     .report-text {
-      font-size: 16px;
-      line-height: 1.8;
+      font-size: 14px;
+      line-height: 1.5;
       color: #1e293b;
-      margin-bottom: 15px;
+      margin-bottom: 10px;
     }
     .next-steps-box {
       background: white;
-      padding: 25px;
-      border-radius: 8px;
+      padding: 15px;
+      border-radius: 6px;
       border: 2px solid ${tierColor.primary};
-      margin-top: 20px;
+      margin-top: 15px;
     }
     .next-steps-title {
-      font-size: 20px;
+      font-size: 16px;
       font-weight: bold;
       color: ${tierColor.primary};
-      margin-bottom: 15px;
+      margin-bottom: 10px;
     }
     .stats-row {
       display: flex;
       justify-content: space-around;
-      margin: 20px 0;
-      padding: 20px;
+      margin: 15px 0;
+      padding: 15px;
       background: white;
-      border-radius: 8px;
+      border-radius: 6px;
     }
     .stat-item {
       text-align: center;
     }
     .stat-value {
-      font-size: 32px;
+      font-size: 26px;
       font-weight: bold;
       color: ${tierColor.primary};
     }
     .stat-label {
-      font-size: 14px;
+      font-size: 12px;
       color: #64748b;
-      margin-top: 5px;
+      margin-top: 3px;
+    }
+    .contact-info {
+      background: ${tierColor.bg};
+      padding: 12px;
+      border-radius: 6px;
+      margin-top: 15px;
+      text-align: center;
+      font-size: 13px;
+      color: #1e293b;
+    }
+    .contact-info strong {
+      color: ${tierColor.primary};
+      display: block;
+      margin-bottom: 5px;
     }
   </style>
 </head>
@@ -448,10 +462,12 @@ serve(async (req) => {
       <p class="report-text">
         ${tierMessage.nextSteps}
       </p>
-      <p class="report-text">
-        <strong>Contact us at D.E.Bs LEARNING ACADEMY to enroll:</strong><br>
-        Visit our website or email us to get started with personalized support tailored to your student's needs.
-      </p>
+    </div>
+
+    <div class="contact-info">
+      <strong>Contact D.E.Bs LEARNING ACADEMY</strong>
+      📧 Email: info@debslearnacademy.com | 📞 Phone: (555) 123-4567<br>
+      🌐 Website: www.debslearnacademy.com
     </div>
 
     <div class="footer">
