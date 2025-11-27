@@ -6,6 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { User, Session } from "@supabase/supabase-js";
+import { MailCheck, Clock, MailX } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -187,6 +189,28 @@ const Dashboard = () => {
                               View Certificate
                             </Button>
                           )}
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="flex items-center">
+                                  {attempt.email_status === "sent" && (
+                                    <MailCheck className="w-5 h-5 text-green-600" />
+                                  )}
+                                  {attempt.email_status === "pending" && (
+                                    <Clock className="w-5 h-5 text-yellow-600" />
+                                  )}
+                                  {attempt.email_status === "failed" && (
+                                    <MailX className="w-5 h-5 text-red-600" />
+                                  )}
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                {attempt.email_status === "sent" && "Email Sent"}
+                                {attempt.email_status === "pending" && "Pending Email"}
+                                {attempt.email_status === "failed" && "Email not delivered"}
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         </>
                       ) : (
                         <Button

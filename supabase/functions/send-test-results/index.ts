@@ -265,6 +265,16 @@ serve(async (req) => {
 
     console.log(`Email sent successfully to ${parentEmail}`);
 
+    // Update email_status to 'sent'
+    const { error: updateError } = await supabaseClient
+      .from("test_attempts")
+      .update({ email_status: "sent" })
+      .eq("id", attemptId);
+
+    if (updateError) {
+      console.error("Error updating email status:", updateError);
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
@@ -277,6 +287,23 @@ serve(async (req) => {
     );
   } catch (error: any) {
     console.error("Error sending email:", error);
+    
+    // Update email_status to 'failed' on error
+    try {
+      const { attemptId } = await req.json();
+      const supabaseClient = createClient(
+        Deno.env.get("SUPABASE_URL") ?? "",
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+      );
+      
+      await supabaseClient
+        .from("test_attempts")
+        .update({ email_status: "failed" })
+        .eq("id", attemptId);
+    } catch (updateError) {
+      console.error("Error updating email status to failed:", updateError);
+    }
+    
     return new Response(
       JSON.stringify({ error: error.message }),
       {
