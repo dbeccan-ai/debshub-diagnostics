@@ -35,6 +35,11 @@ serve(async (req) => {
       throw new Error("Test attempt not found");
     }
 
+    // Check if test is completed before sending email
+    if (!attempt.completed_at) {
+      throw new Error("Test is not completed yet. Email cannot be sent for incomplete tests.");
+    }
+
     const parentEmail = attempt.profiles?.parent_email;
     if (!parentEmail) {
       throw new Error("Parent email not found");
