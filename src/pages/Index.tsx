@@ -22,7 +22,8 @@ const Index = () => {
       name: "Math Diagnostic Test",
       description: "Comprehensive mathematics skills assessment",
       duration: 90,
-      price: 5,
+      price: 99,
+      priceRange: "$99-$120",
       isFree: false,
       features: ["Detailed analysis", "Tier placement", "Certificate included"]
     },
@@ -31,7 +32,8 @@ const Index = () => {
       name: "ELA Diagnostic Test",
       description: "English Language Arts proficiency evaluation",
       duration: 90,
-      price: 5,
+      price: 99,
+      priceRange: "$99-$120",
       isFree: false,
       features: ["Reading & writing skills", "Tier placement", "Certificate included"]
     }
@@ -72,7 +74,7 @@ const Index = () => {
                   ) : (
                     <Badge variant="secondary" className="flex items-center gap-1">
                       <DollarSign className="h-3 w-3" />
-                      {test.price}
+                      {"priceRange" in test ? test.priceRange : `$${test.price}`}
                     </Badge>
                   )}
                 </div>
