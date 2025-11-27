@@ -6,8 +6,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { User, Session } from "@supabase/supabase-js";
-import { MailCheck, Clock, MailX } from "lucide-react";
+import { MailCheck, Clock, MailX, Download } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -70,6 +78,81 @@ const Dashboard = () => {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/");
+  };
+
+  const handleDownloadResult = async (attemptId: string, format: "pdf" | "png") => {
+    try {
+      toast.loading(`Generating ${format.toUpperCase()}...`);
+
+      // Call edge function to get the HTML
+      const { data, error } = await supabase.functions.invoke("generate-result-download", {
+        body: { attemptId, format },
+      });
+
+      if (error) throw error;
+
+      // Create a temporary container to render the HTML
+      const container = document.createElement("div");
+      container.style.position = "absolute";
+      container.style.left = "-9999px";
+      container.style.width = "800px";
+      container.innerHTML = data.html;
+      document.body.appendChild(container);
+
+      // Wait for rendering
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      // Generate the output based on format
+      if (format === "png") {
+        const canvas = await html2canvas(container, {
+          scale: 2,
+          backgroundColor: "#ffffff",
+          logging: false,
+        });
+
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `test-result-${attemptId}.png`;
+            link.click();
+            URL.revokeObjectURL(url);
+            toast.dismiss();
+            toast.success("Image downloaded successfully!");
+          }
+        });
+      } else if (format === "pdf") {
+        const canvas = await html2canvas(container, {
+          scale: 2,
+          backgroundColor: "#ffffff",
+          logging: false,
+        });
+
+        const imgData = canvas.toDataURL("image/png");
+        const pdf = new jsPDF({
+          orientation: "portrait",
+          unit: "mm",
+          format: "a4",
+        });
+
+        const imgWidth = 210; // A4 width in mm
+        const pageHeight = 297; // A4 height in mm
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+        pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
+        pdf.save(`test-result-${attemptId}.pdf`);
+        toast.dismiss();
+        toast.success("PDF downloaded successfully!");
+      }
+
+      // Cleanup
+      document.body.removeChild(container);
+    } catch (error: any) {
+      toast.dismiss();
+      toast.error("Failed to download result");
+      console.error("Download error:", error);
+    }
   };
 
   if (loading) {
@@ -211,6 +294,36 @@ const Dashboard = () => {
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <Download className="w-4 h-4 mr-2" />
+                                Download
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDownloadResult(attempt.id, "pdf");
+                                }}
+                              >
+                                Download as PDF
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDownloadResult(attempt.id, "png");
+                                }}
+                              >
+                                Download as Image
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </>
                       ) : (
                         <Button
