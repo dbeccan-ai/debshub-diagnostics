@@ -56,6 +56,28 @@ serve(async (req) => {
 
     const tierColor = tierColors[attempt.tier || "Tier 3"];
 
+    // Calculate pie chart percentages
+    const correctPercentage = attempt.score || 0;
+    const incorrectPercentage = 100 - correctPercentage;
+    
+    // Tier-specific messaging
+    const tierMessages: { [key: string]: { explanation: string; nextSteps: string } } = {
+      "Tier 1": {
+        explanation: "Congratulations! Your student has mastered the topics covered in this diagnostic test and is ready for advanced topics.",
+        nextSteps: "Your child is performing above grade level. Continue challenging them with advanced materials and consider enrichment opportunities."
+      },
+      "Tier 2": {
+        explanation: "Your student is performing at or near grade level and would benefit from targeted support in specific areas.",
+        nextSteps: "Register for our 10-session support program. Your student will receive automatic diagnostic retries at sessions 5 and 10 to track progress and ensure continuous improvement."
+      },
+      "Tier 3": {
+        explanation: "Your student is currently performing below grade level and needs strong, consistent support to build foundational skills.",
+        nextSteps: "Register for our comprehensive 15-session support program. Your student will receive automatic diagnostic retries at sessions 7, 10, and 15 to monitor growth and adjust instruction as needed."
+      }
+    };
+
+    const tierMessage = tierMessages[attempt.tier || "Tier 3"];
+
     // Generate HTML for the result
     const resultHTML = `
 <!DOCTYPE html>
@@ -68,6 +90,10 @@ serve(async (req) => {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
       padding: 40px;
       background: white;
+    }
+    .page {
+      page-break-after: always;
+      margin-bottom: 60px;
     }
     .certificate {
       max-width: 800px;
@@ -193,74 +219,247 @@ serve(async (req) => {
       font-size: 14px;
       margin-top: 10px;
     }
+    
+    /* Page 2 Styles */
+    .report-page {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px;
+      background: white;
+      border: 2px solid ${tierColor.primary};
+    }
+    .pie-chart-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 30px 0;
+      gap: 40px;
+    }
+    .pie-chart {
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      background: conic-gradient(
+        ${tierColor.primary} 0% ${correctPercentage}%,
+        #ef4444 ${correctPercentage}% 100%
+      );
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    }
+    .pie-legend {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 16px;
+    }
+    .legend-color {
+      width: 24px;
+      height: 24px;
+      border-radius: 4px;
+    }
+    .legend-color.correct {
+      background: ${tierColor.primary};
+    }
+    .legend-color.incorrect {
+      background: #ef4444;
+    }
+    .report-section {
+      margin: 30px 0;
+      padding: 25px;
+      background: ${tierColor.bg};
+      border-radius: 8px;
+      border-left: 5px solid ${tierColor.primary};
+    }
+    .report-title {
+      font-size: 22px;
+      font-weight: bold;
+      color: ${tierColor.primary};
+      margin-bottom: 15px;
+    }
+    .report-text {
+      font-size: 16px;
+      line-height: 1.8;
+      color: #1e293b;
+      margin-bottom: 15px;
+    }
+    .next-steps-box {
+      background: white;
+      padding: 25px;
+      border-radius: 8px;
+      border: 2px solid ${tierColor.primary};
+      margin-top: 20px;
+    }
+    .next-steps-title {
+      font-size: 20px;
+      font-weight: bold;
+      color: ${tierColor.primary};
+      margin-bottom: 15px;
+    }
+    .stats-row {
+      display: flex;
+      justify-content: space-around;
+      margin: 20px 0;
+      padding: 20px;
+      background: white;
+      border-radius: 8px;
+    }
+    .stat-item {
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 32px;
+      font-weight: bold;
+      color: ${tierColor.primary};
+    }
+    .stat-label {
+      font-size: 14px;
+      color: #64748b;
+      margin-top: 5px;
+    }
   </style>
 </head>
 <body>
-  <div class="certificate">
+  <!-- Page 1: Certificate -->
+  <div class="page">
+    <div class="certificate">
+      <div class="header">
+        <div class="logo">D.E.Bs LEARNING ACADEMY</div>
+        <div class="tagline">Unlocking Brilliance Through Learning</div>
+      </div>
+      
+      <div class="title">Test Result Certificate</div>
+      
+      <div class="content">
+        <div class="info-row">
+          <span class="label">Student Name:</span>
+          <span class="value">${attempt.profiles?.full_name}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Grade Level:</span>
+          <span class="value">Grade ${attempt.grade_level || "N/A"}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Test Type:</span>
+          <span class="value">${attempt.tests?.name}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Date Completed:</span>
+          <span class="value">${new Date(attempt.completed_at).toLocaleDateString()}</span>
+        </div>
+        
+        <div class="score-box">
+          <div class="score">${attempt.score}%</div>
+          <div class="tier-badge">${attempt.tier}</div>
+        </div>
+        
+        ${
+          (attempt.strengths || []).length > 0
+            ? `
+        <div class="section">
+          <div class="section-title">🌟 Areas of Strength</div>
+          <ul class="list">
+            ${(attempt.strengths || []).map((s: string) => `<li>${s}</li>`).join("")}
+          </ul>
+        </div>
+        `
+            : ""
+        }
+        
+        ${
+          (attempt.weaknesses || []).length > 0
+            ? `
+        <div class="section">
+          <div class="section-title">📚 Areas for Growth</div>
+          <ul class="list">
+            ${(attempt.weaknesses || []).map((w: string) => `<li>${w}</li>`).join("")}
+          </ul>
+        </div>
+        `
+            : ""
+        }
+      </div>
+      
+      <div class="footer">
+        <div class="footer-text">
+          This certificate is awarded to ${attempt.profiles?.full_name} for completing
+          the ${attempt.tests?.name} with a score of ${attempt.score}% (${attempt.tier}).
+        </div>
+        <div class="date">
+          Issued on ${new Date().toLocaleDateString()}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Page 2: Detailed Report -->
+  <div class="report-page">
     <div class="header">
       <div class="logo">D.E.Bs LEARNING ACADEMY</div>
       <div class="tagline">Unlocking Brilliance Through Learning</div>
     </div>
     
-    <div class="title">Test Result Certificate</div>
+    <div class="title">Detailed Test Report</div>
     
-    <div class="content">
-      <div class="info-row">
-        <span class="label">Student Name:</span>
-        <span class="value">${attempt.profiles?.full_name}</span>
+    <div class="stats-row">
+      <div class="stat-item">
+        <div class="stat-value">${attempt.correct_answers || 0}</div>
+        <div class="stat-label">Correct Answers</div>
       </div>
-      <div class="info-row">
-        <span class="label">Grade Level:</span>
-        <span class="value">Grade ${attempt.grade_level || "N/A"}</span>
+      <div class="stat-item">
+        <div class="stat-value">${(attempt.total_questions || 0) - (attempt.correct_answers || 0)}</div>
+        <div class="stat-label">Incorrect Answers</div>
       </div>
-      <div class="info-row">
-        <span class="label">Test Type:</span>
-        <span class="value">${attempt.tests?.name}</span>
+      <div class="stat-item">
+        <div class="stat-value">${attempt.total_questions || 0}</div>
+        <div class="stat-label">Total Questions</div>
       </div>
-      <div class="info-row">
-        <span class="label">Date Completed:</span>
-        <span class="value">${new Date(attempt.completed_at).toLocaleDateString()}</span>
-      </div>
-      
-      <div class="score-box">
-        <div class="score">${attempt.score}%</div>
-        <div class="tier-badge">${attempt.tier}</div>
-      </div>
-      
-      ${
-        (attempt.strengths || []).length > 0
-          ? `
-      <div class="section">
-        <div class="section-title">🌟 Areas of Strength</div>
-        <ul class="list">
-          ${(attempt.strengths || []).map((s: string) => `<li>${s}</li>`).join("")}
-        </ul>
-      </div>
-      `
-          : ""
-      }
-      
-      ${
-        (attempt.weaknesses || []).length > 0
-          ? `
-      <div class="section">
-        <div class="section-title">📚 Areas for Growth</div>
-        <ul class="list">
-          ${(attempt.weaknesses || []).map((w: string) => `<li>${w}</li>`).join("")}
-        </ul>
-      </div>
-      `
-          : ""
-      }
     </div>
-    
+
+    <div class="pie-chart-container">
+      <div class="pie-chart"></div>
+      <div class="pie-legend">
+        <div class="legend-item">
+          <div class="legend-color correct"></div>
+          <span><strong>Correct:</strong> ${attempt.correct_answers || 0} (${correctPercentage}%)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color incorrect"></div>
+          <span><strong>Incorrect:</strong> ${(attempt.total_questions || 0) - (attempt.correct_answers || 0)} (${incorrectPercentage.toFixed(1)}%)</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="report-section">
+      <div class="report-title">Understanding Your ${attempt.tier} Placement</div>
+      <p class="report-text">
+        ${tierMessage.explanation}
+      </p>
+      <p class="report-text">
+        <strong>What This Means:</strong> ${attempt.tier === "Tier 1" ? "Your student has demonstrated mastery" : attempt.tier === "Tier 2" ? "Your student shows solid understanding with room for growth" : "Your student needs focused support to build confidence and skills"}.
+      </p>
+    </div>
+
+    <div class="next-steps-box">
+      <div class="next-steps-title">📋 Recommended Next Steps</div>
+      <p class="report-text">
+        ${tierMessage.nextSteps}
+      </p>
+      <p class="report-text">
+        <strong>Contact us at D.E.Bs LEARNING ACADEMY to enroll:</strong><br>
+        Visit our website or email us to get started with personalized support tailored to your student's needs.
+      </p>
+    </div>
+
     <div class="footer">
       <div class="footer-text">
-        This certificate is awarded to ${attempt.profiles?.full_name} for completing
-        the ${attempt.tests?.name} with a score of ${attempt.score}% (${attempt.tier}).
+        D.E.Bs LEARNING ACADEMY – Unlocking Brilliance Through Learning
       </div>
       <div class="date">
-        Issued on ${new Date().toLocaleDateString()}
+        Report Generated: ${new Date().toLocaleDateString()}
       </div>
     </div>
   </div>
