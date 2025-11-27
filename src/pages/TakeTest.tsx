@@ -49,7 +49,11 @@ const TakeTest = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
-      if (!user) throw new Error("Not authenticated");
+      if (!user) {
+        toast.error("Please sign in to continue");
+        navigate("/auth");
+        return;
+      }
 
       const { data: profileData } = await supabase
         .from("profiles")
@@ -65,7 +69,25 @@ const TakeTest = () => {
         .eq("id", attemptId)
         .single();
 
-      if (attemptError) throw attemptError;
+      if (attemptError) {
+        toast.error("Test not found");
+        navigate("/dashboard");
+        return;
+      }
+
+      // Check if test already completed
+      if (attemptData.completed_at) {
+        toast.info("This test has already been completed");
+        navigate("/dashboard");
+        return;
+      }
+
+      // Check if payment is required but not completed
+      if (attemptData.payment_status === "pending") {
+        toast.info("Please complete payment first");
+        navigate(`/checkout/${attemptData.id}`);
+        return;
+      }
 
       const { data: testData, error: testError } = await supabase
         .from("tests")
@@ -73,14 +95,19 @@ const TakeTest = () => {
         .eq("id", attemptData.test_id)
         .single();
 
-      if (testError) throw testError;
+      if (testError) {
+        toast.error("Test not found");
+        navigate("/dashboard");
+        return;
+      }
 
       setAttempt(attemptData);
       setTest(testData);
       setTimeRemaining(testData.duration_minutes * 60);
     } catch (error: any) {
+      console.error("Error loading test:", error);
       toast.error("Failed to load test");
-      navigate("/tests");
+      navigate("/dashboard");
     } finally {
       setLoading(false);
     }
