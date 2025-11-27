@@ -102,15 +102,46 @@ const Dashboard = () => {
       // Wait for rendering
       await new Promise((resolve) => setTimeout(resolve, 500));
 
+      // Find both pages
+      const page1 = container.querySelector(".page");
+      const page2 = container.querySelector(".report-page");
+
+      if (!page1 || !page2) {
+        throw new Error("Could not find both pages in the result HTML");
+      }
+
       // Generate the output based on format
       if (format === "png") {
-        const canvas = await html2canvas(container, {
+        // Capture both pages separately
+        const canvas1 = await html2canvas(page1 as HTMLElement, {
           scale: 2,
           backgroundColor: "#ffffff",
           logging: false,
+          windowWidth: 800,
         });
 
-        canvas.toBlob((blob) => {
+        const canvas2 = await html2canvas(page2 as HTMLElement, {
+          scale: 2,
+          backgroundColor: "#ffffff",
+          logging: false,
+          windowWidth: 800,
+        });
+
+        // Combine both canvases vertically with spacing
+        const spacing = 40; // 20px gap between pages
+        const combinedCanvas = document.createElement("canvas");
+        combinedCanvas.width = Math.max(canvas1.width, canvas2.width);
+        combinedCanvas.height = canvas1.height + canvas2.height + spacing;
+        
+        const ctx = combinedCanvas.getContext("2d");
+        if (ctx) {
+          ctx.fillStyle = "#ffffff";
+          ctx.fillRect(0, 0, combinedCanvas.width, combinedCanvas.height);
+          ctx.drawImage(canvas1, 0, 0);
+          ctx.drawImage(canvas2, 0, canvas1.height + spacing);
+        }
+
+        combinedCanvas.toBlob((blob) => {
           if (blob) {
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
@@ -123,13 +154,21 @@ const Dashboard = () => {
           }
         });
       } else if (format === "pdf") {
-        const canvas = await html2canvas(container, {
+        // Capture each page separately for PDF
+        const canvas1 = await html2canvas(page1 as HTMLElement, {
           scale: 2,
           backgroundColor: "#ffffff",
           logging: false,
+          windowWidth: 800,
         });
 
-        const imgData = canvas.toDataURL("image/png");
+        const canvas2 = await html2canvas(page2 as HTMLElement, {
+          scale: 2,
+          backgroundColor: "#ffffff",
+          logging: false,
+          windowWidth: 800,
+        });
+
         const pdf = new jsPDF({
           orientation: "portrait",
           unit: "mm",
@@ -138,9 +177,42 @@ const Dashboard = () => {
 
         const imgWidth = 210; // A4 width in mm
         const pageHeight = 297; // A4 height in mm
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-        pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
+        // Add first page
+        const imgData1 = canvas1.toDataURL("image/png");
+        const imgHeight1 = (canvas1.height * imgWidth) / canvas1.width;
+        let heightLeft1 = imgHeight1;
+        let position1 = 0;
+
+        pdf.addImage(imgData1, "PNG", 0, position1, imgWidth, imgHeight1);
+        heightLeft1 -= pageHeight;
+
+        // Add additional pages if page 1 content is too tall
+        while (heightLeft1 > 0) {
+          position1 = heightLeft1 - imgHeight1;
+          pdf.addPage();
+          pdf.addImage(imgData1, "PNG", 0, position1, imgWidth, imgHeight1);
+          heightLeft1 -= pageHeight;
+        }
+
+        // Add second page
+        const imgData2 = canvas2.toDataURL("image/png");
+        const imgHeight2 = (canvas2.height * imgWidth) / canvas2.width;
+        let heightLeft2 = imgHeight2;
+        let position2 = 0;
+
+        pdf.addPage();
+        pdf.addImage(imgData2, "PNG", 0, position2, imgWidth, imgHeight2);
+        heightLeft2 -= pageHeight;
+
+        // Add additional pages if page 2 content is too tall
+        while (heightLeft2 > 0) {
+          position2 = heightLeft2 - imgHeight2;
+          pdf.addPage();
+          pdf.addImage(imgData2, "PNG", 0, position2, imgWidth, imgHeight2);
+          heightLeft2 -= pageHeight;
+        }
+
         pdf.save(`test-result-${attemptId}.pdf`);
         toast.dismiss();
         toast.success("PDF downloaded successfully!");
