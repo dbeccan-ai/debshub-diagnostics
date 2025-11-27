@@ -25,12 +25,13 @@ serve(async (req) => {
       .select(`
         *,
         tests (name, test_type),
-        profiles (full_name, grade_level)
+        profiles (full_name)
       `)
       .eq("id", attemptId)
       .single();
 
     if (attemptError || !attempt) {
+      console.error("Attempt fetch error:", attemptError);
       throw new Error("Test attempt not found");
     }
 
