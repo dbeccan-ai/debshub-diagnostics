@@ -74,27 +74,108 @@ const TakeTest = () => {
 
   const handleSubmit = async () => {
     try {
-      // Save all responses
-      const responses = Object.entries(answers).map(([questionId, answer]) => ({
-        attempt_id: attemptId,
-        question_id: questionId,
-        answer,
-      }));
+      toast.loading("Submitting test...");
+
+      const questions = test.questions as any[];
+      
+      // Save all responses and calculate score
+      const responses = Object.entries(answers).map(([questionId, answer]) => {
+        const question = questions.find((q) => q.id === questionId);
+        const isCorrect = question?.type === "multiple-choice" 
+          ? answer === question.correct_answer 
+          : null;
+        
+        return {
+          attempt_id: attemptId,
+          question_id: questionId,
+          answer,
+          is_correct: isCorrect,
+        };
+      });
 
       const { error } = await supabase.from("test_responses").insert(responses);
-
       if (error) throw error;
 
-      // Update attempt as completed
-      await supabase
+      // Calculate score for auto-graded questions
+      const autoGradedResponses = responses.filter((r) => r.is_correct !== null);
+      const correctCount = autoGradedResponses.filter((r) => r.is_correct).length;
+      const scorePercent = autoGradedResponses.length > 0 
+        ? Math.round((correctCount / autoGradedResponses.length) * 100) 
+        : 0;
+
+      // Determine tier
+      let tier = "Tier 3";
+      if (scorePercent >= 80) tier = "Tier 1";
+      else if (scorePercent >= 50) tier = "Tier 2";
+
+      // Analyze strengths and weaknesses based on question topics
+      const topicPerformance: Record<string, { correct: number; total: number }> = {};
+      
+      responses.forEach((response) => {
+        const question = questions.find((q) => q.id === response.question_id);
+        if (question?.topic && response.is_correct !== null) {
+          if (!topicPerformance[question.topic]) {
+            topicPerformance[question.topic] = { correct: 0, total: 0 };
+          }
+          topicPerformance[question.topic].total++;
+          if (response.is_correct) {
+            topicPerformance[question.topic].correct++;
+          }
+        }
+      });
+
+      const strengths: string[] = [];
+      const weaknesses: string[] = [];
+      
+      Object.entries(topicPerformance).forEach(([topic, perf]) => {
+        const topicScore = (perf.correct / perf.total) * 100;
+        if (topicScore >= 70) {
+          strengths.push(topic);
+        } else if (topicScore < 50) {
+          weaknesses.push(topic);
+        }
+      });
+
+      // Update attempt with results
+      const { error: updateError } = await supabase
         .from("test_attempts")
-        .update({ completed_at: new Date().toISOString() })
+        .update({
+          completed_at: new Date().toISOString(),
+          score: scorePercent,
+          tier,
+          total_questions: autoGradedResponses.length,
+          correct_answers: correctCount,
+          strengths,
+          weaknesses,
+        })
         .eq("id", attemptId);
 
-      toast.success("Test submitted successfully!");
+      if (updateError) throw updateError;
+
+      // For paid tests, generate certificate and schedule email
+      if (test.is_paid) {
+        // Generate certificate
+        await supabase.functions.invoke("generate-certificate", {
+          body: { attemptId },
+        });
+
+        // Schedule email to be sent after 10 minutes (600000 ms)
+        setTimeout(async () => {
+          await supabase.functions.invoke("send-test-results", {
+            body: { attemptId },
+          });
+        }, 600000);
+
+        toast.success("Test submitted! Certificate will be emailed to your parent in 10 minutes.");
+      } else {
+        toast.success("Test submitted successfully!");
+      }
+
       navigate("/dashboard");
     } catch (error: any) {
+      toast.dismiss();
       toast.error("Failed to submit test");
+      console.error("Submit error:", error);
     }
   };
 

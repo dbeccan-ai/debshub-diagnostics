@@ -51,7 +51,8 @@ const Dashboard = () => {
         .from("test_attempts")
         .select(`
           *,
-          tests (name, test_type)
+          tests (name, test_type),
+          certificates (certificate_url)
         `)
         .eq("user_id", user?.id)
         .order("created_at", { ascending: false });
@@ -166,6 +167,18 @@ const Dashboard = () => {
                         <>
                           <Badge variant="outline">{attempt.tier}</Badge>
                           <span className="font-bold text-lg">{attempt.score}%</span>
+                          {attempt.certificates?.[0]?.certificate_url && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                window.open(attempt.certificates[0].certificate_url, "_blank");
+                              }}
+                            >
+                              View Certificate
+                            </Button>
+                          )}
                         </>
                       ) : (
                         <Badge variant="secondary">In Progress</Badge>
