@@ -7,12 +7,15 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Clock, DollarSign, CheckCircle, ArrowLeft } from "lucide-react";
 import { User } from "@supabase/supabase-js";
+import { GradeSelectionDialog } from "@/components/GradeSelectionDialog";
 
 const Tests = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [tests, setTests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [gradeDialogOpen, setGradeDialogOpen] = useState(false);
+  const [selectedTest, setSelectedTest] = useState<any>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -61,13 +64,25 @@ const Tests = () => {
       return;
     }
 
+    // For paid tests, show grade selection dialog
+    if (test.is_paid) {
+      setSelectedTest(test);
+      setGradeDialogOpen(true);
+    } else {
+      // Free tests don't need grade selection
+      createTestAttempt(test, null);
+    }
+  };
+
+  const createTestAttempt = async (test: any, grade: number | null) => {
     try {
       const { data: attempt, error } = await supabase
         .from("test_attempts")
         .insert({
-          user_id: user.id,
+          user_id: user!.id,
           test_id: test.id,
           payment_status: test.is_paid ? "pending" : "not_required",
+          grade_level: grade,
         })
         .select()
         .single();
@@ -75,13 +90,20 @@ const Tests = () => {
       if (error) throw error;
 
       if (test.is_paid && attempt.payment_status === "pending") {
-        toast.info("Payment required to access this test");
+        toast.info("Proceeding to payment");
         navigate(`/checkout/${attempt.id}`);
       } else {
         navigate(`/test/${attempt.id}`);
       }
     } catch (error: any) {
       toast.error("Failed to start test");
+    }
+  };
+
+  const handleGradeConfirm = (grade: number) => {
+    setGradeDialogOpen(false);
+    if (selectedTest) {
+      createTestAttempt(selectedTest, grade);
     }
   };
 
@@ -130,7 +152,7 @@ const Tests = () => {
                     {test.is_paid ? (
                       <Badge variant="secondary" className="flex items-center gap-1">
                         <DollarSign className="h-3 w-3" />
-                        {test.price}
+                        $99-$120
                       </Badge>
                     ) : (
                       <Badge className="bg-green-500">FREE</Badge>
@@ -170,6 +192,13 @@ const Tests = () => {
           </div>
         )}
       </main>
+      
+      <GradeSelectionDialog
+        open={gradeDialogOpen}
+        onOpenChange={setGradeDialogOpen}
+        onConfirm={handleGradeConfirm}
+        testName={selectedTest?.name || ""}
+      />
     </div>
   );
 };

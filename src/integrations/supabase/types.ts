@@ -58,6 +58,47 @@ export type Database = {
           },
         ]
       }
+      payments: {
+        Row: {
+          amount: number
+          attempt_id: string | null
+          created_at: string | null
+          currency: string | null
+          id: string
+          status: string
+          stripe_payment_intent_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          attempt_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          status: string
+          stripe_payment_intent_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          attempt_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          status?: string
+          stripe_payment_intent_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_attempt_id_fkey"
+            columns: ["attempt_id"]
+            isOneToOne: false
+            referencedRelation: "test_attempts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -87,9 +128,11 @@ export type Database = {
       }
       test_attempts: {
         Row: {
+          amount_paid: number | null
           completed_at: string | null
           correct_answers: number | null
           created_at: string
+          grade_level: number | null
           id: string
           payment_status: string | null
           score: number | null
@@ -102,9 +145,11 @@ export type Database = {
           weaknesses: string[] | null
         }
         Insert: {
+          amount_paid?: number | null
           completed_at?: string | null
           correct_answers?: number | null
           created_at?: string
+          grade_level?: number | null
           id?: string
           payment_status?: string | null
           score?: number | null
@@ -117,9 +162,11 @@ export type Database = {
           weaknesses?: string[] | null
         }
         Update: {
+          amount_paid?: number | null
           completed_at?: string | null
           correct_answers?: number | null
           created_at?: string
+          grade_level?: number | null
           id?: string
           payment_status?: string | null
           score?: number | null
