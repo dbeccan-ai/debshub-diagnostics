@@ -26,7 +26,7 @@ serve(async (req) => {
       .select(`
         *,
         tests (name, test_type),
-        profiles (full_name, parent_email, grade_level)
+        profiles (full_name, parent_email)
       `)
       .eq("id", attemptId)
       .single();
