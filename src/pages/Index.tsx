@@ -1,8 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Clock, DollarSign, CheckCircle } from "lucide-react";
+import { Clock, DollarSign } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -40,97 +40,115 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-      <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto flex items-center justify-between py-4 px-4">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-            DEBs Diagnostic Hub
-          </h1>
-          <Button onClick={() => navigate("/auth")}>
+    <div className="min-h-screen bg-gradient-to-br from-blue-100 via-blue-50 to-yellow-100">
+      {/* Header */}
+      <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200">
+        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
+          <h1 className="text-2xl font-bold text-[#1e3a8a]">DEBs Diagnostic Hub</h1>
+          <Button 
+            onClick={() => navigate("/auth")} 
+            className="bg-[#22c55e] hover:bg-[#16a34a] text-white font-semibold"
+          >
             Sign In
           </Button>
         </div>
       </header>
 
-      <main className="container mx-auto py-12 px-4">
-        <div className="text-center mb-12">
-          <h2 className="text-5xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-            Discover Your Learning Path
+      {/* Hero Section */}
+      <section className="container mx-auto px-6 py-16 text-center">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-5xl font-bold mb-4 text-[#1e3a8a]">
+            DEBs Diagnostic Hub
           </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Take diagnostic tests to identify your strengths and areas for improvement. 
-            Get personalized feedback and certificates.
+          <p className="text-2xl mb-3 text-[#1e3a8a] font-medium">
+            Fast, accurate academic diagnostics for students and parents.
+          </p>
+          <p className="text-lg text-[#1e3a8a]/80 italic">
+            Powered by D.E.Bs LEARNING ACADEMY – Unlocking Brilliance Through Learning
           </p>
         </div>
+      </section>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
+      {/* Main Content */}
+      <main className="container mx-auto px-6 pb-16">
+        <div className="grid md:grid-cols-3 gap-8 mb-16">
           {tests.map((test) => (
-            <Card key={test.id} className="flex flex-col hover:shadow-xl transition-all duration-300 border-2">
-              <CardHeader>
-                <div className="flex items-center justify-between mb-2">
-                  <CardTitle className="text-xl">{test.name}</CardTitle>
-                  {test.isFree ? (
-                    <Badge className="bg-green-500">FREE</Badge>
-                  ) : (
-                    <Badge variant="secondary" className="flex items-center gap-1">
-                      <DollarSign className="h-3 w-3" />
-                      {"priceRange" in test ? test.priceRange : `$${test.price}`}
+            <Card key={test.id} className="flex flex-col bg-white shadow-lg hover:shadow-xl transition-shadow rounded-xl">
+              <CardHeader className="pb-4">
+                <div className="flex items-start justify-between mb-2">
+                  <CardTitle className="text-2xl text-[#1e3a8a]">
+                    {test.name}
+                  </CardTitle>
+                  {test.isFree && (
+                    <Badge className="bg-[#22c55e] text-white font-semibold">
+                      Free
                     </Badge>
                   )}
                 </div>
-                <CardDescription>{test.description}</CardDescription>
+                <CardDescription className="text-[#1e3a8a]/70 text-base">
+                  {test.description}
+                </CardDescription>
               </CardHeader>
-              <CardContent className="flex-1 flex flex-col justify-between">
-                <div className="space-y-3 mb-6">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Clock className="h-4 w-4" />
-                    <span>{test.duration} minutes</span>
+              <CardContent className="flex-1 space-y-4">
+                <div className="flex items-center gap-2 text-[#1e3a8a]">
+                  <Clock className="w-5 h-5" />
+                  <span className="font-semibold">{test.duration} minutes</span>
+                </div>
+                {!test.isFree && (
+                  <div className="flex items-center gap-2 text-[#1e3a8a]">
+                    <DollarSign className="w-5 h-5" />
+                    <span className="font-semibold">{"priceRange" in test ? test.priceRange : `$${test.price}`}</span>
                   </div>
+                )}
+                <div className="pt-2">
                   <ul className="space-y-2">
                     {test.features.map((feature, idx) => (
-                      <li key={idx} className="flex items-start gap-2 text-sm">
-                        <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                      <li key={idx} className="flex items-start gap-2 text-[#1e3a8a]/80">
+                        <span className="text-[#22c55e] font-bold mt-0.5">✓</span>
                         <span>{feature}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
+              </CardContent>
+              <CardFooter className="pt-4">
                 <Button 
-                  className="w-full" 
+                  className="w-full bg-[#22c55e] hover:bg-[#16a34a] text-white font-semibold text-lg py-6"
                   onClick={() => navigate("/auth")}
                 >
                   Get Started
                 </Button>
-              </CardContent>
+              </CardFooter>
             </Card>
           ))}
         </div>
 
-        <div className="mt-16 text-center">
-          <Card className="max-w-2xl mx-auto bg-gradient-to-r from-blue-500 to-indigo-600 text-white border-0">
-            <CardHeader>
-              <CardTitle className="text-2xl text-white">Ready to Begin?</CardTitle>
-              <CardDescription className="text-blue-100">
-                Create your free account and start your first diagnostic test today
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button 
-                size="lg" 
-                variant="secondary"
-                onClick={() => navigate("/auth")}
-                className="bg-white text-indigo-600 hover:bg-gray-100"
-              >
-                Create Free Account
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Call to Action */}
+        <Card className="bg-white shadow-xl rounded-xl border-2 border-[#22c55e]">
+          <CardContent className="p-12 text-center">
+            <h3 className="text-3xl font-bold mb-4 text-[#1e3a8a]">
+              Ready to get started?
+            </h3>
+            <p className="text-[#1e3a8a]/70 text-lg mb-8">
+              Create a free account to access all diagnostic tests
+            </p>
+            <Button 
+              size="lg"
+              className="bg-[#22c55e] hover:bg-[#16a34a] text-white font-semibold text-xl px-12 py-6"
+              onClick={() => navigate("/auth")}
+            >
+              Create Free Account
+            </Button>
+          </CardContent>
+        </Card>
       </main>
 
-      <footer className="border-t mt-16 py-8 bg-white">
-        <div className="container mx-auto text-center text-muted-foreground">
-          <p>© 2024 DEBs Diagnostic Hub. All rights reserved.</p>
+      {/* Footer */}
+      <footer className="bg-white/80 backdrop-blur-sm border-t border-gray-200 py-8">
+        <div className="container mx-auto px-6 text-center">
+          <p className="text-[#1e3a8a]/60">
+            &copy; 2024 D.E.Bs LEARNING ACADEMY. All rights reserved.
+          </p>
         </div>
       </footer>
     </div>
