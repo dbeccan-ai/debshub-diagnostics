@@ -154,7 +154,15 @@ const Dashboard = () => {
                   <div
                     key={attempt.id}
                     className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors cursor-pointer"
-                    onClick={() => navigate(`/results/${attempt.id}`)}
+                    onClick={() => {
+                      if (attempt.completed_at) {
+                        // For completed tests, stay on dashboard (results are shown here)
+                        return;
+                      } else {
+                        // For in-progress tests, resume the test
+                        navigate(`/test/${attempt.id}`);
+                      }
+                    }}
                   >
                     <div>
                       <h3 className="font-semibold">{attempt.tests?.name}</h3>
@@ -181,7 +189,16 @@ const Dashboard = () => {
                           )}
                         </>
                       ) : (
-                        <Badge variant="secondary">In Progress</Badge>
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/test/${attempt.id}`);
+                          }}
+                        >
+                          Resume Test
+                        </Button>
                       )}
                     </div>
                   </div>
