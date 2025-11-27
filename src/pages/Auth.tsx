@@ -10,6 +10,7 @@ import { toast } from "sonner";
 const Auth = () => {
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -78,6 +79,39 @@ const Auth = () => {
     toast.success("Signed out successfully");
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      // Get the parent's email from the username
+      const { data: emailData, error: lookupError } = await supabase
+        .rpc('get_email_from_username', { input_username: username });
+      
+      if (lookupError) throw lookupError;
+      if (!emailData) {
+        toast.error("Username not found");
+        setLoading(false);
+        return;
+      }
+
+      // Send password reset email
+      const { error } = await supabase.auth.resetPasswordForEmail(emailData, {
+        redirectTo: `${window.location.origin}/auth`,
+      });
+
+      if (error) throw error;
+      
+      toast.success("Password reset link sent to parent's email!");
+      setIsForgotPassword(false);
+      setUsername("");
+    } catch (error: any) {
+      toast.error(error.message || "An error occurred");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (isLoggedIn) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
@@ -104,6 +138,55 @@ const Auth = () => {
             >
               Sign Out
             </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (isForgotPassword) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl font-bold text-center">
+              Reset Password
+            </CardTitle>
+            <CardDescription className="text-center">
+              Enter your username to receive a password reset link
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleForgotPassword} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="reset-username">Username</Label>
+                <Input
+                  id="reset-username"
+                  type="text"
+                  placeholder="student123"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                />
+                <p className="text-xs text-muted-foreground">
+                  We'll send a reset link to your parent's email
+                </p>
+              </div>
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "Sending..." : "Send Reset Link"}
+              </Button>
+            </form>
+            <div className="mt-4 text-center text-sm">
+              <button
+                onClick={() => {
+                  setIsForgotPassword(false);
+                  setUsername("");
+                }}
+                className="text-primary hover:underline"
+              >
+                Back to Sign In
+              </button>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -181,10 +264,18 @@ const Auth = () => {
               {loading ? "Loading..." : isLogin ? "Sign In" : "Sign Up"}
             </Button>
           </form>
-          <div className="mt-4 text-center text-sm">
+          <div className="mt-4 space-y-2 text-center text-sm">
+            {isLogin && (
+              <button
+                onClick={() => setIsForgotPassword(true)}
+                className="text-primary hover:underline block w-full"
+              >
+                Forgot Password?
+              </button>
+            )}
             <button
               onClick={() => setIsLogin(!isLogin)}
-              className="text-primary hover:underline"
+              className="text-primary hover:underline block w-full"
             >
               {isLogin
                 ? "Don't have an account? Sign up"
