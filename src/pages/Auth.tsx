@@ -15,14 +15,13 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [parentEmail, setParentEmail] = useState("");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        navigate("/dashboard");
-      }
+      setIsLoggedIn(!!session);
     });
-  }, [navigate]);
+  }, []);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,6 +71,44 @@ const Auth = () => {
       setLoading(false);
     }
   };
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    setIsLoggedIn(false);
+    toast.success("Signed out successfully");
+  };
+
+  if (isLoggedIn) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl font-bold text-center">
+              Already Logged In
+            </CardTitle>
+            <CardDescription className="text-center">
+              You're currently signed in to your account
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Button 
+              onClick={() => navigate("/dashboard")} 
+              className="w-full"
+            >
+              Go to Dashboard
+            </Button>
+            <Button 
+              onClick={handleSignOut} 
+              variant="outline" 
+              className="w-full"
+            >
+              Sign Out
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
