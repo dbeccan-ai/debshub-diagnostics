@@ -197,7 +197,7 @@ const TakeTest = () => {
 
       if (updateError) throw updateError;
 
-      // For paid tests, generate certificate and send email
+      // For paid tests, generate certificate
       if (test.is_paid) {
         const certResponse = await supabase.functions.invoke("generate-certificate", {
           body: { attemptId },
@@ -206,19 +206,18 @@ const TakeTest = () => {
         if (certResponse.error) {
           console.error("Certificate generation error:", certResponse.error);
         }
+      }
 
-        const emailResponse = await supabase.functions.invoke("send-test-results", {
-          body: { attemptId },
-        });
+      // Send email for ALL tests (paid and free)
+      const emailResponse = await supabase.functions.invoke("send-test-results", {
+        body: { attemptId },
+      });
 
-        if (emailResponse.error) {
-          console.error("Email sending error:", emailResponse.error);
-          toast.success("Test submitted! Certificate generated.");
-        } else {
-          toast.success("Test submitted! Certificate and results emailed to your parent.");
-        }
+      if (emailResponse.error) {
+        console.error("Email sending error:", emailResponse.error);
+        toast.success("Test submitted! Results will be emailed shortly.");
       } else {
-        toast.success("Test submitted successfully!");
+        toast.success("Test submitted! Results emailed to your parent.");
       }
 
       navigate("/dashboard");

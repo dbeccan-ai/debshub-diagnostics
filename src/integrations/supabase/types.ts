@@ -132,6 +132,7 @@ export type Database = {
           completed_at: string | null
           correct_answers: number | null
           created_at: string
+          email_status: string | null
           grade_level: number | null
           id: string
           payment_status: string | null
@@ -149,6 +150,7 @@ export type Database = {
           completed_at?: string | null
           correct_answers?: number | null
           created_at?: string
+          email_status?: string | null
           grade_level?: number | null
           id?: string
           payment_status?: string | null
@@ -166,6 +168,7 @@ export type Database = {
           completed_at?: string | null
           correct_answers?: number | null
           created_at?: string
+          email_status?: string | null
           grade_level?: number | null
           id?: string
           payment_status?: string | null
