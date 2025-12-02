@@ -13,7 +13,7 @@ type TestStatus = "In Progress" | "Completed" | "Payment Pending";
 interface DashboardAttempt {
   id: string;
   test_id: string;
-  grade_level: string | null;
+  grade_level: number | null;
   completed_at: string | null;
   created_at: string | null;
   payment_status: "pending" | "completed" | null;
@@ -21,12 +21,11 @@ interface DashboardAttempt {
   tier: string | null;
   total_questions: number | null;
   correct_answers: number | null;
-  certificate_url?: string | null;
+  
   // You can add strengths / weaknesses display later if you want
   tests?: {
     id: string;
     name: string;
-    subject?: string | null;
     duration_minutes?: number | null;
     is_paid?: boolean | null;
   } | null;
@@ -70,9 +69,8 @@ const Dashboard = () => {
           console.error("Profile error:", profileError);
         }
 
-        const nameFromProfile =
-          (profileData && (profileData.full_name || profileData.first_name)) || user.email || "there";
-        setProfileName(nameFromProfile as string);
+        const nameFromProfile = profileData?.full_name || user.email || "there";
+        setProfileName(nameFromProfile);
 
         // 3) Load all this user's test attempts + linked test info
         const { data: attemptsData, error: attemptsError } = await supabase
@@ -89,11 +87,9 @@ const Dashboard = () => {
             tier,
             total_questions,
             correct_answers,
-            certificate_url,
             tests:test_id (
               id,
               name,
-              subject,
               duration_minutes,
               is_paid
             )
@@ -166,13 +162,8 @@ const Dashboard = () => {
   };
 
   const handleDownload = (attempt: DashboardAttempt) => {
-    // Adjust this based on how you actually store certificate / PDF URLs.
-    const url = attempt.certificate_url;
-    if (!url) {
-      toast.info("Download not available yet. Please check your email for the report.");
-      return;
-    }
-    window.open(url, "_blank", "noopener,noreferrer");
+    // Certificate URLs are stored in the certificates table, not test_attempts
+    toast.info("Download not available yet. Please check your email for the report.");
   };
 
   const formatDate = (iso: string | null) => {
@@ -335,7 +326,6 @@ const Dashboard = () => {
                       <div>
                         <div className="text-sm font-semibold text-slate-900">{test?.name || "Diagnostic Test"}</div>
                         <div className="mt-0.5 text-[11px] text-slate-500">
-                          {test?.subject ? `${test.subject} · ` : ""}
                           {attempt.grade_level ? `Grade ${attempt.grade_level} · ` : ""}
                           {tierLabel && (
                             <span
