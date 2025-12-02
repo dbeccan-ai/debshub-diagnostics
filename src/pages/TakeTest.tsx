@@ -263,6 +263,15 @@ const TakeTest = () => {
   }
 
   const currentQuestion = questions[currentQuestionIndex];
+  
+  if (!currentQuestion) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-100 via-blue-50 to-yellow-100">
+        <p className="text-lg text-[#1e3a8a]">Loading question...</p>
+      </div>
+    );
+  }
+  
   const isLastQuestion = currentQuestionIndex === questions.length - 1;
   const unansweredCount = questions.length - Object.keys(answers).length;
 
