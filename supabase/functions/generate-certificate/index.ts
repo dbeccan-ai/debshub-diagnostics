@@ -35,11 +35,11 @@ serve(async (req) => {
       throw new Error("Test attempt not found");
     }
 
-    // Determine tier badge color
-    const tierColors: { [key: string]: { border: string; bg: string; text: string } } = {
-      "Tier 1": { border: "#FFD700", bg: "#FFF9E6", text: "#B8860B" }, // Gold
-      "Tier 2": { border: "#C0C0C0", bg: "#F5F5F5", text: "#696969" }, // Silver
-      "Tier 3": { border: "#CD7F32", bg: "#FFF5E6", text: "#8B4513" }, // Bronze
+    // Determine tier badge color - Green for Tier 1, Yellow for Tier 2, Red for Tier 3
+    const tierColors: { [key: string]: { border: string; bg: string; text: string; primary: string } } = {
+      "Tier 1": { border: "#22c55e", bg: "#dcfce7", text: "#166534", primary: "#22c55e" }, // Green
+      "Tier 2": { border: "#eab308", bg: "#fef9c3", text: "#854d0e", primary: "#eab308" }, // Yellow
+      "Tier 3": { border: "#ef4444", bg: "#fee2e2", text: "#991b1b", primary: "#ef4444" }, // Red
     };
 
     const tierColor = tierColors[attempt.tier || "Tier 3"];
