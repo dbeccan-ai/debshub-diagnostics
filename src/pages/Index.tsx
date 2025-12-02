@@ -33,9 +33,9 @@ export default function Page() {
 
           {/* Auth buttons */}
           <div className="flex items-center gap-3">
-            <button className="hidden sm:inline-flex px-3 py-1.5 text-sm font-medium rounded-full border border-slate-300 text-slate-700 hover:bg-slate-50">
+            <a href="/auth" className="hidden sm:inline-flex px-3 py-1.5 text-sm font-medium rounded-full border border-slate-300 text-slate-700 hover:bg-slate-50">
               Log in
-            </button>
+            </a>
             <a
               href="#cta"
               className="inline-flex px-4 py-1.5 text-sm font-semibold rounded-full bg-slate-900 text-white hover:bg-slate-800"
