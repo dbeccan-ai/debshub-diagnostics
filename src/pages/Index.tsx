@@ -123,36 +123,41 @@ export default function Page() {
                 <div className="grid gap-3">
                   {/* Card 1 */}
                   <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50">
-                    <div>
-                      <div className="text-xs font-semibold text-slate-700">Observation Quiz</div>
-                      <div className="text-[11px] text-slate-500">45-minute snapshot · Grades 1–12</div>
-                    </div>
-                    <button className="px-3 py-1 text-[11px] font-semibold rounded-full bg-slate-900 text-white">
-                      View
-                    </button>
-                  </div>
+  <div>
+    <div className="text-xs font-semibold text-slate-700">Observation Quiz</div>
+    <div className="text-[11px] text-slate-500">45-minute snapshot · Grades 1–12</div>
+  </div>
+  <a
+    href="/observation-quiz"
+    className="px-3 py-1 text-[11px] font-semibold rounded-full bg-slate-900 text-white hover:bg-slate-800"
+  >
+    View
+  </a>
+</div>
                   {/* Card 2 */}
                   <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50">
                     <div>
                       <div className="text-xs font-semibold text-slate-700">Math Diagnostic Test</div>
                       <div className="text-[11px] text-slate-500">90-minute adaptive · Grades 1–12</div>
                     </div>
-                    <button className="px-3 py-1 text-[11px] font-semibold rounded-full border border-slate-300 text-slate-700">
-                      Run
-                    </button>
-                  </div>
+                  <a
+    href="/math-diagnostic"
+    className="px-3 py-1 text-[11px] font-semibold rounded-full border border-slate-300 text-slate-700 hover:bg-slate-50"
+  >
+    Run
+  </a>
                   {/* Card 3 */}
                   <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50">
                     <div>
                       <div className="text-xs font-semibold text-slate-700">ELA Diagnostic Test</div>
                       <div className="text-[11px] text-slate-500">90-minute reading & writing · Grades 1–12</div>
                     </div>
-                    <button className="px-3 py-1 text-[11px] font-semibold rounded-full border border-slate-300 text-slate-700">
-                      Run
-                    </button>
-                  </div>
-                </div>
-
+  <a
+    href="/ela-diagnostic"
+    className="px-3 py-1 text-[11px] font-semibold rounded-full border border-slate-300 text-slate-700 hover:bg-slate-50"
+  >
+    Run
+  </a>
                 <div className="mt-4 border-t border-slate-100 pt-3 flex items-center justify-between">
                   <div className="text-[11px] text-slate-500">
                     Auto-places students into{" "}
