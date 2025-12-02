@@ -47,11 +47,11 @@ serve(async (req) => {
       throw new Error("Test is not completed yet");
     }
 
-    // Determine tier colors
+    // Determine tier colors - Green for Tier 1, Yellow for Tier 2, Red for Tier 3
     const tierColors: { [key: string]: { primary: string; border: string; bg: string } } = {
-      "Tier 1": { primary: "#10b981", border: "#ffd700", bg: "#d1fae5" },
-      "Tier 2": { primary: "#f59e0b", border: "#c0c0c0", bg: "#fef3c7" },
-      "Tier 3": { primary: "#ef4444", border: "#cd7f32", bg: "#fee2e2" },
+      "Tier 1": { primary: "#22c55e", border: "#22c55e", bg: "#dcfce7" }, // Green
+      "Tier 2": { primary: "#eab308", border: "#eab308", bg: "#fef9c3" }, // Yellow
+      "Tier 3": { primary: "#ef4444", border: "#ef4444", bg: "#fee2e2" }, // Red
     };
 
     const tierColor = tierColors[attempt.tier || "Tier 3"];
