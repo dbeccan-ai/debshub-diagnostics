@@ -188,13 +188,34 @@ const Dashboard = () => {
     }
   };
 
-  const handleDownload = (attempt: DashboardAttempt) => {
-    const url = attempt.certificate_url;
-    if (!url) {
-      toast.info("Download not available yet. Please check your email for the report.");
-      return;
+  const handleDownload = async (attempt: DashboardAttempt) => {
+    try {
+      toast.loading("Generating PDF...", { id: "pdf-download" });
+
+      const { data, error } = await supabase.functions.invoke("generate-result-download", {
+        body: { attemptId: attempt.id, format: "pdf" },
+      });
+
+      if (error) throw new Error(error.message);
+
+      const htmlUrl = data?.htmlUrl || data?.url;
+      if (!htmlUrl) throw new Error("Could not generate result");
+
+      // Open print dialog which allows save as PDF
+      const printWindow = window.open(htmlUrl, "_blank");
+      if (printWindow) {
+        printWindow.onload = () => {
+          setTimeout(() => {
+            printWindow.print();
+          }, 500);
+        };
+      }
+
+      toast.success("Result opened! Use Print > Save as PDF to download.", { id: "pdf-download" });
+    } catch (err) {
+      console.error("Download error:", err);
+      toast.error("Failed to download. Please try again.", { id: "pdf-download" });
     }
-    window.open(url, "_blank", "noopener,noreferrer");
   };
 
   const formatDate = (iso: string | null) => {
