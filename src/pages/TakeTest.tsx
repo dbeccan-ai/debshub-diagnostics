@@ -252,7 +252,16 @@ const TakeTest = () => {
     return null;
   }
 
-  const questions = test.questions as any[];
+  const questions = (test.questions as any[]) || [];
+  
+  if (questions.length === 0) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-100 via-blue-50 to-yellow-100">
+        <p className="text-lg text-[#1e3a8a]">No questions found for this test.</p>
+      </div>
+    );
+  }
+
   const currentQuestion = questions[currentQuestionIndex];
   const isLastQuestion = currentQuestionIndex === questions.length - 1;
   const unansweredCount = questions.length - Object.keys(answers).length;
