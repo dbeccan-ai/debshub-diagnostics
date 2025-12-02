@@ -21,8 +21,7 @@ interface DashboardAttempt {
   tier: string | null;
   total_questions: number | null;
   correct_answers: number | null;
-  
-  // You can add strengths / weaknesses display later if you want
+  certificate_url?: string | null;
   tests?: {
     id: string;
     name: string;
@@ -104,7 +103,35 @@ const Dashboard = () => {
           return;
         }
 
-        setAttempts((attemptsData || []) as DashboardAttempt[]);
+        // 4) Fetch certificate URLs for completed attempts
+        const completedAttemptIds = (attemptsData || [])
+          .filter((a: any) => a.completed_at)
+          .map((a: any) => a.id);
+
+        let certificateMap: Record<string, string> = {};
+        if (completedAttemptIds.length > 0) {
+          const { data: certsData } = await supabase
+            .from("certificates")
+            .select("attempt_id, certificate_url")
+            .in("attempt_id", completedAttemptIds);
+
+          if (certsData) {
+            certificateMap = certsData.reduce((acc: Record<string, string>, cert) => {
+              if (cert.certificate_url) {
+                acc[cert.attempt_id] = cert.certificate_url;
+              }
+              return acc;
+            }, {});
+          }
+        }
+
+        // Merge certificate URLs into attempts
+        const attemptsWithCerts = (attemptsData || []).map((a: any) => ({
+          ...a,
+          certificate_url: certificateMap[a.id] || null,
+        }));
+
+        setAttempts(attemptsWithCerts as DashboardAttempt[]);
       } catch (err) {
         console.error("Dashboard load error:", err);
         toast.error("Something went wrong loading your dashboard.");
@@ -162,8 +189,12 @@ const Dashboard = () => {
   };
 
   const handleDownload = (attempt: DashboardAttempt) => {
-    // Certificate URLs are stored in the certificates table, not test_attempts
-    toast.info("Download not available yet. Please check your email for the report.");
+    const url = attempt.certificate_url;
+    if (!url) {
+      toast.info("Download not available yet. Please check your email for the report.");
+      return;
+    }
+    window.open(url, "_blank", "noopener,noreferrer");
   };
 
   const formatDate = (iso: string | null) => {
