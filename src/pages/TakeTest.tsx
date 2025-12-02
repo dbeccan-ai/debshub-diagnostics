@@ -121,7 +121,11 @@ const TakeTest = () => {
     try {
       toast.loading("Submitting test...");
 
-      const questions = test.questions as any[];
+      // Handle both array and nested object structures for questions
+      const rawQuestions = test.questions;
+      const questions = Array.isArray(rawQuestions) 
+        ? rawQuestions 
+        : (rawQuestions?.questions as any[] || []);
       
       // Save all responses and calculate score
       const responses = Object.entries(answers).map(([questionId, answer]) => {
@@ -252,7 +256,11 @@ const TakeTest = () => {
     return null;
   }
 
-  const questions = (test.questions as any[]) || [];
+  // Handle both array and nested object structures for questions
+  const rawQuestions = test.questions;
+  const questions = Array.isArray(rawQuestions) 
+    ? rawQuestions 
+    : (rawQuestions?.questions as any[] || []);
   
   if (questions.length === 0) {
     return (
