@@ -1,421 +1,460 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { User, Session } from "@supabase/supabase-js";
-import { MailCheck, Clock, MailX, Download } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
+import { Activity, Target, Users } from "lucide-react";
+
+type Tier = "Tier 1" | "Tier 2" | "Tier 3";
+type TestStatus = "In Progress" | "Completed" | "Payment Pending";
+
+interface DashboardAttempt {
+  id: string;
+  test_id: string;
+  grade_level: string | null;
+  completed_at: string | null;
+  created_at: string | null;
+  payment_status: "pending" | "completed" | null;
+  score: number | null;
+  tier: string | null;
+  total_questions: number | null;
+  correct_answers: number | null;
+  certificate_url?: string | null;
+  // You can add strengths / weaknesses display later if you want
+  tests?: {
+    id: string;
+    name: string;
+    subject?: string | null;
+    duration_minutes?: number | null;
+    is_paid?: boolean | null;
+  } | null;
+}
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [profile, setProfile] = useState<any>(null);
-  const [attempts, setAttempts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [profileName, setProfileName] = useState<string>("there");
+  const [attempts, setAttempts] = useState<DashboardAttempt[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-    });
+    const loadDashboard = async () => {
+      try {
+        setLoading(true);
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-    });
+        // 1) Make sure user is signed in
+        const {
+          data: { user },
+          error: userError,
+        } = await supabase.auth.getUser();
 
-    return () => subscription.unsubscribe();
-  }, []);
+        if (userError) {
+          console.error(userError);
+        }
 
-  useEffect(() => {
-    if (user) {
-      fetchDashboardData();
-    } else if (!loading) {
-      navigate("/auth");
-    }
-  }, [user, navigate]);
+        if (!user) {
+          toast.error("Please sign in to view your dashboard.");
+          navigate("/auth");
+          return;
+        }
 
-  const fetchDashboardData = async () => {
-    try {
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user?.id)
-        .single();
-      
-      setProfile(profileData);
+        // 2) Get profile for greeting (full_name or fallback)
+        const { data: profileData, error: profileError } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", user.id)
+          .single();
 
-      const { data: attemptsData } = await supabase
-        .from("test_attempts")
-        .select(`
-          *,
-          tests (name, test_type),
-          certificates (certificate_url)
-        `)
-        .eq("user_id", user?.id)
-        .order("created_at", { ascending: false });
-      
-      setAttempts(attemptsData || []);
-    } catch (error: any) {
-      toast.error("Failed to load dashboard data");
-    } finally {
-      setLoading(false);
+        if (profileError) {
+          console.error("Profile error:", profileError);
+        }
+
+        const nameFromProfile =
+          (profileData && (profileData.full_name || profileData.first_name)) || user.email || "there";
+        setProfileName(nameFromProfile as string);
+
+        // 3) Load all this user's test attempts + linked test info
+        const { data: attemptsData, error: attemptsError } = await supabase
+          .from("test_attempts")
+          .select(
+            `
+            id,
+            test_id,
+            grade_level,
+            completed_at,
+            created_at,
+            payment_status,
+            score,
+            tier,
+            total_questions,
+            correct_answers,
+            certificate_url,
+            tests:test_id (
+              id,
+              name,
+              subject,
+              duration_minutes,
+              is_paid
+            )
+          `,
+          )
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false });
+
+        if (attemptsError) {
+          console.error("Attempts error:", attemptsError);
+          toast.error("Could not load your diagnostic history.");
+          return;
+        }
+
+        setAttempts((attemptsData || []) as DashboardAttempt[]);
+      } catch (err) {
+        console.error("Dashboard load error:", err);
+        toast.error("Something went wrong loading your dashboard.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDashboard();
+  }, [navigate]);
+
+  const completedAttempts = attempts.filter((a) => a.completed_at);
+  const inProgressAttempts = attempts.filter((a) => !a.completed_at && a.payment_status === "completed");
+  const pendingPaymentAttempts = attempts.filter((a) => a.payment_status === "pending" && !a.completed_at);
+
+  const getStatus = (attempt: DashboardAttempt): TestStatus => {
+    if (attempt.completed_at) return "Completed";
+    if (attempt.payment_status === "pending") return "Payment Pending";
+    return "In Progress";
+  };
+
+  const statusBadgeColor = (status: TestStatus) => {
+    switch (status) {
+      case "Completed":
+        return "border-emerald-200 bg-emerald-50 text-emerald-800";
+      case "In Progress":
+        return "border-amber-200 bg-amber-50 text-amber-800";
+      case "Payment Pending":
+        return "border-sky-200 bg-sky-50 text-sky-800";
+      default:
+        return "border-slate-200 bg-slate-50 text-slate-700";
     }
   };
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/");
+  const handlePrimaryAction = (attempt: DashboardAttempt) => {
+    const status = getStatus(attempt);
+
+    if (status === "Payment Pending") {
+      navigate(`/checkout/${attempt.id}`);
+      return;
+    }
+
+    if (status === "In Progress") {
+      navigate(`/test/${attempt.id}`);
+      return;
+    }
+
+    if (status === "Completed") {
+      // For now, go back to dashboard or later to /results/:id
+      // You can create /results/:attemptId page and update this.
+      toast.info("Opening latest results…");
+      // Example future route:
+      // navigate(`/results/${attempt.id}`);
+    }
   };
 
-  const handleDownloadResult = async (attemptId: string, format: "pdf" | "png") => {
-    try {
-      toast.loading(`Generating ${format.toUpperCase()}...`);
-
-      // Call edge function to get the HTML
-      const { data, error } = await supabase.functions.invoke("generate-result-download", {
-        body: { attemptId, format },
-      });
-
-      if (error) throw error;
-
-      // Create a temporary container to render the HTML
-      const container = document.createElement("div");
-      container.style.position = "absolute";
-      container.style.left = "-9999px";
-      container.style.width = "800px";
-      container.innerHTML = data.html;
-      document.body.appendChild(container);
-
-      // Wait for rendering
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      // Find both pages
-      const page1 = container.querySelector(".page");
-      const page2 = container.querySelector(".report-page");
-
-      if (!page1 || !page2) {
-        throw new Error("Could not find both pages in the result HTML");
-      }
-
-      // Generate the output based on format
-      if (format === "png") {
-        // Capture both pages separately
-        const canvas1 = await html2canvas(page1 as HTMLElement, {
-          scale: 2,
-          backgroundColor: "#ffffff",
-          logging: false,
-          windowWidth: 800,
-        });
-
-        const canvas2 = await html2canvas(page2 as HTMLElement, {
-          scale: 2,
-          backgroundColor: "#ffffff",
-          logging: false,
-          windowWidth: 800,
-        });
-
-        // Combine both canvases vertically with spacing
-        const spacing = 40; // 20px gap between pages
-        const combinedCanvas = document.createElement("canvas");
-        combinedCanvas.width = Math.max(canvas1.width, canvas2.width);
-        combinedCanvas.height = canvas1.height + canvas2.height + spacing;
-        
-        const ctx = combinedCanvas.getContext("2d");
-        if (ctx) {
-          ctx.fillStyle = "#ffffff";
-          ctx.fillRect(0, 0, combinedCanvas.width, combinedCanvas.height);
-          ctx.drawImage(canvas1, 0, 0);
-          ctx.drawImage(canvas2, 0, canvas1.height + spacing);
-        }
-
-        combinedCanvas.toBlob((blob) => {
-          if (blob) {
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.href = url;
-            link.download = `test-result-${attemptId}.png`;
-            link.click();
-            URL.revokeObjectURL(url);
-            toast.dismiss();
-            toast.success("Image downloaded successfully!");
-          }
-        });
-      } else if (format === "pdf") {
-        // Capture each page separately for PDF
-        const canvas1 = await html2canvas(page1 as HTMLElement, {
-          scale: 2,
-          backgroundColor: "#ffffff",
-          logging: false,
-          windowWidth: 800,
-        });
-
-        const canvas2 = await html2canvas(page2 as HTMLElement, {
-          scale: 2,
-          backgroundColor: "#ffffff",
-          logging: false,
-          windowWidth: 800,
-        });
-
-        const pdf = new jsPDF({
-          orientation: "portrait",
-          unit: "mm",
-          format: "a4",
-        });
-
-        const imgWidth = 210; // A4 width in mm
-        const pageHeight = 297; // A4 height in mm
-
-        // Add first page
-        const imgData1 = canvas1.toDataURL("image/png");
-        const imgHeight1 = (canvas1.height * imgWidth) / canvas1.width;
-        let heightLeft1 = imgHeight1;
-        let position1 = 0;
-
-        pdf.addImage(imgData1, "PNG", 0, position1, imgWidth, imgHeight1);
-        heightLeft1 -= pageHeight;
-
-        // Add additional pages if page 1 content is too tall
-        while (heightLeft1 > 0) {
-          position1 = heightLeft1 - imgHeight1;
-          pdf.addPage();
-          pdf.addImage(imgData1, "PNG", 0, position1, imgWidth, imgHeight1);
-          heightLeft1 -= pageHeight;
-        }
-
-        // Add second page
-        const imgData2 = canvas2.toDataURL("image/png");
-        const imgHeight2 = (canvas2.height * imgWidth) / canvas2.width;
-        let heightLeft2 = imgHeight2;
-        let position2 = 0;
-
-        pdf.addPage();
-        pdf.addImage(imgData2, "PNG", 0, position2, imgWidth, imgHeight2);
-        heightLeft2 -= pageHeight;
-
-        // Add additional pages if page 2 content is too tall
-        while (heightLeft2 > 0) {
-          position2 = heightLeft2 - imgHeight2;
-          pdf.addPage();
-          pdf.addImage(imgData2, "PNG", 0, position2, imgWidth, imgHeight2);
-          heightLeft2 -= pageHeight;
-        }
-
-        pdf.save(`test-result-${attemptId}.pdf`);
-        toast.dismiss();
-        toast.success("PDF downloaded successfully!");
-      }
-
-      // Cleanup
-      document.body.removeChild(container);
-    } catch (error: any) {
-      toast.dismiss();
-      toast.error("Failed to download result");
-      console.error("Download error:", error);
+  const handleDownload = (attempt: DashboardAttempt) => {
+    // Adjust this based on how you actually store certificate / PDF URLs.
+    const url = attempt.certificate_url;
+    if (!url) {
+      toast.info("Download not available yet. Please check your email for the report.");
+      return;
     }
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
+
+  const formatDate = (iso: string | null) => {
+    if (!iso) return "—";
+    const d = new Date(iso);
+    return d.toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  const formatScore = (attempt: DashboardAttempt) => {
+    if (attempt.score == null) return "—";
+    return `${attempt.score}%`;
   };
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-muted-foreground">Loading...</p>
+      <div className="flex min-h-screen items-center justify-center bg-slate-50">
+        <p className="text-sm font-medium text-slate-600">Loading your diagnostic dashboard…</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b bg-card">
-        <div className="container mx-auto flex items-center justify-between py-4 px-4">
-          <h1 className="text-2xl font-bold text-primary">DEBs Diagnostic Hub</h1>
-          <Button variant="outline" onClick={handleLogout}>
-            Logout
+    <div className="min-h-screen bg-slate-50">
+      {/* Top bar */}
+      <header className="border-b border-slate-200 bg-white">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-2">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-amber-300 to-yellow-400 text-xs font-bold text-slate-900">
+              DEB
+            </div>
+            <div className="leading-tight">
+              <div className="text-sm font-bold text-slate-900">D.E.Bs LEARNING ACADEMY</div>
+              <div className="text-[11px] text-slate-500">DEBs Diagnostic Hub</div>
+            </div>
+          </div>
+
+          <Button
+            variant="outline"
+            size="sm"
+            className="border-slate-300 text-xs font-semibold text-slate-700"
+            onClick={() => navigate("/tests")}
+          >
+            New diagnostic
           </Button>
         </div>
       </header>
 
-      <main className="container mx-auto py-8 px-4">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold mb-2">Welcome, {profile?.full_name}!</h2>
-          <p className="text-muted-foreground">Track your progress and view your test history</p>
+      <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
+        {/* Greeting + quick actions */}
+        <div className="mb-6 flex flex-col gap-3 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">Welcome back, {profileName}.</h1>
+            <p className="mt-1 text-sm text-slate-500">
+              This is your diagnostic home base — see tests in progress, completed results, and what each tier means.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              size="sm"
+              className="bg-slate-900 text-xs font-semibold text-white hover:bg-slate-800"
+              onClick={() => navigate("/tests")}
+            >
+              Start a new test
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-slate-300 text-xs font-semibold text-slate-700"
+              onClick={() => navigate("/")}
+            >
+              Back to info page
+            </Button>
+          </div>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate("/tests")}>
-            <CardHeader>
-              <CardTitle>Take a Test</CardTitle>
-              <CardDescription>Start a new diagnostic test</CardDescription>
+        {/* Top stats */}
+        <div className="mb-6 grid gap-4 sm:grid-cols-3">
+          <Card className="border-slate-200">
+            <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
+              <div>
+                <CardTitle className="text-xs font-medium text-slate-800">Diagnostics completed</CardTitle>
+                <CardDescription className="text-[11px]">
+                  Finished tests with full reports and tier placement.
+                </CardDescription>
+              </div>
+              <Activity className="h-4 w-4 text-emerald-500" />
             </CardHeader>
             <CardContent>
-              <Button className="w-full">Browse Tests</Button>
+              <div className="text-2xl font-bold text-slate-900">{completedAttempts.length}</div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Tests Completed</CardTitle>
-              <CardDescription>Your total attempts</CardDescription>
+          <Card className="border-slate-200">
+            <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
+              <div>
+                <CardTitle className="text-xs font-medium text-slate-800">Tests in progress</CardTitle>
+                <CardDescription className="text-[11px]">
+                  You can pause and resume within the test windows.
+                </CardDescription>
+              </div>
+              <Target className="h-4 w-4 text-amber-500" />
             </CardHeader>
             <CardContent>
-              <p className="text-4xl font-bold text-primary">
-                {attempts.filter(a => a.completed_at).length}
-              </p>
+              <div className="text-2xl font-bold text-slate-900">{inProgressAttempts.length}</div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Average Score</CardTitle>
-              <CardDescription>Across all tests</CardDescription>
+          <Card className="border-slate-200">
+            <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
+              <div>
+                <CardTitle className="text-xs font-medium text-slate-800">Students / account</CardTitle>
+                <CardDescription className="text-[11px]">
+                  Right now this dashboard shows all attempts under your login.
+                </CardDescription>
+              </div>
+              <Users className="h-4 w-4 text-sky-500" />
             </CardHeader>
             <CardContent>
-              <p className="text-4xl font-bold text-primary">
-                {attempts.filter(a => a.score).length > 0
-                  ? Math.round(
-                      attempts
-                        .filter(a => a.score)
-                        .reduce((sum, a) => sum + parseFloat(a.score), 0) /
-                        attempts.filter(a => a.score).length
-                    )
-                  : 0}%
-              </p>
+              <div className="text-2xl font-bold text-slate-900">
+                {attempts.length > 0 ? 1 : 0}
+                <span className="ml-1 text-xs font-normal text-slate-400">profile</span>
+              </div>
             </CardContent>
           </Card>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Test History</CardTitle>
-            <CardDescription>Your recent test attempts</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {attempts.length === 0 ? (
-              <p className="text-muted-foreground text-center py-8">
-                No tests taken yet. Start your first test!
-              </p>
-            ) : (
-              <div className="space-y-4">
-                {attempts.map((attempt) => (
-                  <div
-                    key={attempt.id}
-                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors cursor-pointer"
-                    onClick={() => {
-                      if (attempt.completed_at) {
-                        // For completed tests, stay on dashboard (results are shown here)
-                        return;
-                      } else {
-                        // For in-progress tests, resume the test
-                        navigate(`/test/${attempt.id}`);
-                      }
-                    }}
-                  >
-                    <div>
-                      <h3 className="font-semibold">{attempt.tests?.name}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {new Date(attempt.started_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      {attempt.completed_at ? (
-                        <>
-                          <Badge variant="outline">{attempt.tier}</Badge>
-                          <span className="font-bold text-lg">{attempt.score}%</span>
-                          {attempt.certificates?.[0]?.certificate_url && (
+        {/* Main layout: My tests + Tiers explainer */}
+        <div className="grid gap-6 lg:grid-cols-3">
+          {/* My tests */}
+          <div className="space-y-4 lg:col-span-2">
+            <Card className="border-slate-200">
+              <CardHeader className="border-b border-slate-100 pb-3">
+                <CardTitle className="text-sm font-semibold text-slate-900">My diagnostic tests</CardTitle>
+                <CardDescription className="text-xs text-slate-500">
+                  These are the tests associated with your account — finished, in-progress, or waiting on payment.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3 pt-4 text-xs">
+                {attempts.length === 0 && (
+                  <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center text-xs text-slate-500">
+                    You don’t have any diagnostic attempts yet. Start with a Math, ELA, or Observation test to see your
+                    results here.
+                  </div>
+                )}
+
+                {attempts.map((attempt) => {
+                  const test = attempt.tests;
+                  const status = getStatus(attempt);
+                  const tierLabel = attempt.tier as Tier | null;
+
+                  return (
+                    <div
+                      key={attempt.id}
+                      className="flex flex-col gap-2 rounded-lg border border-slate-200 bg-white p-3 sm:flex-row sm:items-center sm:justify-between"
+                    >
+                      <div>
+                        <div className="text-sm font-semibold text-slate-900">{test?.name || "Diagnostic Test"}</div>
+                        <div className="mt-0.5 text-[11px] text-slate-500">
+                          {test?.subject ? `${test.subject} · ` : ""}
+                          {attempt.grade_level ? `Grade ${attempt.grade_level} · ` : ""}
+                          {tierLabel && (
+                            <span
+                              className={`ml-1 inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] ${
+                                tierLabel === "Tier 1"
+                                  ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                                  : tierLabel === "Tier 2"
+                                    ? "border-amber-200 bg-amber-50 text-amber-800"
+                                    : "border-red-200 bg-red-50 text-red-800"
+                              }`}
+                            >
+                              {tierLabel}
+                            </span>
+                          )}
+                          {attempt.score != null && (
+                            <span className="ml-2 font-medium text-slate-700">Score: {formatScore(attempt)}</span>
+                          )}
+                        </div>
+                        <div className="mt-0.5 text-[11px] text-slate-400">
+                          {attempt.completed_at
+                            ? `Completed · ${formatDate(attempt.completed_at)}`
+                            : `Started · ${formatDate(attempt.created_at)}`}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 sm:flex-col sm:items-end">
+                        <Badge
+                          variant="outline"
+                          className={`border px-2 py-0.5 text-[11px] ${statusBadgeColor(status)}`}
+                        >
+                          {status}
+                        </Badge>
+
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            className={`h-7 px-3 text-[11px] ${
+                              status === "In Progress"
+                                ? "bg-amber-500 text-white hover:bg-amber-600"
+                                : status === "Payment Pending"
+                                  ? "bg-sky-500 text-white hover:bg-sky-600"
+                                  : "bg-slate-900 text-white hover:bg-slate-800"
+                            }`}
+                            onClick={() => handlePrimaryAction(attempt)}
+                          >
+                            {status === "In Progress"
+                              ? "Resume test"
+                              : status === "Payment Pending"
+                                ? "Complete payment"
+                                : "View summary"}
+                          </Button>
+
+                          {status === "Completed" && (
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                window.open(attempt.certificates[0].certificate_url, "_blank");
-                              }}
+                              className="h-7 px-3 text-[11px] border-slate-300 text-slate-700 hover:bg-slate-50"
+                              onClick={() => handleDownload(attempt)}
                             >
-                              View Certificate
+                              Download result
                             </Button>
                           )}
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <div className="flex items-center">
-                                  {attempt.email_status === "sent" && (
-                                    <MailCheck className="w-5 h-5 text-green-600" />
-                                  )}
-                                  {attempt.email_status === "pending" && (
-                                    <Clock className="w-5 h-5 text-yellow-600" />
-                                  )}
-                                  {attempt.email_status === "failed" && (
-                                    <MailX className="w-5 h-5 text-red-600" />
-                                  )}
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                {attempt.email_status === "sent" && "Email Sent"}
-                                {attempt.email_status === "pending" && "Pending Email"}
-                                {attempt.email_status === "failed" && "Email not delivered"}
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <Download className="w-4 h-4 mr-2" />
-                                Download
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent>
-                              <DropdownMenuItem
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDownloadResult(attempt.id, "pdf");
-                                }}
-                              >
-                                Download as PDF
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDownloadResult(attempt.id, "png");
-                                }}
-                              >
-                                Download as Image
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </>
-                      ) : (
-                        <Button
-                          variant="default"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(`/test/${attempt.id}`);
-                          }}
-                        >
-                          Resume Test
-                        </Button>
-                      )}
+                        </div>
+                      </div>
                     </div>
+                  );
+                })}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Tiers explainer */}
+          <div className="space-y-4">
+            <Card className="border-slate-200">
+              <CardHeader className="border-b border-slate-100 pb-3">
+                <CardTitle className="text-sm font-semibold text-slate-900">What your tiers actually mean</CardTitle>
+                <CardDescription className="text-xs text-slate-500">
+                  Every diagnostic attempt ends with a Tier, so you know how much support is really needed.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3 pt-4 text-[11px]">
+                <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3">
+                  <div className="mb-1 flex items-center justify-between">
+                    <span className="font-semibold text-emerald-800">Tier 1 · Minimal Support</span>
+                    <span className="text-emerald-700">4-Week Pod</span>
                   </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  <p className="text-emerald-900/80">
+                    Small, fixable gaps. Short pod, lighter practice, and a mastery check before exit.
+                  </p>
+                </div>
+
+                <div className="rounded-lg border border-amber-200 bg-amber-50 p-3">
+                  <div className="mb-1 flex items-center justify-between">
+                    <span className="font-semibold text-amber-800">Tier 2 · Some Struggle</span>
+                    <span className="text-amber-700">10-Week Pod</span>
+                  </div>
+                  <p className="text-amber-900/80">
+                    Noticeable gaps. Longer pod, deeper practice, and a mid-pod mock diagnostic to check progress.
+                  </p>
+                </div>
+
+                <div className="rounded-lg border border-red-200 bg-red-50 p-3">
+                  <div className="mb-1 flex items-center justify-between">
+                    <span className="font-semibold text-red-800">Tier 3 · Needs a Lot</span>
+                    <span className="text-red-700">15-Week Pod</span>
+                  </div>
+                  <p className="text-red-900/80">
+                    Significant gaps. Intensive pod, weekly 1:1 check-ins, and monthly full diagnostics before exit.
+                  </p>
+                </div>
+
+                <p className="pt-1 text-[11px] text-slate-500">
+                  When you’re ready, these pod tiers plug directly into your DEBs programs — but the dashboard itself
+                  always stays focused on clear diagnostic data first.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </main>
     </div>
   );
