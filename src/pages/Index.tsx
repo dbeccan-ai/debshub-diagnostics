@@ -140,24 +140,28 @@ export default function Page() {
                       <div className="text-xs font-semibold text-slate-700">Math Diagnostic Test</div>
                       <div className="text-[11px] text-slate-500">90-minute adaptive · Grades 1–12</div>
                     </div>
-                  <a
-    href="/math-diagnostic"
-    className="px-3 py-1 text-[11px] font-semibold rounded-full border border-slate-300 text-slate-700 hover:bg-slate-50"
-  >
-    Run
-  </a>
+                    <a
+                      href="/math-diagnostic"
+                      className="px-3 py-1 text-[11px] font-semibold rounded-full border border-slate-300 text-slate-700 hover:bg-slate-50"
+                    >
+                      Run
+                    </a>
+                  </div>
                   {/* Card 3 */}
                   <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50">
                     <div>
                       <div className="text-xs font-semibold text-slate-700">ELA Diagnostic Test</div>
                       <div className="text-[11px] text-slate-500">90-minute reading & writing · Grades 1–12</div>
                     </div>
-  <a
-    href="/ela-diagnostic"
-    className="px-3 py-1 text-[11px] font-semibold rounded-full border border-slate-300 text-slate-700 hover:bg-slate-50"
-  >
-    Run
-  </a>
+                    <a
+                      href="/ela-diagnostic"
+                      className="px-3 py-1 text-[11px] font-semibold rounded-full border border-slate-300 text-slate-700 hover:bg-slate-50"
+                    >
+                      Run
+                    </a>
+                  </div>
+                </div>
+
                 <div className="mt-4 border-t border-slate-100 pt-3 flex items-center justify-between">
                   <div className="text-[11px] text-slate-500">
                     Auto-places students into{" "}
