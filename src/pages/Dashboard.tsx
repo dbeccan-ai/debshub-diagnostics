@@ -198,17 +198,20 @@ const Dashboard = () => {
 
       if (error) throw new Error(error.message);
 
-      const htmlUrl = data?.htmlUrl || data?.url;
-      if (!htmlUrl) throw new Error("Could not generate result");
+      // Use the HTML content directly from the response
+      const htmlContent = data?.html;
+      if (!htmlContent) throw new Error("Could not generate result");
 
-      // Open print dialog which allows save as PDF
-      const printWindow = window.open(htmlUrl, "_blank");
+      // Open HTML content directly in a new window using a data URL
+      const printWindow = window.open("", "_blank");
       if (printWindow) {
-        printWindow.onload = () => {
-          setTimeout(() => {
-            printWindow.print();
-          }, 500);
-        };
+        printWindow.document.write(htmlContent);
+        printWindow.document.close();
+        
+        // Wait for content to load, then trigger print
+        setTimeout(() => {
+          printWindow.print();
+        }, 500);
       }
 
       toast.success("Result opened! Use Print > Save as PDF to download.", { id: "pdf-download" });
