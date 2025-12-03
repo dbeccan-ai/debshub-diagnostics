@@ -121,11 +121,27 @@ const TakeTest = () => {
     try {
       toast.loading("Submitting test...");
 
-      // Handle both array and nested object structures for questions
+      // Handle multiple question structures (same logic as render section)
       const rawQuestions = test.questions;
-      const questions = Array.isArray(rawQuestions) 
-        ? rawQuestions 
-        : (rawQuestions?.questions as any[] || []);
+      let questions: any[] = [];
+      
+      if (Array.isArray(rawQuestions)) {
+        questions = rawQuestions;
+      } else if (rawQuestions?.sections && Array.isArray(rawQuestions.sections)) {
+        questions = rawQuestions.sections.flatMap((section: any) => 
+          (section.questions || []).map((q: any) => ({
+            ...q,
+            question: q.question_text || q.question,
+            options: q.choices || q.options || [],
+            type: q.type === 'multiple_choice' ? 'multiple-choice' : 
+                  q.type === 'word_problem' ? 'long' :
+                  q.type === 'multi_step' ? 'long' : q.type,
+            topic: q.topic || q.skill_tag,
+          }))
+        );
+      } else if (rawQuestions?.questions && Array.isArray(rawQuestions.questions)) {
+        questions = rawQuestions.questions;
+      }
       
       // Save all responses and calculate score
       const responses = Object.entries(answers).map(([questionId, answer]) => {
@@ -256,11 +272,35 @@ const TakeTest = () => {
     return null;
   }
 
-  // Handle both array and nested object structures for questions
+  // Handle multiple question structures:
+  // 1. Flat array of questions
+  // 2. Object with nested questions array
+  // 3. Object with sections array (grades 7-12 structure)
   const rawQuestions = test.questions;
-  const questions = Array.isArray(rawQuestions) 
-    ? rawQuestions 
-    : (rawQuestions?.questions as any[] || []);
+  let questions: any[] = [];
+  
+  if (Array.isArray(rawQuestions)) {
+    // Flat array of questions
+    questions = rawQuestions;
+  } else if (rawQuestions?.sections && Array.isArray(rawQuestions.sections)) {
+    // Sections structure (grades 7-12) - flatten all questions from all sections
+    questions = rawQuestions.sections.flatMap((section: any) => 
+      (section.questions || []).map((q: any) => ({
+        ...q,
+        // Normalize field names for consistency
+        question: q.question_text || q.question,
+        options: q.choices || q.options || [],
+        type: q.type === 'multiple_choice' ? 'multiple-choice' : 
+              q.type === 'word_problem' ? 'long' :
+              q.type === 'multi_step' ? 'long' : q.type,
+        topic: q.topic || q.skill_tag,
+        section_title: section.section_title,
+      }))
+    );
+  } else if (rawQuestions?.questions && Array.isArray(rawQuestions.questions)) {
+    // Object with nested questions array
+    questions = rawQuestions.questions;
+  }
   
   if (questions.length === 0) {
     return (
