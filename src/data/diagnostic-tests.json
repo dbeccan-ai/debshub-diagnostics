@@ -1,0 +1,1732 @@
+{
+  "all_diagnostics": [
+    {
+      "grade": "7",
+      "test_name": "Grade 7 Math Diagnostic Test",
+      "total_time_minutes": 90,
+      "sections": [
+        {
+          "section_title": "Section I: Multiple Choice Questions",
+          "instructions": "Choose the best answer for each question.",
+          "time_limit_minutes": 30,
+          "calculator_allowed": "no",
+          "questions": [
+            {
+              "id": "g7-s1-q1",
+              "number": 1,
+              "type": "multiple_choice",
+              "topic": "Exponents",
+              "question_text": "What is the value of 5²?",
+              "choices": ["A. 10", "B. 15", "C. 25", "D. 30"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g7-s1-q2",
+              "number": 2,
+              "type": "multiple_choice",
+              "topic": "Prime Numbers",
+              "question_text": "Which number is a prime number?",
+              "choices": ["A. 4", "B. 9", "C. 11", "D. 15"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g7-s1-q3",
+              "number": 3,
+              "type": "multiple_choice",
+              "topic": "Algebra",
+              "question_text": "Simplify: 3(x + 2)",
+              "choices": ["A. 3x + 2", "B. 3x + 6", "C. x + 6", "D. 3x – 2"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g7-s1-q4",
+              "number": 4,
+              "type": "multiple_choice",
+              "topic": "Statistics",
+              "question_text": "What is the mean of the numbers: 4, 8, 6, 2, 10?",
+              "choices": ["A. 6", "B. 5", "C. 7", "D. 8"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g7-s1-q5",
+              "number": 5,
+              "type": "multiple_choice",
+              "topic": "Equations",
+              "question_text": "Solve: 2x – 3 = 7",
+              "choices": ["A. x = 2", "B. x = 5", "C. x = 4", "D. x = 3"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g7-s1-q6",
+              "number": 6,
+              "type": "multiple_choice",
+              "topic": "Distributive Property",
+              "question_text": "Which expression is equivalent to: 4(2x – 1)?",
+              "choices": ["A. 8x – 1", "B. 8x – 4", "C. 6x – 1", "D. 2x – 4"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g7-s1-q7",
+              "number": 7,
+              "type": "multiple_choice",
+              "topic": "Area",
+              "question_text": "What is the area of a triangle with base 10 cm and height 5 cm?",
+              "choices": ["A. 50 cm²", "B. 25 cm²", "C. 15 cm²", "D. 100 cm²"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g7-s1-q8",
+              "number": 8,
+              "type": "multiple_choice",
+              "topic": "Absolute Value",
+              "question_text": "What is the value of |–8|?",
+              "choices": ["A. –8", "B. 0", "C. 8", "D. 1"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g7-s1-q9",
+              "number": 9,
+              "type": "multiple_choice",
+              "topic": "Fractions",
+              "question_text": "Convert 0.75 to a fraction.",
+              "choices": ["A. 1/2", "B. 3/4", "C. 1/4", "D. 2/3"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g7-s1-q10",
+              "number": 10,
+              "type": "multiple_choice",
+              "topic": "Equations",
+              "question_text": "What is the solution to: 3y = 21?",
+              "choices": ["A. y = 3", "B. y = 7", "C. y = 18", "D. y = 24"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g7-s1-q11",
+              "number": 11,
+              "type": "multiple_choice",
+              "topic": "Coordinate Plane",
+              "question_text": "Which point is located at (–3, 2) on the coordinate plane?",
+              "choices": ["A. 3 units right, 2 up", "B. 3 units left, 2 up", "C. 2 units left, 3 up", "D. 3 units right, 2 down"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g7-s1-q12",
+              "number": 12,
+              "type": "multiple_choice",
+              "topic": "Statistics",
+              "question_text": "What is the median of: 5, 9, 1, 3, 7?",
+              "choices": ["A. 7", "B. 5", "C. 4", "D. 6"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g7-s1-q13",
+              "number": 13,
+              "type": "multiple_choice",
+              "topic": "Order of Operations",
+              "question_text": "Evaluate: 12 ÷ (3 + 1)",
+              "choices": ["A. 4", "B. 3", "C. 12", "D. 2"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g7-s1-q14",
+              "number": 14,
+              "type": "multiple_choice",
+              "topic": "Volume",
+              "question_text": "What is the volume of a cube with edge length 4 cm?",
+              "choices": ["A. 16 cm³", "B. 64 cm³", "C. 32 cm³", "D. 8 cm³"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g7-s1-q15",
+              "number": 15,
+              "type": "multiple_choice",
+              "topic": "Probability",
+              "question_text": "If the probability of rain is 0.6, what is the probability it won't rain?",
+              "choices": ["A. 0.6", "B. 0.4", "C. 1.6", "D. 0.94"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g7-s1-q16",
+              "number": 16,
+              "type": "multiple_choice",
+              "topic": "Slope",
+              "question_text": "What is the slope of the line: y = 2x + 3?",
+              "choices": ["A. 2", "B. 3", "C. –2", "D. 1"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g7-s1-q17",
+              "number": 17,
+              "type": "multiple_choice",
+              "topic": "Exponents",
+              "question_text": "Simplify: (2²)³",
+              "choices": ["A. 12", "B. 16", "C. 64", "D. 36"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g7-s1-q18",
+              "number": 18,
+              "type": "multiple_choice",
+              "topic": "Rational Numbers",
+              "question_text": "Which of the following is a rational number?",
+              "choices": ["A. √2", "B. 1.5", "C. π", "D. √3"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g7-s1-q19",
+              "number": 19,
+              "type": "multiple_choice",
+              "topic": "Equations",
+              "question_text": "Solve for x: x/5 = 2",
+              "choices": ["A. x = 10", "B. x = 7", "C. x = 2", "D. x = 15"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g7-s1-q20",
+              "number": 20,
+              "type": "multiple_choice",
+              "topic": "Pi",
+              "question_text": "What is the value of π rounded to the nearest hundredth?",
+              "choices": ["A. 3.14", "B. 3.15", "C. 3.10", "D. 3.12"],
+              "correct_answer": "A"
+            }
+          ]
+        },
+        {
+          "section_title": "Section II: Word Problems",
+          "instructions": "Solve each problem. Show your work.",
+          "time_limit_minutes": 30,
+          "calculator_allowed": "yes",
+          "questions": [
+            {
+              "id": "g7-s2-q1",
+              "number": 1,
+              "type": "word_problem",
+              "topic": "Money",
+              "question_text": "Sarah bought 3 notebooks at $2.75 each and a folder for $1.60. How much did she spend in total?",
+              "choices": []
+            },
+            {
+              "id": "g7-s2-q2",
+              "number": 2,
+              "type": "word_problem",
+              "topic": "Area",
+              "question_text": "A rectangular garden is 12 meters long and 5 meters wide. What is the area of the garden?",
+              "choices": []
+            },
+            {
+              "id": "g7-s2-q3",
+              "number": 3,
+              "type": "word_problem",
+              "topic": "Rate",
+              "question_text": "A car travels 180 miles in 3 hours. What is the car's average speed in miles per hour?",
+              "choices": []
+            },
+            {
+              "id": "g7-s2-q4",
+              "number": 4,
+              "type": "word_problem",
+              "topic": "Fractions",
+              "question_text": "A recipe calls for 2 ½ cups of flour. If you want to make half the recipe, how much flour do you need?",
+              "choices": []
+            },
+            {
+              "id": "g7-s2-q5",
+              "number": 5,
+              "type": "word_problem",
+              "topic": "Money",
+              "question_text": "Jake earns $12.50 per hour. If he works for 8 hours on Saturday and 4 hours on Sunday, how much does he earn in total?",
+              "choices": []
+            }
+          ]
+        },
+        {
+          "section_title": "Section III: Multi-Step Problems",
+          "instructions": "Solve any 3 of the following 5 multi-step problems. Show all work in the space provided. Calculators are allowed for this section. Each problem is worth 10 points.",
+          "time_limit_minutes": 30,
+          "calculator_allowed": "yes",
+          "student_completes": 3,
+          "questions": [
+            {
+              "id": "g7-s3-q1",
+              "number": 1,
+              "type": "multi_step",
+              "topic": "Proportions",
+              "question_text": "A recipe for 24 cookies requires 2 ½ cups of flour. How many cups of flour are needed to make 60 cookies? Then, if you only have 5 cups of flour, how many cookies can you make? Show your work.",
+              "choices": []
+            },
+            {
+              "id": "g7-s3-q2",
+              "number": 2,
+              "type": "multi_step",
+              "topic": "Percent",
+              "question_text": "A store is having a 25% off sale. If an item originally costs $56.00, what is the sale price? If there's an additional 8% sales tax on the sale price, what is the total cost of the item? Show your calculations.",
+              "choices": []
+            },
+            {
+              "id": "g7-s3-q3",
+              "number": 3,
+              "type": "multi_step",
+              "topic": "Perimeter",
+              "question_text": "A rectangular garden is 5 meters longer than it is wide. If the perimeter of the garden is 58 meters, find the length and width of the garden. Show your equations and solve step by step.",
+              "choices": []
+            },
+            {
+              "id": "g7-s3-q4",
+              "number": 4,
+              "type": "multi_step",
+              "topic": "Systems of Equations",
+              "question_text": "A student earns $12 per hour tutoring and $8 per hour walking dogs. Last week, she worked 15 total hours and earned $156. How many hours did she spend tutoring? Set up a system of equations and solve.",
+              "choices": []
+            },
+            {
+              "id": "g7-s3-q5",
+              "number": 5,
+              "type": "multi_step",
+              "topic": "Linear Equations",
+              "question_text": "A cell phone company charges a $30 monthly fee plus $0.15 per text message. If a customer's bill was $54 in one month, how many text messages did they send? Write an equation and solve.",
+              "choices": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "grade": "8",
+      "test_name": "Grade 8 Math Diagnostic Test",
+      "total_time_minutes": 75,
+      "sections": [
+        {
+          "section_title": "Section I: Multiple Choice Questions",
+          "instructions": "Choose the best answer for each question.",
+          "time_limit_minutes": 30,
+          "calculator_allowed": "no",
+          "questions": [
+            {
+              "id": "g8-s1-q1",
+              "number": 1,
+              "type": "multiple_choice",
+              "topic": "Arithmetic",
+              "question_text": "What is the value of 3² + 4?",
+              "choices": ["A. 11", "B. 13", "C. 12", "D. 15"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g8-s1-q2",
+              "number": 2,
+              "type": "multiple_choice",
+              "topic": "Rational Numbers",
+              "question_text": "Which of the following is a rational number?",
+              "choices": ["A. √2", "B. π", "C. 4/5", "D. √3"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g8-s1-q3",
+              "number": 3,
+              "type": "multiple_choice",
+              "topic": "Equations",
+              "question_text": "Solve: 5x – 3 = 17",
+              "choices": ["A. 2", "B. 4", "C. 5", "D. 3"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g8-s1-q4",
+              "number": 4,
+              "type": "multiple_choice",
+              "topic": "Slope",
+              "question_text": "What is the slope of a line that passes through (2, 3) and (4, 7)?",
+              "choices": ["A. 2", "B. 4", "C. 1", "D. 3"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g8-s1-q5",
+              "number": 5,
+              "type": "multiple_choice",
+              "topic": "Exponents",
+              "question_text": "Simplify: (2x)(3x²)",
+              "choices": ["A. 6x", "B. 5x²", "C. 6x³", "D. 5x³"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g8-s1-q6",
+              "number": 6,
+              "type": "multiple_choice",
+              "topic": "Volume",
+              "question_text": "What is the volume of a rectangular prism with sides 3 cm, 4 cm, and 5 cm?",
+              "choices": ["A. 60 cm³", "B. 12 cm³", "C. 30 cm³", "D. 80 cm³"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g8-s1-q7",
+              "number": 7,
+              "type": "multiple_choice",
+              "topic": "Fractions",
+              "question_text": "Convert 0.75 to a fraction.",
+              "choices": ["A. 3/4", "B. 1/2", "C. 2/3", "D. 4/5"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g8-s1-q8",
+              "number": 8,
+              "type": "multiple_choice",
+              "topic": "Inequalities",
+              "question_text": "What is the solution to the inequality: x – 5 > 10?",
+              "choices": ["A. x > 15", "B. x < 15", "C. x > 5", "D. x < 5"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g8-s1-q9",
+              "number": 9,
+              "type": "multiple_choice",
+              "topic": "Statistics",
+              "question_text": "Find the mean of these numbers: 4, 8, 6, 10.",
+              "choices": ["A. 6", "B. 7", "C. 8", "D. 9"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g8-s1-q10",
+              "number": 10,
+              "type": "multiple_choice",
+              "topic": "Probability",
+              "question_text": "What is the probability of rolling an even number on a standard die?",
+              "choices": ["A. 1/6", "B. 1/3", "C. 1/2", "D. 2/3"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g8-s1-q11",
+              "number": 11,
+              "type": "multiple_choice",
+              "topic": "Linear Equations",
+              "question_text": "Which point lies on the line y = 2x + 1?",
+              "choices": ["A. (1, 3)", "B. (2, 5)", "C. (3, 6)", "D. (0, 0)"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g8-s1-q12",
+              "number": 12,
+              "type": "multiple_choice",
+              "topic": "Percent",
+              "question_text": "What is 25% of 200?",
+              "choices": ["A. 25", "B. 50", "C. 75", "D. 100"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g8-s1-q13",
+              "number": 13,
+              "type": "multiple_choice",
+              "topic": "Angles",
+              "question_text": "A triangle has angles 50° and 60°. What is the third angle?",
+              "choices": ["A. 80°", "B. 70°", "C. 60°", "D. 90°"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g8-s1-q14",
+              "number": 14,
+              "type": "multiple_choice",
+              "topic": "GCF",
+              "question_text": "What is the greatest common factor (GCF) of 12 and 18?",
+              "choices": ["A. 3", "B. 4", "C. 6", "D. 2"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g8-s1-q15",
+              "number": 15,
+              "type": "multiple_choice",
+              "topic": "Order of Operations",
+              "question_text": "Solve: (8 + 2) ÷ 5",
+              "choices": ["A. 2", "B. 3", "C. 4", "D. 5"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g8-s1-q16",
+              "number": 16,
+              "type": "multiple_choice",
+              "topic": "Distributive Property",
+              "question_text": "Which expression is equivalent to 4(x – 3)?",
+              "choices": ["A. 4x – 3", "B. 4x – 12", "C. 4x + 12", "D. x – 12"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g8-s1-q17",
+              "number": 17,
+              "type": "multiple_choice",
+              "topic": "Statistics",
+              "question_text": "What is the median of: 3, 7, 9, 5, 11?",
+              "choices": ["A. 7", "B. 6", "C. 8", "D. 9"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g8-s1-q18",
+              "number": 18,
+              "type": "multiple_choice",
+              "topic": "Equations",
+              "question_text": "Solve for x: 3(x + 4) = 21",
+              "choices": ["A. 1", "B. 2", "C. 3", "D. 5"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g8-s1-q19",
+              "number": 19,
+              "type": "multiple_choice",
+              "topic": "Linear Equations",
+              "question_text": "Which of the following is a linear equation?",
+              "choices": ["A. y = x² + 2", "B. y = 2x + 5", "C. y = √x", "D. y = 1/x"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g8-s1-q20",
+              "number": 20,
+              "type": "multiple_choice",
+              "topic": "Absolute Value",
+              "question_text": "What is the value of |–6|?",
+              "choices": ["A. –6", "B. 6", "C. 0", "D. 1"],
+              "correct_answer": "B"
+            }
+          ]
+        },
+        {
+          "section_title": "Section II: 2-Step Word Problems",
+          "instructions": "Solve each problem. Show your work in the space provided.",
+          "time_limit_minutes": 20,
+          "calculator_allowed": "yes",
+          "questions": [
+            {
+              "id": "g8-s2-q1",
+              "number": 1,
+              "type": "word_problem",
+              "topic": "Money",
+              "question_text": "Maria bought 3 notebooks for $2.50 each and a folder for $1.75. How much did she spend in total?",
+              "choices": []
+            },
+            {
+              "id": "g8-s2-q2",
+              "number": 2,
+              "type": "word_problem",
+              "topic": "Fractions",
+              "question_text": "A pizza was cut into 8 slices. Jake ate 3 slices and Tom ate 2. What fraction of the pizza is left?",
+              "choices": []
+            },
+            {
+              "id": "g8-s2-q3",
+              "number": 3,
+              "type": "word_problem",
+              "topic": "Division",
+              "question_text": "A farmer has 48 apples. He puts them into baskets with 6 apples each. Then he gives away 2 baskets. How many apples does he have left?",
+              "choices": []
+            },
+            {
+              "id": "g8-s2-q4",
+              "number": 4,
+              "type": "word_problem",
+              "topic": "Rate",
+              "question_text": "A tank holds 36 gallons of water. If it is filled at a rate of 4 gallons per minute, how many minutes will it take to fill the tank halfway?",
+              "choices": []
+            },
+            {
+              "id": "g8-s2-q5",
+              "number": 5,
+              "type": "word_problem",
+              "topic": "Distance",
+              "question_text": "Jasmine ran 2.5 miles each day for 4 days. Then she ran an extra 1.5 miles on the 5th day. How many miles did she run in total?",
+              "choices": []
+            }
+          ]
+        },
+        {
+          "section_title": "Section III: Multi-Step Problems",
+          "instructions": "Choose any 3 of the 5 problems below to complete. Show all steps and explain your reasoning.",
+          "time_limit_minutes": 25,
+          "calculator_allowed": "yes",
+          "student_completes": 3,
+          "questions": [
+            {
+              "id": "g8-s3-q1",
+              "number": 1,
+              "type": "multi_step",
+              "topic": "Division",
+              "question_text": "A school cafeteria serves 120 students. If each table holds 8 students, how many tables are needed? Then, if 3 tables are removed, how many students won't have a seat?",
+              "choices": []
+            },
+            {
+              "id": "g8-s3-q2",
+              "number": 2,
+              "type": "multi_step",
+              "topic": "Area",
+              "question_text": "A rectangular garden is 6 meters long and 4 meters wide. What is the area? If the gardener increases the width by 2 meters, what is the new area?",
+              "choices": []
+            },
+            {
+              "id": "g8-s3-q3",
+              "number": 3,
+              "type": "multi_step",
+              "topic": "Money",
+              "question_text": "A store has a sale: Buy 2 shirts for $18.50 total. If Jacob buys 6 shirts and a pair of jeans for $24.75, what is the total cost?",
+              "choices": []
+            },
+            {
+              "id": "g8-s3-q4",
+              "number": 4,
+              "type": "multi_step",
+              "topic": "Distance",
+              "question_text": "A train travels at 60 miles per hour. How far will it travel in 3.5 hours? Then, how much farther will it go in another 2 hours?",
+              "choices": []
+            },
+            {
+              "id": "g8-s3-q5",
+              "number": 5,
+              "type": "multi_step",
+              "topic": "Money",
+              "question_text": "Mia earns $12 per hour for tutoring. She worked 5 hours on Monday and 3 hours on Wednesday. Then she spent $20 on school supplies. How much money does she have left?",
+              "choices": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "grade": "9",
+      "test_name": "Grade 9 Math Diagnostic Assessment",
+      "total_time_minutes": 90,
+      "sections": [
+        {
+          "section_title": "Section I: Multiple Choice (No Calculator)",
+          "instructions": "Circle the best answer.",
+          "time_limit_minutes": 35,
+          "calculator_allowed": "no",
+          "questions": [
+            {
+              "id": "g9-s1-q1",
+              "number": 1,
+              "type": "multiple_choice",
+              "topic": "Fractions",
+              "question_text": "2/3 + 3/4",
+              "choices": ["A. 5/7", "B. 17/12", "C. 11/12", "D. 5/12"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g9-s1-q2",
+              "number": 2,
+              "type": "multiple_choice",
+              "topic": "Ratios",
+              "question_text": "Ratio of red to blue marbles is 3:5, what fraction is red?",
+              "choices": ["A. 3/8", "B. 3/5", "C. 5/8", "D. 3/4"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g9-s1-q3",
+              "number": 3,
+              "type": "multiple_choice",
+              "topic": "Integers",
+              "question_text": "Evaluate: -4 + 7 - 12",
+              "choices": ["A. -9", "B. -1", "C. 1", "D. -15"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g9-s1-q4",
+              "number": 4,
+              "type": "multiple_choice",
+              "topic": "Area",
+              "question_text": "Area of rectangle is 48 sq units, width 6, what is the length?",
+              "choices": ["A. 6", "B. 7", "C. 8", "D. 9"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g9-s1-q5",
+              "number": 5,
+              "type": "multiple_choice",
+              "topic": "Proportions",
+              "question_text": "3 notebooks cost $6; what is the cost of 5 notebooks?",
+              "choices": ["A. $8", "B. $9", "C. $10", "D. $11"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g9-s1-q6",
+              "number": 6,
+              "type": "multiple_choice",
+              "topic": "Algebra",
+              "question_text": "Simplify: 3x + 4 - 2x + 7",
+              "choices": ["A. x + 3", "B. x + 11", "C. 5x + 11", "D. x + 7"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g9-s1-q7",
+              "number": 7,
+              "type": "multiple_choice",
+              "topic": "Slope",
+              "question_text": "Slope of line through (1,2) and (3,6)?",
+              "choices": ["A. 2", "B. 1/2", "C. 4", "D. 3"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g9-s1-q8",
+              "number": 8,
+              "type": "multiple_choice",
+              "topic": "Equations",
+              "question_text": "Solve for x: 2x - 3 = 7",
+              "choices": ["A. 5", "B. 2", "C. 3", "D. -2"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g9-s1-q9",
+              "number": 9,
+              "type": "multiple_choice",
+              "topic": "Systems of Equations",
+              "question_text": "Which represents a system with no solution?",
+              "choices": ["A. Intersecting lines", "B. Different slopes", "C. Parallel lines", "D. Line and a parabola"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g9-s1-q10",
+              "number": 10,
+              "type": "multiple_choice",
+              "topic": "Exponents",
+              "question_text": "Simplify: x³ × x²",
+              "choices": ["A. x⁶", "B. x⁵", "C. x", "D. x¹"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g9-s1-q11",
+              "number": 11,
+              "type": "multiple_choice",
+              "topic": "Order of Operations",
+              "question_text": "5 + 3 × 2",
+              "choices": ["A. 16", "B. 11", "C. 11", "D. 10"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g9-s1-q12",
+              "number": 12,
+              "type": "multiple_choice",
+              "topic": "Equations",
+              "question_text": "Solve: 2(x + 3) = 14",
+              "choices": ["A. 2", "B. 4", "C. 5", "D. 6"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g9-s1-q13",
+              "number": 13,
+              "type": "multiple_choice",
+              "topic": "Linear Equations",
+              "question_text": "Which is a solution to y = 2x - 1?",
+              "choices": ["A. (0,0)", "B. (1,0)", "C. (2,3)", "D. (3,5)"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g9-s1-q14",
+              "number": 14,
+              "type": "multiple_choice",
+              "topic": "Square Roots",
+              "question_text": "What is √49?",
+              "choices": ["A. 7", "B. 14", "C. 6", "D. 9"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g9-s1-q15",
+              "number": 15,
+              "type": "multiple_choice",
+              "topic": "Exponents",
+              "question_text": "Simplify: (3x)(4x)",
+              "choices": ["A. 12x", "B. 12x²", "C. 7x²", "D. 6x"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g9-s1-q16",
+              "number": 16,
+              "type": "multiple_choice",
+              "topic": "Functions",
+              "question_text": "Which graph represents a function?",
+              "choices": ["A. Circle", "B. Parabola", "C. Line", "D. Both B and C"],
+              "correct_answer": "D"
+            },
+            {
+              "id": "g9-s1-q17",
+              "number": 17,
+              "type": "multiple_choice",
+              "topic": "Evaluating Expressions",
+              "question_text": "If x = 2, what is x² + 3x?",
+              "choices": ["A. 10", "B. 14", "C. 8", "D. 10"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g9-s1-q18",
+              "number": 18,
+              "type": "multiple_choice",
+              "topic": "Equations",
+              "question_text": "Solve: 5x = 35",
+              "choices": ["A. 7", "B. 5", "C. 8", "D. 6"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g9-s1-q19",
+              "number": 19,
+              "type": "multiple_choice",
+              "topic": "Algebra",
+              "question_text": "Simplify: 7x - 2x + 4",
+              "choices": ["A. 9x", "B. 4x + 4", "C. 5x + 4", "D. 7x"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g9-s1-q20",
+              "number": 20,
+              "type": "multiple_choice",
+              "topic": "Properties",
+              "question_text": "Property: a + b = b + a",
+              "choices": ["A. Associative", "B. Commutative", "C. Identity", "D. Distributive"],
+              "correct_answer": "B"
+            }
+          ]
+        },
+        {
+          "section_title": "Section II: Two-Step Word Problems (Calculator Allowed)",
+          "instructions": "Solve each problem and show all work.",
+          "time_limit_minutes": 25,
+          "calculator_allowed": "yes",
+          "questions": [
+            {
+              "id": "g9-s2-q1",
+              "number": 21,
+              "type": "word_problem",
+              "topic": "Money",
+              "question_text": "Brenda bought 3 notebooks for $2 each and a pen for $1.50. How much did she spend in total?",
+              "choices": []
+            },
+            {
+              "id": "g9-s2-q2",
+              "number": 22,
+              "type": "word_problem",
+              "topic": "Multiplication",
+              "question_text": "A baker uses 4 cups of flour per batch of cookies. How many cups are needed for 6 batches?",
+              "choices": []
+            },
+            {
+              "id": "g9-s2-q3",
+              "number": 23,
+              "type": "word_problem",
+              "topic": "Division",
+              "question_text": "Samantha earned $120 babysitting. She bought a jacket for $35 and split the rest equally among 5 friends. How much did each friend get?",
+              "choices": []
+            },
+            {
+              "id": "g9-s2-q4",
+              "number": 24,
+              "type": "word_problem",
+              "topic": "Linear Equations",
+              "question_text": "A phone plan has a $25 base fee plus $0.10 per minute. If the bill was $45, how many minutes did the customer use?",
+              "choices": []
+            },
+            {
+              "id": "g9-s2-q5",
+              "number": 25,
+              "type": "word_problem",
+              "topic": "Algebra",
+              "question_text": "Jose has twice as many apples as Maria. Together they have 36 apples. How many does Jose have?",
+              "choices": []
+            }
+          ]
+        },
+        {
+          "section_title": "Section III: Multi-Step Problems (Calculator Allowed)",
+          "instructions": "Choose and complete ANY 3 of the 5 problems below. Show all work clearly.",
+          "time_limit_minutes": 30,
+          "calculator_allowed": "yes",
+          "student_completes": 3,
+          "questions": [
+            {
+              "id": "g9-s3-q1",
+              "number": 26,
+              "type": "multi_step",
+              "topic": "Equations",
+              "question_text": "Solve for x: 3(x - 2) = 2(x + 4) - 5",
+              "choices": []
+            },
+            {
+              "id": "g9-s3-q2",
+              "number": 27,
+              "type": "multi_step",
+              "topic": "Graphing",
+              "question_text": "Graph the equation y = -2x + 3; label the y-intercept and one additional point.",
+              "choices": []
+            },
+            {
+              "id": "g9-s3-q3",
+              "number": 28,
+              "type": "multi_step",
+              "topic": "Perimeter",
+              "question_text": "A rectangle has a perimeter of 30 units. One side is 3 units longer than the other. Find its dimensions.",
+              "choices": []
+            },
+            {
+              "id": "g9-s3-q4",
+              "number": 29,
+              "type": "multi_step",
+              "topic": "Linear Equations",
+              "question_text": "A company charges a $50 setup fee plus $20 per hour of service. If the total cost was $170, how many hours were used?",
+              "choices": []
+            },
+            {
+              "id": "g9-s3-q5",
+              "number": 30,
+              "type": "multi_step",
+              "topic": "Systems of Equations",
+              "question_text": "Solve the system: x + y = 10 and x - y = 4",
+              "choices": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "grade": "10",
+      "test_name": "Grade 10 Math Diagnostic Test",
+      "total_time_minutes": 90,
+      "sections": [
+        {
+          "section_title": "Section I: Multiple Choice Questions",
+          "instructions": "Choose the best answer for each question.",
+          "time_limit_minutes": 30,
+          "calculator_allowed": "no",
+          "questions": [
+            {
+              "id": "g10-s1-q1",
+              "number": 1,
+              "type": "multiple_choice",
+              "topic": "Factoring",
+              "question_text": "Which expression is equivalent to (x + 3)(x – 4)?",
+              "choices": ["A. x² – x – 12", "B. x² + 12", "C. x² + 7x – 12", "D. x² – 7x + 12"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g10-s1-q2",
+              "number": 2,
+              "type": "multiple_choice",
+              "topic": "Equations",
+              "question_text": "What is the solution to the equation 2x – 5 = 13?",
+              "choices": ["A. x = 4", "B. x = 7", "C. x = 9", "D. x = 10"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g10-s1-q3",
+              "number": 3,
+              "type": "multiple_choice",
+              "topic": "Linear Equations",
+              "question_text": "Which of the following represents the slope-intercept form of a line with slope 3 and y-intercept –2?",
+              "choices": ["A. y = 3x – 2", "B. y = –2x + 3", "C. y = x – 5", "D. y = 2x + 3"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g10-s1-q4",
+              "number": 4,
+              "type": "multiple_choice",
+              "topic": "Equations",
+              "question_text": "Solve for x: 3(x – 4) = 2x + 1",
+              "choices": ["A. x = 13", "B. x = 5", "C. x = –7", "D. x = 1"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g10-s1-q5",
+              "number": 5,
+              "type": "multiple_choice",
+              "topic": "Quadratics",
+              "question_text": "A quadratic equation has roots x = –2 and x = 5. Which equation represents this?",
+              "choices": ["A. (x – 2)(x + 5) = 0", "B. (x + 2)(x – 5) = 0", "C. (x – 5)(x – 2) = 0", "D. (x + 2)(x + 5) = 0"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g10-s1-q6",
+              "number": 6,
+              "type": "multiple_choice",
+              "topic": "Inequalities",
+              "question_text": "Which inequality represents: 4 less than twice a number is greater than 10?",
+              "choices": ["A. 2x – 4 > 10", "B. 2x + 4 > 10", "C. 2x – 10 > 4", "D. 4x – 2 > 10"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g10-s1-q7",
+              "number": 7,
+              "type": "multiple_choice",
+              "topic": "Functions",
+              "question_text": "If f(x) = 2x² – 3x + 1, what is f(2)?",
+              "choices": ["A. 3", "B. 5", "C. 1", "D. 7"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g10-s1-q8",
+              "number": 8,
+              "type": "multiple_choice",
+              "topic": "Functions",
+              "question_text": "Which graph represents a function?",
+              "choices": ["A. A circle", "B. A parabola", "C. A vertical line", "D. A horizontal line"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g10-s1-q9",
+              "number": 9,
+              "type": "multiple_choice",
+              "topic": "Domain",
+              "question_text": "What is the domain of the function f(x) = √(x – 2)?",
+              "choices": ["A. x ≥ 2", "B. x ≤ 2", "C. x > 0", "D. All real numbers"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g10-s1-q10",
+              "number": 10,
+              "type": "multiple_choice",
+              "topic": "Trigonometry",
+              "question_text": "What is the value of x in the triangle if sin(x) = 0.5?",
+              "choices": ["A. 60°", "B. 90°", "C. 30°", "D. 45°"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g10-s1-q11",
+              "number": 11,
+              "type": "multiple_choice",
+              "topic": "Factoring",
+              "question_text": "Factor the expression: x² – 9x + 20",
+              "choices": ["A. (x – 4)(x – 5)", "B. (x + 4)(x – 5)", "C. (x + 2)(x + 10)", "D. (x – 2)(x – 10)"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g10-s1-q12",
+              "number": 12,
+              "type": "multiple_choice",
+              "topic": "Exponents",
+              "question_text": "Simplify: (3x²)(2x³)",
+              "choices": ["A. 5x⁵", "B. 6x⁶", "C. 6x⁵", "D. 3x⁶"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g10-s1-q13",
+              "number": 13,
+              "type": "multiple_choice",
+              "topic": "Absolute Value",
+              "question_text": "Solve: |2x – 3| = 5",
+              "choices": ["A. x = 4 only", "B. x = –1 and x = 4", "C. x = –1 only", "D. x = 5 only"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g10-s1-q14",
+              "number": 14,
+              "type": "multiple_choice",
+              "topic": "Systems of Equations",
+              "question_text": "The solution to a system of equations is the point where the graphs:",
+              "choices": ["A. Intersect", "B. Are parallel", "C. Are perpendicular", "D. Touch the x-axis"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g10-s1-q15",
+              "number": 15,
+              "type": "multiple_choice",
+              "topic": "Pythagorean Theorem",
+              "question_text": "Which set of numbers represents a Pythagorean triple?",
+              "choices": ["A. 3, 4, 5", "B. 2, 3, 4", "C. 6, 8, 11", "D. 5, 10, 12"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g10-s1-q16",
+              "number": 16,
+              "type": "multiple_choice",
+              "topic": "Radians",
+              "question_text": "Convert 30° to radians:",
+              "choices": ["A. π/3", "B. π/6", "C. π/4", "D. π/2"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g10-s1-q17",
+              "number": 17,
+              "type": "multiple_choice",
+              "topic": "Exponential Functions",
+              "question_text": "Which of the following best represents exponential growth?",
+              "choices": ["A. y = 2ˣ", "B. y = x²", "C. y = x + 2", "D. y = √x"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g10-s1-q18",
+              "number": 18,
+              "type": "multiple_choice",
+              "topic": "Systems of Equations",
+              "question_text": "Solve the system: 2x + y = 5 and x – y = 1",
+              "choices": ["A. (2, 1)", "B. (1, 3)", "C. (3, –1)", "D. (0, 0)"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g10-s1-q19",
+              "number": 19,
+              "type": "multiple_choice",
+              "topic": "Quadratics",
+              "question_text": "The graph of y = –x² opens:",
+              "choices": ["A. Upward", "B. Downward", "C. To the right", "D. To the left"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g10-s1-q20",
+              "number": 20,
+              "type": "multiple_choice",
+              "topic": "Linear Equations",
+              "question_text": "Which of the following represents a linear equation?",
+              "choices": ["A. y = 2x + 3", "B. y = x²", "C. y = √x", "D. y = 1/x"],
+              "correct_answer": "A"
+            }
+          ]
+        },
+        {
+          "section_title": "Section II: Two-Step Word Problems",
+          "instructions": "Solve each word problem below. Show all steps and clearly label your final answer.",
+          "time_limit_minutes": 25,
+          "calculator_allowed": "yes",
+          "questions": [
+            {
+              "id": "g10-s2-q1",
+              "number": 21,
+              "type": "word_problem",
+              "topic": "Money",
+              "question_text": "A concert ticket costs $45. A group of friends bought 6 tickets and paid a total service fee of $18. What was the total cost for the group?",
+              "choices": []
+            },
+            {
+              "id": "g10-s2-q2",
+              "number": 22,
+              "type": "word_problem",
+              "topic": "Algebra",
+              "question_text": "Maria bought 3 pens and 2 notebooks. Each pen cost $1.50 and the total cost was $9. How much did each notebook cost?",
+              "choices": []
+            }
+          ]
+        },
+        {
+          "section_title": "Section III: Multi-Step Problems",
+          "instructions": "Solve any 3 of the 5 problems below. Show all steps clearly. You may use a calculator for this section.",
+          "time_limit_minutes": 35,
+          "calculator_allowed": "yes",
+          "student_completes": 3,
+          "questions": [
+            {
+              "id": "g10-s3-q1",
+              "number": 23,
+              "type": "multi_step",
+              "topic": "Linear Equations",
+              "question_text": "A gym charges a monthly fee plus a one-time registration fee of $25. If a customer paid $115 after 3 months, what is the monthly fee?",
+              "choices": []
+            },
+            {
+              "id": "g10-s3-q2",
+              "number": 24,
+              "type": "multi_step",
+              "topic": "Linear Equations",
+              "question_text": "A taxi service charges a base fare of $4 plus $2.25 per mile. If a ride costs $20.25, how many miles did the taxi travel?",
+              "choices": []
+            },
+            {
+              "id": "g10-s3-q3",
+              "number": 25,
+              "type": "multi_step",
+              "topic": "Division",
+              "question_text": "Jason has 75 apples. He wants to place them into bags with 9 apples each and then give away 3 full bags. How many apples does he have left?",
+              "choices": []
+            },
+            {
+              "id": "g10-s3-q4",
+              "number": 26,
+              "type": "multi_step",
+              "topic": "Arithmetic Sequences",
+              "question_text": "A company offers a job with a starting salary of $32,000 and a guaranteed annual increase of $2,000. What will the salary be after 10 years? What is the total amount earned over 10 years?",
+              "choices": []
+            },
+            {
+              "id": "g10-s3-q5",
+              "number": 27,
+              "type": "multi_step",
+              "topic": "Perimeter and Area",
+              "question_text": "A rectangular garden is to be enclosed with 80 meters of fencing. The length is 5 meters more than twice the width. What are the dimensions of the garden? What is the area?",
+              "choices": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "grade": "11",
+      "test_name": "Grade 11 Mathematics Diagnostic Test",
+      "total_time_minutes": 90,
+      "sections": [
+        {
+          "section_title": "Section I: Multiple Choice Questions",
+          "instructions": "Choose the best answer for each question.",
+          "time_limit_minutes": 30,
+          "calculator_allowed": "no",
+          "questions": [
+            {
+              "id": "g11-s1-q1",
+              "number": 1,
+              "type": "multiple_choice",
+              "topic": "Equations",
+              "question_text": "What is the solution to the equation 2(x – 3) = 4x + 1?",
+              "choices": ["A. x = -3", "B. x = 2", "C. x = -2", "D. x = 5"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g11-s1-q2",
+              "number": 2,
+              "type": "multiple_choice",
+              "topic": "Factoring",
+              "question_text": "Which expression represents the factored form of x² – 5x + 6?",
+              "choices": ["A. (x – 3)(x – 2)", "B. (x + 3)(x – 2)", "C. (x – 1)(x – 6)", "D. (x – 5)(x + 1)"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g11-s1-q3",
+              "number": 3,
+              "type": "multiple_choice",
+              "topic": "Functions",
+              "question_text": "If f(x) = 2x² – 3x + 1, what is f(–1)?",
+              "choices": ["A. 6", "B. 2", "C. –2", "D. 0"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g11-s1-q4",
+              "number": 4,
+              "type": "multiple_choice",
+              "topic": "Domain",
+              "question_text": "What is the domain of the function f(x) = 1 / (x – 4)?",
+              "choices": ["A. x = 0", "B. x ≠ 4", "C. All real numbers", "D. x ≥ 0"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g11-s1-q5",
+              "number": 5,
+              "type": "multiple_choice",
+              "topic": "Radical Equations",
+              "question_text": "Solve: √(x + 5) = 4",
+              "choices": ["A. x = 21", "B. x = 11", "C. x = 5", "D. x = -5"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g11-s1-q6",
+              "number": 6,
+              "type": "multiple_choice",
+              "topic": "Inequalities",
+              "question_text": "Which inequality matches the graph of a line that passes through (0, 2) and slopes downward?",
+              "choices": ["A. y > -x + 2", "B. y < -x + 2", "C. y ≥ x + 2", "D. y ≤ x – 2"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g11-s1-q7",
+              "number": 7,
+              "type": "multiple_choice",
+              "topic": "Absolute Value",
+              "question_text": "What is the solution to |2x – 3| = 7?",
+              "choices": ["A. x = 2, -5", "B. x = 5, -2", "C. x = -2, -5", "D. x = 2, 5"],
+              "correct_answer": "D"
+            },
+            {
+              "id": "g11-s1-q8",
+              "number": 8,
+              "type": "multiple_choice",
+              "topic": "Quadratics",
+              "question_text": "What is the sum of the roots of x² – 7x + 10 = 0?",
+              "choices": ["A. 10", "B. -7", "C. 7", "D. -10"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g11-s1-q9",
+              "number": 9,
+              "type": "multiple_choice",
+              "topic": "Exponential Functions",
+              "question_text": "Which function represents exponential growth?",
+              "choices": ["A. f(x) = 3x² + 2", "B. f(x) = 2ˣ", "C. f(x) = √x", "D. f(x) = x – 3"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g11-s1-q10",
+              "number": 10,
+              "type": "multiple_choice",
+              "topic": "Logarithms",
+              "question_text": "If log₂x = 3, what is the value of x?",
+              "choices": ["A. 6", "B. 9", "C. 8", "D. 3"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g11-s1-q11",
+              "number": 11,
+              "type": "multiple_choice",
+              "topic": "Systems of Equations",
+              "question_text": "What is the solution to the system: x + y = 5 and x – y = 1?",
+              "choices": ["A. (3, 2)", "B. (2, 3)", "C. (1, 4)", "D. (4, 1)"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g11-s1-q12",
+              "number": 12,
+              "type": "multiple_choice",
+              "topic": "Parallel Lines",
+              "question_text": "Which equation represents a line parallel to y = 2x + 1?",
+              "choices": ["A. y = -2x + 3", "B. y = 2x – 5", "C. y = 1/2x + 4", "D. y = -1/2x – 3"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g11-s1-q13",
+              "number": 13,
+              "type": "multiple_choice",
+              "topic": "Discriminant",
+              "question_text": "What is the value of the discriminant of 2x² – 4x + 1 = 0?",
+              "choices": ["A. 8", "B. 0", "C. 4", "D. –4"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g11-s1-q14",
+              "number": 14,
+              "type": "multiple_choice",
+              "topic": "Range",
+              "question_text": "What is the range of f(x) = x² – 4?",
+              "choices": ["A. All real numbers", "B. x > 0", "C. y ≥ –4", "D. y ≤ 4"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g11-s1-q15",
+              "number": 15,
+              "type": "multiple_choice",
+              "topic": "Exponents",
+              "question_text": "Simplify: (3x²)(2x³)",
+              "choices": ["A. 6x⁵", "B. 6x⁶", "C. 5x⁶", "D. 5x⁵"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g11-s1-q16",
+              "number": 16,
+              "type": "multiple_choice",
+              "topic": "Trigonometry",
+              "question_text": "If sin θ = 1/2, what is the value of θ in degrees (0° ≤ θ ≤ 180°)?",
+              "choices": ["A. 90°", "B. 45°", "C. 30° or 150°", "D. 60°"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g11-s1-q17",
+              "number": 17,
+              "type": "multiple_choice",
+              "topic": "Binomial Expansion",
+              "question_text": "What is the result of (x – 2)²?",
+              "choices": ["A. x² – 4", "B. x² + 4", "C. x² – 2x + 4", "D. x² – 4x + 4"],
+              "correct_answer": "D"
+            },
+            {
+              "id": "g11-s1-q18",
+              "number": 18,
+              "type": "multiple_choice",
+              "topic": "Circles",
+              "question_text": "Which point lies on the circle with equation (x – 3)² + (y + 2)² = 25?",
+              "choices": ["A. (6, 2)", "B. (3, –2)", "C. (8, –2)", "D. (3, 3)"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g11-s1-q19",
+              "number": 19,
+              "type": "multiple_choice",
+              "topic": "Inverse Functions",
+              "question_text": "What is the inverse of the function f(x) = 3x – 7?",
+              "choices": ["A. f⁻¹(x) = (x + 7)/3", "B. f⁻¹(x) = 3x + 7", "C. f⁻¹(x) = (x – 7)/3", "D. f⁻¹(x) = x/3 – 7"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g11-s1-q20",
+              "number": 20,
+              "type": "multiple_choice",
+              "topic": "Quadratic Functions",
+              "question_text": "Which of the following represents a quadratic function?",
+              "choices": ["A. f(x) = 4x – 3", "B. f(x) = x² + x – 6", "C. f(x) = 2/x", "D. f(x) = √x"],
+              "correct_answer": "B"
+            }
+          ]
+        },
+        {
+          "section_title": "Section II: Two-Step Word Problems",
+          "instructions": "Solve each of the following problems. Show your work clearly. Calculators are allowed.",
+          "time_limit_minutes": 25,
+          "calculator_allowed": "yes",
+          "questions": [
+            {
+              "id": "g11-s2-q1",
+              "number": 1,
+              "type": "word_problem",
+              "topic": "Money",
+              "question_text": "A store sells pencils at 3 for $1.50. If Maya buys 9 pencils and a notebook that costs $2.75, how much does she spend in total?",
+              "choices": []
+            },
+            {
+              "id": "g11-s2-q2",
+              "number": 2,
+              "type": "word_problem",
+              "topic": "Linear Equations",
+              "question_text": "A car rental company charges a $25 flat fee plus $0.20 per mile. How much would it cost to drive 150 miles?",
+              "choices": []
+            },
+            {
+              "id": "g11-s2-q3",
+              "number": 3,
+              "type": "word_problem",
+              "topic": "Division",
+              "question_text": "Sarah has $75. She spends $18 on a book and then splits the rest evenly among 3 friends. How much does each friend receive?",
+              "choices": []
+            },
+            {
+              "id": "g11-s2-q4",
+              "number": 4,
+              "type": "word_problem",
+              "topic": "Perimeter",
+              "question_text": "A rectangle has a width of 8 cm and its length is twice the width. What is the perimeter of the rectangle?",
+              "choices": []
+            },
+            {
+              "id": "g11-s2-q5",
+              "number": 5,
+              "type": "word_problem",
+              "topic": "Linear Equations",
+              "question_text": "A cell phone plan charges $30 per month plus $0.10 per text. If a customer sends 120 texts in a month, what's the total bill?",
+              "choices": []
+            }
+          ]
+        },
+        {
+          "section_title": "Section III: Multi-Step Problems (Choose Any 3)",
+          "instructions": "Solve any 3 of the following problems. Show all your steps. Calculators are allowed.",
+          "time_limit_minutes": 35,
+          "calculator_allowed": "yes",
+          "student_completes": 3,
+          "questions": [
+            {
+              "id": "g11-s3-q1",
+              "number": 1,
+              "type": "multi_step",
+              "topic": "Area",
+              "question_text": "A farmer has a rectangular plot of land. The length is 3 times the width. If the total area is 192 square meters, find the dimensions of the plot.",
+              "choices": []
+            },
+            {
+              "id": "g11-s3-q2",
+              "number": 2,
+              "type": "multi_step",
+              "topic": "Percent",
+              "question_text": "A school has 300 students. 40% are in Grade 11. Of those, 25% are in the honors program. How many Grade 11 students are in the honors program?",
+              "choices": []
+            },
+            {
+              "id": "g11-s3-q3",
+              "number": 3,
+              "type": "multi_step",
+              "topic": "Average Speed",
+              "question_text": "A car travels 60 miles in the first hour, then 45 miles in the second hour. If the average speed must be at least 55 mph over 3 hours, how fast must the car travel in the third hour?",
+              "choices": []
+            },
+            {
+              "id": "g11-s3-q4",
+              "number": 4,
+              "type": "multi_step",
+              "topic": "Volume",
+              "question_text": "A cylinder has a volume of 500π cm³. If the height is 10 cm, find the radius of the base.",
+              "choices": []
+            },
+            {
+              "id": "g11-s3-q5",
+              "number": 5,
+              "type": "multi_step",
+              "topic": "Percent",
+              "question_text": "A laptop originally priced at $1200 is on sale for 25% off. A sales tax of 8% is then applied. What is the final price after the discount and tax?",
+              "choices": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "grade": "12",
+      "test_name": "Grade 12 Mathematics Diagnostic Assessment",
+      "total_time_minutes": 95,
+      "sections": [
+        {
+          "section_title": "Section I: Multiple Choice Questions",
+          "instructions": "Choose the best answer for each question.",
+          "time_limit_minutes": 30,
+          "calculator_allowed": "no",
+          "questions": [
+            {
+              "id": "g12-s1-q1",
+              "number": 1,
+              "type": "multiple_choice",
+              "topic": "Derivatives",
+              "question_text": "What is the derivative of f(x) = 3x² + 2x – 5?",
+              "choices": ["A. 6x + 2", "B. 6x – 2", "C. 3x + 2", "D. x² + 2"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g12-s1-q2",
+              "number": 2,
+              "type": "multiple_choice",
+              "topic": "Limits",
+              "question_text": "Evaluate the limit: lim(x→0) (sin x)/x",
+              "choices": ["A. 0", "B. 1", "C. ∞", "D. Does not exist"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g12-s1-q3",
+              "number": 3,
+              "type": "multiple_choice",
+              "topic": "Logarithms",
+              "question_text": "Solve: log₂(8x) = 6",
+              "choices": ["A. x = 2", "B. x = 8", "C. x = 4", "D. x = 1"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g12-s1-q4",
+              "number": 4,
+              "type": "multiple_choice",
+              "topic": "Composition of Functions",
+              "question_text": "If f(x) = x² and g(x) = √x, find f(g(4))",
+              "choices": ["A. 2", "B. 4", "C. 8", "D. 16"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g12-s1-q5",
+              "number": 5,
+              "type": "multiple_choice",
+              "topic": "Equations",
+              "question_text": "What is the solution to the equation: 2x – 3 = 5x + 9?",
+              "choices": ["A. x = -4", "B. x = 3", "C. x = -3", "D. x = 4"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g12-s1-q6",
+              "number": 6,
+              "type": "multiple_choice",
+              "topic": "Simplifying Expressions",
+              "question_text": "Simplify: (x² – 4)/(x – 2)",
+              "choices": ["A. x + 2", "B. x – 2", "C. x² – 2", "D. x² + 2"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g12-s1-q7",
+              "number": 7,
+              "type": "multiple_choice",
+              "topic": "Integrals",
+              "question_text": "What is the integral of f(x) = 4x?",
+              "choices": ["A. 2x² + C", "B. x² + C", "C. 4x² + C", "D. 2x + C"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g12-s1-q8",
+              "number": 8,
+              "type": "multiple_choice",
+              "topic": "Quadratics",
+              "question_text": "Solve for x: x² – 4x – 5 = 0",
+              "choices": ["A. x = -1, 5", "B. x = -5, 1", "C. x = 5, 1", "D. x = -2, 2"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g12-s1-q9",
+              "number": 9,
+              "type": "multiple_choice",
+              "topic": "Asymptotes",
+              "question_text": "What is the vertical asymptote of y = 1/(x – 3)?",
+              "choices": ["A. x = 3", "B. x = -3", "C. y = 3", "D. y = -3"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g12-s1-q10",
+              "number": 10,
+              "type": "multiple_choice",
+              "topic": "Matrices",
+              "question_text": "What is the matrix product of A = [1 2] and B = [3 4]ᵀ?",
+              "choices": ["A. [11]", "B. [10]", "C. [5]", "D. [7]"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g12-s1-q11",
+              "number": 11,
+              "type": "multiple_choice",
+              "topic": "Determinants",
+              "question_text": "Find the value of the determinant: |2 3| |1 4|",
+              "choices": ["A. 5", "B. 11", "C. -5", "D. 8"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g12-s1-q12",
+              "number": 12,
+              "type": "multiple_choice",
+              "topic": "Radians",
+              "question_text": "Convert 45° to radians",
+              "choices": ["A. π/6", "B. π/3", "C. π/4", "D. π/2"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g12-s1-q13",
+              "number": 13,
+              "type": "multiple_choice",
+              "topic": "Exponential Equations",
+              "question_text": "Solve for x: eˣ = 7",
+              "choices": ["A. x = ln 7", "B. x = 7", "C. x = 1/7", "D. x = ln(1/7)"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g12-s1-q14",
+              "number": 14,
+              "type": "multiple_choice",
+              "topic": "Statistics",
+              "question_text": "What is the mean of: 3, 7, 7, 10?",
+              "choices": ["A. 6.5", "B. 7", "C. 6.75", "D. 8"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g12-s1-q15",
+              "number": 15,
+              "type": "multiple_choice",
+              "topic": "Standard Deviation",
+              "question_text": "What is the standard deviation of: 5, 5, 5, 5?",
+              "choices": ["A. 0", "B. 1", "C. 5", "D. ∞"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g12-s1-q16",
+              "number": 16,
+              "type": "multiple_choice",
+              "topic": "Perpendicular Lines",
+              "question_text": "Find the slope of a line perpendicular to y = 3x + 2",
+              "choices": ["A. 1/3", "B. -1/3", "C. -3", "D. 3"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g12-s1-q17",
+              "number": 17,
+              "type": "multiple_choice",
+              "topic": "Inequalities",
+              "question_text": "What is the solution to the inequality: 3x – 4 > 8",
+              "choices": ["A. x > 4", "B. x > 3", "C. x < 4", "D. x > 2"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g12-s1-q18",
+              "number": 18,
+              "type": "multiple_choice",
+              "topic": "Factoring",
+              "question_text": "Expand: (x + 2)(x – 3)",
+              "choices": ["A. x² – x – 6", "B. x² + 5x – 6", "C. x² – x + 6", "D. x² + 2x – 3"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g12-s1-q19",
+              "number": 19,
+              "type": "multiple_choice",
+              "topic": "Trigonometry",
+              "question_text": "If sin θ = 0.6 and θ is in quadrant II, what is cos θ?",
+              "choices": ["A. -0.8", "B. 0.8", "C. -0.6", "D. 0.6"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g12-s1-q20",
+              "number": 20,
+              "type": "multiple_choice",
+              "topic": "Absolute Value",
+              "question_text": "What is the solution to the absolute value equation |x – 2| = 5?",
+              "choices": ["A. x = -3 or 7", "B. x = 3 or -7", "C. x = -5 or 2", "D. x = -2 or 5"],
+              "correct_answer": "A"
+            }
+          ]
+        },
+        {
+          "section_title": "Section II: Two-Step Word Problems",
+          "instructions": "Solve each problem. Show all your work clearly. Calculators are allowed.",
+          "time_limit_minutes": 25,
+          "calculator_allowed": "yes",
+          "questions": [
+            {
+              "id": "g12-s2-q1",
+              "number": 1,
+              "type": "word_problem",
+              "topic": "Compound Interest",
+              "question_text": "A student invests $2,000 in a savings account that earns 5% interest annually, compounded once per year. After 2 years, how much money will be in the account?",
+              "choices": []
+            },
+            {
+              "id": "g12-s2-q2",
+              "number": 2,
+              "type": "word_problem",
+              "topic": "Rate",
+              "question_text": "A train travels from City A to City B, a distance of 360 miles, at a constant speed. If the trip takes 4.5 hours, what is the average speed of the train?",
+              "choices": []
+            },
+            {
+              "id": "g12-s2-q3",
+              "number": 3,
+              "type": "word_problem",
+              "topic": "Money",
+              "question_text": "Ella bought 3 notebooks for $2.75 each and 2 pens for $1.60 each. She paid with a $20 bill. How much change did she receive?",
+              "choices": []
+            },
+            {
+              "id": "g12-s2-q4",
+              "number": 4,
+              "type": "word_problem",
+              "topic": "Trigonometry",
+              "question_text": "A triangle has an angle measuring 30° and an adjacent side of 10 cm. Use trigonometry to find the opposite side (to the nearest tenth).",
+              "choices": []
+            },
+            {
+              "id": "g12-s2-q5",
+              "number": 5,
+              "type": "word_problem",
+              "topic": "Linear Equations",
+              "question_text": "A phone plan charges a flat rate of $40/month, plus $0.15 per minute for any usage over 200 minutes. If Jordan used 260 minutes, what is his total bill?",
+              "choices": []
+            }
+          ]
+        },
+        {
+          "section_title": "Section III: Multi-Step Problems",
+          "instructions": "Choose any 3 of the following 5 problems. Show all your steps and final answers clearly. Calculators are allowed.",
+          "time_limit_minutes": 40,
+          "calculator_allowed": "yes",
+          "student_completes": 3,
+          "questions": [
+            {
+              "id": "g12-s3-q1",
+              "number": 1,
+              "type": "multi_step",
+              "topic": "Area",
+              "question_text": "A rectangle has a length that is 4 meters more than twice its width. If the area of the rectangle is 96 square meters, find the dimensions.",
+              "choices": []
+            },
+            {
+              "id": "g12-s3-q2",
+              "number": 2,
+              "type": "multi_step",
+              "topic": "Statistics",
+              "question_text": "A student has grades of 82, 90, 87, and 88 on four exams. What score must they earn on the fifth exam to have an average of at least 88?",
+              "choices": []
+            },
+            {
+              "id": "g12-s3-q3",
+              "number": 3,
+              "type": "multi_step",
+              "topic": "Depreciation",
+              "question_text": "A car depreciates in value by 15% each year. If its current value is $25,000, what will its value be after 3 years?",
+              "choices": []
+            },
+            {
+              "id": "g12-s3-q4",
+              "number": 4,
+              "type": "multi_step",
+              "topic": "Volume",
+              "question_text": "A cylinder has a volume of 500π cm³. If its height is 10 cm, find the radius of the base. Use the formula V = π r² h.",
+              "choices": []
+            },
+            {
+              "id": "g12-s3-q5",
+              "number": 5,
+              "type": "multi_step",
+              "topic": "Comparison",
+              "question_text": "A company offers two job options: Job A: $45,000 per year, no bonuses. Job B: $40,000 per year + a bonus of $1,000 for each sale made. If an employee expects to make 7 sales, which job pays more?",
+              "choices": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
