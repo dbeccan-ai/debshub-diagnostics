@@ -225,17 +225,21 @@ const TakeTest = () => {
         }
       }
 
-      // Send email for ALL tests (paid and free)
-      const emailResponse = await supabase.functions.invoke("send-test-results", {
-        body: { attemptId },
-      });
+      // Send email for ALL tests (paid and free) - non-blocking
+      try {
+        const emailResponse = await supabase.functions.invoke("send-test-results", {
+          body: { attemptId },
+        });
 
-      if (emailResponse.error) {
-        console.error("Email sending error:", emailResponse.error);
-        toast.success("Test submitted! Results will be emailed shortly.");
-      } else {
-        toast.success("Test submitted! Results emailed to your parent.");
+        if (emailResponse.error) {
+          console.error("Email sending error:", emailResponse.error);
+        }
+      } catch (emailError) {
+        console.error("Email service unavailable:", emailError);
       }
+      
+      toast.dismiss();
+      toast.success("Test submitted successfully!");
 
       navigate("/dashboard");
     } catch (error: any) {
