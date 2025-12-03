@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Clock, AlertCircle, X } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { getQuestionsByTestName, normalizeQuestions } from "@/lib/testQuestions";
 
 const TakeTest = () => {
   const navigate = useNavigate();
@@ -102,8 +103,23 @@ const TakeTest = () => {
       }
 
       setAttempt(attemptData);
-      setTest(testData);
-      setTimeRemaining(testData.duration_minutes * 60);
+      
+      // Check if test questions are incomplete and load from JSON file
+      let finalTestData = testData;
+      const rawQuestions = testData.questions;
+      const questionsArray = normalizeQuestions(rawQuestions);
+      
+      // If no questions in database, try loading from JSON file
+      if (questionsArray.length === 0) {
+        const jsonQuestions = getQuestionsByTestName(testData.name);
+        if (jsonQuestions) {
+          finalTestData = { ...testData, questions: jsonQuestions as any };
+          console.log(`Loaded ${normalizeQuestions(jsonQuestions).length} questions from JSON for ${testData.name}`);
+        }
+      }
+      
+      setTest(finalTestData);
+      setTimeRemaining(finalTestData.duration_minutes * 60);
     } catch (error: any) {
       console.error("Error loading test:", error);
       toast.error("Failed to load test");
@@ -121,32 +137,13 @@ const TakeTest = () => {
     try {
       toast.loading("Submitting test...");
 
-      // Handle multiple question structures (same logic as render section)
-      const rawQuestions = test.questions;
-      let questions: any[] = [];
-      
-      if (Array.isArray(rawQuestions)) {
-        questions = rawQuestions;
-      } else if (rawQuestions?.sections && Array.isArray(rawQuestions.sections)) {
-        questions = rawQuestions.sections.flatMap((section: any) => 
-          (section.questions || []).map((q: any) => ({
-            ...q,
-            question: q.question_text || q.question,
-            options: q.choices || q.options || [],
-            type: q.type === 'multiple_choice' ? 'multiple-choice' : 
-                  q.type === 'word_problem' ? 'long' :
-                  q.type === 'multi_step' ? 'long' : q.type,
-            topic: q.topic || q.skill_tag,
-          }))
-        );
-      } else if (rawQuestions?.questions && Array.isArray(rawQuestions.questions)) {
-        questions = rawQuestions.questions;
-      }
+      // Use utility function to normalize questions
+      const questions = normalizeQuestions(test.questions);
       
       // Save all responses and calculate score
       const responses = Object.entries(answers).map(([questionId, answer]) => {
         const question = questions.find((q) => q.id === questionId);
-        const isCorrect = question?.type === "multiple-choice" 
+        const isCorrect = question?.type === "multiple-choice"
           ? answer === question.correct_answer 
           : null;
         
@@ -272,35 +269,8 @@ const TakeTest = () => {
     return null;
   }
 
-  // Handle multiple question structures:
-  // 1. Flat array of questions
-  // 2. Object with nested questions array
-  // 3. Object with sections array (grades 7-12 structure)
-  const rawQuestions = test.questions;
-  let questions: any[] = [];
-  
-  if (Array.isArray(rawQuestions)) {
-    // Flat array of questions
-    questions = rawQuestions;
-  } else if (rawQuestions?.sections && Array.isArray(rawQuestions.sections)) {
-    // Sections structure (grades 7-12) - flatten all questions from all sections
-    questions = rawQuestions.sections.flatMap((section: any) => 
-      (section.questions || []).map((q: any) => ({
-        ...q,
-        // Normalize field names for consistency
-        question: q.question_text || q.question,
-        options: q.choices || q.options || [],
-        type: q.type === 'multiple_choice' ? 'multiple-choice' : 
-              q.type === 'word_problem' ? 'long' :
-              q.type === 'multi_step' ? 'long' : q.type,
-        topic: q.topic || q.skill_tag,
-        section_title: section.section_title,
-      }))
-    );
-  } else if (rawQuestions?.questions && Array.isArray(rawQuestions.questions)) {
-    // Object with nested questions array
-    questions = rawQuestions.questions;
-  }
+  // Use utility function to normalize questions
+  const questions = normalizeQuestions(test.questions);
   
   if (questions.length === 0) {
     return (
