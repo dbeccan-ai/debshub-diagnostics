@@ -159,6 +159,11 @@ const Results = () => {
   };
 
   const incorrectAnswers = (attempt.total_questions || 0) - (attempt.correct_answers || 0);
+  const hasSkillData = Object.keys(skillAnalysis.skillStats).length > 0 || 
+                       skillAnalysis.mastered.length > 0 || 
+                       skillAnalysis.needsSupport.length > 0 ||
+                       skillAnalysis.developing.length > 0;
+  const isTier1 = attempt.tier === "Tier 1";
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -272,35 +277,58 @@ const Results = () => {
                     </li>
                   ))}
                 </ul>
+              ) : isTier1 ? (
+                <p className="text-xs text-emerald-600 italic">
+                  Excellent! Student demonstrated strong understanding across all tested skills.
+                </p>
               ) : (
                 <p className="text-xs text-slate-400 italic">No skills in this category</p>
               )}
             </CardContent>
           </Card>
 
-          {/* Skills Needing Support */}
-          <Card className="border-red-200">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold text-red-700 flex items-center gap-2">
-                <XCircle className="h-4 w-4" />
-                Needs Additional Support (&lt;50%)
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {skillAnalysis.needsSupport.length > 0 ? (
-                <ul className="space-y-1">
-                  {skillAnalysis.needsSupport.map((skill, idx) => (
-                    <li key={idx} className="text-sm text-red-800 flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 bg-red-500 rounded-full" />
-                      {skill}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-xs text-slate-400 italic">No skills in this category</p>
-              )}
-            </CardContent>
-          </Card>
+          {/* Skills Needing Support - Only show if NOT Tier 1 or has actual weak skills */}
+          {(!isTier1 || skillAnalysis.needsSupport.length > 0) && (
+            <Card className="border-red-200">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-semibold text-red-700 flex items-center gap-2">
+                  <XCircle className="h-4 w-4" />
+                  Needs Additional Support (&lt;50%)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {skillAnalysis.needsSupport.length > 0 ? (
+                  <ul className="space-y-1">
+                    {skillAnalysis.needsSupport.map((skill, idx) => (
+                      <li key={idx} className="text-sm text-red-800 flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 bg-red-500 rounded-full" />
+                        {skill}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-xs text-slate-400 italic">No skills in this category</p>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* For Tier 1 without weak skills, show a positive card instead */}
+          {isTier1 && skillAnalysis.needsSupport.length === 0 && (
+            <Card className="border-emerald-200 bg-emerald-50">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-semibold text-emerald-700 flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4" />
+                  Ready for Advanced Topics
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-xs text-emerald-700">
+                  Great news! Your student has no skills requiring additional support and is ready for enrichment activities.
+                </p>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Skills In Progress */}
@@ -362,22 +390,42 @@ const Results = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-sm text-slate-600">
-            <p>
-              This diagnostic test assessed your student's understanding of the following {Object.keys(skillAnalysis.skillStats).length} skills:
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {Object.keys(skillAnalysis.skillStats).map((skill) => (
-                <Badge 
-                  key={skill} 
-                  variant="outline" 
-                  className="text-xs bg-slate-50 text-slate-700 border-slate-300"
-                >
-                  {skill}
-                </Badge>
-              ))}
-            </div>
+            {hasSkillData ? (
+              <>
+                <p>
+                  This diagnostic test assessed your student's understanding of the following {Object.keys(skillAnalysis.skillStats).length || (skillAnalysis.mastered.length + skillAnalysis.needsSupport.length + skillAnalysis.developing.length)} skills:
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {Object.keys(skillAnalysis.skillStats).length > 0 ? (
+                    Object.keys(skillAnalysis.skillStats).map((skill) => (
+                      <Badge 
+                        key={skill} 
+                        variant="outline" 
+                        className="text-xs bg-slate-50 text-slate-700 border-slate-300"
+                      >
+                        {skill}
+                      </Badge>
+                    ))
+                  ) : (
+                    [...skillAnalysis.mastered, ...skillAnalysis.developing, ...skillAnalysis.needsSupport].map((skill, idx) => (
+                      <Badge 
+                        key={idx} 
+                        variant="outline" 
+                        className="text-xs bg-slate-50 text-slate-700 border-slate-300"
+                      >
+                        {skill}
+                      </Badge>
+                    ))
+                  )}
+                </div>
+              </>
+            ) : (
+              <p className="text-slate-500 italic">
+                Detailed skill analysis is not available for this test attempt. Future tests will include comprehensive skill-by-skill breakdowns.
+              </p>
+            )}
             
-            {skillAnalysis.needsSupport.length > 0 && (
+            {hasSkillData && skillAnalysis.needsSupport.length > 0 && (
               <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
                 <p className="font-semibold text-red-800 mb-2">
                   Your student needs academic support with:
