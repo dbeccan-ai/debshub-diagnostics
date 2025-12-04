@@ -8,6 +8,47 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { toast } from "sonner";
 import { z } from "zod";
 
+// Check if password has been leaked using HaveIBeenPwned API (k-anonymity)
+const checkLeakedPassword = async (password: string): Promise<boolean> => {
+  try {
+    // Create SHA-1 hash of password
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hashBuffer = await crypto.subtle.digest('SHA-1', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
+    
+    // Send only first 5 characters (k-anonymity)
+    const prefix = hashHex.slice(0, 5);
+    const suffix = hashHex.slice(5);
+    
+    const response = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`, {
+      headers: { 'Add-Padding': 'true' }
+    });
+    
+    if (!response.ok) {
+      console.error('HIBP API error:', response.status);
+      return false; // Fail open - don't block signup if API is down
+    }
+    
+    const text = await response.text();
+    const lines = text.split('\n');
+    
+    // Check if our password suffix is in the results
+    for (const line of lines) {
+      const [hashSuffix, count] = line.split(':');
+      if (hashSuffix.trim() === suffix && parseInt(count) > 0) {
+        return true; // Password has been leaked
+      }
+    }
+    
+    return false; // Password not found in breaches
+  } catch (error) {
+    console.error('Error checking leaked password:', error);
+    return false; // Fail open
+  }
+};
+
 // Validation schemas
 const usernameSchema = z.string()
   .min(3, "Username must be at least 3 characters")
@@ -115,6 +156,14 @@ const Auth = () => {
             }
           });
           setErrors(fieldErrors);
+          setLoading(false);
+          return;
+        }
+
+        // Check if password has been leaked
+        const isLeaked = await checkLeakedPassword(validation.data.password);
+        if (isLeaked) {
+          setErrors({ password: "This password has appeared in a data breach. Please choose a different password." });
           setLoading(false);
           return;
         }
