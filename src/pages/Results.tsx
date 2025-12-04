@@ -150,11 +150,12 @@ const Results = () => {
     );
   }
 
-  const skillAnalysis: SkillAnalysis = attempt.skill_analysis || {
-    mastered: attempt.strengths || [],
-    needsSupport: attempt.weaknesses || [],
-    developing: [],
-    skillStats: {}
+  const rawSkillAnalysis = attempt.skill_analysis as Partial<SkillAnalysis> | null;
+  const skillAnalysis: SkillAnalysis = {
+    mastered: rawSkillAnalysis?.mastered || attempt.strengths || [],
+    needsSupport: rawSkillAnalysis?.needsSupport || attempt.weaknesses || [],
+    developing: rawSkillAnalysis?.developing || [],
+    skillStats: rawSkillAnalysis?.skillStats || {}
   };
 
   const incorrectAnswers = (attempt.total_questions || 0) - (attempt.correct_answers || 0);
