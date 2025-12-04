@@ -137,6 +137,7 @@ export type Database = {
           id: string
           payment_status: string | null
           score: number | null
+          skill_analysis: Json | null
           started_at: string
           strengths: string[] | null
           test_id: string
@@ -155,6 +156,7 @@ export type Database = {
           id?: string
           payment_status?: string | null
           score?: number | null
+          skill_analysis?: Json | null
           started_at?: string
           strengths?: string[] | null
           test_id: string
@@ -173,6 +175,7 @@ export type Database = {
           id?: string
           payment_status?: string | null
           score?: number | null
+          skill_analysis?: Json | null
           started_at?: string
           strengths?: string[] | null
           test_id?: string

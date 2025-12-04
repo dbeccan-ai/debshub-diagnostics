@@ -1,11 +1,24 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
-import { Buffer } from "https://deno.land/std@0.177.0/node/buffer.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+interface SkillStat {
+  total: number;
+  correct: number;
+  percentage: number;
+  questionIds: string[];
+}
+
+interface SkillAnalysis {
+  mastered: string[];
+  needsSupport: string[];
+  developing: string[];
+  skillStats: Record<string, SkillStat>;
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -53,7 +66,7 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    // Fetch attempt details
+    // Fetch attempt details including skill_analysis
     const { data: attempt, error: attemptError } = await supabaseClient
       .from("test_attempts")
       .select(`
@@ -81,11 +94,19 @@ serve(async (req) => {
       throw new Error("Test is not completed yet");
     }
 
-    // Determine tier colors - Green for Tier 1, Yellow for Tier 2, Red for Tier 3
-    const tierColors: { [key: string]: { primary: string; border: string; bg: string } } = {
-      "Tier 1": { primary: "#22c55e", border: "#22c55e", bg: "#dcfce7" }, // Green
-      "Tier 2": { primary: "#eab308", border: "#eab308", bg: "#fef9c3" }, // Yellow
-      "Tier 3": { primary: "#ef4444", border: "#ef4444", bg: "#fee2e2" }, // Red
+    // Parse skill analysis
+    const skillAnalysis: SkillAnalysis = attempt.skill_analysis || {
+      mastered: attempt.strengths || [],
+      needsSupport: attempt.weaknesses || [],
+      developing: [],
+      skillStats: {}
+    };
+
+    // Determine tier colors
+    const tierColors: { [key: string]: { primary: string; border: string; bg: string; light: string } } = {
+      "Tier 1": { primary: "#22c55e", border: "#22c55e", bg: "#dcfce7", light: "#f0fdf4" },
+      "Tier 2": { primary: "#eab308", border: "#eab308", bg: "#fef9c3", light: "#fefce8" },
+      "Tier 3": { primary: "#ef4444", border: "#ef4444", bg: "#fee2e2", light: "#fef2f2" },
     };
 
     const tierColor = tierColors[attempt.tier || "Tier 3"];
@@ -111,6 +132,31 @@ serve(async (req) => {
     };
 
     const tierMessage = tierMessages[attempt.tier || "Tier 3"];
+
+    // Generate skill stats HTML
+    const generateSkillStatsHtml = (stats: Record<string, SkillStat>) => {
+      const entries = Object.entries(stats);
+      if (entries.length === 0) return '';
+      
+      return entries.map(([skill, stat]) => {
+        const barColor = stat.percentage >= 70 ? '#22c55e' : stat.percentage >= 50 ? '#eab308' : '#ef4444';
+        return `
+          <div class="skill-row">
+            <div class="skill-name">${skill}</div>
+            <div class="skill-bar-container">
+              <div class="skill-bar" style="width: ${stat.percentage}%; background: ${barColor};"></div>
+            </div>
+            <div class="skill-score">${stat.correct}/${stat.total} (${stat.percentage}%)</div>
+          </div>
+        `;
+      }).join('');
+    };
+
+    // Generate skill list HTML
+    const generateSkillListHtml = (skills: string[], icon: string, colorClass: string) => {
+      if (!skills || skills.length === 0) return '<p class="no-skills">No skills in this category</p>';
+      return `<ul class="skill-list ${colorClass}">${skills.map(s => `<li>${icon} ${s}</li>`).join('')}</ul>`;
+    };
 
     // Generate HTML for the result
     const resultHTML = `
@@ -304,7 +350,7 @@ serve(async (req) => {
     .report-section {
       margin: 15px 0;
       padding: 15px;
-      background: ${tierColor.bg};
+      background: ${tierColor.light};
       border-radius: 6px;
       border-left: 4px solid ${tierColor.primary};
     }
@@ -368,6 +414,94 @@ serve(async (req) => {
       display: block;
       margin-bottom: 5px;
     }
+    
+    /* Skill Analysis Styles */
+    .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+      margin: 15px 0;
+    }
+    .skills-card {
+      background: white;
+      border-radius: 8px;
+      padding: 15px;
+      border: 1px solid #e2e8f0;
+    }
+    .skills-card.mastered {
+      border-left: 4px solid #22c55e;
+    }
+    .skills-card.developing {
+      border-left: 4px solid #eab308;
+    }
+    .skills-card.needs-support {
+      border-left: 4px solid #ef4444;
+    }
+    .skills-card-title {
+      font-size: 14px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .skills-card.mastered .skills-card-title { color: #16a34a; }
+    .skills-card.developing .skills-card-title { color: #ca8a04; }
+    .skills-card.needs-support .skills-card-title { color: #dc2626; }
+    .skill-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .skill-list li {
+      font-size: 13px;
+      padding: 4px 0;
+      color: #334155;
+    }
+    .skill-list.green li { color: #166534; }
+    .skill-list.yellow li { color: #854d0e; }
+    .skill-list.red li { color: #991b1b; }
+    .no-skills {
+      font-size: 12px;
+      color: #94a3b8;
+      font-style: italic;
+    }
+    
+    /* Skill Bar Styles */
+    .skill-breakdown {
+      margin: 20px 0;
+    }
+    .skill-row {
+      display: flex;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .skill-name {
+      flex: 0 0 35%;
+      font-size: 13px;
+      font-weight: 500;
+      color: #334155;
+    }
+    .skill-bar-container {
+      flex: 1;
+      height: 12px;
+      background: #e2e8f0;
+      border-radius: 6px;
+      overflow: hidden;
+      margin: 0 10px;
+    }
+    .skill-bar {
+      height: 100%;
+      border-radius: 6px;
+      transition: width 0.3s ease;
+    }
+    .skill-score {
+      flex: 0 0 80px;
+      font-size: 12px;
+      color: #64748b;
+      text-align: right;
+    }
   </style>
 </head>
 <body>
@@ -405,12 +539,12 @@ serve(async (req) => {
         </div>
         
         ${
-          (attempt.strengths || []).length > 0
+          skillAnalysis.mastered.length > 0
             ? `
         <div class="section">
-          <div class="section-title">🌟 Areas of Strength</div>
+          <div class="section-title">🌟 Skills Mastered</div>
           <ul class="list">
-            ${(attempt.strengths || []).map((s: string) => `<li>${s}</li>`).join("")}
+            ${skillAnalysis.mastered.map((s: string) => `<li>${s}</li>`).join("")}
           </ul>
         </div>
         `
@@ -418,12 +552,12 @@ serve(async (req) => {
         }
         
         ${
-          (attempt.weaknesses || []).length > 0
+          skillAnalysis.needsSupport.length > 0
             ? `
         <div class="section">
-          <div class="section-title">📚 Areas for Growth</div>
+          <div class="section-title">📚 Skills Requiring Support</div>
           <ul class="list">
-            ${(attempt.weaknesses || []).map((w: string) => `<li>${w}</li>`).join("")}
+            ${skillAnalysis.needsSupport.map((w: string) => `<li>${w}</li>`).join("")}
           </ul>
         </div>
         `
@@ -443,14 +577,14 @@ serve(async (req) => {
     </div>
   </div>
 
-  <!-- Page 2: Detailed Report -->
+  <!-- Page 2: Detailed Report with Skills Analysis -->
   <div class="report-page">
     <div class="header">
       <div class="logo">D.E.Bs LEARNING ACADEMY</div>
       <div class="tagline">Unlocking Brilliance Through Learning</div>
     </div>
     
-    <div class="title">Detailed Test Report</div>
+    <div class="title">Detailed Skills Analysis Report</div>
     
     <div class="stats-row">
       <div class="stat-item">
@@ -481,6 +615,35 @@ serve(async (req) => {
       </div>
     </div>
 
+    <!-- Skills Summary Grid -->
+    <div class="skills-grid">
+      <div class="skills-card mastered">
+        <div class="skills-card-title">✅ Skills Mastered (70%+)</div>
+        ${generateSkillListHtml(skillAnalysis.mastered, '✓', 'green')}
+      </div>
+      <div class="skills-card needs-support">
+        <div class="skills-card-title">⚠️ Needs Additional Support (&lt;50%)</div>
+        ${generateSkillListHtml(skillAnalysis.needsSupport, '✗', 'red')}
+      </div>
+    </div>
+    
+    ${skillAnalysis.developing.length > 0 ? `
+    <div class="skills-card developing" style="margin-bottom: 15px;">
+      <div class="skills-card-title">📈 Skills In Progress (50-69%)</div>
+      ${generateSkillListHtml(skillAnalysis.developing, '→', 'yellow')}
+    </div>
+    ` : ''}
+
+    <!-- Detailed Skill Breakdown -->
+    ${Object.keys(skillAnalysis.skillStats || {}).length > 0 ? `
+    <div class="report-section">
+      <div class="report-title">📊 Skill-by-Skill Performance</div>
+      <div class="skill-breakdown">
+        ${generateSkillStatsHtml(skillAnalysis.skillStats)}
+      </div>
+    </div>
+    ` : ''}
+
     <div class="report-section">
       <div class="report-title">Understanding Your ${attempt.tier} Placement</div>
       <p class="report-text">
@@ -496,6 +659,11 @@ serve(async (req) => {
       <p class="report-text">
         ${tierMessage.nextSteps}
       </p>
+      ${skillAnalysis.needsSupport.length > 0 ? `
+      <p class="report-text">
+        <strong>Focus Areas:</strong> We recommend prioritizing these skills for additional practice: ${skillAnalysis.needsSupport.slice(0, 3).join(', ')}.
+      </p>
+      ` : ''}
     </div>
 
     <div class="contact-info">
@@ -517,18 +685,9 @@ serve(async (req) => {
 </html>
     `;
 
-    // For PNG format, we need to use a screenshot service or return HTML that client can convert
-    // For PDF, we can use a PDF generation service
-    // Since we're in a Deno environment, we'll return the HTML and let the client handle conversion
-    // or we can use a third-party service
-
-    // For now, let's return the HTML and instructions for the client to convert
-    // A better approach would be to use Puppeteer or similar, but that's complex in edge functions
-
-    // Alternative: Store the HTML and return a reference, let client convert using html2canvas/jsPDF
     const fileName = `result-${attemptId}.html`;
     
-    const { data: uploadData, error: uploadError } = await supabaseClient.storage
+    const { error: uploadError } = await supabaseClient.storage
       .from("certificates")
       .upload(fileName, resultHTML, {
         contentType: "text/html",
