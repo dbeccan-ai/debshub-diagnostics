@@ -94,12 +94,13 @@ serve(async (req) => {
       throw new Error("Test is not completed yet");
     }
 
-    // Parse skill analysis
-    const skillAnalysis: SkillAnalysis = attempt.skill_analysis || {
-      mastered: attempt.strengths || [],
-      needsSupport: attempt.weaknesses || [],
-      developing: [],
-      skillStats: {}
+    // Parse skill analysis with safe defaults
+    const rawSkillAnalysis = attempt.skill_analysis || {};
+    const skillAnalysis: SkillAnalysis = {
+      mastered: rawSkillAnalysis.mastered || attempt.strengths || [],
+      needsSupport: rawSkillAnalysis.needsSupport || attempt.weaknesses || [],
+      developing: rawSkillAnalysis.developing || [],
+      skillStats: rawSkillAnalysis.skillStats || {}
     };
 
     // Determine tier colors
