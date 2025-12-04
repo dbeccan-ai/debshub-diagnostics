@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Activity, Target, Users } from "lucide-react";
+import { Activity, Target, Users, Shield } from "lucide-react";
 
 type Tier = "Tier 1" | "Tier 2" | "Tier 3";
 type TestStatus = "In Progress" | "Completed" | "Payment Pending";
@@ -35,6 +35,7 @@ const Dashboard = () => {
   const [profileName, setProfileName] = useState<string>("there");
   const [attempts, setAttempts] = useState<DashboardAttempt[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
 
   useEffect(() => {
     const loadDashboard = async () => {
@@ -70,6 +71,16 @@ const Dashboard = () => {
 
         const nameFromProfile = profileData?.full_name || user.email || "there";
         setProfileName(nameFromProfile);
+
+        // Check if user is admin
+        const { data: roleData } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", user.id)
+          .eq("role", "admin")
+          .maybeSingle();
+        
+        setIsAdmin(!!roleData);
 
         // 3) Load all this user's test attempts + linked test info
         const { data: attemptsData, error: attemptsError } = await supabase
@@ -255,14 +266,27 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <Button
-            variant="outline"
-            size="sm"
-            className="border-slate-300 text-xs font-semibold text-slate-700"
-            onClick={() => navigate("/tests")}
-          >
-            New diagnostic
-          </Button>
+          <div className="flex items-center gap-2">
+            {isAdmin && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-amber-300 bg-amber-50 text-xs font-semibold text-amber-700 hover:bg-amber-100"
+                onClick={() => navigate("/admin/pending-reviews")}
+              >
+                <Shield className="mr-1 h-3 w-3" />
+                Admin
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-slate-300 text-xs font-semibold text-slate-700"
+              onClick={() => navigate("/tests")}
+            >
+              New diagnostic
+            </Button>
+          </div>
         </div>
       </header>
 
