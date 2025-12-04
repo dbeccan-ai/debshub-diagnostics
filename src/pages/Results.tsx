@@ -354,48 +354,146 @@ const Results = () => {
           </Card>
         )}
 
+        {/* Skills Covered Summary */}
+        <Card className="border-slate-200 mb-6">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-semibold text-slate-800">
+              Skills Assessed in This Diagnostic
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 text-sm text-slate-600">
+            <p>
+              This diagnostic test assessed your student's understanding of the following {Object.keys(skillAnalysis.skillStats).length} skills:
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {Object.keys(skillAnalysis.skillStats).map((skill) => (
+                <Badge 
+                  key={skill} 
+                  variant="outline" 
+                  className="text-xs bg-slate-50 text-slate-700 border-slate-300"
+                >
+                  {skill}
+                </Badge>
+              ))}
+            </div>
+            
+            {skillAnalysis.needsSupport.length > 0 && (
+              <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <p className="font-semibold text-red-800 mb-2">
+                  Your student needs academic support with:
+                </p>
+                <ul className="space-y-1">
+                  {skillAnalysis.needsSupport.map((skill, idx) => {
+                    const stats = skillAnalysis.skillStats[skill];
+                    return (
+                      <li key={idx} className="text-red-700 flex items-start gap-2">
+                        <XCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                        <span>
+                          <strong>{skill}</strong>
+                          {stats && (
+                            <span className="text-red-600 text-xs ml-1">
+                              ({stats.correct}/{stats.total} correct, {stats.percentage}%)
+                            </span>
+                          )}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+
+            {skillAnalysis.developing.length > 0 && (
+              <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                <p className="font-semibold text-amber-800 mb-2">
+                  Your student is developing understanding of:
+                </p>
+                <ul className="space-y-1">
+                  {skillAnalysis.developing.map((skill, idx) => {
+                    const stats = skillAnalysis.skillStats[skill];
+                    return (
+                      <li key={idx} className="text-amber-700 flex items-start gap-2">
+                        <TrendingUp className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                        <span>
+                          <strong>{skill}</strong>
+                          {stats && (
+                            <span className="text-amber-600 text-xs ml-1">
+                              ({stats.correct}/{stats.total} correct, {stats.percentage}%)
+                            </span>
+                          )}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+
+            {skillAnalysis.mastered.length > 0 && (
+              <div className="mt-4 p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
+                <p className="font-semibold text-emerald-800 mb-2">
+                  Your student has demonstrated mastery of:
+                </p>
+                <ul className="space-y-1">
+                  {skillAnalysis.mastered.map((skill, idx) => {
+                    const stats = skillAnalysis.skillStats[skill];
+                    return (
+                      <li key={idx} className="text-emerald-700 flex items-start gap-2">
+                        <CheckCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                        <span>
+                          <strong>{skill}</strong>
+                          {stats && (
+                            <span className="text-emerald-600 text-xs ml-1">
+                              ({stats.correct}/{stats.total} correct, {stats.percentage}%)
+                            </span>
+                          )}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Tier Explanation & Next Steps */}
         <Card className="border-slate-200">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-semibold text-slate-800">
-              Understanding Your {attempt.tier} Placement
+              Next Steps Based on {attempt.tier} Placement
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-sm text-slate-600">
             {attempt.tier === "Tier 1" && (
               <>
                 <p>
-                  <strong className="text-emerald-700">Congratulations!</strong> Your student has mastered 
-                  the topics covered in this diagnostic test and is ready for advanced topics.
-                </p>
-                <p>
-                  Continue challenging them with advanced materials and consider enrichment opportunities.
+                  <strong className="text-emerald-700">Excellent performance!</strong> Your student scored 
+                  80% or above and is ready for advanced topics and enrichment activities.
                 </p>
               </>
             )}
             {attempt.tier === "Tier 2" && (
               <>
                 <p>
-                  Your student is performing at or near grade level and would benefit from targeted 
-                  support in specific areas.
+                  Your student is performing at or near grade level. Focus on the specific skills listed 
+                  above that need additional practice.
                 </p>
                 <p>
                   <strong className="text-amber-700">Recommended:</strong> Register for our 10-session 
-                  support program. Your student will receive automatic diagnostic retries at sessions 
-                  5 and 10 to track progress.
+                  tutoring program. Automatic diagnostic retries at sessions 5 and 10 to track progress.
                 </p>
               </>
             )}
             {attempt.tier === "Tier 3" && (
               <>
                 <p>
-                  Your student is currently performing below grade level and needs strong, consistent 
-                  support to build foundational skills.
+                  Your student needs focused support in the skills listed above. Consistent practice 
+                  will help build foundational understanding.
                 </p>
                 <p>
-                  <strong className="text-red-700">Recommended:</strong> Register for our comprehensive 
-                  15-session support program. Your student will receive automatic diagnostic retries at 
-                  sessions 7, 10, and 15 to monitor growth.
+                  <strong className="text-red-700">Recommended:</strong> Register for our 15-session 
+                  tutoring program. Automatic diagnostic retries at sessions 7, 10, and 15 to monitor growth.
                 </p>
               </>
             )}
