@@ -1,0 +1,394 @@
+{
+  "reinforcement_questions": {
+    "Exponents": [
+      {
+        "id": "reinforce-exp-1",
+        "type": "multiple_choice",
+        "topic": "Exponents",
+        "question_text": "What is the value of 3³?",
+        "choices": ["A. 9", "B. 27", "C. 6", "D. 12"],
+        "correct_answer": "B"
+      },
+      {
+        "id": "reinforce-exp-2",
+        "type": "multiple_choice",
+        "topic": "Exponents",
+        "question_text": "Simplify: 2⁴",
+        "choices": ["A. 8", "B. 12", "C. 16", "D. 6"],
+        "correct_answer": "C"
+      },
+      {
+        "id": "reinforce-exp-3",
+        "type": "multiple_choice",
+        "topic": "Exponents",
+        "question_text": "What is 10² ÷ 10?",
+        "choices": ["A. 1", "B. 10", "C. 100", "D. 20"],
+        "correct_answer": "B"
+      }
+    ],
+    "Prime Numbers": [
+      {
+        "id": "reinforce-prime-1",
+        "type": "multiple_choice",
+        "topic": "Prime Numbers",
+        "question_text": "Which of these is a prime number?",
+        "choices": ["A. 21", "B. 23", "C. 25", "D. 27"],
+        "correct_answer": "B"
+      },
+      {
+        "id": "reinforce-prime-2",
+        "type": "multiple_choice",
+        "topic": "Prime Numbers",
+        "question_text": "How many prime numbers are between 1 and 10?",
+        "choices": ["A. 3", "B. 4", "C. 5", "D. 6"],
+        "correct_answer": "B"
+      },
+      {
+        "id": "reinforce-prime-3",
+        "type": "multiple_choice",
+        "topic": "Prime Numbers",
+        "question_text": "What is the smallest prime number?",
+        "choices": ["A. 0", "B. 1", "C. 2", "D. 3"],
+        "correct_answer": "C"
+      }
+    ],
+    "Algebra": [
+      {
+        "id": "reinforce-alg-1",
+        "type": "multiple_choice",
+        "topic": "Algebra",
+        "question_text": "Simplify: 2(y + 4)",
+        "choices": ["A. 2y + 4", "B. 2y + 8", "C. y + 8", "D. 2y – 4"],
+        "correct_answer": "B"
+      },
+      {
+        "id": "reinforce-alg-2",
+        "type": "multiple_choice",
+        "topic": "Algebra",
+        "question_text": "What is 5x + 3x?",
+        "choices": ["A. 8x", "B. 15x", "C. 8", "D. 5x + 3x"],
+        "correct_answer": "A"
+      },
+      {
+        "id": "reinforce-alg-3",
+        "type": "multiple_choice",
+        "topic": "Algebra",
+        "question_text": "Simplify: 4(a – 2)",
+        "choices": ["A. 4a – 2", "B. 4a + 8", "C. 4a – 8", "D. a – 8"],
+        "correct_answer": "C"
+      }
+    ],
+    "Equations": [
+      {
+        "id": "reinforce-eq-1",
+        "type": "multiple_choice",
+        "topic": "Equations",
+        "question_text": "Solve: x + 5 = 12",
+        "choices": ["A. x = 5", "B. x = 7", "C. x = 17", "D. x = 6"],
+        "correct_answer": "B"
+      },
+      {
+        "id": "reinforce-eq-2",
+        "type": "multiple_choice",
+        "topic": "Equations",
+        "question_text": "Solve: 4x = 20",
+        "choices": ["A. x = 4", "B. x = 5", "C. x = 16", "D. x = 24"],
+        "correct_answer": "B"
+      },
+      {
+        "id": "reinforce-eq-3",
+        "type": "multiple_choice",
+        "topic": "Equations",
+        "question_text": "Solve: x – 8 = 15",
+        "choices": ["A. x = 7", "B. x = 8", "C. x = 23", "D. x = 120"],
+        "correct_answer": "C"
+      }
+    ],
+    "Fractions": [
+      {
+        "id": "reinforce-frac-1",
+        "type": "multiple_choice",
+        "topic": "Fractions",
+        "question_text": "What is 1/2 + 1/4?",
+        "choices": ["A. 2/6", "B. 3/4", "C. 1/6", "D. 2/4"],
+        "correct_answer": "B"
+      },
+      {
+        "id": "reinforce-frac-2",
+        "type": "multiple_choice",
+        "topic": "Fractions",
+        "question_text": "Convert 0.5 to a fraction.",
+        "choices": ["A. 1/5", "B. 5/10", "C. 1/2", "D. 2/5"],
+        "correct_answer": "C"
+      },
+      {
+        "id": "reinforce-frac-3",
+        "type": "multiple_choice",
+        "topic": "Fractions",
+        "question_text": "Simplify: 4/8",
+        "choices": ["A. 2/4", "B. 1/2", "C. 4/8", "D. 1/4"],
+        "correct_answer": "B"
+      }
+    ],
+    "Area": [
+      {
+        "id": "reinforce-area-1",
+        "type": "multiple_choice",
+        "topic": "Area",
+        "question_text": "What is the area of a rectangle with length 8 cm and width 3 cm?",
+        "choices": ["A. 11 cm²", "B. 22 cm²", "C. 24 cm²", "D. 16 cm²"],
+        "correct_answer": "C"
+      },
+      {
+        "id": "reinforce-area-2",
+        "type": "multiple_choice",
+        "topic": "Area",
+        "question_text": "What is the area of a square with side 5 cm?",
+        "choices": ["A. 10 cm²", "B. 20 cm²", "C. 25 cm²", "D. 15 cm²"],
+        "correct_answer": "C"
+      },
+      {
+        "id": "reinforce-area-3",
+        "type": "multiple_choice",
+        "topic": "Area",
+        "question_text": "A triangle has base 6 cm and height 4 cm. What is its area?",
+        "choices": ["A. 24 cm²", "B. 10 cm²", "C. 12 cm²", "D. 14 cm²"],
+        "correct_answer": "C"
+      }
+    ],
+    "Statistics": [
+      {
+        "id": "reinforce-stat-1",
+        "type": "multiple_choice",
+        "topic": "Statistics",
+        "question_text": "What is the mean of 2, 4, 6?",
+        "choices": ["A. 3", "B. 4", "C. 5", "D. 6"],
+        "correct_answer": "B"
+      },
+      {
+        "id": "reinforce-stat-2",
+        "type": "multiple_choice",
+        "topic": "Statistics",
+        "question_text": "What is the median of 1, 3, 5, 7, 9?",
+        "choices": ["A. 3", "B. 4", "C. 5", "D. 7"],
+        "correct_answer": "C"
+      },
+      {
+        "id": "reinforce-stat-3",
+        "type": "multiple_choice",
+        "topic": "Statistics",
+        "question_text": "In the set {2, 2, 3, 4, 5}, what is the mode?",
+        "choices": ["A. 2", "B. 3", "C. 3.2", "D. 5"],
+        "correct_answer": "A"
+      }
+    ],
+    "Absolute Value": [
+      {
+        "id": "reinforce-abs-1",
+        "type": "multiple_choice",
+        "topic": "Absolute Value",
+        "question_text": "What is |–15|?",
+        "choices": ["A. –15", "B. 0", "C. 15", "D. 1"],
+        "correct_answer": "C"
+      },
+      {
+        "id": "reinforce-abs-2",
+        "type": "multiple_choice",
+        "topic": "Absolute Value",
+        "question_text": "What is |5 – 12|?",
+        "choices": ["A. –7", "B. 7", "C. 17", "D. 5"],
+        "correct_answer": "B"
+      },
+      {
+        "id": "reinforce-abs-3",
+        "type": "multiple_choice",
+        "topic": "Absolute Value",
+        "question_text": "What is |0|?",
+        "choices": ["A. –1", "B. 1", "C. 0", "D. undefined"],
+        "correct_answer": "C"
+      }
+    ],
+    "Distributive Property": [
+      {
+        "id": "reinforce-dist-1",
+        "type": "multiple_choice",
+        "topic": "Distributive Property",
+        "question_text": "Expand: 5(x + 3)",
+        "choices": ["A. 5x + 3", "B. 5x + 15", "C. x + 15", "D. 5x + 8"],
+        "correct_answer": "B"
+      },
+      {
+        "id": "reinforce-dist-2",
+        "type": "multiple_choice",
+        "topic": "Distributive Property",
+        "question_text": "Expand: 2(3y – 4)",
+        "choices": ["A. 6y – 4", "B. 6y – 8", "C. 3y – 8", "D. 6y + 8"],
+        "correct_answer": "B"
+      },
+      {
+        "id": "reinforce-dist-3",
+        "type": "multiple_choice",
+        "topic": "Distributive Property",
+        "question_text": "Expand: –3(x + 2)",
+        "choices": ["A. –3x + 2", "B. –3x – 6", "C. 3x – 6", "D. –3x + 6"],
+        "correct_answer": "B"
+      }
+    ],
+    "Decimals": [
+      {
+        "id": "reinforce-dec-1",
+        "type": "multiple_choice",
+        "topic": "Decimals",
+        "question_text": "What is 0.3 + 0.45?",
+        "choices": ["A. 0.48", "B. 0.75", "C. 0.345", "D. 0.35"],
+        "correct_answer": "B"
+      },
+      {
+        "id": "reinforce-dec-2",
+        "type": "multiple_choice",
+        "topic": "Decimals",
+        "question_text": "What is 2.5 × 4?",
+        "choices": ["A. 8", "B. 10", "C. 6.5", "D. 100"],
+        "correct_answer": "B"
+      },
+      {
+        "id": "reinforce-dec-3",
+        "type": "multiple_choice",
+        "topic": "Decimals",
+        "question_text": "Round 3.847 to the nearest tenth.",
+        "choices": ["A. 3.8", "B. 3.85", "C. 3.9", "D. 4.0"],
+        "correct_answer": "A"
+      }
+    ],
+    "Percentages": [
+      {
+        "id": "reinforce-perc-1",
+        "type": "multiple_choice",
+        "topic": "Percentages",
+        "question_text": "What is 25% of 80?",
+        "choices": ["A. 15", "B. 20", "C. 25", "D. 30"],
+        "correct_answer": "B"
+      },
+      {
+        "id": "reinforce-perc-2",
+        "type": "multiple_choice",
+        "topic": "Percentages",
+        "question_text": "Convert 0.6 to a percentage.",
+        "choices": ["A. 6%", "B. 0.6%", "C. 60%", "D. 600%"],
+        "correct_answer": "C"
+      },
+      {
+        "id": "reinforce-perc-3",
+        "type": "multiple_choice",
+        "topic": "Percentages",
+        "question_text": "What is 10% of 250?",
+        "choices": ["A. 2.5", "B. 25", "C. 250", "D. 10"],
+        "correct_answer": "B"
+      }
+    ],
+    "Ratios": [
+      {
+        "id": "reinforce-ratio-1",
+        "type": "multiple_choice",
+        "topic": "Ratios",
+        "question_text": "Simplify the ratio 12:8",
+        "choices": ["A. 6:4", "B. 3:2", "C. 4:3", "D. 12:8"],
+        "correct_answer": "B"
+      },
+      {
+        "id": "reinforce-ratio-2",
+        "type": "multiple_choice",
+        "topic": "Ratios",
+        "question_text": "If the ratio of boys to girls is 3:5 and there are 15 girls, how many boys are there?",
+        "choices": ["A. 6", "B. 9", "C. 12", "D. 25"],
+        "correct_answer": "B"
+      },
+      {
+        "id": "reinforce-ratio-3",
+        "type": "multiple_choice",
+        "topic": "Ratios",
+        "question_text": "Express 4:12 in simplest form.",
+        "choices": ["A. 2:6", "B. 1:3", "C. 4:12", "D. 1:4"],
+        "correct_answer": "B"
+      }
+    ],
+    "Proportions": [
+      {
+        "id": "reinforce-prop-1",
+        "type": "multiple_choice",
+        "topic": "Proportions",
+        "question_text": "Solve for x: 2/5 = x/15",
+        "choices": ["A. x = 3", "B. x = 6", "C. x = 7.5", "D. x = 10"],
+        "correct_answer": "B"
+      },
+      {
+        "id": "reinforce-prop-2",
+        "type": "multiple_choice",
+        "topic": "Proportions",
+        "question_text": "If 3 apples cost $6, how much do 5 apples cost?",
+        "choices": ["A. $8", "B. $9", "C. $10", "D. $15"],
+        "correct_answer": "C"
+      },
+      {
+        "id": "reinforce-prop-3",
+        "type": "multiple_choice",
+        "topic": "Proportions",
+        "question_text": "Solve for y: 4/8 = y/16",
+        "choices": ["A. y = 4", "B. y = 8", "C. y = 12", "D. y = 2"],
+        "correct_answer": "B"
+      }
+    ],
+    "Geometry": [
+      {
+        "id": "reinforce-geom-1",
+        "type": "multiple_choice",
+        "topic": "Geometry",
+        "question_text": "How many sides does a hexagon have?",
+        "choices": ["A. 5", "B. 6", "C. 7", "D. 8"],
+        "correct_answer": "B"
+      },
+      {
+        "id": "reinforce-geom-2",
+        "type": "multiple_choice",
+        "topic": "Geometry",
+        "question_text": "What is the sum of angles in a triangle?",
+        "choices": ["A. 90°", "B. 180°", "C. 270°", "D. 360°"],
+        "correct_answer": "B"
+      },
+      {
+        "id": "reinforce-geom-3",
+        "type": "multiple_choice",
+        "topic": "Geometry",
+        "question_text": "A rectangle has 4 right angles. What is the measure of each angle?",
+        "choices": ["A. 45°", "B. 60°", "C. 90°", "D. 180°"],
+        "correct_answer": "C"
+      }
+    ],
+    "Volume": [
+      {
+        "id": "reinforce-vol-1",
+        "type": "multiple_choice",
+        "topic": "Volume",
+        "question_text": "What is the volume of a cube with side 3 cm?",
+        "choices": ["A. 9 cm³", "B. 18 cm³", "C. 27 cm³", "D. 36 cm³"],
+        "correct_answer": "C"
+      },
+      {
+        "id": "reinforce-vol-2",
+        "type": "multiple_choice",
+        "topic": "Volume",
+        "question_text": "A rectangular prism has length 4, width 3, and height 2. What is its volume?",
+        "choices": ["A. 9", "B. 12", "C. 18", "D. 24"],
+        "correct_answer": "D"
+      },
+      {
+        "id": "reinforce-vol-3",
+        "type": "multiple_choice",
+        "topic": "Volume",
+        "question_text": "What is the volume of a cube with side 5 cm?",
+        "choices": ["A. 15 cm³", "B. 25 cm³", "C. 100 cm³", "D. 125 cm³"],
+        "correct_answer": "D"
+      }
+    ]
+  }
+}
