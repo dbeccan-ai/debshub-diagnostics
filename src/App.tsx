@@ -12,6 +12,9 @@ import Checkout from "./pages/Checkout";
 import VerifyPayment from "./pages/VerifyPayment";
 import Results from "./pages/Results";
 import AdminPendingReviews from "./pages/AdminPendingReviews";
+import AdminInvitations from "./pages/AdminInvitations";
+import Register from "./pages/Register";
+import TeacherDashboard from "./pages/TeacherDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +35,9 @@ const App = () => (
           <Route path="/verify-payment" element={<VerifyPayment />} />
           <Route path="/results/:attemptId" element={<Results />} />
           <Route path="/admin/pending-reviews" element={<AdminPendingReviews />} />
+          <Route path="/admin/invitations" element={<AdminInvitations />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/teacher" element={<TeacherDashboard />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
