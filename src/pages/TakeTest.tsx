@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -8,9 +8,18 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Clock, AlertCircle, X } from "lucide-react";
+import { Clock, AlertCircle, X, Lightbulb } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { getQuestionsByTestName, normalizeQuestions } from "@/lib/testQuestions";
+import reinforcementData from "@/data/reinforcement-questions.json";
+
+interface SkillPerformance {
+  correct: number;
+  incorrect: number;
+  adaptiveAdded: number;
+}
+
+const MAX_ADAPTIVE_PER_SKILL = 3;
 
 const TakeTest = () => {
   const navigate = useNavigate();
@@ -23,6 +32,12 @@ const TakeTest = () => {
   const [loading, setLoading] = useState(true);
   const [showTimeWarning, setShowTimeWarning] = useState(false);
   const [profile, setProfile] = useState<any>(null);
+  
+  // Adaptive testing state
+  const [questions, setQuestions] = useState<any[]>([]);
+  const [skillPerformance, setSkillPerformance] = useState<Record<string, SkillPerformance>>({});
+  const [addedAdaptiveIds, setAddedAdaptiveIds] = useState<Set<string>>(new Set());
+  const [adaptiveMessage, setAdaptiveMessage] = useState<string | null>(null);
 
   useEffect(() => {
     fetchTestAttempt();
@@ -115,18 +130,20 @@ const TakeTest = () => {
       }
 
       let finalTestData = testResponse.test;
-      const questionsArray = normalizeQuestions(finalTestData.questions);
+      let questionsArray = normalizeQuestions(finalTestData.questions);
       
       // If no questions from edge function, try loading from JSON file as fallback
       if (questionsArray.length === 0) {
         const jsonQuestions = getQuestionsByTestName(finalTestData.name);
         if (jsonQuestions) {
           finalTestData = { ...finalTestData, questions: jsonQuestions as any };
-          console.log(`Loaded ${normalizeQuestions(jsonQuestions).length} questions from JSON for ${finalTestData.name}`);
+          questionsArray = normalizeQuestions(jsonQuestions);
+          console.log(`Loaded ${questionsArray.length} questions from JSON for ${finalTestData.name}`);
         }
       }
       
       setTest(finalTestData);
+      setQuestions(questionsArray);
       setTimeRemaining(finalTestData.duration_minutes * 60);
     } catch (error: any) {
       console.error("Error loading test:", error);
@@ -137,8 +154,118 @@ const TakeTest = () => {
     }
   };
 
+  // Normalize topic name for matching
+  const normalizeTopicName = (topic: string): string => {
+    return topic
+      .replace(/[_-]/g, ' ')
+      .replace(/\b\w/g, char => char.toUpperCase())
+      .trim();
+  };
+
+  // Get reinforcement questions for a skill
+  const getReinforcementQuestions = (skill: string): any[] => {
+    const normalizedSkill = normalizeTopicName(skill);
+    const reinforcementQuestions = (reinforcementData.reinforcement_questions as Record<string, any[]>)[normalizedSkill];
+    
+    if (!reinforcementQuestions) return [];
+    
+    return reinforcementQuestions.map(q => ({
+      id: q.id,
+      question: q.question_text,
+      type: 'multiple-choice',
+      options: q.choices,
+      topic: q.topic,
+      correct_answer: q.correct_answer,
+      isAdaptive: true
+    }));
+  };
+
+  // Check if answer is correct (for multiple choice only)
+  const checkAnswer = (questionId: string, answer: string): boolean | null => {
+    const question = questions.find(q => q.id === questionId);
+    if (!question || question.type !== 'multiple-choice') return null;
+    
+    const correctAnswer = question.correct_answer || question.correctAnswer;
+    // Handle both full answer and letter-only formats
+    const answerLetter = answer.charAt(0).toUpperCase();
+    const correctLetter = correctAnswer?.charAt(0).toUpperCase();
+    return answerLetter === correctLetter || answer === correctAnswer;
+  };
+
+  // Add adaptive question if needed
+  const checkAndAddAdaptiveQuestion = (questionId: string, isCorrect: boolean | null) => {
+    if (isCorrect !== false) return; // Only add for wrong answers
+    
+    const question = questions.find(q => q.id === questionId);
+    if (!question) return;
+    
+    const skill = normalizeTopicName(question.topic || 'general');
+    const currentPerf = skillPerformance[skill] || { correct: 0, incorrect: 0, adaptiveAdded: 0 };
+    
+    // Check if we've already added max adaptive questions for this skill
+    if (currentPerf.adaptiveAdded >= MAX_ADAPTIVE_PER_SKILL) return;
+    
+    // Get available reinforcement questions
+    const availableReinforcement = getReinforcementQuestions(skill).filter(
+      q => !addedAdaptiveIds.has(q.id)
+    );
+    
+    if (availableReinforcement.length > 0) {
+      const newQuestion = availableReinforcement[0];
+      
+      // Insert after current question
+      setQuestions(prev => {
+        const updated = [...prev];
+        const insertIndex = currentQuestionIndex + 1;
+        updated.splice(insertIndex, 0, newQuestion);
+        return updated;
+      });
+      
+      setAddedAdaptiveIds(prev => new Set([...prev, newQuestion.id]));
+      
+      setSkillPerformance(prev => ({
+        ...prev,
+        [skill]: {
+          ...prev[skill],
+          correct: prev[skill]?.correct || 0,
+          incorrect: (prev[skill]?.incorrect || 0) + 1,
+          adaptiveAdded: (prev[skill]?.adaptiveAdded || 0) + 1
+        }
+      }));
+      
+      setAdaptiveMessage(`Let's practice "${skill}" with another question.`);
+      
+      // Clear message after 3 seconds
+      setTimeout(() => setAdaptiveMessage(null), 3000);
+    } else {
+      // Just update skill performance without adding question
+      setSkillPerformance(prev => ({
+        ...prev,
+        [skill]: {
+          ...prev[skill],
+          correct: prev[skill]?.correct || 0,
+          incorrect: (prev[skill]?.incorrect || 0) + 1,
+          adaptiveAdded: prev[skill]?.adaptiveAdded || 0
+        }
+      }));
+    }
+  };
+
   const handleAnswer = (questionId: string, answer: string) => {
     setAnswers((prev) => ({ ...prev, [questionId]: answer }));
+  };
+
+  // Handle moving to next question - check if adaptive question needed
+  const handleNext = () => {
+    const currentQuestion = questions[currentQuestionIndex];
+    const currentAnswer = answers[currentQuestion?.id];
+    
+    if (currentAnswer && currentQuestion?.type === 'multiple-choice') {
+      const isCorrect = checkAnswer(currentQuestion.id, currentAnswer);
+      checkAndAddAdaptiveQuestion(currentQuestion.id, isCorrect);
+    }
+    
+    setCurrentQuestionIndex((prev) => Math.min(questions.length - 1, prev + 1));
   };
 
   const handleSubmit = async () => {
@@ -222,9 +349,7 @@ const TakeTest = () => {
     return null;
   }
 
-  // Use utility function to normalize questions
-  const questions = normalizeQuestions(test.questions);
-  
+  // Questions are now in state (initialized when test loads)
   if (questions.length === 0) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-100 via-blue-50 to-yellow-100">
@@ -288,20 +413,50 @@ const TakeTest = () => {
         </Alert>
       )}
 
+      {/* Adaptive Question Message */}
+      {adaptiveMessage && (
+        <Alert className="bg-blue-50 border-blue-300 mx-6 mt-4">
+          <div className="flex items-center gap-2">
+            <Lightbulb className="h-5 w-5 text-blue-600" />
+            <AlertDescription className="text-blue-800 font-medium">
+              {adaptiveMessage}
+            </AlertDescription>
+          </div>
+        </Alert>
+      )}
+
       {/* Main Content */}
       <main className="container mx-auto px-6 py-8 max-w-5xl">
         {/* Student Info */}
         <div className="text-sm text-[#1e3a8a]/60 mb-4">
           Student: {profile?.full_name} | Grade: {attempt?.grade_level || "N/A"} | Time limit: {test.duration_minutes} minutes
+          {addedAdaptiveIds.size > 0 && (
+            <span className="ml-2 text-blue-600">
+              ({addedAdaptiveIds.size} practice question{addedAdaptiveIds.size !== 1 ? 's' : ''} added)
+            </span>
+          )}
         </div>
 
         {/* Question Card */}
         <Card className="bg-white shadow-lg rounded-xl">
           <CardContent className="p-8">
+            {/* Adaptive Question Badge */}
+            {currentQuestion?.isAdaptive && (
+              <div className="mb-4 inline-flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                <Lightbulb className="h-4 w-4" />
+                Practice Question
+              </div>
+            )}
+            
             {/* Question Block */}
             <div className="bg-[#F7FAFF] rounded-lg p-6 mb-6">
               <h3 className="text-lg font-semibold text-[#1e3a8a] mb-3">
                 Question {currentQuestionIndex + 1}
+                {currentQuestion?.topic && (
+                  <span className="ml-2 text-sm font-normal text-[#1e3a8a]/60">
+                    ({currentQuestion.topic})
+                  </span>
+                )}
               </h3>
               <p className="text-[#1e3a8a] text-base leading-relaxed">
                 {currentQuestion.question}
@@ -393,9 +548,7 @@ const TakeTest = () => {
             </Button>
           ) : (
             <Button
-              onClick={() =>
-                setCurrentQuestionIndex((prev) => Math.min(questions.length - 1, prev + 1))
-              }
+              onClick={handleNext}
               className="bg-[#22c55e] hover:bg-[#16a34a] text-white font-semibold"
             >
               Next
