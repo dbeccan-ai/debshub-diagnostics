@@ -43,8 +43,9 @@ const Tests = () => {
 
   const fetchTests = async () => {
     try {
+      // Use the secure view that doesn't expose questions/answers
       const { data, error } = await supabase
-        .from("tests")
+        .from("tests_public")
         .select("*")
         .order("test_type");
 

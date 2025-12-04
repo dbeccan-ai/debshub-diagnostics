@@ -8,3 +8,9 @@ verify_jwt = false
 
 [functions.generate-result-download]
 verify_jwt = false
+
+[functions.get-test-questions]
+verify_jwt = true
+
+[functions.grade-test]
+verify_jwt = true

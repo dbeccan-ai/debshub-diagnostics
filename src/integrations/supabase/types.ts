@@ -190,6 +190,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "test_attempts_test_id_fkey"
+            columns: ["test_id"]
+            isOneToOne: false
+            referencedRelation: "tests_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "test_attempts_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -295,7 +302,42 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      tests_public: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          duration_minutes: number | null
+          id: string | null
+          is_paid: boolean | null
+          name: string | null
+          price: number | null
+          test_type: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string | null
+          is_paid?: boolean | null
+          name?: string | null
+          price?: number | null
+          test_type?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string | null
+          is_paid?: boolean | null
+          name?: string | null
+          price?: number | null
+          test_type?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       get_email_from_username: {
