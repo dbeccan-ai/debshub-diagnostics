@@ -90,31 +90,39 @@ const TakeTest = () => {
         return;
       }
 
-      const { data: testData, error: testError } = await supabase
-        .from("tests")
-        .select("*")
-        .eq("id", attemptData.test_id)
-        .single();
+      setAttempt(attemptData);
 
-      if (testError) {
-        toast.error("Test not found");
+      // Fetch questions securely via edge function (no correct answers exposed)
+      const { data: testResponse, error: testError } = await supabase.functions.invoke(
+        "get-test-questions",
+        { body: { attemptId } }
+      );
+
+      if (testError || testResponse?.error) {
+        const errorMsg = testResponse?.error || testError?.message || "Failed to load test";
+        console.error("Test fetch error:", errorMsg);
+        
+        // Handle specific error cases
+        if (testResponse?.error === "Payment required before accessing test") {
+          toast.info("Please complete payment first");
+          navigate(`/checkout/${attemptData.id}`);
+          return;
+        }
+        
+        toast.error(errorMsg);
         navigate("/dashboard");
         return;
       }
 
-      setAttempt(attemptData);
+      let finalTestData = testResponse.test;
+      const questionsArray = normalizeQuestions(finalTestData.questions);
       
-      // Check if test questions are incomplete and load from JSON file
-      let finalTestData = testData;
-      const rawQuestions = testData.questions;
-      const questionsArray = normalizeQuestions(rawQuestions);
-      
-      // If no questions in database, try loading from JSON file
+      // If no questions from edge function, try loading from JSON file as fallback
       if (questionsArray.length === 0) {
-        const jsonQuestions = getQuestionsByTestName(testData.name);
+        const jsonQuestions = getQuestionsByTestName(finalTestData.name);
         if (jsonQuestions) {
-          finalTestData = { ...testData, questions: jsonQuestions as any };
-          console.log(`Loaded ${normalizeQuestions(jsonQuestions).length} questions from JSON for ${testData.name}`);
+          finalTestData = { ...finalTestData, questions: jsonQuestions as any };
+          console.log(`Loaded ${normalizeQuestions(jsonQuestions).length} questions from JSON for ${finalTestData.name}`);
         }
       }
       
@@ -135,93 +143,34 @@ const TakeTest = () => {
 
   const handleSubmit = async () => {
     try {
-      toast.loading("Submitting test...");
+      toast.loading("Submitting and grading test...");
 
-      // Use utility function to normalize questions
-      const questions = normalizeQuestions(test.questions);
-      
-      // Save all responses and calculate score
-      const responses = Object.entries(answers).map(([questionId, answer]) => {
-        const question = questions.find((q) => q.id === questionId);
-        const isCorrect = question?.type === "multiple-choice"
-          ? answer === question.correct_answer 
-          : null;
-        
-        return {
-          attempt_id: attemptId,
-          question_id: questionId,
-          answer,
-          is_correct: isCorrect,
-        };
-      });
+      // Submit answers to secure edge function for server-side grading
+      const { data: gradeResult, error: gradeError } = await supabase.functions.invoke(
+        "grade-test",
+        { body: { attemptId, answers } }
+      );
 
-      const { error } = await supabase.from("test_responses").insert(responses);
-      if (error) throw error;
+      if (gradeError || gradeResult?.error) {
+        const errorMsg = gradeResult?.error || gradeError?.message || "Failed to grade test";
+        console.error("Grade error:", errorMsg);
+        throw new Error(errorMsg);
+      }
 
-      // Calculate score for auto-graded questions
-      const autoGradedResponses = responses.filter((r) => r.is_correct !== null);
-      const correctCount = autoGradedResponses.filter((r) => r.is_correct).length;
-      const scorePercent = autoGradedResponses.length > 0 
-        ? Math.round((correctCount / autoGradedResponses.length) * 100) 
-        : 0;
-
-      // Determine tier
-      let tier = "Tier 3";
-      if (scorePercent >= 80) tier = "Tier 1";
-      else if (scorePercent >= 50) tier = "Tier 2";
-
-      // Analyze strengths and weaknesses based on question topics
-      const topicPerformance: Record<string, { correct: number; total: number }> = {};
-      
-      responses.forEach((response) => {
-        const question = questions.find((q) => q.id === response.question_id);
-        if (question?.topic && response.is_correct !== null) {
-          if (!topicPerformance[question.topic]) {
-            topicPerformance[question.topic] = { correct: 0, total: 0 };
-          }
-          topicPerformance[question.topic].total++;
-          if (response.is_correct) {
-            topicPerformance[question.topic].correct++;
-          }
-        }
-      });
-
-      const strengths: string[] = [];
-      const weaknesses: string[] = [];
-      
-      Object.entries(topicPerformance).forEach(([topic, perf]) => {
-        const topicScore = (perf.correct / perf.total) * 100;
-        if (topicScore >= 70) {
-          strengths.push(topic);
-        } else if (topicScore < 50) {
-          weaknesses.push(topic);
-        }
-      });
-
-      // Update attempt with results
-      const { error: updateError } = await supabase
-        .from("test_attempts")
-        .update({
-          completed_at: new Date().toISOString(),
-          score: scorePercent,
-          tier,
-          total_questions: autoGradedResponses.length,
-          correct_answers: correctCount,
-          strengths,
-          weaknesses,
-        })
-        .eq("id", attemptId);
-
-      if (updateError) throw updateError;
+      console.log("Grade result:", gradeResult);
 
       // For paid tests, generate certificate
-      if (test.is_paid) {
-        const certResponse = await supabase.functions.invoke("generate-certificate", {
-          body: { attemptId },
-        });
+      if (gradeResult.isPaid) {
+        try {
+          const certResponse = await supabase.functions.invoke("generate-certificate", {
+            body: { attemptId },
+          });
 
-        if (certResponse.error) {
-          console.error("Certificate generation error:", certResponse.error);
+          if (certResponse.error) {
+            console.error("Certificate generation error:", certResponse.error);
+          }
+        } catch (certError) {
+          console.error("Certificate service unavailable:", certError);
         }
       }
 
@@ -239,7 +188,7 @@ const TakeTest = () => {
       }
       
       toast.dismiss();
-      toast.success("Test submitted successfully!");
+      toast.success(`Test submitted! Score: ${gradeResult.score}% (${gradeResult.tier})`);
 
       navigate("/dashboard");
     } catch (error: any) {
