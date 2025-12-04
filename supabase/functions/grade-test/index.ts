@@ -6,6 +6,20 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+interface SkillStat {
+  total: number;
+  correct: number;
+  percentage: number;
+  questionIds: string[];
+}
+
+interface SkillAnalysis {
+  mastered: string[];           // Skills with 70%+ correct
+  needsSupport: string[];       // Skills with <50% correct
+  developing: string[];         // Skills with 50-69% correct
+  skillStats: Record<string, SkillStat>;  // Detailed per-skill stats
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -107,10 +121,10 @@ serve(async (req) => {
     const questions = normalizeQuestions(test.questions);
     console.log(`Processing ${questions.length} questions for grading`);
 
-    // Grade each answer
+    // Grade each answer with detailed skill tracking
     const gradedResponses: any[] = [];
     let correctCount = 0;
-    const topicPerformance: Record<string, { correct: number; total: number }> = {};
+    const skillStats: Record<string, SkillStat> = {};
 
     for (const [questionId, answer] of Object.entries(answers)) {
       const question = questions.find((q: any) => q.id === questionId);
@@ -130,13 +144,24 @@ serve(async (req) => {
         if (isCorrect) correctCount++;
       }
 
-      // Track topic performance
-      const topic = question.topic || question.skill_tag || 'general';
-      if (!topicPerformance[topic]) {
-        topicPerformance[topic] = { correct: 0, total: 0 };
+      // Track detailed skill performance
+      const skill = formatSkillName(question.topic || question.skill_tag || 'general');
+      
+      if (!skillStats[skill]) {
+        skillStats[skill] = { 
+          total: 0, 
+          correct: 0, 
+          percentage: 0,
+          questionIds: []
+        };
       }
-      topicPerformance[topic].total++;
-      if (isCorrect) topicPerformance[topic].correct++;
+      
+      skillStats[skill].total++;
+      skillStats[skill].questionIds.push(questionId);
+      
+      if (isCorrect) {
+        skillStats[skill].correct++;
+      }
 
       gradedResponses.push({
         attempt_id: attemptId,
@@ -146,7 +171,32 @@ serve(async (req) => {
       });
     }
 
-    // Calculate score and tier
+    // Calculate percentages and categorize skills
+    const mastered: string[] = [];
+    const needsSupport: string[] = [];
+    const developing: string[] = [];
+
+    for (const [skill, stats] of Object.entries(skillStats)) {
+      stats.percentage = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0;
+      
+      if (stats.percentage >= 70) {
+        mastered.push(skill);
+      } else if (stats.percentage < 50) {
+        needsSupport.push(skill);
+      } else {
+        developing.push(skill);
+      }
+    }
+
+    // Build skill analysis object
+    const skillAnalysis: SkillAnalysis = {
+      mastered: mastered.sort(),
+      needsSupport: needsSupport.sort(),
+      developing: developing.sort(),
+      skillStats
+    };
+
+    // Calculate overall score and tier
     const totalQuestions = questions.filter((q: any) => 
       normalizeQuestionType(q.type) === 'multiple-choice'
     ).length;
@@ -154,20 +204,8 @@ serve(async (req) => {
     const score = totalQuestions > 0 ? (correctCount / totalQuestions) * 100 : 0;
     const tier = score >= 80 ? 'Tier 1' : score >= 50 ? 'Tier 2' : 'Tier 3';
 
-    // Analyze strengths and weaknesses
-    const strengths: string[] = [];
-    const weaknesses: string[] = [];
-    
-    for (const [topic, performance] of Object.entries(topicPerformance)) {
-      const topicScore = performance.total > 0 ? (performance.correct / performance.total) * 100 : 0;
-      if (topicScore >= 70) {
-        strengths.push(topic);
-      } else if (topicScore < 50) {
-        weaknesses.push(topic);
-      }
-    }
-
     console.log(`Grading complete: ${correctCount}/${totalQuestions} = ${score.toFixed(1)}% (${tier})`);
+    console.log(`Skills mastered: ${mastered.length}, developing: ${developing.length}, needs support: ${needsSupport.length}`);
 
     // Save all responses
     const { error: responseError } = await supabaseAdmin
@@ -182,7 +220,7 @@ serve(async (req) => {
       );
     }
 
-    // Update the test attempt with results
+    // Update the test attempt with results including skill analysis
     const { error: updateError } = await supabaseAdmin
       .from('test_attempts')
       .update({
@@ -191,8 +229,9 @@ serve(async (req) => {
         correct_answers: correctCount,
         total_questions: totalQuestions,
         tier,
-        strengths: strengths.slice(0, 5),
-        weaknesses: weaknesses.slice(0, 5)
+        strengths: mastered.slice(0, 5),
+        weaknesses: needsSupport.slice(0, 5),
+        skill_analysis: skillAnalysis
       })
       .eq('id', attemptId);
 
@@ -204,7 +243,7 @@ serve(async (req) => {
       );
     }
 
-    // Return results
+    // Return detailed results
     return new Response(
       JSON.stringify({
         success: true,
@@ -212,8 +251,9 @@ serve(async (req) => {
         correctAnswers: correctCount,
         totalQuestions,
         tier,
-        strengths: strengths.slice(0, 5),
-        weaknesses: weaknesses.slice(0, 5),
+        strengths: mastered.slice(0, 5),
+        weaknesses: needsSupport.slice(0, 5),
+        skillAnalysis,
         isPaid: test.is_paid
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -227,6 +267,14 @@ serve(async (req) => {
     );
   }
 });
+
+// Format skill name for display (capitalize and clean up)
+function formatSkillName(skill: string): string {
+  return skill
+    .replace(/[_-]/g, ' ')
+    .replace(/\b\w/g, char => char.toUpperCase())
+    .trim();
+}
 
 // Normalize questions to a flat array
 function normalizeQuestions(rawQuestions: any): any[] {
