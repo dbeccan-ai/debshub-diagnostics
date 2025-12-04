@@ -6,6 +6,33 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
+import { z } from "zod";
+
+// Validation schemas
+const usernameSchema = z.string()
+  .min(3, "Username must be at least 3 characters")
+  .max(50, "Username must be less than 50 characters")
+  .regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers, and underscores");
+
+const passwordSchema = z.string()
+  .min(6, "Password must be at least 6 characters")
+  .max(100, "Password must be less than 100 characters");
+
+const signupSchema = z.object({
+  username: usernameSchema,
+  password: passwordSchema,
+  parentEmail: z.string().trim().email("Please enter a valid email address").max(255, "Email must be less than 255 characters"),
+  fullName: z.string().trim().min(2, "Name must be at least 2 characters").max(100, "Name must be less than 100 characters")
+});
+
+const loginSchema = z.object({
+  username: z.string().min(1, "Username is required").max(50, "Username must be less than 50 characters"),
+  password: z.string().min(1, "Password is required").max(100, "Password must be less than 100 characters")
+});
+
+const resetSchema = z.object({
+  username: z.string().min(1, "Username is required").max(50, "Username must be less than 50 characters")
+});
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -17,6 +44,7 @@ const Auth = () => {
   const [fullName, setFullName] = useState("");
   const [parentEmail, setParentEmail] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -24,19 +52,36 @@ const Auth = () => {
     });
   }, []);
 
+  const clearErrors = () => setErrors({});
+
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
+    clearErrors();
     setLoading(true);
 
     try {
       if (isLogin) {
+        // Validate login inputs
+        const validation = loginSchema.safeParse({ username, password });
+        if (!validation.success) {
+          const fieldErrors: Record<string, string> = {};
+          validation.error.errors.forEach((err) => {
+            if (err.path[0]) {
+              fieldErrors[err.path[0] as string] = err.message;
+            }
+          });
+          setErrors(fieldErrors);
+          setLoading(false);
+          return;
+        }
+
         // First, get the parent's email from the username
         const { data: emailData, error: lookupError } = await supabase
-          .rpc('get_email_from_username', { input_username: username });
+          .rpc('get_email_from_username', { input_username: validation.data.username });
         
-        if (lookupError) throw lookupError;
-        if (!emailData) {
-          toast.error("Username not found");
+        // Use generic error message to prevent username enumeration
+        if (lookupError || !emailData) {
+          toast.error("Invalid username or password");
           setLoading(false);
           return;
         }
@@ -44,21 +89,45 @@ const Auth = () => {
         // Now authenticate with the parent's email
         const { error } = await supabase.auth.signInWithPassword({
           email: emailData,
-          password,
+          password: validation.data.password,
         });
-        if (error) throw error;
+        // Use generic error message for auth failures too
+        if (error) {
+          toast.error("Invalid username or password");
+          setLoading(false);
+          return;
+        }
         toast.success("Logged in successfully!");
         navigate("/dashboard");
       } else {
+        // Validate signup inputs
+        const validation = signupSchema.safeParse({ 
+          username, 
+          password, 
+          parentEmail, 
+          fullName 
+        });
+        if (!validation.success) {
+          const fieldErrors: Record<string, string> = {};
+          validation.error.errors.forEach((err) => {
+            if (err.path[0]) {
+              fieldErrors[err.path[0] as string] = err.message;
+            }
+          });
+          setErrors(fieldErrors);
+          setLoading(false);
+          return;
+        }
+
         // Sign up with parent's email but store username
         const { error } = await supabase.auth.signUp({
-          email: parentEmail,
-          password,
+          email: validation.data.parentEmail,
+          password: validation.data.password,
           options: {
             emailRedirectTo: `${window.location.origin}/dashboard`,
             data: {
-              full_name: fullName,
-              username: username,
+              full_name: validation.data.fullName,
+              username: validation.data.username,
             },
           },
         });
@@ -81,16 +150,33 @@ const Auth = () => {
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    clearErrors();
     setLoading(true);
 
     try {
+      // Validate reset inputs
+      const validation = resetSchema.safeParse({ username });
+      if (!validation.success) {
+        const fieldErrors: Record<string, string> = {};
+        validation.error.errors.forEach((err) => {
+          if (err.path[0]) {
+            fieldErrors[err.path[0] as string] = err.message;
+          }
+        });
+        setErrors(fieldErrors);
+        setLoading(false);
+        return;
+      }
+
       // Get the parent's email from the username
       const { data: emailData, error: lookupError } = await supabase
-        .rpc('get_email_from_username', { input_username: username });
+        .rpc('get_email_from_username', { input_username: validation.data.username });
       
-      if (lookupError) throw lookupError;
-      if (!emailData) {
-        toast.error("Username not found");
+      // Use generic success message regardless of whether username exists (prevents enumeration)
+      if (lookupError || !emailData) {
+        toast.success("If this username exists, a reset link was sent to the parent's email");
+        setIsForgotPassword(false);
+        setUsername("");
         setLoading(false);
         return;
       }
@@ -166,8 +252,11 @@ const Auth = () => {
                   placeholder="student123"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  required
+                  maxLength={50}
                 />
+                {errors.username && (
+                  <p className="text-xs text-destructive">{errors.username}</p>
+                )}
                 <p className="text-xs text-muted-foreground">
                   We'll send a reset link to your parent's email
                 </p>
@@ -181,6 +270,7 @@ const Auth = () => {
                 onClick={() => {
                   setIsForgotPassword(false);
                   setUsername("");
+                  clearErrors();
                 }}
                 className="text-primary hover:underline"
               >
@@ -218,8 +308,11 @@ const Auth = () => {
                     placeholder="John Doe"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    required
+                    maxLength={100}
                   />
+                  {errors.fullName && (
+                    <p className="text-xs text-destructive">{errors.fullName}</p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="parentEmail">Parent's Email</Label>
@@ -229,8 +322,11 @@ const Auth = () => {
                     placeholder="parent@example.com"
                     value={parentEmail}
                     onChange={(e) => setParentEmail(e.target.value)}
-                    required
+                    maxLength={255}
                   />
+                  {errors.parentEmail && (
+                    <p className="text-xs text-destructive">{errors.parentEmail}</p>
+                  )}
                   <p className="text-xs text-muted-foreground">
                     This email will be used for password recovery
                   </p>
@@ -245,8 +341,16 @@ const Auth = () => {
                 placeholder="student123"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                required
+                maxLength={50}
               />
+              {errors.username && (
+                <p className="text-xs text-destructive">{errors.username}</p>
+              )}
+              {!isLogin && (
+                <p className="text-xs text-muted-foreground">
+                  Letters, numbers, and underscores only
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
@@ -256,9 +360,11 @@ const Auth = () => {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
+                maxLength={100}
               />
+              {errors.password && (
+                <p className="text-xs text-destructive">{errors.password}</p>
+              )}
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Loading..." : isLogin ? "Sign In" : "Sign Up"}
@@ -274,7 +380,10 @@ const Auth = () => {
               </button>
             )}
             <button
-              onClick={() => setIsLogin(!isLogin)}
+              onClick={() => {
+                setIsLogin(!isLogin);
+                clearErrors();
+              }}
               className="text-primary hover:underline block w-full"
             >
               {isLogin
