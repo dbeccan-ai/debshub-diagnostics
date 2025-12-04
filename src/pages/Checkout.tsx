@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Loader2, CreditCard, ArrowLeft } from "lucide-react";
-import { loadStripe } from "@stripe/stripe-js";
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -50,27 +49,18 @@ const Checkout = () => {
   const handlePayment = async () => {
     setProcessing(true);
     try {
-      // In a real implementation, you would:
-      // 1. Create a Stripe checkout session via an edge function
-      // 2. Redirect to Stripe's hosted checkout page
-      // 3. Handle the redirect back after payment
-      
-      // For now, we'll simulate a successful payment
-      const { error } = await supabase
-        .from("test_attempts")
-        .update({ 
-          payment_status: "completed",
-          amount_paid: attempt.grade_level <= 6 ? 99 : 120
-        })
-        .eq("id", attemptId);
+      // Create Stripe checkout session via edge function
+      const { data, error } = await supabase.functions.invoke("create-checkout", {
+        body: { attemptId },
+      });
 
-      if (error) throw error;
+      if (error) throw new Error(error.message);
+      if (!data?.url) throw new Error("Failed to create checkout session");
 
-      toast.success("Payment successful!");
-      navigate(`/test/${attemptId}`);
+      // Redirect to Stripe checkout
+      window.location.href = data.url;
     } catch (error: any) {
-      toast.error("Payment failed. Please try again.");
-    } finally {
+      toast.error(error.message || "Payment failed. Please try again.");
       setProcessing(false);
     }
   };
