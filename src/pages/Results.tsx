@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 import { toast } from "sonner";
-import { ArrowLeft, Download, CheckCircle, XCircle, TrendingUp, RefreshCw } from "lucide-react";
+import { ArrowLeft, Download, CheckCircle, XCircle, TrendingUp, RefreshCw, FileText } from "lucide-react";
 
 interface SkillStat {
   total: number;
@@ -142,6 +142,33 @@ const Results = () => {
     }
   };
 
+  const handleTeacherCopy = async () => {
+    try {
+      toast.loading("Generating teacher copy...", { id: "teacher-copy" });
+
+      const { data, error } = await supabase.functions.invoke("generate-teacher-copy", {
+        body: { attemptId },
+      });
+
+      if (error) throw new Error(error.message);
+
+      const htmlContent = data?.html;
+      if (!htmlContent) throw new Error("Could not generate teacher copy");
+
+      const printWindow = window.open("", "_blank");
+      if (printWindow) {
+        printWindow.document.write(htmlContent);
+        printWindow.document.close();
+        setTimeout(() => printWindow.print(), 500);
+      }
+
+      toast.success("Teacher copy opened! Print to accompany results.", { id: "teacher-copy" });
+    } catch (err) {
+      console.error("Teacher copy error:", err);
+      toast.error("Failed to generate teacher copy.", { id: "teacher-copy" });
+    }
+  };
+
   const getTierColor = (tier: string | null) => {
     switch (tier) {
       case "Tier 1": return "bg-emerald-100 text-emerald-800 border-emerald-200";
@@ -210,14 +237,25 @@ const Results = () => {
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Dashboard
           </Button>
-          <Button
-            size="sm"
-            onClick={handleDownload}
-            className="bg-slate-900 text-white hover:bg-slate-800"
-          >
-            <Download className="mr-2 h-4 w-4" />
-            Download PDF
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleTeacherCopy}
+              className="border-amber-300 text-amber-700 hover:bg-amber-50"
+            >
+              <FileText className="mr-2 h-4 w-4" />
+              Teacher Copy
+            </Button>
+            <Button
+              size="sm"
+              onClick={handleDownload}
+              className="bg-slate-900 text-white hover:bg-slate-800"
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Download PDF
+            </Button>
+          </div>
         </div>
       </header>
 

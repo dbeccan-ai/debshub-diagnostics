@@ -23,3 +23,6 @@ verify_jwt = true
 
 [functions.regrade-test]
 verify_jwt = true
+
+[functions.generate-teacher-copy]
+verify_jwt = true
