@@ -14,13 +14,39 @@ serve(async (req) => {
   try {
     const { attemptId } = await req.json();
 
+    // Create client with user's JWT for authentication
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: "Missing authorization header" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 }
+      );
+    }
+
     const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    // Get the authenticated user
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+    if (userError || !user) {
+      console.error("Auth error:", userError);
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 }
+      );
+    }
+
+    // Use service role for database operations
+    const serviceClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
     // Fetch attempt details with test and user info
-    const { data: attempt, error: attemptError } = await supabaseClient
+    const { data: attempt, error: attemptError } = await serviceClient
       .from("test_attempts")
       .select(`
         *,
@@ -33,6 +59,15 @@ serve(async (req) => {
     if (attemptError || !attempt) {
       console.error("Attempt fetch error:", attemptError);
       throw new Error("Test attempt not found");
+    }
+
+    // Verify user ownership
+    if (attempt.user_id !== user.id) {
+      console.error("Ownership check failed:", { attemptUserId: attempt.user_id, authUserId: user.id });
+      return new Response(
+        JSON.stringify({ error: "You do not have permission to access this certificate" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 403 }
+      );
     }
 
     // Determine tier badge color - Green for Tier 1, Yellow for Tier 2, Red for Tier 3
@@ -192,7 +227,7 @@ serve(async (req) => {
 
     // Store certificate in storage
     const fileName = `certificate-${attemptId}.html`;
-    const { error: uploadError } = await supabaseClient.storage
+    const { error: uploadError } = await serviceClient.storage
       .from("certificates")
       .upload(fileName, new Blob([certificateHTML], { type: "text/html" }), {
         contentType: "text/html",
@@ -205,12 +240,12 @@ serve(async (req) => {
     }
 
     // Get public URL
-    const { data: urlData } = supabaseClient.storage
+    const { data: urlData } = serviceClient.storage
       .from("certificates")
       .getPublicUrl(fileName);
 
     // Save certificate record
-    const { error: certError } = await supabaseClient.from("certificates").upsert({
+    const { error: certError } = await serviceClient.from("certificates").upsert({
       attempt_id: attemptId,
       student_name: attempt.profiles?.full_name || "Student",
       test_name: attempt.tests?.name || "Test",

@@ -24,6 +24,31 @@ serve(async (req) => {
     );
   }
 
+  // Verify JWT authentication
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader) {
+    return new Response(
+      JSON.stringify({ success: false, error: "Missing authorization header" }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 }
+    );
+  }
+
+  const authClient = createClient(
+    Deno.env.get("SUPABASE_URL") ?? "",
+    Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+    { global: { headers: { Authorization: authHeader } } }
+  );
+
+  // Get the authenticated user
+  const { data: { user }, error: userError } = await authClient.auth.getUser();
+  if (userError || !user) {
+    console.error("Auth error:", userError);
+    return new Response(
+      JSON.stringify({ success: false, error: "Unauthorized" }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 }
+    );
+  }
+
   const supabaseClient = createClient(
     Deno.env.get("SUPABASE_URL") ?? "",
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
@@ -46,6 +71,15 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ success: false, error: "Test attempt not found" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+      );
+    }
+
+    // Verify user ownership
+    if (attempt.user_id !== user.id) {
+      console.error("Ownership check failed:", { attemptUserId: attempt.user_id, authUserId: user.id });
+      return new Response(
+        JSON.stringify({ success: false, error: "You do not have permission to send results for this attempt" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 403 }
       );
     }
 

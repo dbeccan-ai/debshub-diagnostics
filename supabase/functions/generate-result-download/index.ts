@@ -23,6 +23,31 @@ serve(async (req) => {
       throw new Error("Invalid format. Must be 'pdf' or 'png'");
     }
 
+    // Verify JWT authentication
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: "Missing authorization header" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 }
+      );
+    }
+
+    const authClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    // Get the authenticated user
+    const { data: { user }, error: userError } = await authClient.auth.getUser();
+    if (userError || !user) {
+      console.error("Auth error:", userError);
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 }
+      );
+    }
+
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
@@ -41,6 +66,15 @@ serve(async (req) => {
 
     if (attemptError || !attempt) {
       throw new Error("Test attempt not found");
+    }
+
+    // Verify user ownership
+    if (attempt.user_id !== user.id) {
+      console.error("Ownership check failed:", { attemptUserId: attempt.user_id, authUserId: user.id });
+      return new Response(
+        JSON.stringify({ error: "You do not have permission to download this result" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 403 }
+      );
     }
 
     if (!attempt.completed_at) {
