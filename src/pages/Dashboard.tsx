@@ -180,11 +180,7 @@ const Dashboard = () => {
     }
 
     if (status === "Completed") {
-      // For now, go back to dashboard or later to /results/:id
-      // You can create /results/:attemptId page and update this.
-      toast.info("Opening latest results…");
-      // Example future route:
-      // navigate(`/results/${attempt.id}`);
+      navigate(`/results/${attempt.id}`);
     }
   };
 
