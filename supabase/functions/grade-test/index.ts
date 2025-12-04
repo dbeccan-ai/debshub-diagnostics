@@ -144,8 +144,8 @@ serve(async (req) => {
         if (isCorrect) correctCount++;
       }
 
-      // Track detailed skill performance
-      const skill = formatSkillName(question.topic || question.skill_tag || 'general');
+      // Track detailed skill performance (topic is already inferred during normalization)
+      const skill = question.topic;
       
       if (!skillStats[skill]) {
         skillStats[skill] = { 
@@ -268,6 +268,59 @@ serve(async (req) => {
   }
 });
 
+// Skill inference patterns based on question content
+const skillPatterns: [RegExp, string][] = [
+  [/round(ed|ing)?/i, 'Rounding'],
+  [/multipli|×|times/i, 'Multiplication'],
+  [/divid|÷|quotient/i, 'Division'],
+  [/fraction|\/\d/i, 'Fractions'],
+  [/equivalent\s+fraction/i, 'Equivalent Fractions'],
+  [/add.*fraction|fraction.*add|\+.*\d\/\d/i, 'Adding Fractions'],
+  [/subtract.*fraction|fraction.*subtract|-.*\d\/\d/i, 'Subtracting Fractions'],
+  [/multipl.*fraction|fraction.*multipl/i, 'Multiplying Fractions'],
+  [/decimal|hundredths?|tenths?|\d\.\d/i, 'Decimals'],
+  [/greater|less|compar/i, 'Comparing Numbers'],
+  [/volume|cm³|cubic/i, 'Volume'],
+  [/area|cm²|square\s+(cm|meter|inch|feet)/i, 'Area'],
+  [/pattern|sequence|next\s+number/i, 'Patterns'],
+  [/graph|bar|chart|frequency/i, 'Reading Graphs'],
+  [/angle|°|degree|right\s+angle/i, 'Angles'],
+  [/perimeter/i, 'Perimeter'],
+  [/time|hour|minute|second|clock/i, 'Time'],
+  [/money|\$|cent|dollar|spend|cost|price|buy/i, 'Money'],
+  [/measurement|meter|centimeter|inch|feet|convert/i, 'Measurement'],
+  [/order\s+of\s+operation|pemdas/i, 'Order of Operations'],
+  [/place\s+value|digit.*place/i, 'Place Value'],
+];
+
+function inferSkillFromQuestion(question: any): string {
+  const text = `${question.question || question.question_text || ''} ${question.section || ''}`.toLowerCase();
+  
+  // Check for explicit topic/skill_tag first
+  if (question.topic && question.topic !== 'general') {
+    return formatSkillName(question.topic);
+  }
+  if (question.skill_tag && question.skill_tag !== 'general') {
+    return formatSkillName(question.skill_tag);
+  }
+  
+  // Infer from question content
+  for (const [pattern, skill] of skillPatterns) {
+    if (pattern.test(text)) {
+      return skill;
+    }
+  }
+  
+  // Infer from section name
+  if (question.section) {
+    if (question.section.includes('Word Problem')) {
+      return 'Word Problems';
+    }
+  }
+  
+  return 'General Math';
+}
+
 // Format skill name for display (capitalize and clean up)
 function formatSkillName(skill: string): string {
   return skill
@@ -316,15 +369,19 @@ function normalizeQuestions(rawQuestions: any): any[] {
 
 // Normalize a single question
 function normalizeQuestion(q: any): any {
-  return {
+  const normalized = {
     id: q.id || `q-${Math.random().toString(36).substr(2, 9)}`,
     question: q.question || q.question_text || '',
     type: q.type || 'multiple-choice',
     options: q.options || q.choices || [],
     correct_answer: q.correct_answer || q.correctAnswer || '',
-    topic: q.topic || q.skill_tag || 'general',
+    section: q.section || '',
+    topic: q.topic || q.skill_tag || '',
     explanation: q.explanation || ''
   };
+  // Infer skill after normalization
+  normalized.topic = inferSkillFromQuestion({ ...q, ...normalized });
+  return normalized;
 }
 
 // Normalize question type
