@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 import { toast } from "sonner";
-import { ArrowLeft, Download, CheckCircle, XCircle, TrendingUp } from "lucide-react";
+import { ArrowLeft, Download, CheckCircle, XCircle, TrendingUp, RefreshCw } from "lucide-react";
 
 interface SkillStat {
   total: number;
@@ -47,50 +47,73 @@ const Results = () => {
   const navigate = useNavigate();
   const [attempt, setAttempt] = useState<TestAttempt | null>(null);
   const [loading, setLoading] = useState(true);
+  const [regrading, setRegrading] = useState(false);
+
+  const fetchResults = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Please sign in to view results");
+        navigate("/auth");
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("test_attempts")
+        .select(`
+          id,
+          score,
+          tier,
+          total_questions,
+          correct_answers,
+          completed_at,
+          grade_level,
+          strengths,
+          weaknesses,
+          skill_analysis,
+          tests:test_id (name, test_type),
+          profiles:user_id (full_name)
+        `)
+        .eq("id", attemptId)
+        .eq("user_id", user.id)
+        .single();
+
+      if (error) throw error;
+      setAttempt(data as unknown as TestAttempt);
+    } catch (err) {
+      console.error("Error fetching results:", err);
+      toast.error("Could not load test results");
+      navigate("/dashboard");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchResults = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          toast.error("Please sign in to view results");
-          navigate("/auth");
-          return;
-        }
-
-        const { data, error } = await supabase
-          .from("test_attempts")
-          .select(`
-            id,
-            score,
-            tier,
-            total_questions,
-            correct_answers,
-            completed_at,
-            grade_level,
-            strengths,
-            weaknesses,
-            skill_analysis,
-            tests:test_id (name, test_type),
-            profiles:user_id (full_name)
-          `)
-          .eq("id", attemptId)
-          .eq("user_id", user.id)
-          .single();
-
-        if (error) throw error;
-        setAttempt(data as unknown as TestAttempt);
-      } catch (err) {
-        console.error("Error fetching results:", err);
-        toast.error("Could not load test results");
-        navigate("/dashboard");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     if (attemptId) fetchResults();
   }, [attemptId, navigate]);
+
+  const handleRegrade = async () => {
+    if (!attemptId) return;
+    
+    setRegrading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("regrade-test", {
+        body: { attemptId },
+      });
+
+      if (error) throw new Error(error.message);
+      
+      toast.success("Skill analysis updated!");
+      // Refresh the results
+      await fetchResults();
+    } catch (err) {
+      console.error("Regrade error:", err);
+      toast.error("Failed to refresh skill analysis");
+    } finally {
+      setRegrading(false);
+    }
+  };
 
   const handleDownload = async () => {
     try {
@@ -159,10 +182,18 @@ const Results = () => {
   };
 
   const incorrectAnswers = (attempt.total_questions || 0) - (attempt.correct_answers || 0);
-  const hasSkillData = Object.keys(skillAnalysis.skillStats).length > 0 || 
+  
+  // Check if we have meaningful skill data (not just "General" or "General Math")
+  const skillKeys = Object.keys(skillAnalysis.skillStats);
+  const hasOnlyGenericSkills = skillKeys.length > 0 && 
+    skillKeys.every(key => key.toLowerCase().includes('general'));
+  
+  const hasSkillData = (skillKeys.length > 0 && !hasOnlyGenericSkills) || 
                        skillAnalysis.mastered.length > 0 || 
                        skillAnalysis.needsSupport.length > 0 ||
                        skillAnalysis.developing.length > 0;
+  
+  const needsSkillRefresh = !hasSkillData || hasOnlyGenericSkills;
   const isTier1 = attempt.tier === "Tier 1";
 
   return (
@@ -385,8 +416,20 @@ const Results = () => {
         {/* Skills Covered Summary */}
         <Card className="border-slate-200 mb-6">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold text-slate-800">
-              Skills Assessed in This Diagnostic
+            <CardTitle className="text-sm font-semibold text-slate-800 flex items-center justify-between">
+              <span>Skills Assessed in This Diagnostic</span>
+              {needsSkillRefresh && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleRegrade}
+                  disabled={regrading}
+                  className="text-xs"
+                >
+                  <RefreshCw className={`mr-2 h-3 w-3 ${regrading ? 'animate-spin' : ''}`} />
+                  {regrading ? 'Refreshing...' : 'Refresh Skills'}
+                </Button>
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-sm text-slate-600">
@@ -421,7 +464,7 @@ const Results = () => {
               </>
             ) : (
               <p className="text-slate-500 italic">
-                Detailed skill analysis is not available for this test attempt. Future tests will include comprehensive skill-by-skill breakdowns.
+                Click "Refresh Skills" to generate detailed skill analysis for this test attempt.
               </p>
             )}
             
