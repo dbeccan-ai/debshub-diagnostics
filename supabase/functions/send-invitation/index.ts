@@ -61,6 +61,15 @@ serve(async (req) => {
       );
     }
 
+    // Get admin's school_id
+    const { data: adminProfile } = await supabaseAdmin
+      .from("profiles")
+      .select("school_id")
+      .eq("id", user.id)
+      .single();
+
+    const adminSchoolId = adminProfile?.school_id;
+
     const { email, role, schoolName }: InvitationRequest = await req.json();
 
     if (!email || !role) {
@@ -94,6 +103,7 @@ serve(async (req) => {
         role,
         invited_by: user.id,
         school_name: schoolName || null,
+        school_id: adminSchoolId || null,
       })
       .select()
       .single();

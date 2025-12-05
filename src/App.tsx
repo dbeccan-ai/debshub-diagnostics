@@ -16,6 +16,7 @@ import AdminInvitations from "./pages/AdminInvitations";
 import Register from "./pages/Register";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import ManualGrading from "./pages/ManualGrading";
+import SchoolSetup from "./pages/SchoolSetup";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -39,6 +40,7 @@ const App = () => (
           <Route path="/admin/grade/:attemptId" element={<ManualGrading />} />
           <Route path="/admin/invitations" element={<AdminInvitations />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/school-setup" element={<SchoolSetup />} />
           <Route path="/teacher" element={<TeacherDashboard />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
