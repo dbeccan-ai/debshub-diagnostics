@@ -35,3 +35,6 @@ verify_jwt = true
 
 [functions.send-invitation]
 verify_jwt = true
+
+[functions.claim-school]
+verify_jwt = true
