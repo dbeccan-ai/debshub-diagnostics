@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { ArrowLeft, CheckCircle, XCircle, AlertCircle, Loader2 } from "lucide-react";
+import { ArrowLeft, CheckCircle, XCircle, AlertCircle, Loader2, Send } from "lucide-react";
 
 interface PendingResponse {
   id: string;
@@ -43,6 +43,7 @@ const ManualGrading = () => {
   const [questions, setQuestions] = useState<Map<string, QuestionData>>(new Map());
   const [loading, setLoading] = useState(true);
   const [gradingId, setGradingId] = useState<string | null>(null);
+  const [finalizing, setFinalizing] = useState(false);
   const [stats, setStats] = useState({ correctCount: 0, totalGraded: 0, pendingCount: 0, score: 0, tier: '' });
 
   useEffect(() => {
@@ -203,6 +204,41 @@ const ManualGrading = () => {
     }
   };
 
+  const handleFinalize = async () => {
+    setFinalizing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("finalize-grading", {
+        body: { attemptId },
+      });
+
+      if (error) throw new Error(error.message);
+      if (data.error) throw new Error(data.error);
+
+      setStats({
+        correctCount: data.skillAnalysis?.skillStats ? Object.values(data.skillAnalysis.skillStats as Record<string, {correct: number}>).reduce((sum, s) => sum + s.correct, 0) : stats.correctCount,
+        totalGraded: stats.totalGraded,
+        pendingCount: 0,
+        score: data.score,
+        tier: data.tier
+      });
+
+      if (data.emailSent) {
+        toast.success("Grading finalized and results emailed to parent!");
+      } else if (data.emailError) {
+        toast.success("Grading finalized. Email failed: " + data.emailError);
+      } else {
+        toast.success("Grading finalized! No parent email configured.");
+      }
+
+      setTimeout(() => navigate("/admin/pending-reviews"), 2000);
+    } catch (err: any) {
+      console.error("Finalize error:", err);
+      toast.error(err.message || "Failed to finalize grading.");
+    } finally {
+      setFinalizing(false);
+    }
+  };
+
   const getQuestionText = (questionId: string): string => {
     const q = questions.get(questionId);
     return q?.question || q?.question_text || "Question not found";
@@ -301,13 +337,30 @@ const ManualGrading = () => {
           <Card className="border-emerald-200 bg-emerald-50">
             <CardContent className="py-12 text-center">
               <CheckCircle className="mx-auto h-12 w-12 text-emerald-500 mb-3" />
-              <h2 className="text-lg font-semibold text-emerald-800">All Done!</h2>
-              <p className="text-sm text-emerald-600 mb-4">
-                All questions for this test have been graded.
+              <h2 className="text-lg font-semibold text-emerald-800">All Questions Graded!</h2>
+              <p className="text-sm text-emerald-600 mb-6">
+                Click "Finalize Grading" to recalculate skill analysis and send results to the parent.
               </p>
-              <Button onClick={() => navigate("/admin/pending-reviews")}>
-                Return to Reviews
-              </Button>
+              <div className="flex gap-3 justify-center">
+                <Button 
+                  variant="outline" 
+                  onClick={() => navigate("/admin/pending-reviews")}
+                >
+                  Return to Reviews
+                </Button>
+                <Button 
+                  onClick={handleFinalize}
+                  disabled={finalizing}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                >
+                  {finalizing ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Send className="mr-2 h-4 w-4" />
+                  )}
+                  Finalize Grading
+                </Button>
+              </div>
             </CardContent>
           </Card>
         ) : (
