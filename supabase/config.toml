@@ -1,5 +1,8 @@
 project_id = "heyjvukoaxgkzbgcxakn"
 
+[functions.grade-manual-response]
+verify_jwt = true
+
 [functions.generate-certificate]
 verify_jwt = true
 

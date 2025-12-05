@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { ArrowLeft, FileText, Clock, CheckCircle, AlertCircle, Search } from "lucide-react";
+import { ArrowLeft, FileText, Clock, CheckCircle, AlertCircle, Search, Edit } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
 interface PendingReviewAttempt {
@@ -334,11 +334,20 @@ const AdminPendingReviews = () => {
                     </Button>
                     <Button
                       size="sm"
+                      variant="outline"
                       onClick={() => handleViewTeacherCopy(attempt.id)}
-                      className="bg-amber-500 text-white hover:bg-amber-600 text-xs"
+                      className="text-xs"
                     >
                       <FileText className="mr-2 h-3 w-3" />
                       Teacher Copy
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => navigate(`/admin/grade/${attempt.id}`)}
+                      className="bg-emerald-600 text-white hover:bg-emerald-700 text-xs"
+                    >
+                      <Edit className="mr-2 h-3 w-3" />
+                      Grade Now
                     </Button>
                   </div>
                 </div>
