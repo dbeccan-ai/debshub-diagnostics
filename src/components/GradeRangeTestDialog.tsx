@@ -48,15 +48,21 @@ export function GradeRangeTestDialog({
     return match ? parseInt(match[1], 10) : null;
   };
 
-  // Filter tests by grade range
+  // Filter and sort tests by grade range
   const filterTestsByGradeRange = (allTests: Test[]): Test[] => {
     const [minGrade, maxGrade] = gradeRange === "1-6" ? [1, 6] : [7, 12];
     
-    return allTests.filter((test) => {
-      const grade = extractGradeFromName(test.name);
-      if (grade === null) return false;
-      return grade >= minGrade && grade <= maxGrade;
-    });
+    return allTests
+      .filter((test) => {
+        const grade = extractGradeFromName(test.name);
+        if (grade === null) return false;
+        return grade >= minGrade && grade <= maxGrade;
+      })
+      .sort((a, b) => {
+        const gradeA = extractGradeFromName(a.name) || 0;
+        const gradeB = extractGradeFromName(b.name) || 0;
+        return gradeA - gradeB;
+      });
   };
 
   useEffect(() => {
@@ -137,7 +143,7 @@ export function GradeRangeTestDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg max-h-[85vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">
             {gradeRange === "1-6" ? "Grades 1-6" : "Grades 7-12"} Diagnostic
@@ -149,24 +155,30 @@ export function GradeRangeTestDialog({
             <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
           </div>
         ) : !selectedTest ? (
-          <div className="space-y-4">
+          <div className="space-y-4 flex-1 overflow-hidden flex flex-col">
             <p className="text-sm text-slate-600">
               Select a diagnostic test to get started:
             </p>
-            <div className="space-y-3">
-              {tests.map((test) => (
-                <button
-                  key={test.id}
-                  onClick={() => handleTestSelect(test)}
-                  className="w-full text-left p-4 rounded-xl border border-slate-200 hover:border-amber-400 hover:bg-amber-50/50 transition-colors"
-                >
-                  <div className="font-semibold text-slate-900">{test.name}</div>
-                  <div className="text-sm text-slate-500">{test.description}</div>
-                  <div className="text-xs text-slate-400 mt-1">
-                    {test.duration_minutes} minutes · {price}/student
-                  </div>
-                </button>
-              ))}
+            <div className="space-y-3 overflow-y-auto flex-1 pr-2">
+              {tests.length === 0 ? (
+                <p className="text-center text-slate-500 py-8">
+                  No tests available for this grade range yet.
+                </p>
+              ) : (
+                tests.map((test) => (
+                  <button
+                    key={test.id}
+                    onClick={() => handleTestSelect(test)}
+                    className="w-full text-left p-4 rounded-xl border border-slate-200 hover:border-amber-400 hover:bg-amber-50/50 transition-colors"
+                  >
+                    <div className="font-semibold text-slate-900">{test.name}</div>
+                    <div className="text-sm text-slate-500">{test.description}</div>
+                    <div className="text-xs text-slate-400 mt-1">
+                      {test.duration_minutes} minutes · {price}/student
+                    </div>
+                  </button>
+                ))
+              )}
             </div>
           </div>
         ) : !selectedGrade ? (
