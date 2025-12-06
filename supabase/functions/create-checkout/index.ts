@@ -74,12 +74,6 @@ serve(async (req) => {
     if (attempt.payment_status === "completed") {
       throw new Error("This test has already been paid for");
     }
-    logStep("Attempt found", { attemptId: attempt.id, gradeLevel: attempt.grade_level });
-
-    // Check if already paid
-    if (attempt.payment_status === "completed") {
-      throw new Error("This test has already been paid for");
-    }
 
     // Determine price based on grade level
     const gradeLevel = attempt.grade_level || 5;
