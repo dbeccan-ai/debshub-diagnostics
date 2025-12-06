@@ -29,12 +29,13 @@ const Checkout = () => {
       if (attemptError) throw attemptError;
 
       const { data: testData, error: testError } = await supabase
-        .from("tests")
+        .from("tests_public")
         .select("*")
         .eq("id", attemptData.test_id)
-        .single();
+        .maybeSingle();
 
       if (testError) throw testError;
+      if (!testData) throw new Error("Test not found");
 
       setAttempt(attemptData);
       setTest(testData);
