@@ -42,13 +42,30 @@ export function GradeRangeTestDialog({
 
   const price = gradeRange === "1-6" ? "$99" : "$120";
 
+  // Extract grade number from test name (e.g., "Grade 7 Math Diagnostic" -> 7)
+  const extractGradeFromName = (name: string): number | null => {
+    const match = name.match(/grade\s*(\d+)/i);
+    return match ? parseInt(match[1], 10) : null;
+  };
+
+  // Filter tests by grade range
+  const filterTestsByGradeRange = (allTests: Test[]): Test[] => {
+    const [minGrade, maxGrade] = gradeRange === "1-6" ? [1, 6] : [7, 12];
+    
+    return allTests.filter((test) => {
+      const grade = extractGradeFromName(test.name);
+      if (grade === null) return false;
+      return grade >= minGrade && grade <= maxGrade;
+    });
+  };
+
   useEffect(() => {
     if (open) {
       fetchTests();
       setSelectedTest(null);
       setSelectedGrade(null);
     }
-  }, [open]);
+  }, [open, gradeRange]);
 
   const fetchTests = async () => {
     setLoading(true);
@@ -59,7 +76,9 @@ export function GradeRangeTestDialog({
         .eq("is_paid", true);
 
       if (error) throw error;
-      setTests(data || []);
+      
+      const filteredTests = filterTestsByGradeRange(data || []);
+      setTests(filteredTests);
     } catch (error) {
       console.error("Error fetching tests:", error);
     } finally {
