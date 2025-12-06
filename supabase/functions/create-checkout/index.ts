@@ -17,6 +17,14 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Use service role for database operations (bypasses RLS)
+  const supabaseAdmin = createClient(
+    Deno.env.get("SUPABASE_URL") ?? "",
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+    { auth: { persistSession: false } }
+  );
+
+  // Use anon key for user authentication
   const supabaseClient = createClient(
     Deno.env.get("SUPABASE_URL") ?? "",
     Deno.env.get("SUPABASE_ANON_KEY") ?? ""
@@ -41,16 +49,30 @@ serve(async (req) => {
     if (!attemptId) throw new Error("Attempt ID is required");
     logStep("Request body", { attemptId });
 
-    // Fetch attempt details
-    const { data: attempt, error: attemptError } = await supabaseClient
+    // Fetch attempt details using service role
+    const { data: attempt, error: attemptError } = await supabaseAdmin
       .from("test_attempts")
-      .select("*, tests:test_id(name, test_type)")
+      .select("*")
       .eq("id", attemptId)
       .eq("user_id", user.id)
       .single();
 
     if (attemptError || !attempt) {
+      logStep("Attempt fetch error", { error: attemptError?.message });
       throw new Error("Test attempt not found or access denied");
+    }
+    logStep("Attempt found", { attemptId: attempt.id, gradeLevel: attempt.grade_level });
+
+    // Fetch test details from public view
+    const { data: testData } = await supabaseAdmin
+      .from("tests")
+      .select("name, test_type")
+      .eq("id", attempt.test_id)
+      .single();
+
+    // Check if already paid
+    if (attempt.payment_status === "completed") {
+      throw new Error("This test has already been paid for");
     }
     logStep("Attempt found", { attemptId: attempt.id, gradeLevel: attempt.grade_level });
 
@@ -62,7 +84,7 @@ serve(async (req) => {
     // Determine price based on grade level
     const gradeLevel = attempt.grade_level || 5;
     const amount = gradeLevel <= 6 ? 9900 : 12000; // cents
-    const testName = attempt.tests?.name || "Diagnostic Test";
+    const testName = testData?.name || "Diagnostic Test";
     logStep("Price determined", { gradeLevel, amount, testName });
 
     // Initialize Stripe
