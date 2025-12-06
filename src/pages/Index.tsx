@@ -1,4 +1,15 @@
+import { useState } from "react";
+import { GradeRangeTestDialog } from "@/components/GradeRangeTestDialog";
+
 export default function Page() {
+  const [gradeDialogOpen, setGradeDialogOpen] = useState(false);
+  const [selectedGradeRange, setSelectedGradeRange] = useState<"1-6" | "7-12">("1-6");
+
+  const openGradeDialog = (range: "1-6" | "7-12") => {
+    setSelectedGradeRange(range);
+    setGradeDialogOpen(true);
+  };
+
   return (
     <div className="bg-gradient-to-br from-sky-100 via-white to-amber-50 text-slate-900 min-h-screen">
       {/* NAVBAR */}
@@ -448,7 +459,10 @@ export default function Page() {
                   <li>• Skill breakdown + tier recommendation</li>
                   <li>• Parent summary you can share with teachers</li>
                 </ul>
-                <button className="mt-auto w-full px-4 py-2 text-xs font-semibold rounded-full bg-slate-900 text-white hover:bg-slate-800">
+                <button 
+                  onClick={() => openGradeDialog("1-6")}
+                  className="mt-auto w-full px-4 py-2 text-xs font-semibold rounded-full bg-slate-900 text-white hover:bg-slate-800"
+                >
                   Book Grades 1–6 Diagnostic
                 </button>
               </div>
@@ -473,7 +487,10 @@ export default function Page() {
                   <li>• Pinpoints gaps in higher-level content</li>
                   <li>• Tier recommendation + suggested next steps</li>
                 </ul>
-                <button className="mt-auto w-full px-4 py-2 text-xs font-semibold rounded-full bg-amber-400 text-slate-900 hover:bg-amber-300">
+                <button 
+                  onClick={() => openGradeDialog("7-12")}
+                  className="mt-auto w-full px-4 py-2 text-xs font-semibold rounded-full bg-amber-400 text-slate-900 hover:bg-amber-300"
+                >
                   Book Grades 7–12 Diagnostic
                 </button>
               </div>
@@ -597,6 +614,13 @@ export default function Page() {
           </div>
         </div>
       </footer>
+
+      {/* Grade Range Test Dialog */}
+      <GradeRangeTestDialog
+        open={gradeDialogOpen}
+        onOpenChange={setGradeDialogOpen}
+        gradeRange={selectedGradeRange}
+      />
     </div>
   );
 }
