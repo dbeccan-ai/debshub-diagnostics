@@ -12,6 +12,9 @@ import { Clock, AlertCircle, X, Lightbulb } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { getQuestionsByTestName, normalizeQuestions } from "@/lib/testQuestions";
 import reinforcementData from "@/data/reinforcement-questions.json";
+import { useTabVisibility } from "@/hooks/use-tab-visibility";
+import { TestSecurityWarning } from "@/components/TestSecurityWarning";
+import { PreTestSecurityCheck } from "@/components/PreTestSecurityCheck";
 
 interface SkillPerformance {
   correct: number;
@@ -32,6 +35,11 @@ const TakeTest = () => {
   const [loading, setLoading] = useState(true);
   const [showTimeWarning, setShowTimeWarning] = useState(false);
   const [profile, setProfile] = useState<any>(null);
+  const [testStarted, setTestStarted] = useState(false);
+  const [showSecurityCheck, setShowSecurityCheck] = useState(false);
+  
+  // Tab visibility security
+  const { isTestDisabled, tabSwitchCount } = useTabVisibility(testStarted);
   
   // Adaptive testing state
   const [questions, setQuestions] = useState<any[]>([]);
@@ -44,7 +52,8 @@ const TakeTest = () => {
   }, [attemptId]);
 
   useEffect(() => {
-    if (timeRemaining > 0) {
+    // Only start timer if test has started and not disabled
+    if (timeRemaining > 0 && testStarted && !isTestDisabled) {
       const timer = setInterval(() => {
         setTimeRemaining((prev) => {
           if (prev <= 1) {
@@ -59,7 +68,7 @@ const TakeTest = () => {
       }, 1000);
       return () => clearInterval(timer);
     }
-  }, [timeRemaining]);
+  }, [timeRemaining, testStarted, isTestDisabled]);
 
   const fetchTestAttempt = async () => {
     try {
@@ -145,6 +154,9 @@ const TakeTest = () => {
       setTest(finalTestData);
       setQuestions(questionsArray);
       setTimeRemaining(finalTestData.duration_minutes * 60);
+      
+      // Show security check dialog before starting test
+      setShowSecurityCheck(true);
     } catch (error: any) {
       console.error("Error loading test:", error);
       toast.error("Failed to load test");
@@ -268,6 +280,13 @@ const TakeTest = () => {
     setCurrentQuestionIndex((prev) => Math.min(questions.length - 1, prev + 1));
   };
 
+  // Handle security check confirmation
+  const handleSecurityCheckConfirm = () => {
+    setShowSecurityCheck(false);
+    setTestStarted(true);
+    toast.success("Test started! Good luck!");
+  };
+
   const handleSubmit = async () => {
     try {
       toast.loading("Submitting and grading test...");
@@ -373,6 +392,21 @@ const TakeTest = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-100 via-blue-50 to-yellow-100">
+      {/* Pre-Test Security Check Dialog */}
+      <PreTestSecurityCheck
+        open={showSecurityCheck}
+        onConfirm={handleSecurityCheckConfirm}
+        testName={test.name}
+      />
+
+      {/* Tab Switch Warning Dialog */}
+      <TestSecurityWarning
+        open={isTestDisabled && testStarted}
+        onClose={() => {}}
+        onReturnToDashboard={() => navigate("/dashboard")}
+        tabSwitchCount={tabSwitchCount}
+      />
+
       {/* Sticky Header */}
       <header className="bg-white border-b border-gray-300 shadow-md sticky top-0 z-50">
         <div className="container mx-auto px-6 py-4">
