@@ -7,11 +7,19 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { z } from "zod";
-import { Shield, Lock } from "lucide-react";
+import { Shield, Lock, KeyRound } from "lucide-react";
 
 const loginSchema = z.object({
   email: z.string().trim().email("Please enter a valid email address"),
   password: z.string().min(1, "Password is required").max(100, "Password must be less than 100 characters")
+});
+
+const passwordSchema = z.object({
+  password: z.string().min(6, "Password must be at least 6 characters").max(100, "Password must be less than 100 characters"),
+  confirmPassword: z.string()
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
 });
 
 const AdminAuth = () => {
@@ -19,11 +27,23 @@ const AdminAuth = () => {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [isPasswordReset, setIsPasswordReset] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
+    // Check if this is a password recovery redirect
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const type = hashParams.get('type');
+    
+    if (type === 'recovery') {
+      setIsPasswordReset(true);
+      return;
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         setIsLoggedIn(true);
@@ -107,7 +127,7 @@ const AdminAuth = () => {
       }
 
       const { error } = await supabase.auth.resetPasswordForEmail(emailValidation.data, {
-        redirectTo: `${window.location.origin}/auth`,
+        redirectTo: `${window.location.origin}/admin/login`,
       });
 
       if (error) {
@@ -116,6 +136,46 @@ const AdminAuth = () => {
         toast.success("Password reset email sent! Check your inbox.");
         setIsForgotPassword(false);
         setEmail("");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "An error occurred");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    clearErrors();
+    setLoading(true);
+
+    try {
+      const validation = passwordSchema.safeParse({ password: newPassword, confirmPassword });
+      if (!validation.success) {
+        const fieldErrors: Record<string, string> = {};
+        validation.error.errors.forEach((err) => {
+          if (err.path[0]) {
+            fieldErrors[err.path[0] as string] = err.message;
+          }
+        });
+        setErrors(fieldErrors);
+        setLoading(false);
+        return;
+      }
+
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) {
+        toast.error("Failed to update password. Please try again.");
+      } else {
+        toast.success("Password updated successfully! Please sign in.");
+        setIsPasswordReset(false);
+        setNewPassword("");
+        setConfirmPassword("");
+        // Clear the hash from URL
+        window.history.replaceState(null, '', window.location.pathname);
       }
     } catch (error: any) {
       toast.error(error.message || "An error occurred");
@@ -150,6 +210,71 @@ const AdminAuth = () => {
             >
               Sign Out
             </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (isPasswordReset) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
+        <Card className="w-full max-w-md border-slate-700 bg-slate-800/50 backdrop-blur">
+          <CardHeader className="space-y-4">
+            <div className="flex justify-center">
+              <div className="rounded-full bg-emerald-600/20 p-4">
+                <KeyRound className="h-10 w-10 text-emerald-500" />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <CardTitle className="text-2xl font-bold text-center text-slate-100">
+                Set New Password
+              </CardTitle>
+              <CardDescription className="text-center text-slate-400">
+                Enter your new password below
+              </CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleUpdatePassword} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="new-password" className="text-slate-300">New Password</Label>
+                <Input
+                  id="new-password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  maxLength={100}
+                  className="border-slate-600 bg-slate-700/50 text-slate-100 placeholder:text-slate-500 focus:border-emerald-500 focus:ring-emerald-500"
+                />
+                {errors.password && (
+                  <p className="text-xs text-red-400">{errors.password}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirm-password" className="text-slate-300">Confirm Password</Label>
+                <Input
+                  id="confirm-password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  maxLength={100}
+                  className="border-slate-600 bg-slate-700/50 text-slate-100 placeholder:text-slate-500 focus:border-emerald-500 focus:ring-emerald-500"
+                />
+                {errors.confirmPassword && (
+                  <p className="text-xs text-red-400">{errors.confirmPassword}</p>
+                )}
+              </div>
+              <Button 
+                type="submit" 
+                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white" 
+                disabled={loading}
+              >
+                {loading ? "Updating..." : "Update Password"}
+              </Button>
+            </form>
           </CardContent>
         </Card>
       </div>
