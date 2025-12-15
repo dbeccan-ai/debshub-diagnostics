@@ -611,6 +611,9 @@ export default function Page() {
             <a href="https://www.debslearnacademy.com" className="hover:text-slate-700">
               debslearnacademy.com
             </a>
+            <a href="/admin/login" className="hover:text-slate-700">
+              Admin Login
+            </a>
           </div>
         </div>
       </footer>
