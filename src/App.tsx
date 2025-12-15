@@ -12,6 +12,7 @@ import TakeTest from "./pages/TakeTest";
 import Checkout from "./pages/Checkout";
 import VerifyPayment from "./pages/VerifyPayment";
 import Results from "./pages/Results";
+import Curriculum from "./pages/Curriculum";
 import AdminPendingReviews from "./pages/AdminPendingReviews";
 import AdminInvitations from "./pages/AdminInvitations";
 import AdminAllResults from "./pages/AdminAllResults";
@@ -39,6 +40,7 @@ const App = () => (
           <Route path="/checkout/:attemptId" element={<Checkout />} />
           <Route path="/verify-payment" element={<VerifyPayment />} />
           <Route path="/results/:attemptId" element={<Results />} />
+          <Route path="/curriculum/:attemptId" element={<Curriculum />} />
           <Route path="/admin/pending-reviews" element={<AdminPendingReviews />} />
           <Route path="/admin/grade/:attemptId" element={<ManualGrading />} />
           <Route path="/admin/invitations" element={<AdminInvitations />} />
