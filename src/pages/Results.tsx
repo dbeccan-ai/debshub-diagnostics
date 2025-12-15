@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 import { toast } from "sonner";
-import { ArrowLeft, Download, CheckCircle, XCircle, TrendingUp, RefreshCw, FileText } from "lucide-react";
+import { ArrowLeft, Download, CheckCircle, XCircle, TrendingUp, RefreshCw, FileText, GraduationCap } from "lucide-react";
 
 interface SkillStat {
   total: number;
@@ -600,6 +600,13 @@ const Results = () => {
                   <strong className="text-emerald-700">Excellent performance!</strong> Your student scored 
                   80% or above and is ready for advanced topics and enrichment activities.
                 </p>
+                <Button
+                  onClick={() => navigate(`/curriculum/${attemptId}`)}
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
+                >
+                  <GraduationCap className="mr-2 h-4 w-4" />
+                  View Enrichment Curriculum & Practice
+                </Button>
               </>
             )}
             {attempt.tier === "Tier 2" && (
@@ -612,6 +619,13 @@ const Results = () => {
                   <strong className="text-amber-700">Recommended:</strong> Register for our 10-session 
                   tutoring program. Automatic diagnostic retries at sessions 5 and 10 to track progress.
                 </p>
+                <Button
+                  onClick={() => navigate(`/curriculum/${attemptId}`)}
+                  className="w-full bg-amber-600 hover:bg-amber-700 text-white"
+                >
+                  <GraduationCap className="mr-2 h-4 w-4" />
+                  Register for Pods - Get Personalized Curriculum
+                </Button>
               </>
             )}
             {attempt.tier === "Tier 3" && (
@@ -624,6 +638,13 @@ const Results = () => {
                   <strong className="text-red-700">Recommended:</strong> Register for our 15-session 
                   tutoring program. Automatic diagnostic retries at sessions 7, 10, and 15 to monitor growth.
                 </p>
+                <Button
+                  onClick={() => navigate(`/curriculum/${attemptId}`)}
+                  className="w-full bg-red-600 hover:bg-red-700 text-white"
+                >
+                  <GraduationCap className="mr-2 h-4 w-4" />
+                  Register for Pods - Get Personalized Curriculum
+                </Button>
               </>
             )}
             
