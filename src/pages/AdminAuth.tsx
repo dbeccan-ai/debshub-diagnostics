@@ -35,21 +35,34 @@ const AdminAuth = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    // Check if this is a password recovery redirect
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    const type = hashParams.get('type');
-    
-    if (type === 'recovery') {
-      setIsPasswordReset(true);
-      return;
-    }
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
+    // Set up auth state listener to detect password recovery
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsPasswordReset(true);
+        setIsLoggedIn(false);
+      } else if (event === 'SIGNED_IN' && !isPasswordReset) {
         setIsLoggedIn(true);
+      } else if (event === 'SIGNED_OUT') {
+        setIsLoggedIn(false);
       }
     });
-  }, []);
+
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        // Check if this is a recovery session by looking at URL hash
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const type = hashParams.get('type');
+        if (type === 'recovery') {
+          setIsPasswordReset(true);
+        } else {
+          setIsLoggedIn(true);
+        }
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [isPasswordReset]);
 
   const clearErrors = () => setErrors({});
 
