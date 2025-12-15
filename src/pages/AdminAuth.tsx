@@ -20,6 +20,7 @@ const AdminAuth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -92,6 +93,37 @@ const AdminAuth = () => {
     toast.success("Signed out successfully");
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    clearErrors();
+    setLoading(true);
+
+    try {
+      const emailValidation = z.string().trim().email("Please enter a valid email address").safeParse(email);
+      if (!emailValidation.success) {
+        setErrors({ email: emailValidation.error.errors[0].message });
+        setLoading(false);
+        return;
+      }
+
+      const { error } = await supabase.auth.resetPasswordForEmail(emailValidation.data, {
+        redirectTo: `${window.location.origin}/auth`,
+      });
+
+      if (error) {
+        toast.error("Failed to send reset email. Please try again.");
+      } else {
+        toast.success("Password reset email sent! Check your inbox.");
+        setIsForgotPassword(false);
+        setEmail("");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "An error occurred");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (isLoggedIn) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
@@ -118,6 +150,69 @@ const AdminAuth = () => {
             >
               Sign Out
             </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (isForgotPassword) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
+        <Card className="w-full max-w-md border-slate-700 bg-slate-800/50 backdrop-blur">
+          <CardHeader className="space-y-4">
+            <div className="flex justify-center">
+              <div className="rounded-full bg-emerald-600/20 p-4">
+                <Lock className="h-10 w-10 text-emerald-500" />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <CardTitle className="text-2xl font-bold text-center text-slate-100">
+                Reset Password
+              </CardTitle>
+              <CardDescription className="text-center text-slate-400">
+                Enter your email to receive a password reset link
+              </CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleForgotPassword} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="reset-email" className="text-slate-300">Email Address</Label>
+                <Input
+                  id="reset-email"
+                  type="email"
+                  placeholder="admin@school.edu"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  maxLength={255}
+                  className="border-slate-600 bg-slate-700/50 text-slate-100 placeholder:text-slate-500 focus:border-emerald-500 focus:ring-emerald-500"
+                />
+                {errors.email && (
+                  <p className="text-xs text-red-400">{errors.email}</p>
+                )}
+              </div>
+              <Button 
+                type="submit" 
+                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white" 
+                disabled={loading}
+              >
+                {loading ? "Sending..." : "Send Reset Link"}
+              </Button>
+            </form>
+            
+            <div className="mt-6 pt-4 border-t border-slate-700">
+              <button
+                onClick={() => {
+                  setIsForgotPassword(false);
+                  setEmail("");
+                  clearErrors();
+                }}
+                className="w-full text-center text-sm text-emerald-500 hover:underline"
+              >
+                Back to Sign In
+              </button>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -160,7 +255,20 @@ const AdminAuth = () => {
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-slate-300">Password</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password" className="text-slate-300">Password</Label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsForgotPassword(true);
+                    setPassword("");
+                    clearErrors();
+                  }}
+                  className="text-xs text-emerald-500 hover:underline"
+                >
+                  Forgot Password?
+                </button>
+              </div>
               <div className="relative">
                 <Input
                   id="password"
