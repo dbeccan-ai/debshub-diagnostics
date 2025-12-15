@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Activity, Target, Users, Shield, BookOpen, UserPlus } from "lucide-react";
+import { Activity, Target, Users, Shield, BookOpen, UserPlus, ClipboardList } from "lucide-react";
 
 type Tier = "Tier 1" | "Tier 2" | "Tier 3";
 type TestStatus = "In Progress" | "Completed" | "Payment Pending";
@@ -278,6 +278,17 @@ const Dashboard = () => {
           </div>
 
           <div className="flex items-center gap-2">
+            {isAdmin && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-amber-300 bg-amber-50 text-xs font-semibold text-amber-700 hover:bg-amber-100"
+                onClick={() => navigate("/admin/all-results")}
+              >
+                <ClipboardList className="mr-1 h-3 w-3" />
+                All Results
+              </Button>
+            )}
             {isAdmin && (
               <Button
                 variant="outline"
