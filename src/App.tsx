@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import AdminAuth from "./pages/AdminAuth";
@@ -26,33 +27,35 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/admin/login" element={<AdminAuth />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/tests" element={<Tests />} />
-          <Route path="/test/:attemptId" element={<TakeTest />} />
-          <Route path="/checkout/:attemptId" element={<Checkout />} />
-          <Route path="/verify-payment" element={<VerifyPayment />} />
-          <Route path="/results/:attemptId" element={<Results />} />
-          <Route path="/curriculum/:attemptId" element={<Curriculum />} />
-          <Route path="/admin/pending-reviews" element={<AdminPendingReviews />} />
-          <Route path="/admin/grade/:attemptId" element={<ManualGrading />} />
-          <Route path="/admin/invitations" element={<AdminInvitations />} />
-          <Route path="/admin/all-results" element={<AdminAllResults />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/school-setup" element={<SchoolSetup />} />
-          <Route path="/teacher" element={<TeacherDashboard />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <LanguageProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/admin/login" element={<AdminAuth />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/tests" element={<Tests />} />
+            <Route path="/test/:attemptId" element={<TakeTest />} />
+            <Route path="/checkout/:attemptId" element={<Checkout />} />
+            <Route path="/verify-payment" element={<VerifyPayment />} />
+            <Route path="/results/:attemptId" element={<Results />} />
+            <Route path="/curriculum/:attemptId" element={<Curriculum />} />
+            <Route path="/admin/pending-reviews" element={<AdminPendingReviews />} />
+            <Route path="/admin/grade/:attemptId" element={<ManualGrading />} />
+            <Route path="/admin/invitations" element={<AdminInvitations />} />
+            <Route path="/admin/all-results" element={<AdminAllResults />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/school-setup" element={<SchoolSetup />} />
+            <Route path="/teacher" element={<TeacherDashboard />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </LanguageProvider>
   </QueryClientProvider>
 );
 

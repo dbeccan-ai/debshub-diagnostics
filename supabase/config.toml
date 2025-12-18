@@ -41,3 +41,6 @@ verify_jwt = true
 
 [functions.generate-curriculum]
 verify_jwt = true
+
+[functions.translate-questions]
+verify_jwt = true
