@@ -19,11 +19,11 @@ export const LanguageSelector = () => {
         <Button
           variant="outline"
           size="sm"
-          className="flex items-center gap-2 border-slate-300 text-slate-700 hover:bg-slate-50"
+          className="flex items-center gap-1.5 px-2 sm:px-3 border-slate-300 text-slate-700 hover:bg-slate-50"
         >
           <Globe className="h-4 w-4" />
-          <span className="hidden sm:inline">{currentOption?.flag}</span>
-          <span className="text-xs sm:text-sm">{languageLabel}</span>
+          <span>{currentOption?.flag}</span>
+          <span className="hidden sm:inline text-xs">{languageLabel}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-40">
