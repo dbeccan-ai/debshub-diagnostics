@@ -7,18 +7,18 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { z } from "zod";
+import { useTranslation } from "@/hooks/useTranslation";
+import { LanguageSelector } from "@/components/LanguageSelector";
 
 // Check if password has been leaked using HaveIBeenPwned API (k-anonymity)
 const checkLeakedPassword = async (password: string): Promise<boolean> => {
   try {
-    // Create SHA-1 hash of password
     const encoder = new TextEncoder();
     const data = encoder.encode(password);
     const hashBuffer = await crypto.subtle.digest('SHA-1', data);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
     
-    // Send only first 5 characters (k-anonymity)
     const prefix = hashHex.slice(0, 5);
     const suffix = hashHex.slice(5);
     
@@ -28,24 +28,23 @@ const checkLeakedPassword = async (password: string): Promise<boolean> => {
     
     if (!response.ok) {
       console.error('HIBP API error:', response.status);
-      return false; // Fail open - don't block signup if API is down
+      return false;
     }
     
     const text = await response.text();
     const lines = text.split('\n');
     
-    // Check if our password suffix is in the results
     for (const line of lines) {
       const [hashSuffix, count] = line.split(':');
       if (hashSuffix.trim() === suffix && parseInt(count) > 0) {
-        return true; // Password has been leaked
+        return true;
       }
     }
     
-    return false; // Password not found in breaches
+    return false;
   } catch (error) {
     console.error('Error checking leaked password:', error);
-    return false; // Fail open
+    return false;
   }
 };
 
@@ -77,6 +76,7 @@ const resetSchema = z.object({
 
 const Auth = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [isLogin, setIsLogin] = useState(true);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -102,7 +102,6 @@ const Auth = () => {
 
     try {
       if (isLogin) {
-        // Validate login inputs
         const validation = loginSchema.safeParse({ username, password });
         if (!validation.success) {
           const fieldErrors: Record<string, string> = {};
@@ -116,23 +115,20 @@ const Auth = () => {
           return;
         }
 
-        // First, get the parent's email from the username
         const { data: emailData, error: lookupError } = await supabase
           .rpc('get_email_from_username', { input_username: validation.data.username });
         
-        // Use generic error message to prevent username enumeration
         if (lookupError || !emailData) {
           toast.error("Invalid username or password");
           setLoading(false);
           return;
         }
 
-        // Now authenticate with the parent's email
         const { error } = await supabase.auth.signInWithPassword({
           email: emailData,
           password: validation.data.password,
         });
-        // Use generic error message for auth failures too
+
         if (error) {
           toast.error("Invalid username or password");
           setLoading(false);
@@ -141,7 +137,6 @@ const Auth = () => {
         toast.success("Logged in successfully!");
         navigate("/dashboard");
       } else {
-        // Validate signup inputs
         const validation = signupSchema.safeParse({ 
           username, 
           password, 
@@ -160,7 +155,6 @@ const Auth = () => {
           return;
         }
 
-        // Check if password has been leaked
         const isLeaked = await checkLeakedPassword(validation.data.password);
         if (isLeaked) {
           setErrors({ password: "This password has appeared in a data breach. Please choose a different password." });
@@ -168,7 +162,6 @@ const Auth = () => {
           return;
         }
 
-        // Sign up with parent's email but store username
         const { error } = await supabase.auth.signUp({
           email: validation.data.parentEmail,
           password: validation.data.password,
@@ -203,7 +196,6 @@ const Auth = () => {
     setLoading(true);
 
     try {
-      // Validate reset inputs
       const validation = resetSchema.safeParse({ username });
       if (!validation.success) {
         const fieldErrors: Record<string, string> = {};
@@ -217,11 +209,9 @@ const Auth = () => {
         return;
       }
 
-      // Get the parent's email from the username
       const { data: emailData, error: lookupError } = await supabase
         .rpc('get_email_from_username', { input_username: validation.data.username });
       
-      // Use generic success message regardless of whether username exists (prevents enumeration)
       if (lookupError || !emailData) {
         toast.success("If this username exists, a reset link was sent to the parent's email");
         setIsForgotPassword(false);
@@ -230,7 +220,6 @@ const Auth = () => {
         return;
       }
 
-      // Send password reset email
       const { error } = await supabase.auth.resetPasswordForEmail(emailData, {
         redirectTo: `${window.location.origin}/auth`,
       });
@@ -250,13 +239,16 @@ const Auth = () => {
   if (isLoggedIn) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+        <div className="absolute top-4 right-4">
+          <LanguageSelector />
+        </div>
         <Card className="w-full max-w-md">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold text-center">
-              Already Logged In
+              {t.auth.alreadyLoggedIn}
             </CardTitle>
             <CardDescription className="text-center">
-              You're currently signed in to your account
+              {t.auth.alreadyLoggedInDesc}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -264,14 +256,14 @@ const Auth = () => {
               onClick={() => navigate("/dashboard")} 
               className="w-full"
             >
-              Go to Dashboard
+              {t.auth.goToDashboard}
             </Button>
             <Button 
               onClick={handleSignOut} 
               variant="outline" 
               className="w-full"
             >
-              Sign Out
+              {t.auth.signOut}
             </Button>
           </CardContent>
         </Card>
@@ -282,19 +274,22 @@ const Auth = () => {
   if (isForgotPassword) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+        <div className="absolute top-4 right-4">
+          <LanguageSelector />
+        </div>
         <Card className="w-full max-w-md">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold text-center">
-              Reset Password
+              {t.auth.resetPassword}
             </CardTitle>
             <CardDescription className="text-center">
-              Enter your username to receive a password reset link
+              {t.auth.resetDesc}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleForgotPassword} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="reset-username">Username</Label>
+                <Label htmlFor="reset-username">{t.auth.username}</Label>
                 <Input
                   id="reset-username"
                   type="text"
@@ -307,11 +302,11 @@ const Auth = () => {
                   <p className="text-xs text-destructive">{errors.username}</p>
                 )}
                 <p className="text-xs text-muted-foreground">
-                  We'll send a reset link to your parent's email
+                  {t.auth.resetSent}
                 </p>
               </div>
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Sending..." : "Send Reset Link"}
+                {loading ? t.auth.sending : t.auth.sendResetLink}
               </Button>
             </form>
             <div className="mt-4 text-center text-sm">
@@ -323,7 +318,7 @@ const Auth = () => {
                 }}
                 className="text-primary hover:underline"
               >
-                Back to Sign In
+                {t.auth.backToSignIn}
               </button>
             </div>
           </CardContent>
@@ -334,15 +329,16 @@ const Auth = () => {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+      <div className="absolute top-4 right-4">
+        <LanguageSelector />
+      </div>
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">
-            {isLogin ? "Welcome Back" : "Create Account"}
+            {isLogin ? t.auth.welcomeBack : t.auth.createAccount}
           </CardTitle>
           <CardDescription className="text-center">
-            {isLogin
-              ? "Sign in to access your diagnostic tests"
-              : "Sign up to start your diagnostic journey"}
+            {isLogin ? t.auth.signInDesc : t.auth.signUpDesc}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -350,7 +346,7 @@ const Auth = () => {
             {!isLogin && (
               <>
                 <div className="space-y-2">
-                  <Label htmlFor="fullName">Student's Full Name</Label>
+                  <Label htmlFor="fullName">{t.auth.studentName}</Label>
                   <Input
                     id="fullName"
                     type="text"
@@ -364,7 +360,7 @@ const Auth = () => {
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="parentEmail">Parent's Email</Label>
+                  <Label htmlFor="parentEmail">{t.auth.parentEmail}</Label>
                   <Input
                     id="parentEmail"
                     type="email"
@@ -377,13 +373,13 @@ const Auth = () => {
                     <p className="text-xs text-destructive">{errors.parentEmail}</p>
                   )}
                   <p className="text-xs text-muted-foreground">
-                    This email will be used for password recovery
+                    {t.auth.parentEmailDesc}
                   </p>
                 </div>
               </>
             )}
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="username">{t.auth.username}</Label>
               <Input
                 id="username"
                 type="text"
@@ -397,12 +393,12 @@ const Auth = () => {
               )}
               {!isLogin && (
                 <p className="text-xs text-muted-foreground">
-                  Letters, numbers, and underscores only
+                  {t.auth.usernameDesc}
                 </p>
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{t.auth.password}</Label>
               <Input
                 id="password"
                 type="password"
@@ -416,7 +412,7 @@ const Auth = () => {
               )}
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Loading..." : isLogin ? "Sign In" : "Sign Up"}
+              {loading ? t.auth.loading : isLogin ? t.auth.signIn : t.auth.signUp}
             </Button>
           </form>
           <div className="mt-4 space-y-2 text-center text-sm">
@@ -425,7 +421,7 @@ const Auth = () => {
                 onClick={() => setIsForgotPassword(true)}
                 className="text-primary hover:underline block w-full"
               >
-                Forgot Password?
+                {t.auth.forgotPassword}
               </button>
             )}
             <button
@@ -435,9 +431,7 @@ const Auth = () => {
               }}
               className="text-primary hover:underline block w-full"
             >
-              {isLogin
-                ? "Don't have an account? Sign up"
-                : "Already have an account? Sign in"}
+              {isLogin ? t.auth.noAccount : t.auth.hasAccount}
             </button>
           </div>
         </CardContent>
