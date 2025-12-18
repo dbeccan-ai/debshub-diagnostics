@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { GradeRangeTestDialog } from "@/components/GradeRangeTestDialog";
+import { LanguageSelector } from "@/components/LanguageSelector";
 
 export default function Page() {
   const [gradeDialogOpen, setGradeDialogOpen] = useState(false);
@@ -42,8 +43,9 @@ export default function Page() {
             </a>
           </nav>
 
-          {/* Auth buttons */}
+          {/* Language & Auth buttons */}
           <div className="flex items-center gap-3">
+            <LanguageSelector />
             <a href="/auth" className="hidden sm:inline-flex px-3 py-1.5 text-sm font-medium rounded-full border border-slate-300 text-slate-700 hover:bg-slate-50">
               Log in
             </a>

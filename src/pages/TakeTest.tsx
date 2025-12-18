@@ -8,13 +8,14 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Clock, AlertCircle, X, Lightbulb } from "lucide-react";
+import { Clock, AlertCircle, X, Lightbulb, Globe } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { getQuestionsByTestName, normalizeQuestions } from "@/lib/testQuestions";
 import reinforcementData from "@/data/reinforcement-questions.json";
 import { useTabVisibility } from "@/hooks/use-tab-visibility";
 import { TestSecurityWarning } from "@/components/TestSecurityWarning";
 import { PreTestSecurityCheck } from "@/components/PreTestSecurityCheck";
+import { useLanguage, languageOptions } from "@/contexts/LanguageContext";
 
 interface SkillPerformance {
   correct: number;
@@ -27,6 +28,7 @@ const MAX_ADAPTIVE_PER_SKILL = 3;
 const TakeTest = () => {
   const navigate = useNavigate();
   const { attemptId } = useParams();
+  const { language, languageLabel } = useLanguage();
   const [attempt, setAttempt] = useState<any>(null);
   const [test, setTest] = useState<any>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -37,12 +39,15 @@ const TakeTest = () => {
   const [profile, setProfile] = useState<any>(null);
   const [testStarted, setTestStarted] = useState(false);
   const [showSecurityCheck, setShowSecurityCheck] = useState(false);
+  const [isTranslating, setIsTranslating] = useState(false);
+  const [translatedLanguage, setTranslatedLanguage] = useState<string>("en");
   
   // Tab visibility security
   const { isTestDisabled, tabSwitchCount } = useTabVisibility(testStarted);
   
   // Adaptive testing state
   const [questions, setQuestions] = useState<any[]>([]);
+  const [originalQuestions, setOriginalQuestions] = useState<any[]>([]);
   const [skillPerformance, setSkillPerformance] = useState<Record<string, SkillPerformance>>({});
   const [addedAdaptiveIds, setAddedAdaptiveIds] = useState<Set<string>>(new Set());
   const [adaptiveMessage, setAdaptiveMessage] = useState<string | null>(null);
@@ -153,7 +158,15 @@ const TakeTest = () => {
       
       setTest(finalTestData);
       setQuestions(questionsArray);
+      setOriginalQuestions(questionsArray);
       setTimeRemaining(finalTestData.duration_minutes * 60);
+      
+      // Translate if needed
+      if (language !== "en") {
+        await translateQuestions(questionsArray, language);
+      } else {
+        setTranslatedLanguage("en");
+      }
       
       // Show security check dialog before starting test
       setShowSecurityCheck(true);
@@ -165,6 +178,46 @@ const TakeTest = () => {
       setLoading(false);
     }
   };
+
+  // Translate questions to selected language
+  const translateQuestions = async (questionsToTranslate: any[], targetLang: string) => {
+    if (targetLang === "en") {
+      setQuestions(originalQuestions.length > 0 ? originalQuestions : questionsToTranslate);
+      setTranslatedLanguage("en");
+      return;
+    }
+
+    setIsTranslating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("translate-questions", {
+        body: { questions: questionsToTranslate, targetLanguage: targetLang },
+      });
+
+      if (error || data?.error) {
+        console.error("Translation error:", error || data?.error);
+        toast.error("Translation failed, showing original questions");
+        return;
+      }
+
+      if (data?.translatedQuestions) {
+        setQuestions(data.translatedQuestions);
+        setTranslatedLanguage(targetLang);
+        toast.success(`Test translated to ${languageLabel}`);
+      }
+    } catch (err) {
+      console.error("Translation failed:", err);
+      toast.error("Translation failed, showing original questions");
+    } finally {
+      setIsTranslating(false);
+    }
+  };
+
+  // Re-translate when language changes (only after test is loaded)
+  useEffect(() => {
+    if (originalQuestions.length > 0 && !loading && language !== translatedLanguage) {
+      translateQuestions(originalQuestions, language);
+    }
+  }, [language]);
 
   // Normalize topic name for matching
   const normalizeTopicName = (topic: string): string => {
@@ -356,10 +409,17 @@ const TakeTest = () => {
     return "bg-blue-100 text-blue-900";
   };
 
-  if (loading) {
+  if (loading || isTranslating) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-100 via-blue-50 to-yellow-100">
-        <p className="text-lg text-[#1e3a8a]">Loading test...</p>
+        <div className="text-center">
+          <p className="text-lg text-[#1e3a8a]">
+            {isTranslating ? `Translating to ${languageLabel}...` : "Loading test..."}
+          </p>
+          {isTranslating && (
+            <p className="text-sm text-[#1e3a8a]/60 mt-2">This may take a moment</p>
+          )}
+        </div>
       </div>
     );
   }
@@ -412,7 +472,15 @@ const TakeTest = () => {
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-[#1e3a8a]">{test.name}</h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl font-bold text-[#1e3a8a]">{test.name}</h1>
+                {translatedLanguage !== "en" && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs font-medium">
+                    <Globe className="h-3 w-3" />
+                    {languageOptions.find(l => l.value === translatedLanguage)?.label || translatedLanguage}
+                  </span>
+                )}
+              </div>
               <p className="text-sm text-[#1e3a8a]/60 mt-1">
                 Question {currentQuestionIndex + 1} of {questions.length}
               </p>
