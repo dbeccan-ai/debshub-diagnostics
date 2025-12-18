@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { GradeRangeTestDialog } from "@/components/GradeRangeTestDialog";
 import { LanguageSelector } from "@/components/LanguageSelector";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function Page() {
   const [gradeDialogOpen, setGradeDialogOpen] = useState(false);
   const [selectedGradeRange, setSelectedGradeRange] = useState<"1-6" | "7-12">("1-6");
+  const { t } = useTranslation();
 
   const openGradeDialog = (range: "1-6" | "7-12") => {
     setSelectedGradeRange(range);
@@ -30,16 +32,16 @@ export default function Page() {
           {/* Nav links */}
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
             <a href="#how-it-works" className="text-slate-600 hover:text-slate-900">
-              How it works
+              {t.nav.howItWorks}
             </a>
             <a href="#tests" className="text-slate-600 hover:text-slate-900">
-              Diagnostic Tests
+              {t.nav.diagnosticTests}
             </a>
             <a href="#pricing" className="text-slate-600 hover:text-slate-900">
-              Pricing
+              {t.nav.pricing}
             </a>
             <a href="#faq" className="text-slate-600 hover:text-slate-900">
-              FAQ
+              {t.nav.faq}
             </a>
           </nav>
 
@@ -47,13 +49,13 @@ export default function Page() {
           <div className="flex items-center gap-2 sm:gap-3">
             <LanguageSelector />
             <a href="/auth" className="hidden sm:inline-flex px-3 py-1.5 text-sm font-medium rounded-full border border-slate-300 text-slate-700 hover:bg-slate-50">
-              Log in
+              {t.nav.login}
             </a>
             <a
               href="#cta"
               className="hidden sm:inline-flex px-4 py-1.5 text-sm font-semibold rounded-full bg-slate-900 text-white hover:bg-slate-800"
             >
-              Get Started
+              {t.nav.getStarted}
             </a>
           </div>
         </div>
@@ -66,23 +68,20 @@ export default function Page() {
             {/* Hero text */}
             <div>
               <span className="inline-flex items-center gap-2 text-xs font-semibold px-3 py-1 rounded-full bg-amber-100 text-amber-800 mb-4">
-                New · DEBs Diagnostic Hub
+                {t.hero.badge}
                 <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
               </span>
 
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 leading-tight mb-4">
-                Diagnostic Testing That <span className="text-amber-500">Actually Drives Results</span>.
+                {t.hero.title} <span className="text-amber-500">{t.hero.titleHighlight}</span>.
               </h1>
 
               <p className="text-slate-600 text-sm sm:text-base mb-4 max-w-xl">
-                DEBs Diagnostic Hub cuts through the guesswork. Your child takes one adaptive 45–90 minute test, and the
-                system pinpoints their gaps and places them into the right support tier — so you finally know what they
-                need, not just that they’re “behind.”
+                {t.hero.description}
               </p>
 
               <p className="text-slate-500 text-xs sm:text-sm mb-6 max-w-xl">
-                One secure link, one adaptive diagnostic for grades 1–12, and every student is placed into a clear
-                support tier parents, teachers, and leaders can act on.
+                {t.hero.subDescription}
               </p>
 
               <div className="flex flex-wrap items-center gap-3 mb-6">
@@ -90,28 +89,28 @@ export default function Page() {
                   href="#pricing"
                   className="inline-flex px-5 py-2.5 text-sm font-semibold rounded-full bg-slate-900 text-white hover:bg-slate-800"
                 >
-                  Book a Diagnostic
+                  {t.hero.bookDiagnostic}
                 </a>
                 <a
                   href="#tests"
                   className="inline-flex px-4 py-2 text-sm font-semibold rounded-full border border-slate-300 text-slate-700 hover:bg-white"
                 >
-                  View Diagnostic Types
+                  {t.hero.viewDiagnosticTypes}
                 </a>
               </div>
 
               <div className="flex flex-wrap gap-4 text-xs text-slate-500">
                 <div className="flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                  Adaptive testing & skill breakdown
+                  {t.hero.adaptiveTesting}
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full bg-sky-400" />
-                  Tier placement in minutes
+                  {t.hero.tierPlacement}
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full bg-amber-400" />
-                  Parent-friendly reports
+                  {t.hero.parentReports}
                 </div>
               </div>
             </div>
@@ -124,64 +123,64 @@ export default function Page() {
               <div className="relative bg-white/90 backdrop-blur rounded-3xl border border-slate-100 shadow-xl p-5 sm:p-6">
                 <div className="flex items-center justify-between mb-3">
                   <div>
-                    <div className="text-xs font-semibold text-amber-600 uppercase tracking-wide">Dashboard</div>
-                    <div className="text-sm font-semibold text-slate-900">DEBs Diagnostic Hub · Grades 1–12</div>
+                    <div className="text-xs font-semibold text-amber-600 uppercase tracking-wide">{t.dashboard.title}</div>
+                    <div className="text-sm font-semibold text-slate-900">{t.dashboard.subtitle}</div>
                   </div>
                   <span className="inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded-full bg-emerald-50 text-emerald-700">
-                    ● Live
-                    <span>Auto-Grading</span>
+                    ● {t.dashboard.live}
+                    <span>{t.dashboard.autoGrading}</span>
                   </span>
                 </div>
 
                 <div className="grid gap-3">
                   {/* Card 1 */}
                   <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50">
-  <div>
-    <div className="text-xs font-semibold text-slate-700">Observation Quiz</div>
-    <div className="text-[11px] text-slate-500">45-minute snapshot · Grades 1–12</div>
-  </div>
-  <a
-    href="/observation-quiz"
-    className="px-3 py-1 text-[11px] font-semibold rounded-full bg-slate-900 text-white hover:bg-slate-800"
-  >
-    View
-  </a>
-</div>
+                    <div>
+                      <div className="text-xs font-semibold text-slate-700">{t.dashboard.observationQuiz}</div>
+                      <div className="text-[11px] text-slate-500">{t.dashboard.observationDesc}</div>
+                    </div>
+                    <a
+                      href="/observation-quiz"
+                      className="px-3 py-1 text-[11px] font-semibold rounded-full bg-slate-900 text-white hover:bg-slate-800"
+                    >
+                      {t.dashboard.view}
+                    </a>
+                  </div>
                   {/* Card 2 */}
                   <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50">
                     <div>
-                      <div className="text-xs font-semibold text-slate-700">Math Diagnostic Test</div>
-                      <div className="text-[11px] text-slate-500">90-minute adaptive · Grades 1–12</div>
+                      <div className="text-xs font-semibold text-slate-700">{t.dashboard.mathDiagnostic}</div>
+                      <div className="text-[11px] text-slate-500">{t.dashboard.mathDesc}</div>
                     </div>
                     <a
                       href="/math-diagnostic"
                       className="px-3 py-1 text-[11px] font-semibold rounded-full border border-slate-300 text-slate-700 hover:bg-slate-50"
                     >
-                      Run
+                      {t.dashboard.run}
                     </a>
                   </div>
                   {/* Card 3 */}
                   <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50">
                     <div>
-                      <div className="text-xs font-semibold text-slate-700">ELA Diagnostic Test</div>
-                      <div className="text-[11px] text-slate-500">90-minute reading & writing · Grades 1–12</div>
+                      <div className="text-xs font-semibold text-slate-700">{t.dashboard.elaDiagnostic}</div>
+                      <div className="text-[11px] text-slate-500">{t.dashboard.elaDesc}</div>
                     </div>
                     <a
                       href="/ela-diagnostic"
                       className="px-3 py-1 text-[11px] font-semibold rounded-full border border-slate-300 text-slate-700 hover:bg-slate-50"
                     >
-                      Run
+                      {t.dashboard.run}
                     </a>
                   </div>
                 </div>
 
                 <div className="mt-4 border-t border-slate-100 pt-3 flex items-center justify-between">
                   <div className="text-[11px] text-slate-500">
-                    Auto-places students into{" "}
-                    <span className="font-semibold text-slate-700">Tier 1, Tier 2, or Tier 3</span> support.
+                    {t.dashboard.autoPlaces}{" "}
+                    <span className="font-semibold text-slate-700">{t.dashboard.tierSupport}</span> {t.dashboard.support}
                   </div>
                   <div className="text-right">
-                    <div className="text-[11px] text-slate-500">Students tested</div>
+                    <div className="text-[11px] text-slate-500">{t.dashboard.studentsTested}</div>
                     <div className="text-sm font-semibold text-slate-900">1,250+</div>
                   </div>
                 </div>
@@ -195,48 +194,47 @@ export default function Page() {
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
               <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
-                Built for real classrooms and real families.
+                {t.whoFor.title}
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 max-w-md">
-                Whether you serve 20 students or 2,000, DEBs Diagnostic Hub helps you move from “I think they’re behind”
-                to “I know exactly what they need.”
+                {t.whoFor.description}
               </p>
             </div>
 
             <div className="grid md:grid-cols-3 gap-5">
               <div className="bg-white/90 backdrop-blur rounded-2xl border border-slate-100 p-4">
-                <div className="text-xs font-semibold text-amber-600 uppercase mb-1">Schools & Programs</div>
+                <div className="text-xs font-semibold text-amber-600 uppercase mb-1">{t.whoFor.schools}</div>
                 <p className="text-sm text-slate-700 mb-2">
-                  Run grade-wide diagnostics and export clean reports for leadership, MTSS teams, and data meetings.
+                  {t.whoFor.schoolsDesc}
                 </p>
                 <ul className="text-xs text-slate-500 space-y-1.5">
-                  <li>• Launch full-grade tests with one link</li>
-                  <li>• Tier placement overview by class or cohort</li>
-                  <li>• Download-ready for planning meetings</li>
+                  <li>• {t.whoFor.schoolsItem1}</li>
+                  <li>• {t.whoFor.schoolsItem2}</li>
+                  <li>• {t.whoFor.schoolsItem3}</li>
                 </ul>
               </div>
 
               <div className="bg-white/90 backdrop-blur rounded-2xl border border-slate-100 p-4">
-                <div className="text-xs font-semibold text-sky-600 uppercase mb-1">Tutoring & Afterschool</div>
+                <div className="text-xs font-semibold text-sky-600 uppercase mb-1">{t.whoFor.tutoring}</div>
                 <p className="text-sm text-slate-700 mb-2">
-                  Stop guessing where to start. Use diagnostics to form groups, set goals, and track growth over time.
+                  {t.whoFor.tutoringDesc}
                 </p>
                 <ul className="text-xs text-slate-500 space-y-1.5">
-                  <li>• Skill-by-skill breakdowns</li>
-                  <li>• Group students by need in clicks</li>
-                  <li>• Show families proof of progress</li>
+                  <li>• {t.whoFor.tutoringItem1}</li>
+                  <li>• {t.whoFor.tutoringItem2}</li>
+                  <li>• {t.whoFor.tutoringItem3}</li>
                 </ul>
               </div>
 
               <div className="bg-white/90 backdrop-blur rounded-2xl border border-slate-100 p-4">
-                <div className="text-xs font-semibold text-emerald-600 uppercase mb-1">Parents & Families</div>
+                <div className="text-xs font-semibold text-emerald-600 uppercase mb-1">{t.whoFor.parents}</div>
                 <p className="text-sm text-slate-700 mb-2">
-                  One adaptive test and a clear report — no jargon, no shame, no guessing about where your child stands.
+                  {t.whoFor.parentsDesc}
                 </p>
                 <ul className="text-xs text-slate-500 space-y-1.5">
-                  <li>• Easy-to-read summaries</li>
-                  <li>• Concrete next steps you can take</li>
-                  <li>• Option to join DEBs pods for support</li>
+                  <li>• {t.whoFor.parentsItem1}</li>
+                  <li>• {t.whoFor.parentsItem2}</li>
+                  <li>• {t.whoFor.parentsItem3}</li>
                 </ul>
               </div>
             </div>
@@ -247,10 +245,9 @@ export default function Page() {
         <section className="py-14" id="how-it-works">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center max-w-2xl mx-auto mb-10">
-              <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">How DEBs Diagnostic Hub Works</h2>
+              <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">{t.howItWorks.title}</h2>
               <p className="text-sm sm:text-base text-slate-500">
-                Designed by an educator, built like a product. No messy spreadsheets, no mystery scores — just a smooth,
-                student-friendly flow.
+                {t.howItWorks.description}
               </p>
             </div>
 
@@ -261,9 +258,9 @@ export default function Page() {
                   <span className="h-7 w-7 rounded-full bg-slate-900 text-white text-xs flex items-center justify-center font-bold">
                     1
                   </span>
-                  <div className="font-semibold text-slate-900">Choose your test</div>
+                  <div className="font-semibold text-slate-900">{t.howItWorks.step1Title}</div>
                 </div>
-                <p className="text-slate-600 text-xs">Select from Math, ELA, or Observation quizzes for grades 1–12.</p>
+                <p className="text-slate-600 text-xs">{t.howItWorks.step1Desc}</p>
               </div>
 
               {/* Step 2 */}
@@ -272,11 +269,10 @@ export default function Page() {
                   <span className="h-7 w-7 rounded-full bg-slate-900 text-white text-xs flex items-center justify-center font-bold">
                     2
                   </span>
-                  <div className="font-semibold text-slate-900">Write your test with the timer</div>
+                  <div className="font-semibold text-slate-900">{t.howItWorks.step2Title}</div>
                 </div>
                 <p className="text-slate-600 text-xs">
-                  Students complete the diagnostic online with a built-in timer (45 minutes for Observation; 90 minutes
-                  for Math and ELA), so focus stays high and pacing is clear.
+                  {t.howItWorks.step2Desc}
                 </p>
               </div>
 
@@ -286,10 +282,10 @@ export default function Page() {
                   <span className="h-7 w-7 rounded-full bg-slate-900 text-white text-xs flex items-center justify-center font-bold">
                     3
                   </span>
-                  <div className="font-semibold text-slate-900">Auto-grade & tier</div>
+                  <div className="font-semibold text-slate-900">{t.howItWorks.step3Title}</div>
                 </div>
                 <p className="text-slate-600 text-xs">
-                  The system pinpoints exact gaps and auto-places each student into Tier 1, Tier 2, or Tier 3 support.
+                  {t.howItWorks.step3Desc}
                 </p>
               </div>
 
@@ -299,11 +295,10 @@ export default function Page() {
                   <span className="h-7 w-7 rounded-full bg-slate-900 text-white text-xs flex items-center justify-center font-bold">
                     4
                   </span>
-                  <div className="font-semibold text-slate-900">Take action</div>
+                  <div className="font-semibold text-slate-900">{t.howItWorks.step4Title}</div>
                 </div>
                 <p className="text-slate-600 text-xs">
-                  Use the report to inform instruction, enroll in a DEBs pod, or bring the data to your child’s school
-                  team. No more guessing — just a clear next step.
+                  {t.howItWorks.step4Desc}
                 </p>
               </div>
             </div>
@@ -315,72 +310,68 @@ export default function Page() {
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-white">
             <div className="flex flex-wrap items-center justify-between gap-3 mb-8">
               <div>
-                <h2 className="text-2xl sm:text-3xl font-bold mb-1">Your Diagnostic Suite, All in One Hub</h2>
+                <h2 className="text-2xl sm:text-3xl font-bold mb-1">{t.tests.title}</h2>
                 <p className="text-sm text-slate-300 max-w-xl">
-                  Mix and match tests to fit your students. Each diagnostic is built to surface real gaps — not just
-                  give a random score.
+                  {t.tests.description}
                 </p>
               </div>
               <a
                 href="#pricing"
                 className="inline-flex px-4 py-2 text-xs sm:text-sm font-semibold rounded-full bg-amber-400 text-slate-900 hover:bg-amber-300"
               >
-                See pricing
+                {t.tests.seePricing}
               </a>
             </div>
 
             <div className="grid md:grid-cols-3 gap-6">
               {/* Observation Quiz */}
               <div className="rounded-2xl bg-slate-800/80 border border-slate-700 p-5">
-                <div className="text-xs font-semibold text-amber-300 uppercase mb-1">Observation Quiz</div>
-                <h3 className="font-semibold mb-2">Learning Styles Snapshot</h3>
+                <div className="text-xs font-semibold text-amber-300 uppercase mb-1">{t.dashboard.observationQuiz}</div>
+                <h3 className="font-semibold mb-2">{t.tests.observationTitle}</h3>
                 <p className="text-xs text-slate-300 mb-3">
-                  A 45-minute observation-based tool that helps families and teachers see how a child naturally learns
-                  best: visual, auditory, or hands-on.
+                  {t.tests.observationDesc}
                 </p>
                 <ul className="text-[11px] text-slate-300 space-y-1.5 mb-4">
-                  <li>• 45-minute guided observation</li>
-                  <li>• Parent & teacher-friendly checklist</li>
-                  <li>• Clear learning profile summary</li>
+                  <li>• {t.tests.observationItem1}</li>
+                  <li>• {t.tests.observationItem2}</li>
+                  <li>• {t.tests.observationItem3}</li>
                 </ul>
                 <button className="w-full px-4 py-2 text-xs font-semibold rounded-full bg-white text-slate-900 hover:bg-slate-100">
-                  Preview this quiz
+                  {t.tests.previewQuiz}
                 </button>
               </div>
 
               {/* Math Diagnostic */}
               <div className="rounded-2xl bg-slate-800/80 border border-slate-700 p-5">
-                <div className="text-xs font-semibold text-sky-300 uppercase mb-1">Math Diagnostic</div>
-                <h3 className="font-semibold mb-2">Math Skills FastTrack</h3>
+                <div className="text-xs font-semibold text-sky-300 uppercase mb-1">{t.dashboard.mathDiagnostic}</div>
+                <h3 className="font-semibold mb-2">{t.tests.mathTitle}</h3>
                 <p className="text-xs text-slate-300 mb-3">
-                  A 90-minute adaptive assessment that pinpoints exact math skill gaps across grade levels — fractions,
-                  fluency, equations, and more.
+                  {t.tests.mathDesc}
                 </p>
                 <ul className="text-[11px] text-slate-300 space-y-1.5 mb-4">
-                  <li>• 90-minute adaptive diagnostic</li>
-                  <li>• Multiple-choice + word problems</li>
-                  <li>• Skill breakdown + tier recommendation</li>
+                  <li>• {t.tests.mathItem1}</li>
+                  <li>• {t.tests.mathItem2}</li>
+                  <li>• {t.tests.mathItem3}</li>
                 </ul>
                 <button className="w-full px-4 py-2 text-xs font-semibold rounded-full bg-amber-400 text-slate-900 hover:bg-amber-300">
-                  See sample math report
+                  {t.tests.startMath}
                 </button>
               </div>
 
               {/* ELA Diagnostic */}
               <div className="rounded-2xl bg-slate-800/80 border border-slate-700 p-5">
-                <div className="text-xs font-semibold text-emerald-300 uppercase mb-1">ELA Diagnostic</div>
-                <h3 className="font-semibold mb-2">Reading & Writing Snapshot</h3>
+                <div className="text-xs font-semibold text-emerald-300 uppercase mb-1">{t.dashboard.elaDiagnostic}</div>
+                <h3 className="font-semibold mb-2">{t.tests.elaTitle}</h3>
                 <p className="text-xs text-slate-300 mb-3">
-                  A 90-minute diagnostic that measures comprehension, vocabulary, grammar, and writing to reveal each
-                  student’s true literacy level.
+                  {t.tests.elaDesc}
                 </p>
                 <ul className="text-[11px] text-slate-300 space-y-1.5 mb-4">
-                  <li>• 90-minute reading & writing assessment</li>
-                  <li>• Inferential questions + writing task</li>
-                  <li>• Clear feedback for families & staff</li>
+                  <li>• {t.tests.elaItem1}</li>
+                  <li>• {t.tests.elaItem2}</li>
+                  <li>• {t.tests.elaItem3}</li>
                 </ul>
                 <button className="w-full px-4 py-2 text-xs font-semibold rounded-full bg-white text-slate-900 hover:bg-slate-100">
-                  Explore ELA diagnostic
+                  {t.tests.startEla}
                 </button>
               </div>
             </div>
@@ -396,9 +387,9 @@ export default function Page() {
                   ✓
                 </div>
                 <div>
-                  <div className="font-semibold text-slate-900">Auto-grading & tier placement</div>
+                  <div className="font-semibold text-slate-900">{t.features.autoGrading}</div>
                   <p className="text-xs text-slate-600">
-                    Score reports in minutes, not days. Know exactly who needs Tier 1, 2, or 3 support.
+                    {t.features.autoGradingDesc}
                   </p>
                 </div>
               </div>
@@ -407,9 +398,9 @@ export default function Page() {
                   ✓
                 </div>
                 <div>
-                  <div className="font-semibold text-slate-900">Parent-friendly reporting</div>
+                  <div className="font-semibold text-slate-900">{t.features.parentReports}</div>
                   <p className="text-xs text-slate-600">
-                    Clean summaries families can understand and share with schools, without any jargon.
+                    {t.features.parentReportsDesc}
                   </p>
                 </div>
               </div>
@@ -418,9 +409,9 @@ export default function Page() {
                   ✓
                 </div>
                 <div>
-                  <div className="font-semibold text-slate-900">Clear next steps</div>
+                  <div className="font-semibold text-slate-900">{t.features.tierPlacement}</div>
                   <p className="text-xs text-slate-600">
-                    Every report includes a suggested pathway — from light support to deeper intervention.
+                    {t.features.tierPlacementDesc}
                   </p>
                 </div>
               </div>
@@ -433,86 +424,86 @@ export default function Page() {
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center max-w-2xl mx-auto mb-10">
               <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">
-                Simple, upfront pricing. No surprises.
+                {t.pricing.title}
               </h2>
               <p className="text-sm sm:text-base text-slate-500">
-                One test, one clear price. Your child gets a full adaptive diagnostic and a parent-friendly report you
-                can actually use.
+                {t.pricing.description}
               </p>
             </div>
 
             <div className="grid md:grid-cols-3 gap-6 text-sm">
               {/* Grades 1–6 */}
               <div className="bg-white/90 backdrop-blur rounded-2xl border border-slate-200 p-6 flex flex-col">
-                <div className="text-xs font-semibold text-emerald-600 uppercase mb-1">Grades 1–6</div>
-                <h3 className="font-bold text-lg mb-1">Grades 1–6 Diagnostic</h3>
+                <div className="text-xs font-semibold text-emerald-600 uppercase mb-1">{t.pricing.grades16}</div>
+                <h3 className="font-bold text-lg mb-1">{t.pricing.grades16Desc}</h3>
                 <p className="text-xs text-slate-500 mb-4">
-                  Ideal for early and upper elementary students who need a clear check-in on Math or ELA.
+                  {t.pricing.mathEla}
                 </p>
                 <div className="text-2xl font-bold text-slate-900 mb-1">
                   $99
-                  <span className="text-base font-normal text-slate-500"> / student</span>
+                  <span className="text-base font-normal text-slate-500"> / {t.pricing.perStudent}</span>
                 </div>
                 <p className="text-[11px] text-slate-500 mb-4">
-                  Adaptive Math or ELA diagnostic + detailed results report.
+                  {t.pricing.includes}
                 </p>
                 <ul className="text-[11px] text-slate-600 space-y-1.5 mb-6">
-                  <li>• 45–90 minute adaptive assessment</li>
-                  <li>• Skill breakdown + tier recommendation</li>
-                  <li>• Parent summary you can share with teachers</li>
+                  <li>• {t.pricing.mathEla}</li>
+                  <li>• {t.pricing.tierPlacement}</li>
+                  <li>• {t.pricing.skillBreakdown}</li>
+                  <li>• {t.pricing.parentSummary}</li>
                 </ul>
                 <button 
                   onClick={() => openGradeDialog("1-6")}
                   className="mt-auto w-full px-4 py-2 text-xs font-semibold rounded-full bg-slate-900 text-white hover:bg-slate-800"
                 >
-                  Book Grades 1–6 Diagnostic
+                  {t.pricing.startDiagnostic}
                 </button>
               </div>
 
               {/* Grades 7–12 */}
               <div className="bg-white/90 backdrop-blur rounded-2xl border border-amber-400 p-6 flex flex-col shadow-lg shadow-amber-100">
-                <div className="text-xs font-semibold text-amber-600 uppercase mb-1">Grades 7–12</div>
-                <h3 className="font-bold text-lg mb-1">Grades 7–12 Diagnostic</h3>
+                <div className="text-xs font-semibold text-amber-600 uppercase mb-1">{t.pricing.grades712}</div>
+                <h3 className="font-bold text-lg mb-1">{t.pricing.grades712Desc}</h3>
                 <p className="text-xs text-slate-500 mb-4">
-                  Perfect for middle and high school students who need to know exactly where they stand before big
-                  exams.
+                  {t.pricing.mathEla}
                 </p>
                 <div className="text-2xl font-bold text-slate-900 mb-1">
                   $120
-                  <span className="text-base font-normal text-slate-500"> / student</span>
+                  <span className="text-base font-normal text-slate-500"> / {t.pricing.perStudent}</span>
                 </div>
                 <p className="text-[11px] text-slate-500 mb-4">
-                  Adaptive Math or ELA diagnostic + detailed results report.
+                  {t.pricing.includes}
                 </p>
                 <ul className="text-[11px] text-slate-600 space-y-1.5 mb-6">
-                  <li>• 45–90 minute adaptive assessment</li>
-                  <li>• Pinpoints gaps in higher-level content</li>
-                  <li>• Tier recommendation + suggested next steps</li>
+                  <li>• {t.pricing.mathEla}</li>
+                  <li>• {t.pricing.tierPlacement}</li>
+                  <li>• {t.pricing.skillBreakdown}</li>
+                  <li>• {t.pricing.parentSummary}</li>
                 </ul>
                 <button 
                   onClick={() => openGradeDialog("7-12")}
                   className="mt-auto w-full px-4 py-2 text-xs font-semibold rounded-full bg-amber-400 text-slate-900 hover:bg-amber-300"
                 >
-                  Book Grades 7–12 Diagnostic
+                  {t.pricing.startDiagnostic}
                 </button>
               </div>
 
               {/* Schools & Programs */}
               <div className="bg-white/90 backdrop-blur rounded-2xl border border-slate-200 p-6 flex flex-col">
-                <div className="text-xs font-semibold text-sky-600 uppercase mb-1">Schools & Programs</div>
-                <h3 className="font-bold text-lg mb-1">Group & School Pricing</h3>
+                <div className="text-xs font-semibold text-sky-600 uppercase mb-1">{t.pricing.schoolsTitle}</div>
+                <h3 className="font-bold text-lg mb-1">{t.pricing.schoolsDesc}</h3>
                 <p className="text-xs text-slate-500 mb-4">
-                  For full classes, grade levels, or whole programs. Custom plans built around your numbers and goals.
+                  {t.pricing.bulk}
                 </p>
-                <div className="text-2xl font-bold text-slate-900 mb-1">Custom</div>
-                <p className="text-[11px] text-slate-500 mb-4">Per-school or per-cohort pricing available.</p>
+                <div className="text-2xl font-bold text-slate-900 mb-1">{t.pricing.contactUs}</div>
+                <p className="text-[11px] text-slate-500 mb-4">{t.pricing.includes}</p>
                 <ul className="text-[11px] text-slate-600 space-y-1.5 mb-6">
-                  <li>• Bulk student diagnostics</li>
-                  <li>• Staff training & onboarding support</li>
-                  <li>• Data exports for your existing systems</li>
+                  <li>• {t.pricing.bulk}</li>
+                  <li>• {t.pricing.dedicated}</li>
+                  <li>• {t.pricing.customReports}</li>
                 </ul>
                 <button className="mt-auto w-full px-4 py-2 text-xs font-semibold rounded-full border border-slate-300 text-slate-800 hover:bg-white">
-                  Contact us for a quote
+                  {t.pricing.contactUs}
                 </button>
               </div>
             </div>
@@ -523,50 +514,43 @@ export default function Page() {
         <section className="py-14 bg-white" id="faq">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-8">
-              <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">Questions, answered.</h2>
-              <p className="text-sm text-slate-500">
-                No fluff, just clear answers. If you still have questions, we can talk through your specific context.
-              </p>
+              <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">{t.faq.title}</h2>
             </div>
 
             <div className="space-y-3 text-sm">
               <details className="rounded-xl border border-slate-200 p-4">
                 <summary className="font-semibold text-slate-900 cursor-pointer">
-                  Is DEBs Diagnostic Hub only for schools?
+                  {t.faq.q1}
                 </summary>
                 <p className="mt-2 text-xs text-slate-600">
-                  No! While we built it with schools in mind, it's perfect for tutoring centers, afterschool programs,
-                  homeschool co-ops, and individual parents who want clear data on their child's academic standing.
+                  {t.faq.a1}
                 </p>
               </details>
 
               <details className="rounded-xl border border-slate-200 p-4">
                 <summary className="font-semibold text-slate-900 cursor-pointer">
-                  What subjects and grade levels are supported?
+                  {t.faq.q2}
                 </summary>
                 <p className="mt-2 text-xs text-slate-600">
-                  Currently, we offer Math and ELA diagnostics for grades 1–12, plus a learning styles Observation Quiz.
-                  We're actively building diagnostics for additional subjects and grade bands.
+                  {t.faq.a2}
                 </p>
               </details>
 
               <details className="rounded-xl border border-slate-200 p-4">
                 <summary className="font-semibold text-slate-900 cursor-pointer">
-                  Can we integrate this with our existing systems?
+                  {t.faq.q3}
                 </summary>
                 <p className="mt-2 text-xs text-slate-600">
-                  Yes! For school and district partners, we offer custom integrations with your student information
-                  system (SIS) and learning management system (LMS). Contact us to discuss your specific needs.
+                  {t.faq.a3}
                 </p>
               </details>
 
               <details className="rounded-xl border border-slate-200 p-4">
                 <summary className="font-semibold text-slate-900 cursor-pointer">
-                  Do you offer training for teachers and staff?
+                  {t.faq.q4}
                 </summary>
                 <p className="mt-2 text-xs text-slate-600">
-                  Absolutely. Every school and program partner gets onboarding support, including live training
-                  sessions, video walkthroughs, and ongoing support from our team.
+                  {t.faq.a4}
                 </p>
               </details>
             </div>
@@ -577,29 +561,25 @@ export default function Page() {
         <section className="py-14 bg-slate-900" id="cta">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white">
             <h2 className="text-2xl sm:text-3xl font-bold mb-3">
-              Ready to stop guessing and start placing students with confidence?
+              {t.cta.title}
             </h2>
             <p className="text-sm sm:text-base text-slate-300 mb-6">
-              DEBs Diagnostic Hub is your bridge between “They’re struggling” and “Here’s exactly what they need next.”
-              Let’s build a plan that works for your students, your staff, and your family.
+              {t.cta.description}
             </p>
             <div className="flex flex-wrap justify-center gap-3 mb-3">
               <a
                 href="mailto:info@debslearnacademy.com"
                 className="inline-flex px-5 py-2.5 text-sm font-semibold rounded-full bg-amber-400 text-slate-900 hover:bg-amber-300"
               >
-                Book a 20-minute call
+                {t.cta.bookCall}
               </a>
               <a
                 href="#pricing"
                 className="inline-flex px-4 py-2 text-sm font-semibold rounded-full border border-slate-600 text-slate-100 hover:bg-slate-800"
               >
-                See diagnostic pricing
+                {t.cta.viewPricing}
               </a>
             </div>
-            <p className="text-[11px] text-slate-500">
-              Prefer to explore quietly first? We’ll send a sample report and a read-only tour of the hub.
-            </p>
           </div>
         </section>
       </main>
@@ -607,7 +587,7 @@ export default function Page() {
       {/* FOOTER */}
       <footer className="border-t border-slate-200 bg-white py-6">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
-          <div>© {new Date().getFullYear()} D.E.Bs LEARNING ACADEMY. All rights reserved.</div>
+          <div>{t.footer.copyright}</div>
           <div className="flex flex-wrap gap-4">
             <span>DEBs Diagnostic Hub · Bronx, NY</span>
             <a href="https://www.debslearnacademy.com" className="hover:text-slate-700">
