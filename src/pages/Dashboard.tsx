@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Activity, Target, Users, Shield, BookOpen, UserPlus, ClipboardList } from "lucide-react";
+import { useTranslation } from "@/hooks/useTranslation";
+import { LanguageSelector } from "@/components/LanguageSelector";
 
 type Tier = "Tier 1" | "Tier 2" | "Tier 3";
 type TestStatus = "In Progress" | "Completed" | "Payment Pending";
@@ -32,6 +34,7 @@ interface DashboardAttempt {
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [profileName, setProfileName] = useState<string>("there");
   const [attempts, setAttempts] = useState<DashboardAttempt[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -43,7 +46,6 @@ const Dashboard = () => {
       try {
         setLoading(true);
 
-        // 1) Make sure user is signed in
         const {
           data: { user },
           error: userError,
@@ -59,7 +61,6 @@ const Dashboard = () => {
           return;
         }
 
-        // 2) Get profile for greeting (full_name or fallback)
         const { data: profileData, error: profileError } = await supabase
           .from("profiles")
           .select("*")
@@ -73,7 +74,6 @@ const Dashboard = () => {
         const nameFromProfile = profileData?.full_name || user.email || "there";
         setProfileName(nameFromProfile);
 
-        // Check if user is admin
         const { data: roleData } = await supabase
           .from("user_roles")
           .select("role")
@@ -83,7 +83,6 @@ const Dashboard = () => {
         
         setIsAdmin(!!roleData);
 
-        // Check if user is teacher
         const { data: teacherRoleData } = await supabase
           .from("user_roles")
           .select("role")
@@ -93,7 +92,6 @@ const Dashboard = () => {
         
         setIsTeacher(!!teacherRoleData);
 
-        // 3) Load all this user's test attempts + linked test info
         const { data: attemptsData, error: attemptsError } = await supabase
           .from("test_attempts")
           .select(
@@ -125,7 +123,6 @@ const Dashboard = () => {
           return;
         }
 
-        // 4) Fetch certificate URLs for completed attempts
         const completedAttemptIds = (attemptsData || [])
           .filter((a: any) => a.completed_at)
           .map((a: any) => a.id);
@@ -147,7 +144,6 @@ const Dashboard = () => {
           }
         }
 
-        // Merge certificate URLs into attempts
         const attemptsWithCerts = (attemptsData || []).map((a: any) => ({
           ...a,
           certificate_url: certificateMap[a.id] || null,
@@ -167,12 +163,24 @@ const Dashboard = () => {
 
   const completedAttempts = attempts.filter((a) => a.completed_at);
   const inProgressAttempts = attempts.filter((a) => !a.completed_at && a.payment_status === "completed");
-  const pendingPaymentAttempts = attempts.filter((a) => a.payment_status === "pending" && !a.completed_at);
 
   const getStatus = (attempt: DashboardAttempt): TestStatus => {
     if (attempt.completed_at) return "Completed";
     if (attempt.payment_status === "pending") return "Payment Pending";
     return "In Progress";
+  };
+
+  const getStatusLabel = (status: TestStatus) => {
+    switch (status) {
+      case "Completed":
+        return t.dashboardPage.completed;
+      case "In Progress":
+        return t.dashboardPage.inProgress;
+      case "Payment Pending":
+        return t.dashboardPage.paymentPending;
+      default:
+        return status;
+    }
   };
 
   const statusBadgeColor = (status: TestStatus) => {
@@ -216,17 +224,14 @@ const Dashboard = () => {
 
       if (error) throw new Error(error.message);
 
-      // Use the HTML content directly from the response
       const htmlContent = data?.html;
       if (!htmlContent) throw new Error("Could not generate result");
 
-      // Open HTML content directly in a new window using a data URL
       const printWindow = window.open("", "_blank");
       if (printWindow) {
         printWindow.document.write(htmlContent);
         printWindow.document.close();
         
-        // Wait for content to load, then trigger print
         setTimeout(() => {
           printWindow.print();
         }, 500);
@@ -257,7 +262,7 @@ const Dashboard = () => {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50">
-        <p className="text-sm font-medium text-slate-600">Loading your diagnostic dashboard…</p>
+        <p className="text-sm font-medium text-slate-600">{t.dashboardPage.loadingDashboard}</p>
       </div>
     );
   }
@@ -278,6 +283,7 @@ const Dashboard = () => {
           </div>
 
           <div className="flex items-center gap-2">
+            <LanguageSelector />
             {isAdmin && (
               <Button
                 variant="outline"
@@ -286,7 +292,7 @@ const Dashboard = () => {
                 onClick={() => navigate("/admin/all-results")}
               >
                 <ClipboardList className="mr-1 h-3 w-3" />
-                All Results
+                {t.dashboardPage.allResults}
               </Button>
             )}
             {isAdmin && (
@@ -297,7 +303,7 @@ const Dashboard = () => {
                 onClick={() => navigate("/admin/pending-reviews")}
               >
                 <Shield className="mr-1 h-3 w-3" />
-                Reviews
+                {t.dashboardPage.reviews}
               </Button>
             )}
             {isAdmin && (
@@ -308,7 +314,7 @@ const Dashboard = () => {
                 onClick={() => navigate("/admin/invitations")}
               >
                 <UserPlus className="mr-1 h-3 w-3" />
-                Invite
+                {t.dashboardPage.invite}
               </Button>
             )}
             {isTeacher && (
@@ -319,7 +325,7 @@ const Dashboard = () => {
                 onClick={() => navigate("/teacher")}
               >
                 <BookOpen className="mr-1 h-3 w-3" />
-                My Classes
+                {t.dashboardPage.myClasses}
               </Button>
             )}
             <Button
@@ -328,7 +334,7 @@ const Dashboard = () => {
               className="border-slate-300 text-xs font-semibold text-slate-700"
               onClick={() => navigate("/tests")}
             >
-              New diagnostic
+              {t.dashboardPage.newDiagnostic}
             </Button>
           </div>
         </div>
@@ -338,9 +344,9 @@ const Dashboard = () => {
         {/* Greeting + quick actions */}
         <div className="mb-6 flex flex-col gap-3 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">Welcome back, {profileName}.</h1>
+            <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">{t.dashboardPage.welcomeBack}, {profileName}.</h1>
             <p className="mt-1 text-sm text-slate-500">
-              This is your diagnostic home base — see tests in progress, completed results, and what each tier means.
+              {t.dashboardPage.homeBase}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -349,7 +355,7 @@ const Dashboard = () => {
               className="bg-slate-900 text-xs font-semibold text-white hover:bg-slate-800"
               onClick={() => navigate("/tests")}
             >
-              Start a new test
+              {t.dashboardPage.startNewTest}
             </Button>
             <Button
               variant="outline"
@@ -357,7 +363,7 @@ const Dashboard = () => {
               className="border-slate-300 text-xs font-semibold text-slate-700"
               onClick={() => navigate("/")}
             >
-              Back to info page
+              {t.dashboardPage.backToInfo}
             </Button>
           </div>
         </div>
@@ -367,9 +373,9 @@ const Dashboard = () => {
           <Card className="border-slate-200">
             <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
               <div>
-                <CardTitle className="text-xs font-medium text-slate-800">Diagnostics completed</CardTitle>
+                <CardTitle className="text-xs font-medium text-slate-800">{t.dashboardPage.diagnosticsCompleted}</CardTitle>
                 <CardDescription className="text-[11px]">
-                  Finished tests with full reports and tier placement.
+                  {t.dashboardPage.diagnosticsCompletedDesc}
                 </CardDescription>
               </div>
               <Activity className="h-4 w-4 text-emerald-500" />
@@ -382,9 +388,9 @@ const Dashboard = () => {
           <Card className="border-slate-200">
             <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
               <div>
-                <CardTitle className="text-xs font-medium text-slate-800">Tests in progress</CardTitle>
+                <CardTitle className="text-xs font-medium text-slate-800">{t.dashboardPage.testsInProgress}</CardTitle>
                 <CardDescription className="text-[11px]">
-                  You can pause and resume within the test windows.
+                  {t.dashboardPage.testsInProgressDesc}
                 </CardDescription>
               </div>
               <Target className="h-4 w-4 text-amber-500" />
@@ -397,9 +403,9 @@ const Dashboard = () => {
           <Card className="border-slate-200">
             <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
               <div>
-                <CardTitle className="text-xs font-medium text-slate-800">Students / account</CardTitle>
+                <CardTitle className="text-xs font-medium text-slate-800">{t.dashboardPage.studentsAccount}</CardTitle>
                 <CardDescription className="text-[11px]">
-                  Right now this dashboard shows all attempts under your login.
+                  {t.dashboardPage.studentsAccountDesc}
                 </CardDescription>
               </div>
               <Users className="h-4 w-4 text-sky-500" />
@@ -407,7 +413,7 @@ const Dashboard = () => {
             <CardContent>
               <div className="text-2xl font-bold text-slate-900">
                 {attempts.length > 0 ? 1 : 0}
-                <span className="ml-1 text-xs font-normal text-slate-400">profile</span>
+                <span className="ml-1 text-xs font-normal text-slate-400">{t.dashboardPage.profile}</span>
               </div>
             </CardContent>
           </Card>
@@ -419,16 +425,15 @@ const Dashboard = () => {
           <div className="space-y-4 lg:col-span-2">
             <Card className="border-slate-200">
               <CardHeader className="border-b border-slate-100 pb-3">
-                <CardTitle className="text-sm font-semibold text-slate-900">My diagnostic tests</CardTitle>
+                <CardTitle className="text-sm font-semibold text-slate-900">{t.dashboardPage.myDiagnosticTests}</CardTitle>
                 <CardDescription className="text-xs text-slate-500">
-                  These are the tests associated with your account — finished, in-progress, or waiting on payment.
+                  {t.dashboardPage.myDiagnosticTestsDesc}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3 pt-4 text-xs">
                 {attempts.length === 0 && (
                   <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center text-xs text-slate-500">
-                    You don’t have any diagnostic attempts yet. Start with a Math, ELA, or Observation test to see your
-                    results here.
+                    {t.dashboardPage.noAttempts}
                   </div>
                 )}
 
@@ -445,7 +450,7 @@ const Dashboard = () => {
                       <div>
                         <div className="text-sm font-semibold text-slate-900">{test?.name || "Diagnostic Test"}</div>
                         <div className="mt-0.5 text-[11px] text-slate-500">
-                          {attempt.grade_level ? `Grade ${attempt.grade_level} · ` : ""}
+                          {attempt.grade_level ? `${t.dashboardPage.grade} ${attempt.grade_level} · ` : ""}
                           {tierLabel && (
                             <span
                               className={`ml-1 inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] ${
@@ -460,13 +465,13 @@ const Dashboard = () => {
                             </span>
                           )}
                           {attempt.score != null && (
-                            <span className="ml-2 font-medium text-slate-700">Score: {formatScore(attempt)}</span>
+                            <span className="ml-2 font-medium text-slate-700">{t.dashboardPage.score}: {formatScore(attempt)}</span>
                           )}
                         </div>
                         <div className="mt-0.5 text-[11px] text-slate-400">
                           {attempt.completed_at
-                            ? `Completed · ${formatDate(attempt.completed_at)}`
-                            : `Started · ${formatDate(attempt.created_at)}`}
+                            ? `${t.dashboardPage.completed} · ${formatDate(attempt.completed_at)}`
+                            : `${t.dashboardPage.started} · ${formatDate(attempt.created_at)}`}
                         </div>
                       </div>
 
@@ -475,7 +480,7 @@ const Dashboard = () => {
                           variant="outline"
                           className={`border px-2 py-0.5 text-[11px] ${statusBadgeColor(status)}`}
                         >
-                          {status}
+                          {getStatusLabel(status)}
                         </Badge>
 
                         <div className="flex gap-2">
@@ -491,10 +496,10 @@ const Dashboard = () => {
                             onClick={() => handlePrimaryAction(attempt)}
                           >
                             {status === "In Progress"
-                              ? "Resume test"
+                              ? t.dashboardPage.resumeTest
                               : status === "Payment Pending"
-                                ? "Complete payment"
-                                : "View summary"}
+                                ? t.dashboardPage.completePayment
+                                : t.dashboardPage.viewSummary}
                           </Button>
 
                           {status === "Completed" && (
@@ -504,7 +509,7 @@ const Dashboard = () => {
                               className="h-7 px-3 text-[11px] border-slate-300 text-slate-700 hover:bg-slate-50"
                               onClick={() => handleDownload(attempt)}
                             >
-                              Download result
+                              {t.dashboardPage.downloadResult}
                             </Button>
                           )}
                         </div>
@@ -520,45 +525,44 @@ const Dashboard = () => {
           <div className="space-y-4">
             <Card className="border-slate-200">
               <CardHeader className="border-b border-slate-100 pb-3">
-                <CardTitle className="text-sm font-semibold text-slate-900">What your tiers actually mean</CardTitle>
+                <CardTitle className="text-sm font-semibold text-slate-900">{t.dashboardPage.tiersExplainer}</CardTitle>
                 <CardDescription className="text-xs text-slate-500">
-                  Every diagnostic attempt ends with a Tier, so you know how much support is really needed.
+                  {t.dashboardPage.tiersExplainerDesc}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3 pt-4 text-[11px]">
                 <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3">
                   <div className="mb-1 flex items-center justify-between">
-                    <span className="font-semibold text-emerald-800">Tier 1 · Minimal Support</span>
-                    <span className="text-emerald-700">4-Week Pod</span>
+                    <span className="font-semibold text-emerald-800">{t.dashboardPage.tier1}</span>
+                    <span className="text-emerald-700">{t.dashboardPage.tier1Weeks}</span>
                   </div>
                   <p className="text-emerald-900/80">
-                    Small, fixable gaps. Short pod, lighter practice, and a mastery check before exit.
+                    {t.dashboardPage.tier1Desc}
                   </p>
                 </div>
 
                 <div className="rounded-lg border border-amber-200 bg-amber-50 p-3">
                   <div className="mb-1 flex items-center justify-between">
-                    <span className="font-semibold text-amber-800">Tier 2 · Some Struggle</span>
-                    <span className="text-amber-700">10-Week Pod</span>
+                    <span className="font-semibold text-amber-800">{t.dashboardPage.tier2}</span>
+                    <span className="text-amber-700">{t.dashboardPage.tier2Weeks}</span>
                   </div>
                   <p className="text-amber-900/80">
-                    Noticeable gaps. Longer pod, deeper practice, and a mid-pod mock diagnostic to check progress.
+                    {t.dashboardPage.tier2Desc}
                   </p>
                 </div>
 
                 <div className="rounded-lg border border-red-200 bg-red-50 p-3">
                   <div className="mb-1 flex items-center justify-between">
-                    <span className="font-semibold text-red-800">Tier 3 · Needs a Lot</span>
-                    <span className="text-red-700">15-Week Pod</span>
+                    <span className="font-semibold text-red-800">{t.dashboardPage.tier3}</span>
+                    <span className="text-red-700">{t.dashboardPage.tier3Weeks}</span>
                   </div>
                   <p className="text-red-900/80">
-                    Significant gaps. Intensive pod, weekly 1:1 check-ins, and monthly full diagnostics before exit.
+                    {t.dashboardPage.tier3Desc}
                   </p>
                 </div>
 
                 <p className="pt-1 text-[11px] text-slate-500">
-                  When you’re ready, these pod tiers plug directly into your DEBs programs — but the dashboard itself
-                  always stays focused on clear diagnostic data first.
+                  {t.dashboardPage.tiersNote}
                 </p>
               </CardContent>
             </Card>

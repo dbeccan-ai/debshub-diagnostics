@@ -8,9 +8,12 @@ import { toast } from "sonner";
 import { Clock, DollarSign, CheckCircle, ArrowLeft } from "lucide-react";
 import { User } from "@supabase/supabase-js";
 import { GradeSelectionDialog } from "@/components/GradeSelectionDialog";
+import { useTranslation } from "@/hooks/useTranslation";
+import { LanguageSelector } from "@/components/LanguageSelector";
 
 const Tests = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [user, setUser] = useState<User | null>(null);
   const [tests, setTests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,7 +46,6 @@ const Tests = () => {
 
   const fetchTests = async () => {
     try {
-      // Use the secure view that doesn't expose questions/answers
       const { data, error } = await supabase
         .from("tests_public")
         .select("*")
@@ -65,12 +67,10 @@ const Tests = () => {
       return;
     }
 
-    // For paid tests, show grade selection dialog
     if (test.is_paid) {
       setSelectedTest(test);
       setGradeDialogOpen(true);
     } else {
-      // Free tests don't need grade selection
       createTestAttempt(test, null);
     }
   };
@@ -111,7 +111,7 @@ const Tests = () => {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <p className="text-muted-foreground">Loading tests...</p>
+        <p className="text-muted-foreground">{t.testsPage.loadingTests}</p>
       </div>
     );
   }
@@ -119,19 +119,22 @@ const Tests = () => {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b bg-card">
-        <div className="container mx-auto flex items-center gap-4 py-4 px-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <h1 className="text-2xl font-bold text-primary">Available Tests</h1>
+        <div className="container mx-auto flex items-center justify-between py-4 px-4">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")}>
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <h1 className="text-2xl font-bold text-primary">{t.testsPage.availableTests}</h1>
+          </div>
+          <LanguageSelector />
         </div>
       </header>
 
       <main className="container mx-auto py-8 px-4">
         <div className="mb-8">
-          <h2 className="text-3xl font-bold mb-2">Choose Your Test</h2>
+          <h2 className="text-3xl font-bold mb-2">{t.testsPage.chooseYourTest}</h2>
           <p className="text-muted-foreground">
-            Select a diagnostic test to assess your skills and track your progress
+            {t.testsPage.chooseYourTestDesc}
           </p>
         </div>
 
@@ -139,7 +142,7 @@ const Tests = () => {
           <Card>
             <CardContent className="py-8">
               <p className="text-center text-muted-foreground">
-                No tests available at the moment. Check back soon!
+                {t.testsPage.noTests}
               </p>
             </CardContent>
           </Card>
@@ -156,7 +159,7 @@ const Tests = () => {
                         $99-$120
                       </Badge>
                     ) : (
-                      <Badge className="bg-green-500">FREE</Badge>
+                      <Badge className="bg-green-500">{t.testsPage.free}</Badge>
                     )}
                   </div>
                   <CardDescription>{test.description}</CardDescription>
@@ -165,27 +168,27 @@ const Tests = () => {
                   <div className="space-y-3 mb-6">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Clock className="h-4 w-4" />
-                      <span>{test.duration_minutes} minutes</span>
+                      <span>{test.duration_minutes} {t.testsPage.minutes}</span>
                     </div>
                     {test.is_paid && (
                       <ul className="space-y-2">
                         <li className="flex items-start gap-2 text-sm">
                           <CheckCircle className="h-4 w-4 text-green-500 mt-0.5" />
-                          <span>Detailed tier placement</span>
+                          <span>{t.testsPage.detailedTierPlacement}</span>
                         </li>
                         <li className="flex items-start gap-2 text-sm">
                           <CheckCircle className="h-4 w-4 text-green-500 mt-0.5" />
-                          <span>Certificate included</span>
+                          <span>{t.testsPage.certificateIncluded}</span>
                         </li>
                         <li className="flex items-start gap-2 text-sm">
                           <CheckCircle className="h-4 w-4 text-green-500 mt-0.5" />
-                          <span>Strength & weakness analysis</span>
+                          <span>{t.testsPage.strengthWeaknessAnalysis}</span>
                         </li>
                       </ul>
                     )}
                   </div>
                   <Button onClick={() => handleStartTest(test)} className="w-full">
-                    Start Test
+                    {t.testsPage.startTest}
                   </Button>
                 </CardContent>
               </Card>
