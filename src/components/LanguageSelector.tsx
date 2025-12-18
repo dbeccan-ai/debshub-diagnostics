@@ -30,7 +30,7 @@ export const LanguageSelector = () => {
         {languageOptions.map((option) => (
           <DropdownMenuItem
             key={option.value}
-            onClick={() => setLanguage(option.value)}
+            onSelect={() => setLanguage(option.value)}
             className={`flex items-center gap-2 cursor-pointer ${
               language === option.value ? "bg-slate-100" : ""
             }`}
