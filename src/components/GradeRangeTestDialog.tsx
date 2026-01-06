@@ -138,7 +138,7 @@ export function GradeRangeTestDialog({
           test_id: selectedTest.id,
           user_id: user.id,
           grade_level: selectedGrade,
-          payment_status: isAdmin ? "admin_bypass" : "pending",
+          payment_status: isAdmin ? "completed" : "pending",
         })
         .select()
         .single();
