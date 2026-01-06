@@ -1,6 +1,286 @@
 {
   "all_diagnostics": [
     {
+      "grade": "1",
+      "test_name": "Grade 1 Math Diagnostic Test",
+      "total_time_minutes": 45,
+      "sections": [
+        {
+          "section_title": "Section I: Multiple Choice Questions",
+          "instructions": "Choose the best answer for each question. Look at the pictures carefully!",
+          "time_limit_minutes": 20,
+          "calculator_allowed": "no",
+          "questions": [
+            {
+              "id": "g1-s1-q1",
+              "number": 1,
+              "type": "multiple_choice",
+              "topic": "Place Value",
+              "question_text": "What is the value of the digit 3 in the number 35?",
+              "choices": ["A. 3", "B. 30", "C. 5", "D. 35"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g1-s1-q2",
+              "number": 2,
+              "type": "multiple_choice",
+              "topic": "Number Patterns",
+              "question_text": "Which number comes next? 10, 20, 30, …",
+              "choices": ["A. 35", "B. 31", "C. 40", "D. 50"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g1-s1-q3",
+              "number": 3,
+              "type": "multiple_choice",
+              "topic": "Shapes",
+              "question_text": "Which shape has 3 sides?",
+              "visual": {
+                "type": "shapes",
+                "description": "Three shapes: a triangle, a square, and a circle",
+                "options": ["triangle", "square", "circle"]
+              },
+              "choices": ["A. Triangle (first shape)", "B. Square (second shape)", "C. Circle (third shape)", "D. None of these"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g1-s1-q4",
+              "number": 4,
+              "type": "multiple_choice",
+              "topic": "Addition",
+              "question_text": "What is 8 + 6?",
+              "choices": ["A. 12", "B. 13", "C. 14", "D. 15"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g1-s1-q5",
+              "number": 5,
+              "type": "multiple_choice",
+              "topic": "Comparing Numbers",
+              "question_text": "Which number is smaller: 12 or 21?",
+              "choices": ["A. 12", "B. 21", "C. They are equal", "D. Cannot tell"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g1-s1-q6",
+              "number": 6,
+              "type": "multiple_choice",
+              "topic": "Subtraction",
+              "question_text": "What is 15 − 7?",
+              "choices": ["A. 7", "B. 8", "C. 9", "D. 6"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g1-s1-q7",
+              "number": 7,
+              "type": "multiple_choice",
+              "topic": "Telling Time",
+              "question_text": "What time is shown on the clock?",
+              "visual": {
+                "type": "clock",
+                "time": "3:00",
+                "description": "A clock showing 3 o'clock"
+              },
+              "choices": ["A. 12:00", "B. 3:00", "C. 6:00", "D. 9:00"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g1-s1-q8",
+              "number": 8,
+              "type": "multiple_choice",
+              "topic": "Money",
+              "question_text": "Which coin is worth the most?",
+              "visual": {
+                "type": "coins",
+                "description": "Four coins: penny (1¢), nickel (5¢), dime (10¢), quarter (25¢)",
+                "options": ["penny", "nickel", "dime", "quarter"]
+              },
+              "choices": ["A. Penny (1¢)", "B. Nickel (5¢)", "C. Dime (10¢)", "D. Quarter (25¢)"],
+              "correct_answer": "D"
+            },
+            {
+              "id": "g1-s1-q9",
+              "number": 9,
+              "type": "multiple_choice",
+              "topic": "Even Numbers",
+              "question_text": "What is the next even number after 16?",
+              "choices": ["A. 17", "B. 18", "C. 19", "D. 20"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g1-s1-q10",
+              "number": 10,
+              "type": "multiple_choice",
+              "topic": "Comparing Groups",
+              "question_text": "Which group has fewer objects?",
+              "visual": {
+                "type": "object_groups",
+                "description": "Two groups: Group A has 7 stars, Group B has 4 stars",
+                "groups": [
+                  {"label": "Group A", "count": 7, "object": "star"},
+                  {"label": "Group B", "count": 4, "object": "star"}
+                ]
+              },
+              "choices": ["A. Group A (7 stars)", "B. Group B (4 stars)", "C. They are equal", "D. Cannot tell"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g1-s1-q11",
+              "number": 11,
+              "type": "multiple_choice",
+              "topic": "Addition with 10",
+              "question_text": "What number is 10 more than 25?",
+              "choices": ["A. 15", "B. 26", "C. 35", "D. 30"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g1-s1-q12",
+              "number": 12,
+              "type": "multiple_choice",
+              "topic": "Measurement",
+              "question_text": "Which is a longer object: a pencil or a car?",
+              "visual": {
+                "type": "comparison",
+                "description": "A small pencil and a large car shown side by side",
+                "items": ["pencil", "car"]
+              },
+              "choices": ["A. Pencil", "B. Car", "C. They are the same", "D. Cannot tell"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g1-s1-q13",
+              "number": 13,
+              "type": "multiple_choice",
+              "topic": "Addition",
+              "question_text": "What is 5 + 9?",
+              "choices": ["A. 13", "B. 14", "C. 15", "D. 12"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g1-s1-q14",
+              "number": 14,
+              "type": "multiple_choice",
+              "topic": "Shapes",
+              "question_text": "Which shape is a rectangle?",
+              "visual": {
+                "type": "shapes",
+                "description": "Three shapes: a rectangle, a square, and a circle",
+                "options": ["rectangle", "square", "circle"]
+              },
+              "choices": ["A. Rectangle (first shape)", "B. Square (second shape)", "C. Circle (third shape)", "D. None of these"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g1-s1-q15",
+              "number": 15,
+              "type": "multiple_choice",
+              "topic": "Shapes",
+              "question_text": "How many sides does a square have?",
+              "choices": ["A. 3", "B. 4", "C. 5", "D. 6"],
+              "correct_answer": "B"
+            }
+          ]
+        },
+        {
+          "section_title": "Section II: Two-Step Word Problems",
+          "instructions": "Read each problem carefully. Solve the problem step by step. Write your answer in the box.",
+          "time_limit_minutes": 15,
+          "calculator_allowed": "no",
+          "questions": [
+            {
+              "id": "g1-s2-q1",
+              "number": 1,
+              "type": "word_problem",
+              "topic": "Two-Step Addition and Subtraction",
+              "question_text": "Sarah has 5 red apples and 4 green apples. She eats 3. How many are left?",
+              "choices": []
+            },
+            {
+              "id": "g1-s2-q2",
+              "number": 2,
+              "type": "word_problem",
+              "topic": "Two-Step Addition and Subtraction",
+              "question_text": "Tom has 6 toy cars. He gets 4 more, then gives 2 away. How many does he have now?",
+              "choices": []
+            },
+            {
+              "id": "g1-s2-q3",
+              "number": 3,
+              "type": "word_problem",
+              "topic": "Two-Step Addition and Subtraction",
+              "question_text": "There are 8 ducks in the pond and 7 on the grass. If 5 fly away, how many ducks remain?",
+              "choices": []
+            },
+            {
+              "id": "g1-s2-q4",
+              "number": 4,
+              "type": "word_problem",
+              "topic": "Two-Step Addition and Subtraction",
+              "question_text": "Anna baked 10 cookies. She ate 2 and gave 3 to her brother. How many are left?",
+              "choices": []
+            },
+            {
+              "id": "g1-s2-q5",
+              "number": 5,
+              "type": "word_problem",
+              "topic": "Two-Step Subtraction",
+              "question_text": "Jason picked 12 flowers. He gave 4 to his mom and 3 to his teacher. How many does he have now?",
+              "choices": []
+            }
+          ]
+        },
+        {
+          "section_title": "Section III: Multi-Step Problems",
+          "instructions": "Read each problem carefully. You only need to answer ANY 3 of these 5 problems. Show your work and write your answer in the box.",
+          "time_limit_minutes": 10,
+          "calculator_allowed": "no",
+          "student_completes": 3,
+          "questions": [
+            {
+              "id": "g1-s3-q1",
+              "number": 1,
+              "type": "multi_step",
+              "topic": "Multi-Step Addition",
+              "question_text": "Lily has 7 stickers. Her friend gives her 5 more, then she buys 6 more. How many does she have now?",
+              "choices": []
+            },
+            {
+              "id": "g1-s3-q2",
+              "number": 2,
+              "type": "multi_step",
+              "topic": "Multi-Step Addition",
+              "question_text": "Ben read 4 books on Monday and 3 on Tuesday. Then he borrowed 5 more. How many books does he have to read?",
+              "choices": []
+            },
+            {
+              "id": "g1-s3-q3",
+              "number": 3,
+              "type": "multi_step",
+              "topic": "Multi-Step Subtraction",
+              "question_text": "A bakery made 15 cupcakes. They sold 6 in the morning and 4 in the afternoon. How many are left?",
+              "choices": []
+            },
+            {
+              "id": "g1-s3-q4",
+              "number": 4,
+              "type": "multi_step",
+              "topic": "Multi-Step Addition and Subtraction",
+              "question_text": "Mia saw 9 birds in the morning and 7 in the afternoon. Then 6 flew away. How many remain?",
+              "choices": []
+            },
+            {
+              "id": "g1-s3-q5",
+              "number": 5,
+              "type": "multi_step",
+              "topic": "Multi-Step Subtraction",
+              "question_text": "David had 20 marbles. He lost 5 and gave 3 to his brother. How many does he have now?",
+              "choices": []
+            }
+          ]
+        }
+      ]
+    },
+    {
       "grade": "7",
       "test_name": "Grade 7 Math Diagnostic Test",
       "total_time_minutes": 90,
