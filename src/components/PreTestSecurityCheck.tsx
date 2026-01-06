@@ -7,7 +7,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Shield, CheckCircle2, AlertCircle } from "lucide-react";
+import { Shield, CheckCircle2, AlertCircle, X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface PreTestSecurityCheckProps {
   open: boolean;
@@ -20,9 +21,22 @@ export const PreTestSecurityCheck = ({
   onConfirm,
   testName,
 }: PreTestSecurityCheckProps) => {
+  const navigate = useNavigate();
+
+  const handleExit = () => {
+    navigate("/dashboard");
+  };
+
   return (
     <Dialog open={open} onOpenChange={() => {}}>
       <DialogContent className="sm:max-w-lg" onPointerDownOutside={(e) => e.preventDefault()}>
+        <button
+          onClick={handleExit}
+          className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+          aria-label="Exit to dashboard"
+        >
+          <X className="h-5 w-5" />
+        </button>
         <DialogHeader>
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-amber-100">
             <Shield className="h-8 w-8 text-amber-600" />
@@ -71,7 +85,14 @@ export const PreTestSecurityCheck = ({
           </div>
         </div>
 
-        <DialogFooter className="sm:justify-center pt-2">
+        <DialogFooter className="sm:justify-center pt-2 gap-3">
+          <Button
+            variant="outline"
+            onClick={handleExit}
+            className="px-6"
+          >
+            Exit
+          </Button>
           <Button
             onClick={onConfirm}
             className="bg-[#22c55e] hover:bg-[#16a34a] text-white font-semibold px-8"
