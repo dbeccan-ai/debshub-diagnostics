@@ -20,6 +20,24 @@ const Checkout = () => {
 
   const fetchAttemptDetails = async () => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast.error("Please sign in to continue");
+        navigate("/auth");
+        return;
+      }
+
+      // Check if user is admin
+      const { data: userRole } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+
+      const isAdmin = !!userRole;
+
       const { data: attemptData, error: attemptError } = await supabase
         .from("test_attempts")
         .select("*")
@@ -27,6 +45,18 @@ const Checkout = () => {
         .single();
 
       if (attemptError) throw attemptError;
+
+      // If admin, update payment status and redirect to test
+      if (isAdmin) {
+        await supabase
+          .from("test_attempts")
+          .update({ payment_status: "admin_bypass" })
+          .eq("id", attemptId);
+        
+        toast.success("Admin access granted - starting test");
+        navigate(`/test/${attemptId}`);
+        return;
+      }
 
       const { data: testData, error: testError } = await supabase
         .from("tests_public")

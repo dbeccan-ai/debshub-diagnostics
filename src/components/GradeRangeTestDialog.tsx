@@ -9,6 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface Test {
   id: string;
@@ -119,7 +120,17 @@ export function GradeRangeTestDialog({
       return;
     }
 
-    // Create test attempt and navigate to checkout
+    // Check if user is admin
+    const { data: userRole } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("role", "admin")
+      .maybeSingle();
+
+    const isAdmin = !!userRole;
+
+    // Create test attempt
     try {
       const { data: attempt, error } = await supabase
         .from("test_attempts")
@@ -127,7 +138,7 @@ export function GradeRangeTestDialog({
           test_id: selectedTest.id,
           user_id: user.id,
           grade_level: selectedGrade,
-          payment_status: "pending",
+          payment_status: isAdmin ? "admin_bypass" : "pending",
         })
         .select()
         .single();
@@ -135,7 +146,14 @@ export function GradeRangeTestDialog({
       if (error) throw error;
 
       onOpenChange(false);
-      navigate(`/checkout/${attempt.id}`);
+      
+      // Admins go directly to test, others go to checkout
+      if (isAdmin) {
+        toast.success("Admin access granted - starting test");
+        navigate(`/test/${attempt.id}`);
+      } else {
+        navigate(`/checkout/${attempt.id}`);
+      }
     } catch (error) {
       console.error("Error creating test attempt:", error);
     }
