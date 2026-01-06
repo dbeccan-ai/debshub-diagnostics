@@ -5,11 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Clock, DollarSign, CheckCircle, ArrowLeft } from "lucide-react";
+import { Clock, DollarSign, CheckCircle, ArrowLeft, Calculator, BookOpen } from "lucide-react";
 import { User } from "@supabase/supabase-js";
 import { GradeSelectionDialog } from "@/components/GradeSelectionDialog";
 import { useTranslation } from "@/hooks/useTranslation";
 import { LanguageSelector } from "@/components/LanguageSelector";
+
+type TestType = "math" | "ela" | null;
 
 const Tests = () => {
   const navigate = useNavigate();
@@ -19,6 +21,7 @@ const Tests = () => {
   const [loading, setLoading] = useState(true);
   const [gradeDialogOpen, setGradeDialogOpen] = useState(false);
   const [selectedTest, setSelectedTest] = useState<any>(null);
+  const [selectedTestType, setSelectedTestType] = useState<TestType>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -41,15 +44,19 @@ const Tests = () => {
   }, [navigate]);
 
   useEffect(() => {
-    fetchTests();
-  }, []);
+    if (selectedTestType) {
+      fetchTests(selectedTestType);
+    }
+  }, [selectedTestType]);
 
-  const fetchTests = async () => {
+  const fetchTests = async (testType: string) => {
+    setLoading(true);
     try {
       const { data, error } = await supabase
         .from("tests_public")
         .select("*")
-        .order("test_type");
+        .eq("test_type", testType)
+        .order("name");
 
       if (error) throw error;
       setTests(data || []);
@@ -58,6 +65,15 @@ const Tests = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSelectTestType = (type: TestType) => {
+    setSelectedTestType(type);
+  };
+
+  const handleBackToTypeSelection = () => {
+    setSelectedTestType(null);
+    setTests([]);
   };
 
   const handleStartTest = async (test: any) => {
@@ -108,6 +124,88 @@ const Tests = () => {
     }
   };
 
+  // Extract grade number from test name for sorting
+  const getGradeNumber = (name: string): number => {
+    const match = name.match(/Grade\s+(\d+)/i);
+    return match ? parseInt(match[1], 10) : 999;
+  };
+
+  // Sort tests by grade level
+  const sortedTests = [...tests].sort((a, b) => getGradeNumber(a.name) - getGradeNumber(b.name));
+
+  // Test Type Selection Screen
+  if (!selectedTestType) {
+    return (
+      <div className="min-h-screen bg-background">
+        <header className="border-b bg-card">
+          <div className="container mx-auto flex items-center justify-between py-4 px-4">
+            <div className="flex items-center gap-4">
+              <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")}>
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <h1 className="text-2xl font-bold text-primary">{t.testsPage.availableTests}</h1>
+            </div>
+            <LanguageSelector />
+          </div>
+        </header>
+
+        <main className="container mx-auto py-8 px-4">
+          <div className="mb-8 text-center">
+            <h2 className="text-3xl font-bold mb-2">Select Test Type</h2>
+            <p className="text-muted-foreground">
+              Choose the type of diagnostic test you want to take
+            </p>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2 max-w-3xl mx-auto">
+            {/* Math Diagnostic Test Card */}
+            <Card 
+              className="cursor-pointer hover:shadow-lg transition-all hover:border-primary group"
+              onClick={() => handleSelectTestType("math")}
+            >
+              <CardHeader className="text-center pb-2">
+                <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-blue-100 group-hover:bg-blue-200 transition-colors">
+                  <Calculator className="h-10 w-10 text-blue-600" />
+                </div>
+                <CardTitle className="text-2xl">Math Diagnostic Test</CardTitle>
+                <CardDescription className="text-base">
+                  Assess mathematical skills including arithmetic, algebra, geometry, and problem-solving
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="text-center">
+                <Badge variant="secondary" className="text-sm">
+                  Multiple grades available
+                </Badge>
+              </CardContent>
+            </Card>
+
+            {/* ELA Diagnostic Test Card */}
+            <Card 
+              className="cursor-pointer hover:shadow-lg transition-all hover:border-primary group"
+              onClick={() => handleSelectTestType("ela")}
+            >
+              <CardHeader className="text-center pb-2">
+                <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-green-100 group-hover:bg-green-200 transition-colors">
+                  <BookOpen className="h-10 w-10 text-green-600" />
+                </div>
+                <CardTitle className="text-2xl">ELA Diagnostic Test</CardTitle>
+                <CardDescription className="text-base">
+                  Assess English Language Arts skills including reading comprehension, vocabulary, and writing
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="text-center">
+                <Badge variant="secondary" className="text-sm">
+                  Multiple grades available
+                </Badge>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // Grade Selection Screen (after selecting test type)
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -116,15 +214,25 @@ const Tests = () => {
     );
   }
 
+  const testTypeLabel = selectedTestType === "math" ? "Math" : "ELA";
+  const testTypeIcon = selectedTestType === "math" ? (
+    <Calculator className="h-6 w-6 text-blue-600" />
+  ) : (
+    <BookOpen className="h-6 w-6 text-green-600" />
+  );
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b bg-card">
         <div className="container mx-auto flex items-center justify-between py-4 px-4">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")}>
+            <Button variant="ghost" size="icon" onClick={handleBackToTypeSelection}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <h1 className="text-2xl font-bold text-primary">{t.testsPage.availableTests}</h1>
+            <div className="flex items-center gap-2">
+              {testTypeIcon}
+              <h1 className="text-2xl font-bold text-primary">{testTypeLabel} Diagnostic Tests</h1>
+            </div>
           </div>
           <LanguageSelector />
         </div>
@@ -132,23 +240,23 @@ const Tests = () => {
 
       <main className="container mx-auto py-8 px-4">
         <div className="mb-8">
-          <h2 className="text-3xl font-bold mb-2">{t.testsPage.chooseYourTest}</h2>
+          <h2 className="text-3xl font-bold mb-2">Select Your Grade Level</h2>
           <p className="text-muted-foreground">
-            {t.testsPage.chooseYourTestDesc}
+            Choose the appropriate grade level for your {testTypeLabel} diagnostic test
           </p>
         </div>
 
-        {tests.length === 0 ? (
+        {sortedTests.length === 0 ? (
           <Card>
             <CardContent className="py-8">
               <p className="text-center text-muted-foreground">
-                {t.testsPage.noTests}
+                No {testTypeLabel} tests available at this time.
               </p>
             </CardContent>
           </Card>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {tests.map((test) => (
+            {sortedTests.map((test) => (
               <Card key={test.id} className="flex flex-col hover:shadow-lg transition-shadow">
                 <CardHeader>
                   <div className="flex items-center justify-between mb-2">
@@ -156,7 +264,7 @@ const Tests = () => {
                     {test.is_paid ? (
                       <Badge variant="secondary" className="flex items-center gap-1">
                         <DollarSign className="h-3 w-3" />
-                        $99-$120
+                        ${test.price}
                       </Badge>
                     ) : (
                       <Badge className="bg-green-500">{t.testsPage.free}</Badge>
