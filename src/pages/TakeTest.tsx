@@ -16,6 +16,7 @@ import { useTabVisibility } from "@/hooks/use-tab-visibility";
 import { TestSecurityWarning } from "@/components/TestSecurityWarning";
 import { PreTestSecurityCheck } from "@/components/PreTestSecurityCheck";
 import { useLanguage, languageOptions } from "@/contexts/LanguageContext";
+import QuestionVisual from "@/components/QuestionVisual";
 
 interface SkillPerformance {
   correct: number;
@@ -550,6 +551,21 @@ const TakeTest = () => {
               </div>
             )}
             
+            {/* Section Info for Grade 1 */}
+            {currentQuestion?.section_title && (
+              <div className="mb-4 p-3 bg-purple-50 rounded-lg border border-purple-200">
+                <p className="text-sm font-semibold text-purple-800">{currentQuestion.section_title}</p>
+                {currentQuestion?.section_instructions && (
+                  <p className="text-xs text-purple-600 mt-1">{currentQuestion.section_instructions}</p>
+                )}
+                {currentQuestion?.student_completes && (
+                  <p className="text-xs text-purple-600 mt-1 font-medium">
+                    📝 Answer any {currentQuestion.student_completes} of the problems in this section
+                  </p>
+                )}
+              </div>
+            )}
+            
             {/* Question Block */}
             <div className="bg-[#F7FAFF] rounded-lg p-6 mb-6">
               <h3 className="text-lg font-semibold text-[#1e3a8a] mb-3">
@@ -560,9 +576,14 @@ const TakeTest = () => {
                   </span>
                 )}
               </h3>
-              <p className="text-[#1e3a8a] text-base leading-relaxed">
+              <p className="text-[#1e3a8a] text-base leading-relaxed mb-4">
                 {currentQuestion.question}
               </p>
+              
+              {/* Visual Component for questions with visuals */}
+              {currentQuestion.visual && (
+                <QuestionVisual visual={currentQuestion.visual} />
+              )}
             </div>
 
             {/* Answer Area */}
@@ -609,18 +630,21 @@ const TakeTest = () => {
                 />
               </div>
             ) : (
-              <div className="space-y-2">
-                <Label htmlFor="answer" className="text-base font-medium text-[#1e3a8a]">
-                  Show your work and provide your answer:
+              <div className="space-y-3 bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-xl border-2 border-dashed border-green-300">
+                <Label htmlFor="answer" className="text-base font-semibold text-green-800 flex items-center gap-2">
+                  ✏️ Enter your answer here:
                 </Label>
                 <Textarea
                   id="answer"
-                  placeholder="Type your answer here..."
+                  placeholder="Show your work and write your answer..."
                   value={answers[currentQuestion.id] || ""}
                   onChange={(e) => handleAnswer(currentQuestion.id, e.target.value)}
-                  className="min-h-[150px] text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                  rows={6}
+                  className="min-h-[120px] text-base border-green-300 focus:border-green-500 focus:ring-green-500 bg-white"
+                  rows={5}
                 />
+                <p className="text-xs text-green-600">
+                  💡 Tip: Show your work step by step to earn full credit!
+                </p>
               </div>
             )}
           </CardContent>
