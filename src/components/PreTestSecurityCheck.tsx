@@ -28,16 +28,9 @@ export const PreTestSecurityCheck = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={() => {}}>
-      <DialogContent className="sm:max-w-lg" onPointerDownOutside={(e) => e.preventDefault()}>
-        <button
-          onClick={handleExit}
-          className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-          aria-label="Exit to dashboard"
-        >
-          <X className="h-5 w-5" />
-        </button>
-        <DialogHeader>
+    <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) handleExit(); }}>
+      <DialogContent className="sm:max-w-lg max-h-[85vh] flex flex-col" onPointerDownOutside={(e) => e.preventDefault()}>
+        <DialogHeader className="flex-shrink-0">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-amber-100">
             <Shield className="h-8 w-8 text-amber-600" />
           </div>
@@ -49,7 +42,7 @@ export const PreTestSecurityCheck = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
+        <div className="flex-1 overflow-y-auto space-y-4 py-4">
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
             <h4 className="font-semibold text-amber-800 flex items-center gap-2 mb-2">
               <AlertCircle className="h-4 w-4" />
@@ -85,7 +78,7 @@ export const PreTestSecurityCheck = ({
           </div>
         </div>
 
-        <DialogFooter className="sm:justify-center pt-2 gap-3">
+        <DialogFooter className="flex-shrink-0 sm:justify-center pt-4 gap-3 border-t">
           <Button
             variant="outline"
             onClick={handleExit}
