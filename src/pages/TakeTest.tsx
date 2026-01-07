@@ -113,8 +113,18 @@ const TakeTest = () => {
         return;
       }
 
-      // Check if payment is required but not completed
-      if (attemptData.payment_status === "pending") {
+      // Check if user is admin (admins bypass payment)
+      const { data: userRole } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+
+      const isAdmin = !!userRole;
+
+      // Check if payment is required but not completed (admins bypass)
+      if (attemptData.payment_status === "pending" && !isAdmin) {
         toast.info("Please complete payment first");
         navigate(`/checkout/${attemptData.id}`);
         return;
