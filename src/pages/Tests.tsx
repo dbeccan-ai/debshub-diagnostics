@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Clock, DollarSign, CheckCircle, ArrowLeft, Calculator, BookOpen } from "lucide-react";
+import { Clock, DollarSign, CheckCircle, ArrowLeft, Calculator, BookOpen, Shield } from "lucide-react";
 import { User } from "@supabase/supabase-js";
 import { GradeSelectionDialog } from "@/components/GradeSelectionDialog";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -22,6 +22,7 @@ const Tests = () => {
   const [gradeDialogOpen, setGradeDialogOpen] = useState(false);
   const [selectedTest, setSelectedTest] = useState<any>(null);
   const [selectedTestType, setSelectedTestType] = useState<TestType>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -42,6 +43,21 @@ const Tests = () => {
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  // Check admin status on mount
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (!user) return;
+      const { data: userRole } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+      setIsAdmin(!!userRole);
+    };
+    checkAdminStatus();
+  }, [user]);
 
   useEffect(() => {
     if (selectedTestType) {
@@ -282,14 +298,22 @@ const Tests = () => {
                 <CardHeader>
                   <div className="flex items-center justify-between mb-2">
                     <CardTitle>{test.name}</CardTitle>
-                    {test.is_paid ? (
-                      <Badge variant="secondary" className="flex items-center gap-1">
-                        <DollarSign className="h-3 w-3" />
-                        ${test.price}
-                      </Badge>
-                    ) : (
-                      <Badge className="bg-green-500">{t.testsPage.free}</Badge>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {isAdmin && test.is_paid && (
+                        <Badge variant="outline" className="flex items-center gap-1 border-primary text-primary">
+                          <Shield className="h-3 w-3" />
+                          Free Access
+                        </Badge>
+                      )}
+                      {test.is_paid ? (
+                        <Badge variant="secondary" className="flex items-center gap-1">
+                          <DollarSign className="h-3 w-3" />
+                          ${test.price}
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-green-500">{t.testsPage.free}</Badge>
+                      )}
+                    </div>
                   </div>
                   <CardDescription>{test.description}</CardDescription>
                 </CardHeader>
