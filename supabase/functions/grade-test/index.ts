@@ -147,12 +147,15 @@ serve(async (req) => {
       const questionType = normalizeQuestionType(question.type);
       let isCorrect: boolean | null = null;
 
-      // Only auto-grade multiple choice questions
+      // Auto-grade multiple choice questions only
       if (questionType === 'multiple-choice') {
         const correctAnswer = question.correct_answer || question.correctAnswer;
-        isCorrect = answer === correctAnswer;
+        const options = question.options || [];
+        isCorrect = isAnswerCorrect(answer as string, correctAnswer, options);
         if (isCorrect) correctCount++;
       }
+      // Written responses (word-problem, multi-step, short-answer, long-answer) 
+      // stay null for manual review by admin
 
       // Track detailed skill performance (topic is already inferred during normalization)
       const skill = question.topic;
@@ -169,7 +172,8 @@ serve(async (req) => {
       skillStats[skill].total++;
       skillStats[skill].questionIds.push(questionId);
       
-      if (isCorrect) {
+      // Only count as correct if explicitly true (not null)
+      if (isCorrect === true) {
         skillStats[skill].correct++;
       }
 
@@ -278,6 +282,56 @@ serve(async (req) => {
   }
 });
 
+// Enhanced answer matching for multiple choice questions
+function isAnswerCorrect(answer: string, correctAnswer: string, options: string[]): boolean {
+  if (!answer || !correctAnswer) return false;
+  
+  const normalizedAnswer = answer.trim().toLowerCase();
+  const normalizedCorrect = correctAnswer.trim().toLowerCase();
+  
+  // Direct match (both are same text or same letter)
+  if (normalizedAnswer === normalizedCorrect) return true;
+  
+  // If correct answer is a letter (A, B, C, D)
+  const letterIndex = ['a', 'b', 'c', 'd'].indexOf(normalizedCorrect);
+  if (letterIndex !== -1 && options && options[letterIndex]) {
+    // Get the option text at that index, strip any leading letter prefix like "A. " or "A) "
+    const optionText = String(options[letterIndex]).replace(/^[A-Da-d][\.\)\s]+/i, '').trim().toLowerCase();
+    
+    // Compare student answer with the option text
+    if (normalizedAnswer === optionText) return true;
+    
+    // Also check if student answer contains the option (partial match for longer text)
+    const normalizedAnswerClean = normalizedAnswer.replace(/^[A-Da-d][\.\)\s]+/i, '').trim();
+    if (normalizedAnswerClean === optionText) return true;
+  }
+  
+  // If student answered with a letter
+  const studentLetterIndex = ['a', 'b', 'c', 'd'].indexOf(normalizedAnswer);
+  if (studentLetterIndex !== -1) {
+    // Check if the letter matches the correct letter
+    if (normalizedAnswer === normalizedCorrect) return true;
+  }
+  
+  // Check if answer matches any option text and that option's index corresponds to correct letter
+  if (options && options.length > 0) {
+    for (let i = 0; i < options.length; i++) {
+      const optionText = String(options[i]).replace(/^[A-Da-d][\.\)\s]+/i, '').trim().toLowerCase();
+      const answerClean = normalizedAnswer.replace(/^[A-Da-d][\.\)\s]+/i, '').trim();
+      
+      if (answerClean === optionText || normalizedAnswer === optionText) {
+        const answerLetter = ['a', 'b', 'c', 'd'][i];
+        if (answerLetter === normalizedCorrect) return true;
+        
+        // Also check if correct answer is the full text of this option
+        if (optionText === normalizedCorrect.replace(/^[A-Da-d][\.\)\s]+/i, '').trim()) return true;
+      }
+    }
+  }
+  
+  return false;
+}
+
 // Skill inference patterns based on question content
 const skillPatterns: [RegExp, string][] = [
   [/round(ed|ing)?/i, 'Rounding'],
@@ -301,6 +355,23 @@ const skillPatterns: [RegExp, string][] = [
   [/measurement|meter|centimeter|inch|feet|convert/i, 'Measurement'],
   [/order\s+of\s+operation|pemdas/i, 'Order of Operations'],
   [/place\s+value|digit.*place/i, 'Place Value'],
+  // ELA patterns
+  [/rhym(e|ing)|sound.*alike/i, 'Rhyming'],
+  [/main\s+idea|central\s+idea/i, 'Main Idea'],
+  [/character|protagonist|antagonist/i, 'Character Analysis'],
+  [/setting|where.*story|when.*story/i, 'Setting'],
+  [/plot|events|sequence.*story/i, 'Plot'],
+  [/author.*purpose|why.*write/i, 'Author Purpose'],
+  [/inference|infer|conclude/i, 'Making Inferences'],
+  [/vocabulary|meaning.*word|word.*means/i, 'Vocabulary'],
+  [/context\s+clue/i, 'Context Clues'],
+  [/synonym|antonym/i, 'Synonyms & Antonyms'],
+  [/prefix|suffix|root\s+word/i, 'Word Parts'],
+  [/cause.*effect|because|result/i, 'Cause and Effect'],
+  [/compare.*contrast|similar|different/i, 'Compare and Contrast'],
+  [/fact.*opinion/i, 'Fact vs Opinion'],
+  [/summariz|summary/i, 'Summarizing'],
+  [/predict|what.*happen.*next/i, 'Predicting'],
 ];
 
 function inferSkillFromQuestion(question: any): string {
