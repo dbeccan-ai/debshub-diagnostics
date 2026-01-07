@@ -107,12 +107,14 @@ const Tests = () => {
     try {
       const isAdmin = await checkIsAdmin();
       
+      // Insert test attempt - payment_status is protected by trigger, 
+      // so we use default "pending" for paid tests and "not_required" for free
       const { data: attempt, error } = await supabase
         .from("test_attempts")
         .insert({
           user_id: user!.id,
           test_id: test.id,
-          payment_status: isAdmin ? "admin_bypass" : (test.is_paid ? "pending" : "not_required"),
+          payment_status: test.is_paid ? "pending" : "not_required",
           grade_level: grade,
         })
         .select()
@@ -120,15 +122,15 @@ const Tests = () => {
 
       if (error) throw error;
 
-      // Admins go directly to test, others go to checkout if payment required
-      if (test.is_paid && attempt.payment_status === "pending") {
+      // Admins go directly to test (edge function handles payment bypass)
+      // Non-admins with paid tests go to checkout
+      if (isAdmin) {
+        toast.success("Admin access - starting test");
+        navigate(`/test/${attempt.id}`);
+      } else if (test.is_paid) {
         toast.info("Proceeding to payment");
         navigate(`/checkout/${attempt.id}`);
       } else {
-        // Admin bypass or free test - go directly to test
-        if (attempt.payment_status === "admin_bypass") {
-          toast.success("Admin access - starting test");
-        }
         navigate(`/test/${attempt.id}`);
       }
     } catch (error: any) {
