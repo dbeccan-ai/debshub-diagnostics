@@ -101,8 +101,18 @@ serve(async (req) => {
       );
     }
 
-    // Verify payment for paid tests
-    if (attempt.payment_status === 'pending') {
+    // Check if user is admin (admins bypass payment requirement)
+    const { data: roleData } = await supabaseAdmin
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .eq('role', 'admin')
+      .maybeSingle();
+    
+    const isAdmin = !!roleData;
+
+    // Verify payment for paid tests (admins bypass)
+    if (attempt.payment_status === 'pending' && !isAdmin) {
       return new Response(
         JSON.stringify({ error: 'Payment required before grading' }),
         { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
