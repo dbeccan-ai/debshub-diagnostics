@@ -46,13 +46,8 @@ const Checkout = () => {
 
       if (attemptError) throw attemptError;
 
-      // If admin, update payment status and redirect to test
+      // If admin, redirect directly to test (edge function will handle bypass)
       if (isAdmin) {
-        await supabase
-          .from("test_attempts")
-          .update({ payment_status: "admin_bypass" })
-          .eq("id", attemptId);
-        
         toast.success("Admin access granted - starting test");
         navigate(`/test/${attemptId}`);
         return;
