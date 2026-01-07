@@ -24,7 +24,7 @@ const Checkout = () => {
       
       if (!user) {
         toast.error("Please sign in to continue");
-        navigate("/auth");
+        navigate("/auth", { replace: true });
         return;
       }
 
@@ -38,6 +38,13 @@ const Checkout = () => {
 
       const isAdmin = !!userRole;
 
+      // If admin, redirect directly to test immediately
+      if (isAdmin) {
+        toast.success("Admin access granted - starting test");
+        navigate(`/test/${attemptId}`, { replace: true });
+        return;
+      }
+
       const { data: attemptData, error: attemptError } = await supabase
         .from("test_attempts")
         .select("*")
@@ -45,13 +52,6 @@ const Checkout = () => {
         .single();
 
       if (attemptError) throw attemptError;
-
-      // If admin, redirect directly to test (edge function will handle bypass)
-      if (isAdmin) {
-        toast.success("Admin access granted - starting test");
-        navigate(`/test/${attemptId}`);
-        return;
-      }
 
       const { data: testData, error: testError } = await supabase
         .from("tests_public")
@@ -66,7 +66,7 @@ const Checkout = () => {
       setTest(testData);
     } catch (error: any) {
       toast.error("Failed to load checkout details");
-      navigate("/tests");
+      navigate("/tests", { replace: true });
     } finally {
       setLoading(false);
     }
