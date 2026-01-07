@@ -91,14 +91,28 @@ const Tests = () => {
     }
   };
 
+  // Check if user is admin
+  const checkIsAdmin = async () => {
+    if (!user) return false;
+    const { data: userRole } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("role", "admin")
+      .maybeSingle();
+    return !!userRole;
+  };
+
   const createTestAttempt = async (test: any, grade: number | null) => {
     try {
+      const isAdmin = await checkIsAdmin();
+      
       const { data: attempt, error } = await supabase
         .from("test_attempts")
         .insert({
           user_id: user!.id,
           test_id: test.id,
-          payment_status: test.is_paid ? "pending" : "not_required",
+          payment_status: isAdmin ? "admin_bypass" : (test.is_paid ? "pending" : "not_required"),
           grade_level: grade,
         })
         .select()
@@ -106,10 +120,15 @@ const Tests = () => {
 
       if (error) throw error;
 
+      // Admins go directly to test, others go to checkout if payment required
       if (test.is_paid && attempt.payment_status === "pending") {
         toast.info("Proceeding to payment");
         navigate(`/checkout/${attempt.id}`);
       } else {
+        // Admin bypass or free test - go directly to test
+        if (attempt.payment_status === "admin_bypass") {
+          toast.success("Admin access - starting test");
+        }
         navigate(`/test/${attempt.id}`);
       }
     } catch (error: any) {
