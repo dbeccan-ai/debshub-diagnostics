@@ -25,6 +25,7 @@ const passwordSchema = z.object({
 const AdminAuth = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [initializing, setInitializing] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -35,52 +36,65 @@ const AdminAuth = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    // Check URL for recovery tokens FIRST before setting up listener
+    // Check URL for recovery tokens FIRST - synchronously detect recovery mode
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
     const accessToken = hashParams.get('access_token');
     const refreshToken = hashParams.get('refresh_token');
     const type = hashParams.get('type');
     
-    // If this is a recovery link with tokens, set the session
+    // If this is a recovery link with tokens, handle it exclusively
     if (type === 'recovery' && accessToken && refreshToken) {
-      supabase.auth.setSession({
-        access_token: accessToken,
-        refresh_token: refreshToken,
-      }).then(({ error }) => {
-        if (error) {
-          console.error('Error setting recovery session:', error);
-          toast.error("Password reset link is invalid or has expired. Please request a new one.");
-        } else {
-          setIsPasswordReset(true);
-          setIsLoggedIn(false);
-          // Clear the hash from URL for security
-          window.history.replaceState(null, '', window.location.pathname);
-        }
+      // Sign out any existing session first to prevent "already logged in" state
+      supabase.auth.signOut().then(() => {
+        supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        }).then(({ error }) => {
+          if (error) {
+            console.error('Error setting recovery session:', error);
+            toast.error("Password reset link is invalid or has expired. Please request a new one.");
+            setInitializing(false);
+          } else {
+            setIsPasswordReset(true);
+            setIsLoggedIn(false);
+            // Clear the hash from URL for security
+            window.history.replaceState(null, '', window.location.pathname);
+            setInitializing(false);
+          }
+        });
       });
       return;
     }
 
-    // Set up auth state listener to detect password recovery
+    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth event:', event);
       if (event === 'PASSWORD_RECOVERY') {
         setIsPasswordReset(true);
         setIsLoggedIn(false);
-      } else if (event === 'SIGNED_IN' && !isPasswordReset) {
-        setIsLoggedIn(true);
+        setInitializing(false);
+      } else if (event === 'SIGNED_IN') {
+        // Only set logged in if we're not in password reset mode
+        if (!isPasswordReset) {
+          setIsLoggedIn(true);
+        }
+        setInitializing(false);
       } else if (event === 'SIGNED_OUT') {
         setIsLoggedIn(false);
+        setInitializing(false);
       }
     });
 
-    // Check for existing session
+    // Check for existing session (only if not a recovery link)
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session && !isPasswordReset) {
         setIsLoggedIn(true);
       }
+      setInitializing(false);
     });
 
     return () => subscription.unsubscribe();
-  }, [isPasswordReset]);
+  }, []);
 
   const clearErrors = () => setErrors({});
 
@@ -214,6 +228,15 @@ const AdminAuth = () => {
       setLoading(false);
     }
   };
+
+  // Show loading while initializing
+  if (initializing) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
+        <div className="text-slate-400">Loading...</div>
+      </div>
+    );
+  }
 
   if (isLoggedIn) {
     return (
