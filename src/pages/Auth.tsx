@@ -92,59 +92,80 @@ const Auth = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    // Check URL for recovery tokens FIRST
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    const accessToken = hashParams.get('access_token');
-    const refreshToken = hashParams.get('refresh_token');
-    const type = hashParams.get('type');
+    let isMounted = true;
     
-    // If this is a recovery link with tokens, handle it exclusively
-    if (type === 'recovery' && accessToken && refreshToken) {
-      // Sign out any existing session first
-      supabase.auth.signOut().then(() => {
-        supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken,
-        }).then(({ error }) => {
+    const handleRecovery = async () => {
+      // Check URL for recovery tokens FIRST
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const accessToken = hashParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token');
+      const type = hashParams.get('type');
+      
+      // If this is a recovery link with tokens, handle it exclusively
+      if (type === 'recovery' && accessToken && refreshToken) {
+        try {
+          // Sign out any existing session first
+          await supabase.auth.signOut();
+          
+          const { error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+          
+          if (!isMounted) return;
+          
           if (error) {
             console.error('Error setting recovery session:', error);
             toast.error("Password reset link is invalid or has expired. Please request a new one.");
-            setInitializing(false);
           } else {
             setIsPasswordReset(true);
             setIsLoggedIn(false);
             // Clear the hash from URL for security
             window.history.replaceState(null, '', window.location.pathname);
-            setInitializing(false);
           }
-        });
+        } catch (err) {
+          console.error('Recovery error:', err);
+          if (isMounted) {
+            toast.error("Password reset link is invalid or has expired. Please request a new one.");
+          }
+        }
+        if (isMounted) setInitializing(false);
+        return true; // Indicate we handled recovery
+      }
+      return false; // Not a recovery link
+    };
+
+    handleRecovery().then((wasRecovery) => {
+      if (wasRecovery) return; // Don't set up other listeners if handling recovery
+      
+      // Set up auth state listener only if not recovery
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+        if (event === 'PASSWORD_RECOVERY') {
+          setIsPasswordReset(true);
+          setIsLoggedIn(false);
+          setInitializing(false);
+        } else if (event === 'SIGNED_IN' && !isPasswordReset) {
+          setIsLoggedIn(true);
+          setInitializing(false);
+        } else if (event === 'SIGNED_OUT') {
+          setIsLoggedIn(false);
+          setInitializing(false);
+        }
       });
-      return;
-    }
 
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') {
-        setIsPasswordReset(true);
-        setIsLoggedIn(false);
-        setInitializing(false);
-      } else if (event === 'SIGNED_IN' && !isPasswordReset) {
-        setIsLoggedIn(true);
-        setInitializing(false);
-      } else if (event === 'SIGNED_OUT') {
-        setIsLoggedIn(false);
-        setInitializing(false);
-      }
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (isMounted && session && !isPasswordReset) {
+          setIsLoggedIn(true);
+        }
+        if (isMounted) setInitializing(false);
+      });
+
+      return () => subscription.unsubscribe();
     });
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session && !isPasswordReset) {
-        setIsLoggedIn(true);
-      }
-      setInitializing(false);
-    });
-
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const clearErrors = () => setErrors({});
