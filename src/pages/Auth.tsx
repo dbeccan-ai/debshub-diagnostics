@@ -79,18 +79,72 @@ const Auth = () => {
   const { t } = useTranslation();
   const [isLogin, setIsLogin] = useState(true);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [isPasswordReset, setIsPasswordReset] = useState(false);
+  const [initializing, setInitializing] = useState(true);
   const [loading, setLoading] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [parentEmail, setParentEmail] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setIsLoggedIn(!!session);
+    // Check URL for recovery tokens FIRST
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const accessToken = hashParams.get('access_token');
+    const refreshToken = hashParams.get('refresh_token');
+    const type = hashParams.get('type');
+    
+    // If this is a recovery link with tokens, handle it exclusively
+    if (type === 'recovery' && accessToken && refreshToken) {
+      // Sign out any existing session first
+      supabase.auth.signOut().then(() => {
+        supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        }).then(({ error }) => {
+          if (error) {
+            console.error('Error setting recovery session:', error);
+            toast.error("Password reset link is invalid or has expired. Please request a new one.");
+            setInitializing(false);
+          } else {
+            setIsPasswordReset(true);
+            setIsLoggedIn(false);
+            // Clear the hash from URL for security
+            window.history.replaceState(null, '', window.location.pathname);
+            setInitializing(false);
+          }
+        });
+      });
+      return;
+    }
+
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsPasswordReset(true);
+        setIsLoggedIn(false);
+        setInitializing(false);
+      } else if (event === 'SIGNED_IN' && !isPasswordReset) {
+        setIsLoggedIn(true);
+        setInitializing(false);
+      } else if (event === 'SIGNED_OUT') {
+        setIsLoggedIn(false);
+        setInitializing(false);
+      }
     });
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session && !isPasswordReset) {
+        setIsLoggedIn(true);
+      }
+      setInitializing(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const clearErrors = () => setErrors({});
@@ -235,6 +289,108 @@ const Auth = () => {
       setLoading(false);
     }
   };
+
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    clearErrors();
+    setLoading(true);
+
+    try {
+      if (newPassword.length < 6) {
+        setErrors({ password: "Password must be at least 6 characters" });
+        setLoading(false);
+        return;
+      }
+      if (newPassword !== confirmPassword) {
+        setErrors({ confirmPassword: "Passwords don't match" });
+        setLoading(false);
+        return;
+      }
+
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) {
+        toast.error("Failed to update password. Please try again.");
+      } else {
+        toast.success("Password updated successfully! Please sign in.");
+        setIsPasswordReset(false);
+        setNewPassword("");
+        setConfirmPassword("");
+        window.history.replaceState(null, '', window.location.pathname);
+      }
+    } catch (error: any) {
+      toast.error(error.message || "An error occurred");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Show loading while initializing
+  if (initializing) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+        <div className="text-muted-foreground">Loading...</div>
+      </div>
+    );
+  }
+
+  // Password reset form
+  if (isPasswordReset) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+        <div className="absolute top-4 right-4">
+          <LanguageSelector />
+        </div>
+        <Card className="w-full max-w-md">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl font-bold text-center">
+              Set New Password
+            </CardTitle>
+            <CardDescription className="text-center">
+              Enter your new password below
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleUpdatePassword} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="new-password">New Password</Label>
+                <Input
+                  id="new-password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  maxLength={100}
+                />
+                {errors.password && (
+                  <p className="text-xs text-destructive">{errors.password}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirm-password">Confirm Password</Label>
+                <Input
+                  id="confirm-password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  maxLength={100}
+                />
+                {errors.confirmPassword && (
+                  <p className="text-xs text-destructive">{errors.confirmPassword}</p>
+                )}
+              </div>
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "Updating..." : "Update Password"}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (isLoggedIn) {
     return (
