@@ -177,7 +177,7 @@ const AdminAllResults = () => {
       const { data: { session } } = await supabase.auth.getSession();
       
       const { data, error } = await supabase.functions.invoke("generate-result-download", {
-        body: { attemptId },
+        body: { attemptId, format: "pdf" },
         headers: {
           Authorization: `Bearer ${session?.access_token}`,
         },
