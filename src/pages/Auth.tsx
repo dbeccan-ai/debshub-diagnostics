@@ -315,7 +315,10 @@ const Auth = () => {
         toast.error("Failed to update password. Please try again.");
       } else {
         toast.success("Password updated successfully! Please sign in.");
+        // Sign out after password update so user can log in fresh
+        await supabase.auth.signOut();
         setIsPasswordReset(false);
+        setIsLoggedIn(false);
         setNewPassword("");
         setConfirmPassword("");
         window.history.replaceState(null, '', window.location.pathname);
