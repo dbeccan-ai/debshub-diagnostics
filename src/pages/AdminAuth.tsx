@@ -35,6 +35,31 @@ const AdminAuth = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
+    // Check URL for recovery tokens FIRST before setting up listener
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const accessToken = hashParams.get('access_token');
+    const refreshToken = hashParams.get('refresh_token');
+    const type = hashParams.get('type');
+    
+    // If this is a recovery link with tokens, set the session
+    if (type === 'recovery' && accessToken && refreshToken) {
+      supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      }).then(({ error }) => {
+        if (error) {
+          console.error('Error setting recovery session:', error);
+          toast.error("Password reset link is invalid or has expired. Please request a new one.");
+        } else {
+          setIsPasswordReset(true);
+          setIsLoggedIn(false);
+          // Clear the hash from URL for security
+          window.history.replaceState(null, '', window.location.pathname);
+        }
+      });
+      return;
+    }
+
     // Set up auth state listener to detect password recovery
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'PASSWORD_RECOVERY') {
@@ -49,15 +74,8 @@ const AdminAuth = () => {
 
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        // Check if this is a recovery session by looking at URL hash
-        const hashParams = new URLSearchParams(window.location.hash.substring(1));
-        const type = hashParams.get('type');
-        if (type === 'recovery') {
-          setIsPasswordReset(true);
-        } else {
-          setIsLoggedIn(true);
-        }
+      if (session && !isPasswordReset) {
+        setIsLoggedIn(true);
       }
     });
 
