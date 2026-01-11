@@ -81,8 +81,18 @@ serve(async (req) => {
       throw new Error("Test attempt not found");
     }
 
-    // Verify user ownership
-    if (attempt.user_id !== user.id) {
+    // Check if user is admin
+    const { data: adminRole } = await supabaseClient
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("role", "admin")
+      .maybeSingle();
+    
+    const isAdmin = !!adminRole;
+
+    // Verify user ownership or admin access
+    if (attempt.user_id !== user.id && !isAdmin) {
       console.error("Ownership check failed:", { attemptUserId: attempt.user_id, authUserId: user.id });
       return new Response(
         JSON.stringify({ error: "You do not have permission to download this result" }),
