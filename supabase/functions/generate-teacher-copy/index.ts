@@ -66,8 +66,18 @@ serve(async (req) => {
       );
     }
 
-    // Verify ownership
-    if (attempt.user_id !== user.id) {
+    // Check if user is admin
+    const { data: adminRole } = await supabaseAdmin
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("role", "admin")
+      .maybeSingle();
+    
+    const isAdmin = !!adminRole;
+
+    // Verify ownership or admin access
+    if (attempt.user_id !== user.id && !isAdmin) {
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
