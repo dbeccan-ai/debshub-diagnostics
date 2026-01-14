@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { GradeRangeTestDialog } from "@/components/GradeRangeTestDialog";
-import { DiagnosticTestSelector } from "@/components/DiagnosticTestSelector";
+import { HeroTestDropdown } from "@/components/HeroTestDropdown";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { useTranslation } from "@/hooks/useTranslation";
 
@@ -154,31 +154,21 @@ export default function Page() {
                       {t.dashboard.view}
                     </a>
                   </div>
-                  {/* Card 2 */}
+                  {/* Card 2 - Math Diagnostic */}
                   <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50">
                     <div>
                       <div className="text-xs font-semibold text-slate-700">{t.dashboard.mathDiagnostic}</div>
                       <div className="text-[11px] text-slate-500">{t.dashboard.mathDesc}</div>
                     </div>
-                    <a
-                      href="/math-diagnostic"
-                      className="px-3 py-1 text-[11px] font-semibold rounded-full border border-slate-300 text-slate-700 hover:bg-slate-50"
-                    >
-                      {t.dashboard.run}
-                    </a>
+                    <HeroTestDropdown type="math" buttonLabel={t.dashboard.run} />
                   </div>
-                  {/* Card 3 */}
+                  {/* Card 3 - ELA Diagnostic */}
                   <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50">
                     <div>
                       <div className="text-xs font-semibold text-slate-700">{t.dashboard.elaDiagnostic}</div>
                       <div className="text-[11px] text-slate-500">{t.dashboard.elaDesc}</div>
                     </div>
-                    <a
-                      href="/ela-diagnostic"
-                      className="px-3 py-1 text-[11px] font-semibold rounded-full border border-slate-300 text-slate-700 hover:bg-slate-50"
-                    >
-                      {t.dashboard.run}
-                    </a>
+                    <HeroTestDropdown type="ela" buttonLabel={t.dashboard.run} />
                   </div>
                 </div>
 
@@ -520,24 +510,6 @@ export default function Page() {
                   {t.pricing.contactUs}
                 </button>
               </div>
-            </div>
-          </div>
-        </section>
-
-        {/* DIAGNOSTIC TEST SELECTORS */}
-        <section className="py-14 bg-white" id="select-diagnostic">
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">
-                Select Your Diagnostic
-              </h2>
-              <p className="text-sm text-slate-500">
-                Choose a subject and grade level to begin
-              </p>
-            </div>
-            <div className="space-y-4">
-              <DiagnosticTestSelector type="math" />
-              <DiagnosticTestSelector type="ela" />
             </div>
           </div>
         </section>
