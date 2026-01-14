@@ -13,6 +13,13 @@ export default function Page() {
     setGradeDialogOpen(true);
   };
 
+  const scrollToPricing = () => {
+    const pricingSection = document.getElementById("pricing");
+    if (pricingSection) {
+      pricingSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
   return (
     <div className="bg-gradient-to-br from-sky-100 via-white to-amber-50 text-slate-900 min-h-screen">
       {/* NAVBAR */}
@@ -353,7 +360,10 @@ export default function Page() {
                   <li>• {t.tests.mathItem2}</li>
                   <li>• {t.tests.mathItem3}</li>
                 </ul>
-                <button className="w-full px-4 py-2 text-xs font-semibold rounded-full bg-amber-400 text-slate-900 hover:bg-amber-300">
+                <button 
+                  onClick={scrollToPricing}
+                  className="w-full px-4 py-2 text-xs font-semibold rounded-full bg-amber-400 text-slate-900 hover:bg-amber-300"
+                >
                   {t.tests.startMath}
                 </button>
               </div>
@@ -370,7 +380,10 @@ export default function Page() {
                   <li>• {t.tests.elaItem2}</li>
                   <li>• {t.tests.elaItem3}</li>
                 </ul>
-                <button className="w-full px-4 py-2 text-xs font-semibold rounded-full bg-white text-slate-900 hover:bg-slate-100">
+                <button 
+                  onClick={scrollToPricing}
+                  className="w-full px-4 py-2 text-xs font-semibold rounded-full bg-white text-slate-900 hover:bg-slate-100"
+                >
                   {t.tests.startEla}
                 </button>
               </div>
