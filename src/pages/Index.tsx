@@ -2,6 +2,7 @@ import { useState } from "react";
 import { GradeRangeTestDialog } from "@/components/GradeRangeTestDialog";
 import { HeroTestDropdown } from "@/components/HeroTestDropdown";
 import { LanguageSelector } from "@/components/LanguageSelector";
+import { SampleResultsDialog } from "@/components/SampleResultsDialog";
 import { useTranslation } from "@/hooks/useTranslation";
 
 export default function Page() {
@@ -99,12 +100,10 @@ export default function Page() {
                 >
                   {t.hero.bookDiagnostic}
                 </a>
-                <a
-                  href="#tests"
+                <SampleResultsDialog
+                  buttonText={t.hero.seeSampleResults}
                   className="inline-flex px-4 py-2 text-sm font-semibold rounded-full border border-slate-300 text-slate-700 hover:bg-white"
-                >
-                  {t.hero.viewDiagnosticTypes}
-                </a>
+                />
               </div>
 
               <div className="flex flex-wrap gap-4 text-xs text-slate-500">
