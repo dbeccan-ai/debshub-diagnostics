@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { GradeRangeTestDialog } from "@/components/GradeRangeTestDialog";
+import { DiagnosticTestSelector } from "@/components/DiagnosticTestSelector";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { useTranslation } from "@/hooks/useTranslation";
 
@@ -519,6 +520,24 @@ export default function Page() {
                   {t.pricing.contactUs}
                 </button>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* DIAGNOSTIC TEST SELECTORS */}
+        <section className="py-14 bg-white" id="select-diagnostic">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">
+                Select Your Diagnostic
+              </h2>
+              <p className="text-sm text-slate-500">
+                Choose a subject and grade level to begin
+              </p>
+            </div>
+            <div className="space-y-4">
+              <DiagnosticTestSelector type="math" />
+              <DiagnosticTestSelector type="ela" />
             </div>
           </div>
         </section>
