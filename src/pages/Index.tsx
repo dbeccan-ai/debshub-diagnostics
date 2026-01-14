@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { GradeRangeTestDialog } from "@/components/GradeRangeTestDialog";
 import { LanguageSelector } from "@/components/LanguageSelector";
+import { TestDropdownMenu } from "@/components/TestDropdownMenu";
 import { useTranslation } from "@/hooks/useTranslation";
 
 export default function Page() {
   const [gradeDialogOpen, setGradeDialogOpen] = useState(false);
   const [selectedGradeRange, setSelectedGradeRange] = useState<"1-6" | "7-12">("1-6");
+  const [mathDropdownOpen, setMathDropdownOpen] = useState(false);
+  const [elaDropdownOpen, setElaDropdownOpen] = useState(false);
   const { t } = useTranslation();
 
   const openGradeDialog = (range: "1-6" | "7-12") => {
@@ -18,6 +21,16 @@ export default function Page() {
     if (pricingSection) {
       pricingSection.scrollIntoView({ behavior: "smooth", block: "start" });
     }
+  };
+
+  const toggleMathDropdown = () => {
+    setMathDropdownOpen(!mathDropdownOpen);
+    setElaDropdownOpen(false);
+  };
+
+  const toggleElaDropdown = () => {
+    setElaDropdownOpen(!elaDropdownOpen);
+    setMathDropdownOpen(false);
   };
 
   return (
@@ -349,7 +362,7 @@ export default function Page() {
               </div>
 
               {/* Math Diagnostic */}
-              <div className="rounded-2xl bg-slate-800/80 border border-slate-700 p-5">
+              <div className="rounded-2xl bg-slate-800/80 border border-slate-700 p-5 relative">
                 <div className="text-xs font-semibold text-sky-300 uppercase mb-1">{t.dashboard.mathDiagnostic}</div>
                 <h3 className="font-semibold mb-2">{t.tests.mathTitle}</h3>
                 <p className="text-xs text-slate-300 mb-3">
@@ -361,15 +374,30 @@ export default function Page() {
                   <li>• {t.tests.mathItem3}</li>
                 </ul>
                 <button 
-                  onClick={scrollToPricing}
-                  className="w-full px-4 py-2 text-xs font-semibold rounded-full bg-amber-400 text-slate-900 hover:bg-amber-300"
+                  onClick={toggleMathDropdown}
+                  className="w-full px-4 py-2 text-xs font-semibold rounded-full bg-amber-400 text-slate-900 hover:bg-amber-300 flex items-center justify-center gap-2"
                 >
                   {t.tests.startMath}
+                  {mathDropdownOpen ? (
+                    <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                    </svg>
+                  ) : (
+                    <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  )}
                 </button>
+                <TestDropdownMenu
+                  testType="math"
+                  isOpen={mathDropdownOpen}
+                  onToggle={toggleMathDropdown}
+                  onClose={() => setMathDropdownOpen(false)}
+                />
               </div>
 
               {/* ELA Diagnostic */}
-              <div className="rounded-2xl bg-slate-800/80 border border-slate-700 p-5">
+              <div className="rounded-2xl bg-slate-800/80 border border-slate-700 p-5 relative">
                 <div className="text-xs font-semibold text-emerald-300 uppercase mb-1">{t.dashboard.elaDiagnostic}</div>
                 <h3 className="font-semibold mb-2">{t.tests.elaTitle}</h3>
                 <p className="text-xs text-slate-300 mb-3">
@@ -381,11 +409,26 @@ export default function Page() {
                   <li>• {t.tests.elaItem3}</li>
                 </ul>
                 <button 
-                  onClick={scrollToPricing}
-                  className="w-full px-4 py-2 text-xs font-semibold rounded-full bg-white text-slate-900 hover:bg-slate-100"
+                  onClick={toggleElaDropdown}
+                  className="w-full px-4 py-2 text-xs font-semibold rounded-full bg-white text-slate-900 hover:bg-slate-100 flex items-center justify-center gap-2"
                 >
                   {t.tests.startEla}
+                  {elaDropdownOpen ? (
+                    <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                    </svg>
+                  ) : (
+                    <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  )}
                 </button>
+                <TestDropdownMenu
+                  testType="ela"
+                  isOpen={elaDropdownOpen}
+                  onToggle={toggleElaDropdown}
+                  onClose={() => setElaDropdownOpen(false)}
+                />
               </div>
             </div>
           </div>
