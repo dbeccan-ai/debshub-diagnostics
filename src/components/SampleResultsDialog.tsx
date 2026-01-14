@@ -8,7 +8,8 @@ import {
 } from "@/components/ui/dialog";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, XCircle, TrendingUp } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { CheckCircle, XCircle, TrendingUp, GraduationCap } from "lucide-react";
 
 interface SampleData {
   tier: string;
@@ -25,6 +26,12 @@ interface SampleData {
   developing: string[];
   skillStats: Record<string, { total: number; correct: number; percentage: number }>;
   parentExplanation: string;
+  nextSteps: {
+    message: string;
+    recommendation: string;
+    buttonText: string;
+    buttonColor: string;
+  };
 }
 
 const sampleDataByTier: Record<number, SampleData> = {
@@ -53,7 +60,13 @@ const sampleDataByTier: Record<number, SampleData> = {
       "Problem Solving": { total: 5, correct: 4, percentage: 80 },
       "Fractions": { total: 5, correct: 4, percentage: 80 },
     },
-    parentExplanation: "Excellent! Your child is excelling and demonstrates strong understanding across all tested skills. They are ready for enrichment activities and more challenging material.",
+    parentExplanation: "Excellent performance! Your student scored 80% or above and is ready for advanced topics and enrichment activities.",
+    nextSteps: {
+      message: "Your student is performing above grade level and is ready for enrichment activities.",
+      recommendation: "",
+      buttonText: "View Enrichment Curriculum & Practice",
+      buttonColor: "bg-emerald-600 hover:bg-emerald-700",
+    },
   },
   2: {
     tier: "Tier 2",
@@ -81,7 +94,13 @@ const sampleDataByTier: Record<number, SampleData> = {
       "Grammar & Mechanics": { total: 5, correct: 2, percentage: 40 },
       "Critical Analysis": { total: 5, correct: 3, percentage: 60 },
     },
-    parentExplanation: "Your child is on track and understands most grade-level concepts well. With continued practice and targeted support in a few areas, they'll continue to thrive.",
+    parentExplanation: "Your student is performing at or near grade level. Focus on the specific skills listed above that need additional practice.",
+    nextSteps: {
+      message: "Your student is performing at or near grade level. Focus on the specific skills listed above that need additional practice.",
+      recommendation: "Register for our 10-session tutoring program. Automatic diagnostic retries at sessions 5 and 10 to track progress.",
+      buttonText: "Register for Pods - Get Personalized Curriculum",
+      buttonColor: "bg-amber-600 hover:bg-amber-700",
+    },
   },
   3: {
     tier: "Tier 3",
@@ -110,7 +129,13 @@ const sampleDataByTier: Record<number, SampleData> = {
       "Problem Solving": { total: 5, correct: 2, percentage: 40 },
       "Fractions": { total: 5, correct: 3, percentage: 60 },
     },
-    parentExplanation: "Your child has some foundational gaps that we've identified. With the right support and a personalized learning plan, they can build the skills they need to succeed.",
+    parentExplanation: "Your student needs focused support in the skills listed above. Consistent practice will help build foundational understanding.",
+    nextSteps: {
+      message: "Your student needs focused support in the skills listed above. Consistent practice will help build foundational understanding.",
+      recommendation: "Register for our 15-session tutoring program. Automatic diagnostic retries at sessions 7, 10, and 15 to monitor growth.",
+      buttonText: "Register for Pods - Get Personalized Curriculum",
+      buttonColor: "bg-red-600 hover:bg-red-700",
+    },
   },
 };
 
@@ -365,17 +390,140 @@ export const SampleResultsDialog = ({ buttonText, className }: SampleResultsDial
             </CardContent>
           </Card>
 
-          {/* Parent Explanation */}
-          <Card className="border-sky-200 bg-sky-50">
+          {/* Skills Assessed Summary with colored boxes */}
+          <Card className="border-slate-200 mb-6">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold text-sky-700">
-                What This Means for Your Child
+              <CardTitle className="text-sm font-semibold text-slate-800">
+                Skills Assessed in This Diagnostic
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-sm text-sky-800 leading-relaxed">
-                {data.parentExplanation}
+            <CardContent className="space-y-4 text-sm text-slate-600">
+              <p>
+                This diagnostic test assessed your student's understanding of {Object.keys(data.skillStats).length} skills:
               </p>
+              <div className="flex flex-wrap gap-2">
+                {Object.keys(data.skillStats).map((skill) => (
+                  <Badge 
+                    key={skill} 
+                    variant="outline" 
+                    className="text-xs bg-slate-50 text-slate-700 border-slate-300"
+                  >
+                    {skill}
+                  </Badge>
+                ))}
+              </div>
+
+              {data.needsSupport.length > 0 && (
+                <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="font-semibold text-red-800 mb-2">
+                    Your student needs academic support with:
+                  </p>
+                  <ul className="space-y-1">
+                    {data.needsSupport.map((skill, idx) => {
+                      const stats = data.skillStats[skill];
+                      return (
+                        <li key={idx} className="text-red-700 flex items-start gap-2">
+                          <XCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                          <span>
+                            <strong>{skill}</strong>
+                            {stats && (
+                              <span className="text-red-600 text-xs ml-1">
+                                ({stats.correct}/{stats.total} correct, {stats.percentage}%)
+                              </span>
+                            )}
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              )}
+
+              {data.developing.length > 0 && (
+                <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                  <p className="font-semibold text-amber-800 mb-2">
+                    Your student is developing understanding of:
+                  </p>
+                  <ul className="space-y-1">
+                    {data.developing.map((skill, idx) => {
+                      const stats = data.skillStats[skill];
+                      return (
+                        <li key={idx} className="text-amber-700 flex items-start gap-2">
+                          <TrendingUp className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                          <span>
+                            <strong>{skill}</strong>
+                            {stats && (
+                              <span className="text-amber-600 text-xs ml-1">
+                                ({stats.correct}/{stats.total} correct, {stats.percentage}%)
+                              </span>
+                            )}
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              )}
+
+              {data.mastered.length > 0 && (
+                <div className="mt-4 p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
+                  <p className="font-semibold text-emerald-800 mb-2">
+                    Your student has demonstrated mastery of:
+                  </p>
+                  <ul className="space-y-1">
+                    {data.mastered.map((skill, idx) => {
+                      const stats = data.skillStats[skill];
+                      return (
+                        <li key={idx} className="text-emerald-700 flex items-start gap-2">
+                          <CheckCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                          <span>
+                            <strong>{skill}</strong>
+                            {stats && (
+                              <span className="text-emerald-600 text-xs ml-1">
+                                ({stats.correct}/{stats.total} correct, {stats.percentage}%)
+                              </span>
+                            )}
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Next Steps Based on Tier Placement */}
+          <Card className="border-slate-200">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-semibold text-slate-800">
+                Next Steps Based on {data.tier} Placement
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 text-sm text-slate-600">
+              <p>{data.nextSteps.message}</p>
+              {data.nextSteps.recommendation && (
+                <p>
+                  <strong className={data.tier === "Tier 2" ? "text-amber-700" : "text-red-700"}>
+                    Recommended:
+                  </strong>{" "}
+                  {data.nextSteps.recommendation}
+                </p>
+              )}
+              <Button
+                className={`w-full text-white ${data.nextSteps.buttonColor}`}
+                disabled
+              >
+                <GraduationCap className="mr-2 h-4 w-4" />
+                {data.nextSteps.buttonText}
+              </Button>
+              
+              <div className="border-t border-slate-100 pt-4 mt-4">
+                <p className="text-xs text-slate-500">
+                  <strong>Contact D.E.Bs LEARNING ACADEMY</strong><br />
+                  📧 Email: info@debslearnacademy.com | 📞 Phone: 347-364-1906
+                </p>
+              </div>
             </CardContent>
           </Card>
 
