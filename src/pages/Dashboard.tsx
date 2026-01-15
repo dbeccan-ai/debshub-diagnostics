@@ -5,7 +5,18 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Activity, Target, Users, Shield, BookOpen, UserPlus, ClipboardList } from "lucide-react";
+import { Activity, Target, Users, Shield, BookOpen, UserPlus, ClipboardList, XCircle, PlayCircle, AlertTriangle } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useTranslation } from "@/hooks/useTranslation";
 import { LanguageSelector } from "@/components/LanguageSelector";
 
@@ -163,6 +174,41 @@ const Dashboard = () => {
 
   const completedAttempts = attempts.filter((a) => a.completed_at);
   const inProgressAttempts = attempts.filter((a) => !a.completed_at && a.payment_status === "completed");
+  const pendingPaymentAttempts = attempts.filter((a) => !a.completed_at && a.payment_status === "pending");
+
+  const handleCancelTest = async (attemptId: string) => {
+    try {
+      const { error } = await supabase
+        .from("test_attempts")
+        .delete()
+        .eq("id", attemptId);
+
+      if (error) throw error;
+
+      setAttempts((prev) => prev.filter((a) => a.id !== attemptId));
+      toast.success("Test cancelled successfully.");
+    } catch (err) {
+      console.error("Cancel test error:", err);
+      toast.error("Failed to cancel test. Please try again.");
+    }
+  };
+
+  const handleCancelPayment = async (attemptId: string) => {
+    try {
+      const { error } = await supabase
+        .from("test_attempts")
+        .delete()
+        .eq("id", attemptId);
+
+      if (error) throw error;
+
+      setAttempts((prev) => prev.filter((a) => a.id !== attemptId));
+      toast.success("Payment cancelled successfully.");
+    } catch (err) {
+      console.error("Cancel payment error:", err);
+      toast.error("Failed to cancel payment. Please try again.");
+    }
+  };
 
   const getStatus = (attempt: DashboardAttempt): TestStatus => {
     if (attempt.completed_at) return "Completed";
@@ -367,6 +413,145 @@ const Dashboard = () => {
             </Button>
           </div>
         </div>
+
+        {/* Test Management Section */}
+        {(inProgressAttempts.length > 0 || pendingPaymentAttempts.length > 0) && (
+          <Card className="mb-6 border-slate-200 border-l-4 border-l-amber-400">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-amber-500" />
+                <CardTitle className="text-sm font-semibold text-slate-900">
+                  {t.dashboardPage.testManagement || "Test Management"}
+                </CardTitle>
+              </div>
+              <CardDescription className="text-xs text-slate-500">
+                {t.dashboardPage.testManagementDesc || "Manage your ongoing tests and pending payments"}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3 pt-0">
+              {/* In Progress Tests */}
+              {inProgressAttempts.map((attempt) => (
+                <div
+                  key={`manage-${attempt.id}`}
+                  className="flex flex-col gap-3 rounded-lg border border-amber-200 bg-amber-50/50 p-3 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-100">
+                      <PlayCircle className="h-4 w-4 text-amber-600" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-semibold text-slate-900">
+                        {attempt.tests?.name || "Diagnostic Test"}
+                      </div>
+                      <div className="text-[11px] text-slate-500">
+                        {t.dashboardPage.inProgress} · {t.dashboardPage.started} {formatDate(attempt.created_at)}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      className="h-8 bg-amber-500 text-xs font-semibold text-white hover:bg-amber-600"
+                      onClick={() => navigate(`/test/${attempt.id}`)}
+                    >
+                      <PlayCircle className="mr-1 h-3 w-3" />
+                      {t.dashboardPage.resumeTest}
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 border-red-300 bg-white text-xs font-semibold text-red-600 hover:bg-red-50 hover:text-red-700"
+                        >
+                          <XCircle className="mr-1 h-3 w-3" />
+                          {t.dashboardPage.cancelTest || "Cancel Test"}
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>{t.dashboardPage.cancelTestTitle || "Cancel Test?"}</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            {t.dashboardPage.cancelTestDesc || "This will permanently cancel your test in progress. Any answers you've submitted will be lost. This action cannot be undone."}
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>{t.dashboardPage.keepTest || "Keep Test"}</AlertDialogCancel>
+                          <AlertDialogAction
+                            className="bg-red-600 text-white hover:bg-red-700"
+                            onClick={() => handleCancelTest(attempt.id)}
+                          >
+                            {t.dashboardPage.confirmCancel || "Yes, Cancel Test"}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </div>
+              ))}
+
+              {/* Pending Payments */}
+              {pendingPaymentAttempts.map((attempt) => (
+                <div
+                  key={`payment-${attempt.id}`}
+                  className="flex flex-col gap-3 rounded-lg border border-sky-200 bg-sky-50/50 p-3 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sky-100">
+                      <Target className="h-4 w-4 text-sky-600" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-semibold text-slate-900">
+                        {attempt.tests?.name || "Diagnostic Test"}
+                      </div>
+                      <div className="text-[11px] text-slate-500">
+                        {t.dashboardPage.paymentPending} · {t.dashboardPage.started} {formatDate(attempt.created_at)}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      className="h-8 bg-sky-500 text-xs font-semibold text-white hover:bg-sky-600"
+                      onClick={() => navigate(`/checkout/${attempt.id}`)}
+                    >
+                      {t.dashboardPage.completePayment}
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 border-red-300 bg-white text-xs font-semibold text-red-600 hover:bg-red-50 hover:text-red-700"
+                        >
+                          <XCircle className="mr-1 h-3 w-3" />
+                          {t.dashboardPage.cancelPayment || "Cancel Payment"}
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>{t.dashboardPage.cancelPaymentTitle || "Cancel Payment?"}</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            {t.dashboardPage.cancelPaymentDesc || "This will cancel your pending payment and remove the test from your dashboard. You can start a new test anytime."}
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>{t.dashboardPage.keepPayment || "Keep Payment"}</AlertDialogCancel>
+                          <AlertDialogAction
+                            className="bg-red-600 text-white hover:bg-red-700"
+                            onClick={() => handleCancelPayment(attempt.id)}
+                          >
+                            {t.dashboardPage.confirmCancelPayment || "Yes, Cancel Payment"}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Top stats */}
         <div className="mb-6 grid gap-4 sm:grid-cols-3">
