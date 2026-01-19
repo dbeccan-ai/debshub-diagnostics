@@ -3,8 +3,9 @@ import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Loader2, CreditCard, ArrowLeft } from "lucide-react";
+import { Loader2, CreditCard, ArrowLeft, Tag, CheckCircle } from "lucide-react";
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -13,6 +14,9 @@ const Checkout = () => {
   const [processing, setProcessing] = useState(false);
   const [attempt, setAttempt] = useState<any>(null);
   const [test, setTest] = useState<any>(null);
+  const [couponCode, setCouponCode] = useState("");
+  const [applyingCoupon, setApplyingCoupon] = useState(false);
+  const [couponApplied, setCouponApplied] = useState(false);
 
   useEffect(() => {
     fetchAttemptDetails();
@@ -69,6 +73,37 @@ const Checkout = () => {
       navigate("/tests", { replace: true });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) {
+      toast.error("Please enter a coupon code");
+      return;
+    }
+
+    setApplyingCoupon(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("redeem-coupon", {
+        body: { code: couponCode.trim(), attemptId },
+      });
+
+      if (error) throw new Error(error.message);
+
+      if (data?.success) {
+        setCouponApplied(true);
+        toast.success(data.message);
+        // Redirect to test after short delay
+        setTimeout(() => {
+          navigate(`/test/${attemptId}`, { replace: true });
+        }, 1500);
+      } else {
+        toast.error(data?.message || "Failed to apply coupon");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to apply coupon");
+    } finally {
+      setApplyingCoupon(false);
     }
   };
 
@@ -181,9 +216,53 @@ const Checkout = () => {
                 </ul>
               </div>
 
+              {/* Coupon Code Section */}
+              <div className="border-t pt-4">
+                <h3 className="font-semibold mb-3 flex items-center gap-2">
+                  <Tag className="h-4 w-4" />
+                  Have a Coupon Code?
+                </h3>
+                {couponApplied ? (
+                  <div className="flex items-center gap-2 p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    <span className="text-green-700 font-medium">Coupon applied! Redirecting to test...</span>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Enter coupon code"
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                      className="flex-1"
+                      disabled={applyingCoupon}
+                    />
+                    <Button
+                      onClick={handleApplyCoupon}
+                      disabled={applyingCoupon || !couponCode.trim()}
+                      variant="outline"
+                    >
+                      {applyingCoupon ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        "Apply"
+                      )}
+                    </Button>
+                  </div>
+                )}
+              </div>
+
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-white px-2 text-muted-foreground">Or pay with card</span>
+                </div>
+              </div>
+
               <Button
                 onClick={handlePayment}
-                disabled={processing}
+                disabled={processing || couponApplied}
                 className="w-full h-12 text-lg"
                 size="lg"
               >
