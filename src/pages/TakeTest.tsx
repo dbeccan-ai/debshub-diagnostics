@@ -594,6 +594,22 @@ const TakeTest = () => {
               {currentQuestion.visual && (
                 <QuestionVisual visual={currentQuestion.visual} />
               )}
+              
+              {/* Diagram boxes for questions with diagrams (e.g., sentence diagrams) */}
+              {currentQuestion.diagrams && currentQuestion.diagrams.length > 0 && (
+                <div className="mt-4 space-y-4">
+                  {currentQuestion.diagrams.map((diagram: { title: string; diagram: string }, idx: number) => (
+                    <div key={idx} className="bg-gray-50 border-2 border-[#2E5A8F] rounded-lg p-5">
+                      <div className="text-[#1e3a8a] font-bold mb-4 text-base">
+                        {diagram.title}
+                      </div>
+                      <div className="bg-white p-4 rounded font-mono text-sm leading-relaxed whitespace-pre">
+                        {diagram.diagram}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Answer Area */}
