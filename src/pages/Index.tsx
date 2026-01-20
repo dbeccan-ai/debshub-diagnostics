@@ -3,6 +3,7 @@ import { GradeRangeTestDialog } from "@/components/GradeRangeTestDialog";
 import { HeroTestDropdown } from "@/components/HeroTestDropdown";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { SampleResultsDialog } from "@/components/SampleResultsDialog";
+import ReadingRecoveryPreviewDialog from "@/components/ReadingRecoveryPreviewDialog";
 import { useTranslation } from "@/hooks/useTranslation";
 
 export default function Page() {
@@ -146,12 +147,11 @@ export default function Page() {
                       <div className="text-xs font-semibold text-slate-700">{t.dashboard.readingRecovery}</div>
                       <div className="text-[11px] text-slate-500">{t.dashboard.readingRecoveryDesc}</div>
                     </div>
-                    <a
-                      href="/reading-recovery"
-                      className="px-3 py-1 text-[11px] font-semibold rounded-full bg-slate-900 text-white hover:bg-slate-800"
-                    >
-                      {t.dashboard.preview}
-                    </a>
+                    <ReadingRecoveryPreviewDialog>
+                      <button className="px-3 py-1 text-[11px] font-semibold rounded-full bg-slate-900 text-white hover:bg-slate-800">
+                        {t.dashboard.preview}
+                      </button>
+                    </ReadingRecoveryPreviewDialog>
                   </div>
                   {/* Card 2 - Math Diagnostic */}
                   <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50">
@@ -333,7 +333,7 @@ export default function Page() {
                   <li>• {t.tests.readingRecoveryItem2}</li>
                   <li>• {t.tests.readingRecoveryItem3}</li>
                 </ul>
-                <a href="/reading-recovery" className="block w-full px-4 py-2 text-xs font-semibold rounded-full bg-white text-slate-900 hover:bg-slate-100 text-center">
+                <a href="/auth" className="block w-full px-4 py-2 text-xs font-semibold rounded-full bg-white text-slate-900 hover:bg-slate-100 text-center">
                   {t.tests.learnMoreProgramme}
                 </a>
               </div>
