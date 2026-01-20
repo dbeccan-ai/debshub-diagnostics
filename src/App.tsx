@@ -21,6 +21,8 @@ import Register from "./pages/Register";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import ManualGrading from "./pages/ManualGrading";
 import SchoolSetup from "./pages/SchoolSetup";
+import ReadingRecovery from "./pages/ReadingRecovery";
+import ReadingRecoveryDiagnostic from "./pages/ReadingRecoveryDiagnostic";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -50,6 +52,8 @@ const App = () => (
             <Route path="/register" element={<Register />} />
             <Route path="/school-setup" element={<SchoolSetup />} />
             <Route path="/teacher" element={<TeacherDashboard />} />
+            <Route path="/reading-recovery" element={<ReadingRecovery />} />
+            <Route path="/reading-recovery/diagnostic" element={<ReadingRecoveryDiagnostic />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
