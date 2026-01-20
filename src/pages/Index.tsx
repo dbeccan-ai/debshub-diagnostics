@@ -140,14 +140,14 @@ export default function Page() {
                 </div>
 
                 <div className="grid gap-3">
-                  {/* Card 1 */}
+                  {/* Card 1 - Reading Recovery */}
                   <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50">
                     <div>
-                      <div className="text-xs font-semibold text-slate-700">{t.dashboard.observationQuiz}</div>
-                      <div className="text-[11px] text-slate-500">{t.dashboard.observationDesc}</div>
+                      <div className="text-xs font-semibold text-slate-700">{t.dashboard.readingRecovery}</div>
+                      <div className="text-[11px] text-slate-500">{t.dashboard.readingRecoveryDesc}</div>
                     </div>
                     <a
-                      href="/observation-quiz"
+                      href="/reading-recovery"
                       className="px-3 py-1 text-[11px] font-semibold rounded-full bg-slate-900 text-white hover:bg-slate-800"
                     >
                       {t.dashboard.view}
@@ -321,20 +321,20 @@ export default function Page() {
             </div>
 
             <div className="grid md:grid-cols-3 gap-6">
-              {/* Observation Quiz */}
+              {/* Reading Recovery Diagnostic */}
               <div className="rounded-2xl bg-slate-800/80 border border-slate-700 p-5">
-                <div className="text-xs font-semibold text-amber-300 uppercase mb-1">{t.dashboard.observationQuiz}</div>
-                <h3 className="font-semibold mb-2">{t.tests.observationTitle}</h3>
+                <div className="text-xs font-semibold text-amber-300 uppercase mb-1">{t.dashboard.readingRecovery}</div>
+                <h3 className="font-semibold mb-2">{t.tests.readingRecoveryTitle}</h3>
                 <p className="text-xs text-slate-300 mb-3">
-                  {t.tests.observationDesc}
+                  {t.tests.readingRecoveryDesc}
                 </p>
                 <ul className="text-[11px] text-slate-300 space-y-1.5 mb-4">
-                  <li>• {t.tests.observationItem1}</li>
-                  <li>• {t.tests.observationItem2}</li>
-                  <li>• {t.tests.observationItem3}</li>
+                  <li>• {t.tests.readingRecoveryItem1}</li>
+                  <li>• {t.tests.readingRecoveryItem2}</li>
+                  <li>• {t.tests.readingRecoveryItem3}</li>
                 </ul>
                 <button className="w-full px-4 py-2 text-xs font-semibold rounded-full bg-white text-slate-900 hover:bg-slate-100">
-                  {t.tests.previewQuiz}
+                  {t.tests.previewDiagnostic}
                 </button>
               </div>
 
