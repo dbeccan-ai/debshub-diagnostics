@@ -333,7 +333,7 @@ export default function Page() {
                   <li>• {t.tests.readingRecoveryItem2}</li>
                   <li>• {t.tests.readingRecoveryItem3}</li>
                 </ul>
-                <a href="/auth" className="block w-full px-4 py-2 text-xs font-semibold rounded-full bg-white text-slate-900 hover:bg-slate-100 text-center">
+                <a href="/reading-recovery" className="block w-full px-4 py-2 text-xs font-semibold rounded-full bg-white text-slate-900 hover:bg-slate-100 text-center">
                   {t.tests.learnMoreProgramme}
                 </a>
               </div>
