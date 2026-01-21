@@ -8,7 +8,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, ArrowRight, BookOpen, CheckCircle2, XCircle, AlertTriangle, Volume2, Mic } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, CheckCircle2, XCircle, AlertTriangle, Volume2, Mic, Trophy, BarChart3 } from "lucide-react";
 import { OralReadingAutoAssist } from "@/components/OralReadingAutoAssist";
 import { OralQuestionAssist, type QuestionTranscript } from "@/components/OralQuestionAssist";
 import { 
@@ -439,39 +439,99 @@ const ReadingRecoveryDiagnostic = () => {
         {/* Step 5: Results */}
         {step === 5 && passage && (
           <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Assessment Results for {adminInfo.studentName}</CardTitle>
-                <p className="text-sm text-muted-foreground">{passage.title} - {passage.versionLabel}</p>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {(() => {
-                  const sc = calculateScores();
-                  const breakdown = identifyBreakdownPoint();
-                  const interp = getInterpretation();
-                  return (
-                    <>
-                      <div className="grid md:grid-cols-4 gap-4">
-                        <div className="bg-slate-100 p-4 rounded-lg text-center">
-                          <p className="text-sm text-muted-foreground">Literal</p>
-                          <p className="text-2xl font-bold">{sc.literal}/{passage.scoringThresholds.literal.total}</p>
+            {/* Hero Results Card with Tier */}
+            {(() => {
+              const sc = calculateScores();
+              const breakdown = identifyBreakdownPoint();
+              const interp = getInterpretation();
+              const percentage = Math.round((sc.total / passage.scoringThresholds.totalQuestions) * 100);
+              const tier = percentage >= 80 ? 'Tier 1' : percentage >= 50 ? 'Tier 2' : 'Tier 3';
+              const tierColor = tier === 'Tier 1' ? 'bg-emerald-500' : tier === 'Tier 2' ? 'bg-amber-500' : 'bg-red-500';
+              const tierBg = tier === 'Tier 1' ? 'bg-emerald-50 border-emerald-200' : tier === 'Tier 2' ? 'bg-amber-50 border-amber-200' : 'bg-red-50 border-red-200';
+              const tierDesc = tier === 'Tier 1' 
+                ? 'Excellent! Student has mastered reading comprehension at this level.'
+                : tier === 'Tier 2'
+                ? 'Good progress. Some areas need additional support and practice.'
+                : 'Needs significant support. Focused intervention recommended.';
+
+              return (
+                <>
+                  {/* Main Score & Tier Display */}
+                  <Card className={`border-2 ${tierBg}`}>
+                    <CardContent className="pt-6">
+                      <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                        {/* Score Circle */}
+                        <div className="flex flex-col items-center">
+                          <div className={`w-32 h-32 rounded-full ${tierColor} flex items-center justify-center shadow-lg`}>
+                            <div className="text-center text-white">
+                              <p className="text-4xl font-bold">{percentage}%</p>
+                              <p className="text-sm opacity-90">Score</p>
+                            </div>
+                          </div>
+                          <p className="mt-3 text-lg font-semibold">{sc.total}/{passage.scoringThresholds.totalQuestions} Correct</p>
                         </div>
-                        <div className="bg-slate-100 p-4 rounded-lg text-center">
-                          <p className="text-sm text-muted-foreground">Inferential</p>
-                          <p className="text-2xl font-bold">{sc.inferential}/{passage.scoringThresholds.inferential.total}</p>
-                        </div>
-                        <div className="bg-slate-100 p-4 rounded-lg text-center">
-                          <p className="text-sm text-muted-foreground">Analytical</p>
-                          <p className="text-2xl font-bold">{sc.analytical}/{passage.scoringThresholds.analytical.total}</p>
-                        </div>
-                        <div className="bg-primary/10 p-4 rounded-lg text-center">
-                          <p className="text-sm text-muted-foreground">Total</p>
-                          <p className="text-2xl font-bold text-primary">{sc.total}/{passage.scoringThresholds.totalQuestions}</p>
+
+                        {/* Tier Badge & Description */}
+                        <div className="flex-1 text-center md:text-left">
+                          <div className="flex items-center justify-center md:justify-start gap-3 mb-3">
+                            <span className={`px-4 py-2 rounded-full text-white font-bold text-lg ${tierColor}`}>
+                              {tier}
+                            </span>
+                            {tier === 'Tier 1' && <Trophy className="w-6 h-6 text-emerald-600" />}
+                          </div>
+                          <h2 className="text-2xl font-bold mb-2">
+                            Assessment Complete for {adminInfo.studentName}
+                          </h2>
+                          <p className="text-muted-foreground">{tierDesc}</p>
+                          <p className="text-sm text-muted-foreground mt-2">
+                            {passage.title} • Grade Band {passage.gradeBand} • Version {passage.version}
+                          </p>
                         </div>
                       </div>
+                    </CardContent>
+                  </Card>
 
-                      <Separator />
+                  {/* Detailed Score Breakdown */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <BarChart3 className="w-5 h-5" />
+                        Score Breakdown by Category
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid md:grid-cols-3 gap-4">
+                        <div className="bg-slate-100 p-4 rounded-lg text-center">
+                          <p className="text-sm text-muted-foreground mb-1">Literal Comprehension</p>
+                          <p className="text-3xl font-bold">{sc.literal}/{passage.scoringThresholds.literal.total}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {Math.round((sc.literal / passage.scoringThresholds.literal.total) * 100)}%
+                          </p>
+                        </div>
+                        <div className="bg-slate-100 p-4 rounded-lg text-center">
+                          <p className="text-sm text-muted-foreground mb-1">Inferential Comprehension</p>
+                          <p className="text-3xl font-bold">{sc.inferential}/{passage.scoringThresholds.inferential.total}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {Math.round((sc.inferential / passage.scoringThresholds.inferential.total) * 100)}%
+                          </p>
+                        </div>
+                        <div className="bg-slate-100 p-4 rounded-lg text-center">
+                          <p className="text-sm text-muted-foreground mb-1">Analytical Comprehension</p>
+                          <p className="text-3xl font-bold">{sc.analytical}/{passage.scoringThresholds.analytical.total}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {Math.round((sc.analytical / passage.scoringThresholds.analytical.total) * 100)}%
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
 
+                  {/* Breakdown Point / Success Message */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Assessment Analysis</CardTitle>
+                    </CardHeader>
+                    <CardContent>
                       {breakdown ? (
                         <div className="bg-amber-50 border border-amber-200 p-6 rounded-lg">
                           <div className="flex items-center gap-2 mb-4">
@@ -500,25 +560,28 @@ const ReadingRecoveryDiagnostic = () => {
                           <p>Great work! Continue with grade-level reading practice and enrichment activities.</p>
                         </div>
                       )}
+                    </CardContent>
+                  </Card>
 
-                      <Separator />
-
-                      <div>
-                        <h3 className="font-bold mb-3">Celebration Milestones to Track</h3>
-                        <div className="space-y-2">
-                          {celebrationMilestones.map((m, i) => (
-                            <div key={i} className="flex items-center gap-2">
-                              <Checkbox id={`mile-${i}`} />
-                              <Label htmlFor={`mile-${i}`}>{m}</Label>
-                            </div>
-                          ))}
-                        </div>
+                  {/* Celebration Milestones */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Celebration Milestones to Track</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid md:grid-cols-2 gap-3">
+                        {celebrationMilestones.map((m, i) => (
+                          <div key={i} className="flex items-center gap-2 p-2 rounded hover:bg-muted/50">
+                            <Checkbox id={`mile-${i}`} />
+                            <Label htmlFor={`mile-${i}`} className="cursor-pointer">{m}</Label>
+                          </div>
+                        ))}
                       </div>
-                    </>
-                  );
-                })()}
-              </CardContent>
-            </Card>
+                    </CardContent>
+                  </Card>
+                </>
+              );
+            })()}
 
             <div className="flex justify-between">
               <Button variant="outline" onClick={handleBack}><ArrowLeft className="mr-2 w-4 h-4" /> Back</Button>
