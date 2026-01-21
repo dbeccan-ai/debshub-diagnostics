@@ -34,9 +34,54 @@ interface OralReadingAutoAssistProps {
   gradeBand: string;
   version: string;
   studentName: string;
-  onErrorCountConfirmed: (count: number, transcript: string, errors: DetectedErrors) => void;
+  onErrorCountConfirmed: (count: number, transcript: string, errors: DetectedErrors, suggestedStrategy?: string) => void;
   initialErrorCount?: number;
 }
+
+// Analyze error patterns to suggest the most likely decoding strategy used
+const analyzeDecodingStrategy = (errors: DetectedErrors, totalWords: number): string | undefined => {
+  const omissionCount = errors.omissions.length;
+  const substitutionCount = errors.substitutions.length;
+  const insertionCount = errors.insertions.length;
+  const totalErrors = omissionCount + substitutionCount + insertionCount;
+  
+  // If very few errors, student is doing well
+  if (totalErrors === 0 || (totalErrors <= 2 && totalWords > 50)) {
+    return "Sounded out unfamiliar words successfully";
+  }
+  
+  // High omission rate suggests skipping difficult words
+  if (omissionCount >= 3 && omissionCount > substitutionCount) {
+    return "Skipped difficult words entirely";
+  }
+  
+  // Check substitutions for phonetic similarity patterns
+  // If substitutions have similar starting sounds, likely attempted to sound out
+  const phoneticSubstitutions = errors.substitutions.filter(sub => {
+    const expected = sub.expected.toLowerCase();
+    const actual = sub.actual.toLowerCase();
+    // Check if first letter or first two letters match (attempted sounding out)
+    return expected[0] === actual[0] || 
+           (expected.length > 1 && actual.length > 1 && expected.slice(0, 2) === actual.slice(0, 2));
+  });
+  
+  if (phoneticSubstitutions.length >= 2 || 
+      (substitutionCount >= 2 && phoneticSubstitutions.length > substitutionCount / 2)) {
+    return "Attempted to sound out but needed help";
+  }
+  
+  // Random substitutions suggest guessing based on context/pictures
+  if (substitutionCount >= 2) {
+    return "Guessed at words based on pictures/first letter";
+  }
+  
+  // Default for moderate errors
+  if (totalErrors >= 3) {
+    return "Attempted to sound out but needed help";
+  }
+  
+  return undefined;
+};
 
 export const OralReadingAutoAssist = ({
   passageText,
@@ -167,7 +212,9 @@ export const OralReadingAutoAssist = ({
 
   const confirmErrors = () => {
     if (transcript && editedErrors) {
-      onErrorCountConfirmed(confirmedErrorCount, transcript, editedErrors);
+      const wordCount = passageText.split(/\s+/).length;
+      const suggestedStrategy = analyzeDecodingStrategy(editedErrors, wordCount);
+      onErrorCountConfirmed(confirmedErrorCount, transcript, editedErrors, suggestedStrategy);
       toast.success("Errors confirmed and saved.");
     }
   };
