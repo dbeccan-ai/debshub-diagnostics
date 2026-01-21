@@ -319,10 +319,32 @@ const ReadingRecoveryDiagnostic = () => {
         {/* Step 4: Comprehension Questions */}
         {step === 4 && passage && (
           <div className="space-y-6">
+            {/* Instruction Banner */}
+            <Card className="border-blue-200 bg-blue-50">
+              <CardContent className="py-4">
+                <div className="flex items-start gap-3">
+                  <BookOpen className="w-5 h-5 text-blue-600 mt-0.5" />
+                  <div>
+                    <p className="font-medium text-blue-900">Oral Assessment Instructions</p>
+                    <p className="text-sm text-blue-700 mt-1">
+                      Ask each question <strong>verbally</strong> to the student and listen to their response. 
+                      Mark "Correct" if their answer demonstrates understanding, or "Incorrect" if they struggle 
+                      or give an inaccurate response. There are no multiple-choice options—evaluate the quality 
+                      of the student's verbal explanation.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
             {(["literal", "inferential", "analytical"] as const).map((level) => {
               const questions = passage.questions.filter((q) => q.level === level);
               const levelLabels = { literal: "LITERAL COMPREHENSION", inferential: "INFERENTIAL COMPREHENSION", analytical: "ANALYTICAL COMPREHENSION" };
-              const levelDescs = { literal: "Stated directly in text", inferential: "Reading between the lines", analytical: "Critical thinking and evaluation" };
+              const levelDescs = { 
+                literal: "Ask the student to recall facts stated directly in the text", 
+                inferential: "Ask the student to make inferences and read between the lines", 
+                analytical: "Ask the student to think critically and evaluate the text" 
+              };
               return (
                 <Card key={level}>
                   <CardHeader>
@@ -333,15 +355,19 @@ const ReadingRecoveryDiagnostic = () => {
                     {questions.map((q) => (
                       <div key={q.id} className="flex items-start gap-4 p-4 bg-slate-50 rounded-lg">
                         <div className="flex-1">
-                          <p className="font-medium">Question {q.number}: {q.text}</p>
+                          <p className="text-xs text-muted-foreground mb-1">Ask the student:</p>
+                          <p className="font-medium">"{q.text}"</p>
                         </div>
-                        <div className="flex gap-2">
-                          <Button size="sm" variant={scores.questionResults[q.id] ? "default" : "outline"} className={scores.questionResults[q.id] ? "bg-emerald-600 hover:bg-emerald-700" : ""} onClick={() => toggleQuestionResult(q.id)}>
-                            <CheckCircle2 className="w-4 h-4 mr-1" /> Correct
-                          </Button>
-                          <Button size="sm" variant={scores.questionResults[q.id] === false ? "destructive" : "outline"} onClick={() => setScores(prev => ({ ...prev, questionResults: { ...prev.questionResults, [q.id]: false } }))}>
-                            <XCircle className="w-4 h-4 mr-1" /> Incorrect
-                          </Button>
+                        <div className="flex flex-col gap-1">
+                          <span className="text-xs text-muted-foreground text-center">Student's response:</span>
+                          <div className="flex gap-2">
+                            <Button size="sm" variant={scores.questionResults[q.id] ? "default" : "outline"} className={scores.questionResults[q.id] ? "bg-emerald-600 hover:bg-emerald-700" : ""} onClick={() => toggleQuestionResult(q.id)}>
+                              <CheckCircle2 className="w-4 h-4 mr-1" /> Correct
+                            </Button>
+                            <Button size="sm" variant={scores.questionResults[q.id] === false ? "destructive" : "outline"} onClick={() => setScores(prev => ({ ...prev, questionResults: { ...prev.questionResults, [q.id]: false } }))}>
+                              <XCircle className="w-4 h-4 mr-1" /> Incorrect
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     ))}
