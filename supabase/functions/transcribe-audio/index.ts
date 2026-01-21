@@ -143,9 +143,18 @@ serve(async (req) => {
       });
     }
 
-    // Convert audio file to base64
+    // Convert audio file to base64 (chunked to avoid stack overflow)
     const audioBuffer = await audioFile.arrayBuffer();
-    const audioBase64 = btoa(String.fromCharCode(...new Uint8Array(audioBuffer)));
+    const uint8Array = new Uint8Array(audioBuffer);
+    
+    // Process in chunks to avoid "Maximum call stack size exceeded"
+    const chunkSize = 8192;
+    let binaryString = "";
+    for (let i = 0; i < uint8Array.length; i += chunkSize) {
+      const chunk = uint8Array.subarray(i, Math.min(i + chunkSize, uint8Array.length));
+      binaryString += String.fromCharCode.apply(null, Array.from(chunk));
+    }
+    const audioBase64 = btoa(binaryString);
 
     // Use Lovable AI Gateway with Gemini for transcription
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
