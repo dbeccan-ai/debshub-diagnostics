@@ -47,3 +47,6 @@ verify_jwt = true
 
 [functions.transcribe-audio]
 verify_jwt = true
+
+[functions.evaluate-oral-answer]
+verify_jwt = true

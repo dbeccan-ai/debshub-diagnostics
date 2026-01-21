@@ -4,6 +4,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { 
   Volume2, 
   VolumeX, 
@@ -16,8 +19,18 @@ import {
   AlertCircle,
   CheckCircle2,
   XCircle,
-  Loader2
+  Loader2,
+  Sparkles,
+  HelpCircle,
+  Check
 } from "lucide-react";
+
+interface AutoGradeResult {
+  suggestedResult: 'correct' | 'incorrect' | 'unclear';
+  confidence: number;
+  rationale: string;
+  expectedAnswer: string;
+}
 
 interface QuestionTranscript {
   questionId: string;
@@ -25,12 +38,16 @@ interface QuestionTranscript {
   audioBlob?: Blob;
   isCorrect: boolean | null;
   timestamp: Date;
+  autoGradeResult?: AutoGradeResult;
+  adminOverrode?: boolean;
 }
 
 interface OralQuestionAssistProps {
   questionId: string;
   questionText: string;
   questionNumber: number;
+  questionType: 'literal' | 'inferential' | 'analytical';
+  passageText: string;
   isCorrect: boolean | null;
   consentGiven: boolean;
   onTranscriptUpdate: (data: QuestionTranscript) => void;
@@ -39,11 +56,14 @@ interface OralQuestionAssistProps {
 
 type SpeechStatus = "idle" | "listening" | "captured" | "not_supported" | "error";
 type TTSStatus = "idle" | "speaking" | "paused";
+type AutoGradeStatus = "idle" | "grading" | "done" | "error";
 
 export const OralQuestionAssist = ({
   questionId,
   questionText,
   questionNumber,
+  questionType,
+  passageText,
   isCorrect,
   consentGiven,
   onTranscriptUpdate,
@@ -71,6 +91,11 @@ export const OralQuestionAssist = ({
   // Admin notes (fallback mode)
   const [adminNotes, setAdminNotes] = useState("");
 
+  // Auto-Grade State
+  const [autoGradeStatus, setAutoGradeStatus] = useState<AutoGradeStatus>("idle");
+  const [autoGradeResult, setAutoGradeResult] = useState<AutoGradeResult | null>(null);
+  const [adminOverrode, setAdminOverrode] = useState(false);
+
   // Check for STT support on mount
   useEffect(() => {
     const SpeechRecognitionAPI = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -97,6 +122,55 @@ export const OralQuestionAssist = ({
       }
     };
   }, [audioUrl]);
+
+  // ========== AUTO-GRADE FUNCTION ==========
+  const runAutoGrade = useCallback(async (transcriptText: string) => {
+    if (!transcriptText || transcriptText.trim().length < 3) {
+      return;
+    }
+
+    setAutoGradeStatus("grading");
+    setAutoGradeResult(null);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('evaluate-oral-answer', {
+        body: {
+          passageText,
+          questionText,
+          studentTranscript: transcriptText,
+          questionType,
+        },
+      });
+
+      if (error) {
+        console.error('Auto-grade error:', error);
+        // Handle rate limit and payment errors
+        if (error.message?.includes('429') || error.message?.includes('Rate limit')) {
+          toast.error('Rate limit exceeded. Please try again later.');
+        } else if (error.message?.includes('402') || error.message?.includes('Payment')) {
+          toast.error('AI credits required. Please add funds to continue.');
+        }
+        setAutoGradeStatus("error");
+        return;
+      }
+
+      setAutoGradeResult(data);
+      setAutoGradeStatus("done");
+
+      // Update parent with auto-grade result
+      onTranscriptUpdate({
+        questionId,
+        transcriptText,
+        isCorrect,
+        timestamp: new Date(),
+        autoGradeResult: data,
+        adminOverrode: false,
+      });
+    } catch (err) {
+      console.error('Auto-grade failed:', err);
+      setAutoGradeStatus("error");
+    }
+  }, [passageText, questionText, questionType, questionId, isCorrect, onTranscriptUpdate]);
 
   // ========== TEXT-TO-SPEECH (Read Question) ==========
   const handleReadQuestion = useCallback(() => {
@@ -185,19 +259,25 @@ export const OralQuestionAssist = ({
       (recognitionRef.current as any).stop();
       setSttStatus("captured");
       
-      // Save transcript data
+      // Save transcript data and trigger auto-grade
       onTranscriptUpdate({
         questionId,
         transcriptText: transcript,
         isCorrect,
         timestamp: new Date(),
       });
+
+      // Trigger auto-grade after capturing
+      runAutoGrade(transcript);
     }
-  }, [transcript, questionId, isCorrect, onTranscriptUpdate]);
+  }, [transcript, questionId, isCorrect, onTranscriptUpdate, runAutoGrade]);
 
   const retryListening = useCallback(() => {
     setTranscript("");
     setSttStatus("idle");
+    setAutoGradeStatus("idle");
+    setAutoGradeResult(null);
+    setAdminOverrode(false);
   }, []);
 
   // ========== FALLBACK: AUDIO RECORDING ==========
@@ -276,6 +356,46 @@ export const OralQuestionAssist = ({
       audioRef.current.onended = () => setIsPlaying(false);
     }
   }, [audioUrl]);
+
+  // ========== ACCEPT SUGGESTED SCORE ==========
+  const acceptSuggestion = useCallback(() => {
+    if (autoGradeResult && autoGradeResult.suggestedResult !== 'unclear') {
+      const newIsCorrect = autoGradeResult.suggestedResult === 'correct';
+      onCorrectChange(newIsCorrect);
+      setAdminOverrode(false);
+      
+      // Update transcript with final result
+      onTranscriptUpdate({
+        questionId,
+        transcriptText: transcript || adminNotes,
+        audioBlob: audioBlob || undefined,
+        isCorrect: newIsCorrect,
+        timestamp: new Date(),
+        autoGradeResult,
+        adminOverrode: false,
+      });
+    }
+  }, [autoGradeResult, onCorrectChange, onTranscriptUpdate, questionId, transcript, adminNotes, audioBlob]);
+
+  // ========== MANUAL OVERRIDE ==========
+  const handleManualScore = useCallback((newIsCorrect: boolean) => {
+    onCorrectChange(newIsCorrect);
+    const didOverride = autoGradeResult !== null && 
+      ((autoGradeResult.suggestedResult === 'correct' && !newIsCorrect) ||
+       (autoGradeResult.suggestedResult === 'incorrect' && newIsCorrect));
+    setAdminOverrode(didOverride);
+
+    // Update transcript with final result
+    onTranscriptUpdate({
+      questionId,
+      transcriptText: transcript || adminNotes,
+      audioBlob: audioBlob || undefined,
+      isCorrect: newIsCorrect,
+      timestamp: new Date(),
+      autoGradeResult: autoGradeResult || undefined,
+      adminOverrode: didOverride,
+    });
+  }, [autoGradeResult, onCorrectChange, onTranscriptUpdate, questionId, transcript, adminNotes, audioBlob]);
 
   // ========== RENDER ==========
   return (
@@ -467,22 +587,104 @@ export const OralQuestionAssist = ({
         </div>
       )}
 
+      {/* Auto-Grade Results Section */}
+      {(autoGradeStatus !== "idle" || autoGradeResult) && (
+        <div className="border-t pt-3 space-y-3">
+          {autoGradeStatus === "grading" && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span>Auto-grading response...</span>
+            </div>
+          )}
+
+          {autoGradeStatus === "error" && (
+            <div className="flex items-center gap-2 text-sm text-amber-600">
+              <AlertCircle className="w-4 h-4" />
+              <span>Auto-grade unavailable. Please score manually.</span>
+            </div>
+          )}
+
+          {autoGradeResult && (
+            <div className="bg-white border rounded-md p-3 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-medium">AI Suggested Score:</span>
+                </div>
+                <Badge 
+                  variant={
+                    autoGradeResult.suggestedResult === 'correct' ? 'default' :
+                    autoGradeResult.suggestedResult === 'incorrect' ? 'destructive' :
+                    'secondary'
+                  }
+                  className={
+                    autoGradeResult.suggestedResult === 'correct' ? 'bg-emerald-600' :
+                    autoGradeResult.suggestedResult === 'incorrect' ? '' :
+                    'bg-amber-500'
+                  }
+                >
+                  {autoGradeResult.suggestedResult === 'correct' && <CheckCircle2 className="w-3 h-3 mr-1" />}
+                  {autoGradeResult.suggestedResult === 'incorrect' && <XCircle className="w-3 h-3 mr-1" />}
+                  {autoGradeResult.suggestedResult === 'unclear' && <HelpCircle className="w-3 h-3 mr-1" />}
+                  {autoGradeResult.suggestedResult.charAt(0).toUpperCase() + autoGradeResult.suggestedResult.slice(1)}
+                  {autoGradeResult.confidence > 0 && ` (${autoGradeResult.confidence}%)`}
+                </Badge>
+              </div>
+
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">Why:</p>
+                <p className="text-sm">{autoGradeResult.rationale}</p>
+              </div>
+
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">Expected Answer:</p>
+                <p className="text-sm italic">{autoGradeResult.expectedAnswer}</p>
+              </div>
+
+              {autoGradeResult.suggestedResult === 'unclear' && (
+                <div className="flex items-center gap-2 text-xs text-amber-600 bg-amber-50 p-2 rounded">
+                  <AlertCircle className="w-3 h-3" />
+                  <span>Needs human review - please score manually below.</span>
+                </div>
+              )}
+
+              {autoGradeResult.suggestedResult !== 'unclear' && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={acceptSuggestion}
+                  className="w-full gap-1 border-primary text-primary hover:bg-primary hover:text-white"
+                >
+                  <Check className="w-4 h-4" />
+                  Accept Suggested Score
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Correct/Incorrect Buttons */}
       <div className="flex items-center justify-between border-t pt-3">
-        <span className="text-xs text-muted-foreground">Evaluate response:</span>
+        <div className="flex flex-col">
+          <span className="text-xs text-muted-foreground">Admin Final Score:</span>
+          {adminOverrode && (
+            <span className="text-xs text-amber-600">(Overrode AI suggestion)</span>
+          )}
+        </div>
         <div className="flex gap-2">
           <Button
             size="sm"
             variant={isCorrect === true ? "default" : "outline"}
             className={isCorrect === true ? "bg-emerald-600 hover:bg-emerald-700" : ""}
-            onClick={() => onCorrectChange(true)}
+            onClick={() => handleManualScore(true)}
           >
             <CheckCircle2 className="w-4 h-4 mr-1" /> Correct
           </Button>
           <Button
             size="sm"
             variant={isCorrect === false ? "destructive" : "outline"}
-            onClick={() => onCorrectChange(false)}
+            onClick={() => handleManualScore(false)}
           >
             <XCircle className="w-4 h-4 mr-1" /> Incorrect
           </Button>
@@ -492,4 +694,4 @@ export const OralQuestionAssist = ({
   );
 };
 
-export type { QuestionTranscript };
+export type { QuestionTranscript, AutoGradeResult };
