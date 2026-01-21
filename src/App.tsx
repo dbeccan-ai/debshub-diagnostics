@@ -24,8 +24,9 @@ import SchoolSetup from "./pages/SchoolSetup";
 import ReadingRecovery from "./pages/ReadingRecovery";
 import ReadingRecoveryDiagnostic from "./pages/ReadingRecoveryDiagnostic";
 import ReadingRecoveryResults from "./pages/ReadingRecoveryResults";
+import ELADiagnosticHub from "./pages/ELADiagnosticHub";
+import TakeELATest from "./pages/TakeELATest";
 import NotFound from "./pages/NotFound";
-
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -56,6 +57,8 @@ const App = () => (
             <Route path="/reading-recovery" element={<ReadingRecovery />} />
             <Route path="/reading-recovery/diagnostic" element={<ReadingRecoveryDiagnostic />} />
             <Route path="/reading-recovery/results/:transcriptId" element={<ReadingRecoveryResults />} />
+            <Route path="/diagnostics/ela" element={<ELADiagnosticHub />} />
+            <Route path="/diagnostics/ela/:grade" element={<TakeELATest />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

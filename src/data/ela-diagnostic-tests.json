@@ -1,0 +1,2232 @@
+{
+  "all_diagnostics": [
+    {
+      "grade": "5",
+      "test_name": "Grade 5 ELA Diagnostic Test",
+      "total_time_minutes": 90,
+      "directions": "This diagnostic test will assess your reading comprehension, vocabulary, grammar, and writing skills. Read each question carefully and choose the best answer. For writing questions, use complete sentences and proper grammar.",
+      "sections": [
+        {
+          "section_title": "Section 1: Multiple Choice",
+          "instructions": "Choose the best answer for each question.",
+          "time_limit_minutes": 45,
+          "subsections": [
+            {
+              "title": "Part A: Language Skills",
+              "questions": [
+                {
+                  "id": "g5-1",
+                  "number": 1,
+                  "type": "multiple_choice",
+                  "topic": "Vocabulary",
+                  "question_text": "Which word is a synonym for diligent?",
+                  "choices": ["A) Lazy", "B) Hardworking", "C) Careless", "D) Forgetful"],
+                  "correct_answer": "B"
+                },
+                {
+                  "id": "g5-2",
+                  "number": 2,
+                  "type": "multiple_choice",
+                  "topic": "Punctuation",
+                  "question_text": "Identify the sentence with the correct punctuation:",
+                  "choices": ["A) My favorite subjects are math science and reading.", "B) My favorite subjects are math, science, and reading.", "C) My favorite subjects are math science, and reading.", "D) My favorite subjects are: math, science and reading."],
+                  "correct_answer": "B"
+                },
+                {
+                  "id": "g5-3",
+                  "number": 3,
+                  "type": "multiple_choice",
+                  "topic": "Verb Tense",
+                  "question_text": "Which sentence uses the correct verb tense?",
+                  "choices": ["A) Yesterday, I go to the library.", "B) Yesterday, I went to the library.", "C) Yesterday, I going to the library.", "D) Yesterday, I will go to the library."],
+                  "correct_answer": "B"
+                },
+                {
+                  "id": "g5-4",
+                  "number": 4,
+                  "type": "multiple_choice",
+                  "topic": "Word Structure",
+                  "question_text": "What is the prefix in the word unable?",
+                  "choices": ["A) un-", "B) able", "C) -ble", "D) una-"],
+                  "correct_answer": "A"
+                },
+                {
+                  "id": "g5-5",
+                  "number": 5,
+                  "type": "multiple_choice",
+                  "topic": "Vocabulary",
+                  "question_text": "Which word is an antonym for ancient?",
+                  "choices": ["A) Old", "B) Modern", "C) Historic", "D) Traditional"],
+                  "correct_answer": "B"
+                },
+                {
+                  "id": "g5-6",
+                  "number": 6,
+                  "type": "multiple_choice",
+                  "topic": "Subject-Verb Agreement",
+                  "question_text": "Choose the sentence with correct subject-verb agreement:",
+                  "choices": ["A) The students is studying for the test.", "B) The students are studying for the test.", "C) The students was studying for the test.", "D) The students be studying for the test."],
+                  "correct_answer": "B"
+                },
+                {
+                  "id": "g5-7",
+                  "number": 7,
+                  "type": "multiple_choice",
+                  "topic": "Figurative Language",
+                  "question_text": "What type of figurative language is used in the phrase \"The classroom was a zoo\"?",
+                  "choices": ["A) Simile", "B) Metaphor", "C) Personification", "D) Hyperbole"],
+                  "correct_answer": "B"
+                },
+                {
+                  "id": "g5-8",
+                  "number": 8,
+                  "type": "multiple_choice",
+                  "topic": "Compound Words",
+                  "question_text": "Which sentence contains a compound word?",
+                  "choices": ["A) The teacher gave us homework.", "B) I love playing soccer after school.", "C) We visited the lighthouse at the beach.", "D) The book was very interesting."],
+                  "correct_answer": "C"
+                },
+                {
+                  "id": "g5-9",
+                  "number": 9,
+                  "type": "multiple_choice",
+                  "topic": "Parts of Speech",
+                  "question_text": "Identify the adjective in the sentence: \"The brave firefighter rescued the cat.\"",
+                  "choices": ["A) firefighter", "B) brave", "C) rescued", "D) cat"],
+                  "correct_answer": "B"
+                }
+              ]
+            },
+            {
+              "title": "Part B: Reading Comprehension",
+              "passage_title": "Passage 1: The Amazing Octopus",
+              "passage": "The octopus is one of the most fascinating creatures in the ocean. With eight long arms covered in suction cups, this intelligent animal can perform incredible feats. Octopuses are masters of camouflage, able to change both the color and texture of their skin to match their surroundings in less than a second. This ability helps them hide from predators and sneak up on prey.\n\nDespite having no bones, octopuses are remarkably strong and flexible. They can squeeze through openings as small as their beaks, which are the only hard parts of their bodies. Scientists have discovered that octopuses are highly intelligent, capable of solving complex puzzles and even using tools. In laboratory studies, octopuses have opened jars to reach food inside and have learned to navigate mazes.\n\nPerhaps most surprisingly, octopuses have three hearts and blue blood! Two hearts pump blood to the gills, while the third pumps blood to the rest of the body. Their blood is blue because it contains copper-based molecules called hemocyanin, which are better at transporting oxygen in cold, low-oxygen environments than the iron-based hemoglobin found in human blood.",
+              "questions": [
+                {
+                  "id": "g5-10",
+                  "number": 10,
+                  "type": "multiple_choice",
+                  "topic": "Main Idea",
+                  "question_text": "What is the main idea of this passage?",
+                  "choices": ["A) Octopuses are dangerous predators.", "B) Octopuses have many remarkable characteristics.", "C) Octopuses live in cold water.", "D) Octopuses are difficult to study."],
+                  "correct_answer": "B"
+                },
+                {
+                  "id": "g5-11",
+                  "number": 11,
+                  "type": "multiple_choice",
+                  "topic": "Reading Comprehension",
+                  "question_text": "According to the passage, how do octopuses use camouflage?",
+                  "choices": ["A) Only to hide from predators", "B) To communicate with other octopuses", "C) To hide from predators and sneak up on prey", "D) To attract mates"],
+                  "correct_answer": "C"
+                },
+                {
+                  "id": "g5-12",
+                  "number": 12,
+                  "type": "multiple_choice",
+                  "topic": "Vocabulary in Context",
+                  "question_text": "What does the word \"flexible\" mean in the second paragraph?",
+                  "choices": ["A) Strong and powerful", "B) Able to bend and squeeze easily", "C) Colorful and bright", "D) Hard and rigid"],
+                  "correct_answer": "B"
+                },
+                {
+                  "id": "g5-13",
+                  "number": 13,
+                  "type": "multiple_choice",
+                  "topic": "Text Evidence",
+                  "question_text": "Which detail from the passage shows that octopuses are intelligent?",
+                  "choices": ["A) They have three hearts.", "B) They can change color quickly.", "C) They can solve puzzles and use tools.", "D) They have eight arms with suction cups."],
+                  "correct_answer": "C"
+                },
+                {
+                  "id": "g5-14",
+                  "number": 14,
+                  "type": "multiple_choice",
+                  "topic": "Reading Comprehension",
+                  "question_text": "Why does the octopus have blue blood?",
+                  "choices": ["A) It makes them swim faster.", "B) It helps them change color.", "C) It contains copper-based molecules that transport oxygen better in their environment.", "D) It frightens predators away."],
+                  "correct_answer": "C"
+                },
+                {
+                  "id": "g5-15",
+                  "number": 15,
+                  "type": "multiple_choice",
+                  "topic": "Author's Purpose",
+                  "question_text": "The author's purpose in writing this passage is to:",
+                  "choices": ["A) Persuade readers to protect octopuses", "B) Entertain readers with funny octopus stories", "C) Inform readers about interesting octopus characteristics", "D) Teach readers how to catch octopuses"],
+                  "correct_answer": "C"
+                },
+                {
+                  "id": "g5-16",
+                  "number": 16,
+                  "type": "multiple_choice",
+                  "topic": "Inference",
+                  "question_text": "What can you infer from the passage about octopuses in laboratory studies?",
+                  "choices": ["A) They enjoy being studied by scientists.", "B) They can learn and remember information.", "C) They prefer to live in labs rather than oceans.", "D) They are afraid of humans."],
+                  "correct_answer": "B"
+                }
+              ]
+            },
+            {
+              "title": "Passage 2: The History of Flight",
+              "passage": "For centuries, humans dreamed of soaring through the sky like birds. While ancient civilizations created myths about winged humans and gods who could fly, it wasn't until the late 18th century that humans achieved real flight. In 1783, the Montgolfier brothers launched the first successful hot air balloon in France, carrying passengers high above the ground. This was a thrilling breakthrough, but the balloon could only drift with the wind—it couldn't be steered.\n\nThe next major advancement came in 1903 when Orville and Wilbur Wright achieved the first powered, controlled airplane flight in Kitty Hawk, North Carolina. Their aircraft, the Wright Flyer, stayed airborne for only 12 seconds and traveled just 120 feet, but this brief flight changed the world forever. The Wright brothers had solved the puzzle of controlled flight by carefully studying how birds use their wings to balance and steer.\n\nAviation technology advanced rapidly after the Wright brothers' success. During World War I, airplanes were used for reconnaissance and combat. In 1927, Charles Lindbergh became the first person to fly solo nonstop across the Atlantic Ocean, a journey that took 33 hours. By the 1950s, commercial jet airliners like the Boeing 707 made air travel faster and more accessible to ordinary people. Today, millions of passengers fly every day, and modern aircraft can travel at speeds exceeding 500 miles per hour, making the world more connected than ever before.",
+              "questions": [
+                {
+                  "id": "g5-17",
+                  "number": 17,
+                  "type": "multiple_choice",
+                  "topic": "Reading Comprehension",
+                  "question_text": "What was the main limitation of the Montgolfier brothers' hot air balloon?",
+                  "choices": ["A) It couldn't carry passengers.", "B) It couldn't be steered or controlled.", "C) It was too expensive to build.", "D) It couldn't fly very high."],
+                  "correct_answer": "B"
+                },
+                {
+                  "id": "g5-18",
+                  "number": 18,
+                  "type": "multiple_choice",
+                  "topic": "Reading Comprehension",
+                  "question_text": "According to the passage, how did the Wright brothers solve the problem of controlled flight?",
+                  "choices": ["A) They copied designs from other inventors.", "B) They studied how birds use their wings.", "C) They used more powerful engines.", "D) They made their plane lighter."],
+                  "correct_answer": "B"
+                },
+                {
+                  "id": "g5-19",
+                  "number": 19,
+                  "type": "multiple_choice",
+                  "topic": "Vocabulary in Context",
+                  "question_text": "What does the word \"reconnaissance\" most likely mean in the third paragraph?",
+                  "choices": ["A) Transporting supplies", "B) Gathering information about enemy positions", "C) Delivering mail", "D) Entertaining troops"],
+                  "correct_answer": "B"
+                },
+                {
+                  "id": "g5-20",
+                  "number": 20,
+                  "type": "multiple_choice",
+                  "topic": "Sequence",
+                  "question_text": "Which event happened FIRST according to the passage?",
+                  "choices": ["A) Charles Lindbergh flew across the Atlantic.", "B) The Wright brothers flew the Wright Flyer.", "C) The Montgolfier brothers launched a hot air balloon.", "D) The Boeing 707 was introduced."],
+                  "correct_answer": "C"
+                },
+                {
+                  "id": "g5-21",
+                  "number": 21,
+                  "type": "multiple_choice",
+                  "topic": "Author's Purpose",
+                  "question_text": "Why does the author mention that the Wright Flyer only flew for 12 seconds?",
+                  "choices": ["A) To show that the flight was a failure", "B) To emphasize how far aviation has come since then", "C) To criticize the Wright brothers", "D) To explain why people didn't believe in airplanes"],
+                  "correct_answer": "B"
+                },
+                {
+                  "id": "g5-22",
+                  "number": 22,
+                  "type": "multiple_choice",
+                  "topic": "Drawing Conclusions",
+                  "question_text": "What conclusion can you draw from the passage about aviation technology?",
+                  "choices": ["A) It has changed very little over the past century.", "B) It advanced rapidly after the Wright brothers' first flight.", "C) It was only developed for military purposes.", "D) It has made travel slower but safer."],
+                  "correct_answer": "B"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "section_title": "Section 2: Writing",
+          "instructions": "Choose one of the following prompts and write a well-organized response.",
+          "time_limit_minutes": 45,
+          "questions": [
+            {
+              "id": "g5-w1",
+              "number": 1,
+              "type": "writing",
+              "topic": "Narrative Writing",
+              "question_text": "Think about a time when you learned something new or faced a challenge. Write a narrative essay describing what happened, how you felt, and what you learned from the experience. Include specific details and use descriptive language to make your story interesting."
+            },
+            {
+              "id": "g5-w2",
+              "number": 2,
+              "type": "writing",
+              "topic": "Informative Writing",
+              "question_text": "Choose an animal, invention, or historical event that interests you. Write an informative essay that teaches your reader about this topic. Include facts, examples, and details to support your main ideas. Organize your essay with an introduction, body paragraphs, and conclusion."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "grade": "6",
+      "test_name": "Grade 6 ELA Diagnostic Test",
+      "total_time_minutes": 90,
+      "directions": "This diagnostic test will assess your reading comprehension, vocabulary, grammar, and writing skills. Read each question carefully and choose the best answer.",
+      "sections": [
+        {
+          "section_title": "Section I: Multiple Choice",
+          "instructions": "Choose the best answer for each question. Circle or mark the correct option.",
+          "time_limit_minutes": 40,
+          "questions": [
+            {
+              "id": "g6-1",
+              "number": 1,
+              "type": "multiple_choice",
+              "topic": "Paragraph Structure",
+              "question_text": "What is the main purpose of the topic sentence in a paragraph?",
+              "choices": ["A. To conclude the paragraph", "B. To provide background information", "C. To state the main idea clearly", "D. To confuse the reader"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g6-2",
+              "number": 2,
+              "type": "multiple_choice",
+              "topic": "Figurative Language",
+              "question_text": "Which of the following is an example of a simile?",
+              "choices": ["A. Her smile was sunshine.", "B. The leaves danced in the wind.", "C. He was as fast as a cheetah.", "D. Time flies when you're having fun."],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g6-3",
+              "number": 3,
+              "type": "multiple_choice",
+              "topic": "Subject-Verb Agreement",
+              "question_text": "Which sentence uses proper verb-subject agreement?",
+              "choices": ["A. The dogs bark at night.", "B. She walk to school in the morning.", "C. He runs in the morning.", "D. They is going to the store."],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g6-4",
+              "number": 4,
+              "type": "multiple_choice",
+              "topic": "Prefixes",
+              "question_text": "What does the prefix 'un-' mean in the word 'unhappy'?",
+              "choices": ["A. Full of", "B. Without", "C. Not", "D. Again"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g6-5",
+              "number": 5,
+              "type": "multiple_choice",
+              "topic": "Descriptive Language",
+              "question_text": "What is the effect of using descriptive language in writing?",
+              "choices": ["A. It shortens the story", "B. It adds humor.", "C. It creates vivid imagery", "D. It confuses the reader"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g6-6",
+              "number": 6,
+              "type": "multiple_choice",
+              "topic": "Central Idea",
+              "question_text": "What is the central idea of a nonfiction text?",
+              "choices": ["A. The title of the passage", "B. A detail that supports the story", "C. The most important point the author is making", "D. The first sentence"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g6-7",
+              "number": 7,
+              "type": "multiple_choice",
+              "topic": "Transitions",
+              "question_text": "Which transition word best signals contrast?",
+              "choices": ["A. Furthermore", "B. For example", "C. However", "D. Then"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g6-8",
+              "number": 8,
+              "type": "multiple_choice",
+              "topic": "Figurative Language",
+              "question_text": "Read the sentence: 'The thunder roared as the sky flashed.' What type of figurative language is used?",
+              "choices": ["A. Metaphor", "B. Personification", "C. Hyperbole", "D. Onomatopoeia"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g6-9",
+              "number": 9,
+              "type": "multiple_choice",
+              "topic": "Author's Purpose",
+              "question_text": "What is the author's purpose if they are writing to inform?",
+              "choices": ["A. To tell a story", "B. To provide facts and explanations", "C. To convince someone of something", "D. To entertain the reader"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g6-10",
+              "number": 10,
+              "type": "multiple_choice",
+              "topic": "Vocabulary",
+              "question_text": "What does the word 'evaluate' mean in reading comprehension?",
+              "choices": ["A. To skip a part", "B. To reread something", "C. To judge or assess something carefully", "D. To summarize quickly"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g6-11",
+              "number": 11,
+              "type": "multiple_choice",
+              "topic": "Verb Tense",
+              "question_text": "Which sentence is written in past tense?",
+              "choices": ["A. I am reading a book.", "B. I will go to the library.", "C. I read the entire chapter last night.", "D. I read every day."],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g6-12",
+              "number": 12,
+              "type": "multiple_choice",
+              "topic": "Sentence Types",
+              "question_text": "Which type of sentence is this: 'Do your homework before dinner'?",
+              "choices": ["A. Interrogative", "B. Exclamatory", "C. Imperative", "D. Declarative"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g6-13",
+              "number": 13,
+              "type": "multiple_choice",
+              "topic": "Reading Strategies",
+              "question_text": "What is the best strategy to determine the meaning of an unfamiliar passage?",
+              "choices": ["A. Skip the word and move on", "B. Look for a picture clue", "C. Use context clues in the sentence", "D. Guess randomly"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g6-14",
+              "number": 14,
+              "type": "multiple_choice",
+              "topic": "Prepositional Phrases",
+              "question_text": "Which sentence contains a prepositional phrase?",
+              "choices": ["A. The cat slept.", "B. The cat slept under the table.", "C. The cat is hungry.", "D. The cat meowed loudly."],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g6-15",
+              "number": 15,
+              "type": "multiple_choice",
+              "topic": "Synonyms",
+              "question_text": "What is a synonym for the word 'cautious'?",
+              "choices": ["A. Bold", "B. Careful", "C. Reckless", "D. Dangerous"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g6-16",
+              "number": 16,
+              "type": "multiple_choice",
+              "topic": "Antonyms",
+              "question_text": "What is an antonym for the word 'generous'?",
+              "choices": ["A. Selfish", "B. Kind", "C. Giving", "D. Nice"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g6-17",
+              "number": 17,
+              "type": "multiple_choice",
+              "topic": "Idioms",
+              "question_text": "What is an example of an idiom?",
+              "choices": ["A. 'It's raining cats and dogs.'", "B. The sun is hot.", "C. The dog barked.", "D. My pencil broke."],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g6-18",
+              "number": 18,
+              "type": "multiple_choice",
+              "topic": "Dialogue",
+              "question_text": "Why does an author use dialogue in a story?",
+              "choices": ["A. To provide setting details", "B. To show interaction between characters", "C. To explain a topic", "D. To describe the theme"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g6-19",
+              "number": 19,
+              "type": "multiple_choice",
+              "topic": "Fact vs Opinion",
+              "question_text": "Which of the following is an opinion?",
+              "choices": ["A. The moon orbits the Earth.", "B. There are seven continents.", "C. Chocolate ice cream is the best.", "D. Water freezes at 0°C."],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g6-20",
+              "number": 20,
+              "type": "multiple_choice",
+              "topic": "Text Structure",
+              "question_text": "What type of text structure compares two ideas or things?",
+              "choices": ["A. Cause and effect", "B. Chronological", "C. Compare and contrast", "D. Problem and solution"],
+              "correct_answer": "C"
+            }
+          ]
+        },
+        {
+          "section_title": "Section II: Reading Comprehension",
+          "instructions": "Read the passage below and answer the questions that follow.",
+          "time_limit_minutes": 25,
+          "passage_title": "The Forgotten Garden",
+          "passage": "In the heart of a bustling city, tucked between two tall apartment buildings, there once existed a forgotten garden. No one knew who planted it or why it was there, but tall sunflowers, clusters of lavender, and vines of cherry tomatoes thrived in its cozy corner, shielded from the noise and rush. The residents passed it by daily, barely giving it a second glance—until one day, everything changed.\n\nA girl named Maya, curious and observant, noticed the garden one afternoon as she returned home from school. A shimmering butterfly had caught her eye, leading her through a narrow alley and into the tiny green oasis. It was as though she had stepped into a different world. A wooden bench stood under an ivy-covered arch, birds chirped from the fence, and in the center grew an ancient plum tree whose trunk twisted like the strokes of a paintbrush.\n\nMaya visited daily. She brought a notebook, sketching flowers, noting the wildlife, and documenting the growth of vegetables. Soon, others followed. An elderly man brought his harmonica, playing soft tunes that mingled with the breeze. A teacher from the local school began a composting project with her students. A once-forgotten space became a place of connection and creativity.\n\nBut as the garden flourished, developers took notice. One morning, a sign appeared: \"Future Site of Luxury Apartments.\" The neighborhood buzzed with concern. Maya, heartbroken but determined, launched a campaign to save the garden. She held petitions, wrote articles, and even organized a \"Garden Day\" where neighbors shared their stories and planted new seeds.\n\nThe community's efforts reached the city council. After much deliberation and several town hall meetings, the land was designated a protected community space. The sign was removed, and in its place, a plaque was installed: \"The People's Garden – A Sanctuary for Growth, Nature, and Unity.\"\n\nYears later, Maya, now a botanist, often visited the garden that first sparked her love for nature. And every time she sat on the wooden bench beneath the plum tree, she remembered the butterfly—and the moment everything changed.",
+          "questions": [
+            {
+              "id": "g6-21",
+              "number": 21,
+              "type": "multiple_choice",
+              "topic": "Reading Comprehension",
+              "question_text": "Why did Maya first enter the garden?",
+              "choices": ["A. She was chasing a butterfly", "B. She was searching for vegetables.", "C. She heard music coming from inside.", "D. She wanted to hide from a storm."],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g6-22",
+              "number": 22,
+              "type": "multiple_choice",
+              "topic": "Symbolism",
+              "question_text": "What does the plum tree symbolize in the passage?",
+              "choices": ["A. Luxury and wealth", "B. Change and transformation", "C. Rules and restrictions", "D. Anger and frustration"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g6-23",
+              "number": 23,
+              "type": "multiple_choice",
+              "topic": "Character Analysis",
+              "question_text": "How did Maya influence the community?",
+              "choices": ["A. She played the harmonica.", "B. She planted trees all over the city.", "C. She organized efforts to save the garden.", "D. She worked with real estate developers."],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g6-24",
+              "number": 24,
+              "type": "multiple_choice",
+              "topic": "Tone",
+              "question_text": "What is the author's tone in this passage?",
+              "choices": ["A. Angry and frustrated", "B. Informative and technical", "C. Hopeful and reflective", "D. Sarcastic and mocking"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g6-25",
+              "number": 25,
+              "type": "multiple_choice",
+              "topic": "Theme",
+              "question_text": "What is the main theme of the passage?",
+              "choices": ["A. The importance of luxury housing", "B. The benefits of real estate development", "C. The power of community and nature", "D. The history of gardening in cities"],
+              "correct_answer": "C"
+            }
+          ]
+        },
+        {
+          "section_title": "Section III: Writing Prompts",
+          "instructions": "Choose one of the following prompts. Write a well-organized response with clear ideas and supporting details.",
+          "time_limit_minutes": 25,
+          "questions": [
+            {
+              "id": "g6-26",
+              "number": 26,
+              "type": "writing",
+              "topic": "Persuasive Writing",
+              "question_text": "Think of a place in your community that you believe deserves more attention or care. Describe the place and explain why it is important to protect or improve it."
+            },
+            {
+              "id": "g6-27",
+              "number": 27,
+              "type": "writing",
+              "topic": "Narrative Writing",
+              "question_text": "Write a fictional story about discovering a hidden space that changes your perspective on something important."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "grade": "7",
+      "test_name": "Grade 7 ELA Diagnostic Test",
+      "total_time_minutes": 90,
+      "directions": "This diagnostic test will assess your reading comprehension, literary analysis, vocabulary, grammar, and writing skills. Read each question carefully and choose the best answer. For writing questions, use complete sentences, proper grammar, and organize your thoughts clearly.",
+      "sections": [
+        {
+          "section_title": "Section 1: Multiple Choice",
+          "instructions": "Choose the best answer for each question.",
+          "time_limit_minutes": 60,
+          "subsections": [
+            {
+              "title": "Part A: Language and Vocabulary",
+              "questions": [
+                {
+                  "id": "g7-1",
+                  "number": 1,
+                  "type": "multiple_choice",
+                  "topic": "Vocabulary in Context",
+                  "question_text": "Which word best completes the sentence? \"The scientist's _______ research led to groundbreaking discoveries in medicine.\"",
+                  "choices": ["A) mediocre", "B) meticulous", "C) apathetic", "D) superficial"],
+                  "correct_answer": "B"
+                },
+                {
+                  "id": "g7-2",
+                  "number": 2,
+                  "type": "multiple_choice",
+                  "topic": "Comma Usage",
+                  "question_text": "Identify the sentence with correct comma usage:",
+                  "choices": ["A) Although it was raining we decided to go hiking.", "B) Although it was raining, we decided to go hiking.", "C) Although, it was raining we decided to go hiking.", "D) Although it was raining we decided, to go hiking."],
+                  "correct_answer": "B"
+                },
+                {
+                  "id": "g7-3",
+                  "number": 3,
+                  "type": "multiple_choice",
+                  "topic": "Prefixes",
+                  "question_text": "What is the meaning of the prefix \"mis-\" in the word \"misinterpret\"?",
+                  "choices": ["A) Before", "B) Wrongly or badly", "C) Not", "D) Again"],
+                  "correct_answer": "B"
+                },
+                {
+                  "id": "g7-4",
+                  "number": 4,
+                  "type": "multiple_choice",
+                  "topic": "Semicolons",
+                  "question_text": "Which sentence uses a semicolon correctly?",
+                  "choices": ["A) The concert was amazing; the band played all my favorite songs.", "B) The concert was amazing; and the band played all my favorite songs.", "C) The concert; was amazing the band played all my favorite songs.", "D) The concert was; amazing the band played all my favorite songs."],
+                  "correct_answer": "A"
+                },
+                {
+                  "id": "g7-5",
+                  "number": 5,
+                  "type": "multiple_choice",
+                  "topic": "Vocabulary",
+                  "question_text": "What does the word \"benevolent\" mean?",
+                  "choices": ["A) Hostile and unfriendly", "B) Kind and generous", "C) Uncertain and doubtful", "D) Powerful and strong"],
+                  "correct_answer": "B"
+                },
+                {
+                  "id": "g7-6",
+                  "number": 6,
+                  "type": "multiple_choice",
+                  "topic": "Parallel Structure",
+                  "question_text": "Identify the sentence with correct parallel structure:",
+                  "choices": ["A) She enjoys reading, to write, and painting.", "B) She enjoys reading, writing, and to paint.", "C) She enjoys reading, writing, and painting.", "D) She enjoys to read, writing, and painting."],
+                  "correct_answer": "C"
+                },
+                {
+                  "id": "g7-7",
+                  "number": 7,
+                  "type": "multiple_choice",
+                  "topic": "Vocabulary",
+                  "question_text": "Which word is closest in meaning to \"enigmatic\"?",
+                  "choices": ["A) Obvious", "B) Mysterious", "C) Friendly", "D) Colorful"],
+                  "correct_answer": "B"
+                },
+                {
+                  "id": "g7-8",
+                  "number": 8,
+                  "type": "multiple_choice",
+                  "topic": "Clauses",
+                  "question_text": "What type of clause is underlined in this sentence? \"Because the storm was approaching, we postponed the picnic.\"",
+                  "choices": ["A) Independent clause", "B) Dependent clause", "C) Noun clause", "D) Prepositional phrase"],
+                  "correct_answer": "B"
+                },
+                {
+                  "id": "g7-9",
+                  "number": 9,
+                  "type": "multiple_choice",
+                  "topic": "Gerunds",
+                  "question_text": "Which sentence contains a gerund?",
+                  "choices": ["A) The running water was cold.", "B) Running is my favorite form of exercise.", "C) She was running toward the finish line.", "D) The athlete ran quickly."],
+                  "correct_answer": "B"
+                },
+                {
+                  "id": "g7-10",
+                  "number": 10,
+                  "type": "multiple_choice",
+                  "topic": "Idioms",
+                  "question_text": "What does the idiom \"break the ice\" mean?",
+                  "choices": ["A) To make a situation colder", "B) To start a conversation in a friendly way", "C) To break something fragile", "D) To end a relationship"],
+                  "correct_answer": "B"
+                }
+              ]
+            },
+            {
+              "title": "Part B: Grammar and Mechanics",
+              "questions": [
+                {
+                  "id": "g7-11",
+                  "number": 11,
+                  "type": "multiple_choice",
+                  "topic": "Homophones",
+                  "question_text": "Choose the sentence with the correct use of their/there/they're:",
+                  "choices": ["A) Their going to the store later.", "B) The students left there backpacks in the classroom.", "C) They're planning to arrive at noon.", "D) I don't know if there coming to the party."],
+                  "correct_answer": "C"
+                },
+                {
+                  "id": "g7-12",
+                  "number": 12,
+                  "type": "multiple_choice",
+                  "topic": "Quotation Marks",
+                  "question_text": "Which sentence uses quotation marks correctly?",
+                  "choices": ["A) \"Where are you going?\" asked Maria.", "B) \"Where are you going?,\" asked Maria.", "C) \"Where are you going? asked Maria.\"", "D) \"Where are you going\"? asked Maria."],
+                  "correct_answer": "A"
+                },
+                {
+                  "id": "g7-13",
+                  "number": 13,
+                  "type": "multiple_choice",
+                  "topic": "Subject-Verb Agreement",
+                  "question_text": "Identify the sentence with correct subject-verb agreement:",
+                  "choices": ["A) Neither of the students have finished the assignment.", "B) Neither of the students has finished the assignment.", "C) Neither of the students are finishing the assignment.", "D) Neither of the students were finishing the assignment."],
+                  "correct_answer": "B"
+                },
+                {
+                  "id": "g7-14",
+                  "number": 14,
+                  "type": "multiple_choice",
+                  "topic": "Colons",
+                  "question_text": "Which sentence uses a colon correctly?",
+                  "choices": ["A) I need to buy: eggs, milk, and bread.", "B) The recipe calls for: three ingredients.", "C) She had one goal: to win the championship.", "D) We visited: New York, Boston, and Philadelphia."],
+                  "correct_answer": "C"
+                },
+                {
+                  "id": "g7-15",
+                  "number": 15,
+                  "type": "multiple_choice",
+                  "topic": "Pronoun Case",
+                  "question_text": "What is the error in this sentence? \"Me and Sarah went to the mall yesterday.\"",
+                  "choices": ["A) Incorrect verb tense", "B) Incorrect pronoun case", "C) Missing comma", "D) No error"],
+                  "correct_answer": "B"
+                },
+                {
+                  "id": "g7-16",
+                  "number": 16,
+                  "type": "multiple_choice",
+                  "topic": "Apostrophes",
+                  "question_text": "Choose the sentence with correct apostrophe usage:",
+                  "choices": ["A) The dogs' toys are scattered everywhere.", "B) The dogs toys' are scattered everywhere.", "C) The dog's toys' are scattered everywhere.", "D) The dogs toy's are scattered everywhere."],
+                  "correct_answer": "A"
+                },
+                {
+                  "id": "g7-17",
+                  "number": 17,
+                  "type": "multiple_choice",
+                  "topic": "Passive Voice",
+                  "question_text": "Which sentence is in the passive voice?",
+                  "choices": ["A) The committee made an important decision.", "B) An important decision was made by the committee.", "C) The committee is making an important decision.", "D) The committee will make an important decision."],
+                  "correct_answer": "B"
+                },
+                {
+                  "id": "g7-18",
+                  "number": 18,
+                  "type": "multiple_choice",
+                  "topic": "Capitalization",
+                  "question_text": "Identify the correctly capitalized sentence:",
+                  "choices": ["A) My Uncle lives in New York City.", "B) My uncle lives in New York city.", "C) My uncle lives in New York City.", "D) My Uncle lives in new York City."],
+                  "correct_answer": "C"
+                },
+                {
+                  "id": "g7-19",
+                  "number": 19,
+                  "type": "multiple_choice",
+                  "topic": "Transitions",
+                  "question_text": "Which sentence uses a transitional phrase correctly?",
+                  "choices": ["A) I studied hard for the test. However, I felt confident.", "B) I studied hard for the test. Therefore, I felt confident.", "C) I studied hard for the test. Similarly, I felt confident.", "D) I studied hard for the test. Nevertheless, I felt confident."],
+                  "correct_answer": "B"
+                },
+                {
+                  "id": "g7-20",
+                  "number": 20,
+                  "type": "multiple_choice",
+                  "topic": "Sentence Combining",
+                  "question_text": "What is the best way to combine these sentences? \"I finished my homework. I went outside to play.\"",
+                  "choices": ["A) I finished my homework, I went outside to play.", "B) After I finished my homework, I went outside to play.", "C) I finished my homework I went outside to play.", "D) Finishing my homework went outside to play."],
+                  "correct_answer": "B"
+                }
+              ]
+            },
+            {
+              "title": "Part C: Literary Devices and Figurative Language",
+              "questions": [
+                {
+                  "id": "g7-21",
+                  "number": 21,
+                  "type": "multiple_choice",
+                  "topic": "Personification",
+                  "question_text": "What literary device is used in this sentence? \"The wind whispered secrets through the trees.\"",
+                  "choices": ["A) Metaphor", "B) Simile", "C) Personification", "D) Hyperbole"],
+                  "correct_answer": "C"
+                },
+                {
+                  "id": "g7-22",
+                  "number": 22,
+                  "type": "multiple_choice",
+                  "topic": "Alliteration",
+                  "question_text": "Identify the example of alliteration:",
+                  "choices": ["A) The sun was like a golden coin.", "B) Peter Piper picked a peck of pickled peppers.", "C) Her smile was a ray of sunshine.", "D) The thunder boomed loudly."],
+                  "correct_answer": "B"
+                },
+                {
+                  "id": "g7-23",
+                  "number": 23,
+                  "type": "multiple_choice",
+                  "topic": "Metaphor",
+                  "question_text": "What is the meaning of this metaphor? \"Time is a thief.\"",
+                  "choices": ["A) Time moves slowly.", "B) Time steals precious moments from our lives.", "C) Time is valuable.", "D) Time is measured in hours."],
+                  "correct_answer": "B"
+                },
+                {
+                  "id": "g7-24",
+                  "number": 24,
+                  "type": "multiple_choice",
+                  "topic": "Simile",
+                  "question_text": "Which sentence contains a simile?",
+                  "choices": ["A) The stars danced in the night sky.", "B) Her voice was music to my ears.", "C) He was as brave as a lion.", "D) The city is a jungle."],
+                  "correct_answer": "C"
+                },
+                {
+                  "id": "g7-25",
+                  "number": 25,
+                  "type": "multiple_choice",
+                  "topic": "Tone",
+                  "question_text": "What does the word \"tone\" refer to in literature?",
+                  "choices": ["A) The main idea of the text", "B) The author's attitude toward the subject", "C) The time and place of the story", "D) The sequence of events"],
+                  "correct_answer": "B"
+                },
+                {
+                  "id": "g7-26",
+                  "number": 26,
+                  "type": "multiple_choice",
+                  "topic": "Onomatopoeia",
+                  "question_text": "Identify the example of onomatopoeia:",
+                  "choices": ["A) The cat was as quick as lightning.", "B) The clock went tick-tock, tick-tock.", "C) Her heart was made of stone.", "D) The brave knight fought the dragon."],
+                  "correct_answer": "B"
+                },
+                {
+                  "id": "g7-27",
+                  "number": 27,
+                  "type": "multiple_choice",
+                  "topic": "Irony",
+                  "question_text": "What is irony?",
+                  "choices": ["A) Exaggeration for effect", "B) A comparison using \"like\" or \"as\"", "C) When the opposite of what is expected happens", "D) Giving human qualities to non-human things"],
+                  "correct_answer": "C"
+                },
+                {
+                  "id": "g7-28",
+                  "number": 28,
+                  "type": "multiple_choice",
+                  "topic": "Hyperbole",
+                  "question_text": "Which sentence contains hyperbole?",
+                  "choices": ["A) The room was quiet.", "B) I've told you a million times to clean your room!", "C) The sunset painted the sky orange.", "D) She ran quickly to catch the bus."],
+                  "correct_answer": "B"
+                },
+                {
+                  "id": "g7-29",
+                  "number": 29,
+                  "type": "multiple_choice",
+                  "topic": "Theme",
+                  "question_text": "What is the difference between theme and main idea?",
+                  "choices": ["A) They mean the same thing.", "B) Theme is a life lesson while main idea is what the text is mostly about.", "C) Main idea is always stated directly.", "D) Theme only applies to fiction."],
+                  "correct_answer": "B"
+                },
+                {
+                  "id": "g7-30",
+                  "number": 30,
+                  "type": "multiple_choice",
+                  "topic": "Foreshadowing",
+                  "question_text": "What is foreshadowing?",
+                  "choices": ["A) A flashback to earlier events", "B) Hints about what will happen later in the story", "C) The climax of the story", "D) The resolution of a conflict"],
+                  "correct_answer": "B"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "section_title": "Section 2: Writing",
+          "instructions": "Choose one of the following prompts and write a well-organized response.",
+          "time_limit_minutes": 30,
+          "questions": [
+            {
+              "id": "g7-w1",
+              "number": 1,
+              "type": "writing",
+              "topic": "Literary Analysis",
+              "question_text": "Think about a book, story, or poem you have read that taught you something important. Write an essay that identifies the theme of the work and explains how the author develops that theme through characters, events, or literary devices. Use specific examples from the text to support your analysis."
+            },
+            {
+              "id": "g7-w2",
+              "number": 2,
+              "type": "writing",
+              "topic": "Argumentative Writing",
+              "question_text": "Some people believe that students should be required to participate in community service to graduate from high school. Others believe community service should be voluntary. Write an argumentative essay stating your position on this issue. Support your argument with reasons and evidence."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "grade": "8",
+      "test_name": "Grade 8 ELA Diagnostic Test",
+      "total_time_minutes": 90,
+      "directions": "This diagnostic test will assess your reading comprehension, literary analysis, vocabulary, grammar, and writing skills.",
+      "sections": [
+        {
+          "section_title": "Section I: Multiple Choice",
+          "instructions": "Choose the best answer for each question. Circle or mark the correct option.",
+          "time_limit_minutes": 40,
+          "questions": [
+            {
+              "id": "g8-1",
+              "number": 1,
+              "type": "multiple_choice",
+              "topic": "Thesis Statement",
+              "question_text": "What is the primary purpose of a thesis statement in an argumentative essay?",
+              "choices": ["A: To summarize the conclusion", "B: It states the argument; it's the foundation", "C: To list all supporting evidence", "D: To quote an expert opinion"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g8-2",
+              "number": 2,
+              "type": "multiple_choice",
+              "topic": "Figurative Language",
+              "question_text": "Read the sentence: 'The stars danced playfully in the moonlight sky.' What literary device is used?",
+              "choices": ["A. Metaphor", "B. Personification", "C. Hyperbole", "D. Onomatopoeia"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g8-3",
+              "number": 3,
+              "type": "multiple_choice",
+              "topic": "Active Voice",
+              "question_text": "Which sentence is written in active voice?",
+              "choices": ["A. The cake was eaten by the children.", "B. The children were given cake.", "C. The children ate the cake.", "D. Cake was being served by the chef"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g8-4",
+              "number": 4,
+              "type": "multiple_choice",
+              "topic": "Word Choice",
+              "question_text": "Which word best replaces 'important' to make writing more precise?",
+              "choices": ["A. Big", "B. Major", "C. Significant", "D. Good"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g8-5",
+              "number": 5,
+              "type": "multiple_choice",
+              "topic": "Foreshadowing",
+              "question_text": "What is the effect of an author using foreshadowing in a narrative?",
+              "choices": ["A. To reveal the ending early", "B. To create suspense and anticipation", "C. To confuse the reader", "D. To introduce new characters"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g8-6",
+              "number": 6,
+              "type": "multiple_choice",
+              "topic": "Transitions",
+              "question_text": "Which transition best connects contrasting ideas?",
+              "choices": ["A. Furthermore", "B. For example", "C. However", "D. In conclusion"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g8-7",
+              "number": 7,
+              "type": "multiple_choice",
+              "topic": "Sensory Details",
+              "question_text": "Read the sentence. 'The smell of cookies made my mouth water.' Which sensory detail is used?",
+              "choices": ["A. Sight", "B. Sound", "C. Smell", "D. Touch"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g8-8",
+              "number": 8,
+              "type": "multiple_choice",
+              "topic": "Credible Sources",
+              "question_text": "Which source is most credible for a research paper on climate change?",
+              "choices": ["A. A blog by a teenager", "B. A government climate agency", "C. A YouTube comment", "D. An Instagram post"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g8-9",
+              "number": 9,
+              "type": "multiple_choice",
+              "topic": "Subjunctive Mood",
+              "question_text": "Which sentence uses the subjunctive mood?",
+              "choices": ["A. If I were taller, I would join the team.", "B. I will be home by dinner.", "C. She was the best in class", "D. I am sure he is late."],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g8-10",
+              "number": 10,
+              "type": "multiple_choice",
+              "topic": "Root Words",
+              "question_text": "What does the root 'struct' mean in the word 'construct'?",
+              "choices": ["A. To write", "B. To carry", "C. To build", "D. To see"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g8-11",
+              "number": 11,
+              "type": "multiple_choice",
+              "topic": "Parallel Structure",
+              "question_text": "Which sentence shows correct parallel structure?",
+              "choices": ["A. She likes to dance, singing, and to paint", "B. Dancing, singing, and painting are fun", "C. He jogs, swim, and lifts weights.", "D. I like reading, writing, and to draw"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g8-12",
+              "number": 12,
+              "type": "multiple_choice",
+              "topic": "Author's Purpose",
+              "question_text": "What is the author's purpose in a biography?",
+              "choices": ["A. To entertain with fiction", "B. To inform about someone's life", "C. To persuade the reader", "D. To express personal feelings"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g8-13",
+              "number": 13,
+              "type": "multiple_choice",
+              "topic": "Conclusion Signals",
+              "question_text": "Which phrase best signals a conclusion?",
+              "choices": ["A. On the other hand", "B. For instance", "C. In summary", "D. To begin with"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g8-14",
+              "number": 14,
+              "type": "multiple_choice",
+              "topic": "Sentence Structure",
+              "question_text": "Which sentence contains a compound-complex sentence structure?",
+              "choices": ["A. I like tea and coffee.", "B. I drank tea because I was cold.", "C. I drank tea, and I read a book because I was tired.", "D. Tea is great"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g8-15",
+              "number": 15,
+              "type": "multiple_choice",
+              "topic": "Text Features",
+              "question_text": "Which text feature helps readers locate specific information quickly?",
+              "choices": ["A. Italics", "B. Glossary", "C. Index", "D. Heading"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g8-16",
+              "number": 16,
+              "type": "multiple_choice",
+              "topic": "Context Clues",
+              "question_text": "Which strategy best helps determine the meaning of an unfamiliar word in a sentence?",
+              "choices": ["A. Skip it", "B. Look it up in a glossary", "C. Use context clues", "D. Ask a friend"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g8-17",
+              "number": 17,
+              "type": "multiple_choice",
+              "topic": "Poetry",
+              "question_text": "In poetry, what is a stanza?",
+              "choices": ["A. A single line", "B. A group of lines forming a unit", "C. A rhyme scheme", "D. A metaphor"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g8-18",
+              "number": 18,
+              "type": "multiple_choice",
+              "topic": "Central Idea",
+              "question_text": "Which of the following statements is an example of a central idea?",
+              "choices": ["A. Dogs are cute.", "B. The dog barked loudly.", "C. Dogs make great pets due to their loyalty and protection", "D. I have a dog named Max"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g8-19",
+              "number": 19,
+              "type": "multiple_choice",
+              "topic": "Figurative Language Effect",
+              "question_text": "What is the effect of figurative language in writing?",
+              "choices": ["A. To confuse the reader", "B. To create vivid imagery and deeper meaning", "C. To make writing shorter", "D. To add more facts"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g8-20",
+              "number": 20,
+              "type": "multiple_choice",
+              "topic": "Thesis Revision",
+              "question_text": "What is the best way to revise a vague thesis statement?",
+              "choices": ["A. Make it longer", "B. Add more opinions", "C. State the claim clearly and specifically", "D. Use more adjectives"],
+              "correct_answer": "C"
+            }
+          ]
+        },
+        {
+          "section_title": "Section II: Reading Comprehension",
+          "instructions": "Read the passage below and answer the questions that follow.",
+          "time_limit_minutes": 25,
+          "passage_title": "Echoes of the River",
+          "passage": "In a village shadowed by a winding river, there lived a girl named Layla who could hear things others couldn't...The river, flowing with its usual quiet determination, spoke to her—not in words, but in feelings...Layla's grandmother, Siti, was the village storyteller...At thirteen, Layla was quiet but curious...That advice proved hard to follow when the river turned black...One evening, Layla walked alone to the river, holding a small drum carved with river symbols...She arrived at the factory gates and stood silently outside, sketchpad in hand...Three weeks later, the factory installed filtration tanks and agreed to weekly river tests with village elders...And on the first clear night since the cleanup began, Layla heard it again—the soft, grateful murmur of the river.",
+          "questions": [
+            {
+              "id": "g8-21",
+              "number": 21,
+              "type": "multiple_choice",
+              "topic": "Symbolism",
+              "question_text": "What does the river most likely symbolize in the story?",
+              "choices": ["A. A force of destruction", "B. A symbol of family tradition", "C. Reflection of emotion and memory", "D. A boundary between life and death"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g8-22",
+              "number": 22,
+              "type": "multiple_choice",
+              "topic": "Character Analysis",
+              "question_text": "Why did some villagers begin to fear Layla's sketches?",
+              "choices": ["A. They thought she was lying about the river", "B. Her drawings seemed to foreshadow tragic events", "C. They believed she was copying old legends", "D. She refused to share them with anyone"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g8-23",
+              "number": 23,
+              "type": "multiple_choice",
+              "topic": "Inference",
+              "question_text": "What is the most likely reason Layla was able to influence the factory director?",
+              "choices": ["A. She threatened him with legal action", "B. Her family held political power", "C. Her drawings communicated possible futures persuasively", "D. She offered him money to install filters"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g8-24",
+              "number": 24,
+              "type": "multiple_choice",
+              "topic": "Narrative Technique",
+              "question_text": "What narrative technique does the author use to develop Layla's character?",
+              "choices": ["A. Flashback and legend", "B. Dialogue between the villagers", "C. Detailed weather reports", "D. Interruption by an omniscient narrator"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g8-25",
+              "number": 25,
+              "type": "multiple_choice",
+              "topic": "Figurative Language",
+              "question_text": "How does the author use figurative language in the line: 'The river grew restless'?",
+              "choices": ["A. To compare the river to a machine", "B. To suggest the river was changing direction", "C. To personify the river's emotional connection to the community", "D. To show its actual speed"],
+              "correct_answer": "C"
+            }
+          ]
+        },
+        {
+          "section_title": "Section III: Writing",
+          "instructions": "Choose one prompt and write a well-organized response.",
+          "time_limit_minutes": 25,
+          "questions": [
+            {
+              "id": "g8-w1",
+              "number": 1,
+              "type": "writing",
+              "topic": "Narrative Writing",
+              "question_text": "Write a story about a character who discovers they have an unusual ability to communicate with nature. Describe how they discover this ability and what they do with it."
+            },
+            {
+              "id": "g8-w2",
+              "number": 2,
+              "type": "writing",
+              "topic": "Argumentative Writing",
+              "question_text": "Do you think students should be allowed to use technology during class? Write an argumentative essay stating your position and supporting it with reasons and evidence."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "grade": "9",
+      "test_name": "Grade 9 ELA Diagnostic Test",
+      "total_time_minutes": 90,
+      "directions": "This diagnostic test will assess your reading comprehension, literary analysis, vocabulary, grammar, and writing skills. Read each question carefully and choose the best answer.",
+      "sections": [
+        {
+          "section_title": "Section I: Multiple Choice",
+          "instructions": "Choose the best answer for each question. Circle or mark the correct option.",
+          "time_limit_minutes": 40,
+          "questions": [
+            {
+              "id": "g9-1",
+              "number": 1,
+              "type": "multiple_choice",
+              "topic": "Point of View",
+              "question_text": "What is the main purpose of an author using a first-person narrator?",
+              "choices": ["A. To provide an objective viewpoint", "B. To describe only visual elements", "C. To share the narrator's personal thoughts and experiences", "D. To explain scientific data"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g9-2",
+              "number": 2,
+              "type": "multiple_choice",
+              "topic": "Figurative Language",
+              "question_text": "Read the sentence: 'The wind howled through the trees like a pack of wolves.' What literary device is being used?",
+              "choices": ["A. Simile", "B. Metaphor", "C. Hyperbole", "D. Alliteration"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g9-3",
+              "number": 3,
+              "type": "multiple_choice",
+              "topic": "Vocabulary",
+              "question_text": "Which of the following best defines the word 'ambiguous'?",
+              "choices": ["A. Clearly defined", "B. Open to more than one interpretation", "C. Harsh or bitter", "D. Obvious and straightforward"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g9-4",
+              "number": 4,
+              "type": "multiple_choice",
+              "topic": "Grammar",
+              "question_text": "Which sentence is grammatically correct?",
+              "choices": ["A. Neither of the students are prepared.", "B. Each of the books have been reviewed.", "C. The team plays well together.", "D. There go the teacher."],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g9-5",
+              "number": 5,
+              "type": "multiple_choice",
+              "topic": "Irony",
+              "question_text": "What is the effect of irony in a story?",
+              "choices": ["A. To confuse the reader", "B. To highlight predictable outcomes", "C. To create surprise and contrast between expectations and reality", "D. To explain historical facts"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g9-6",
+              "number": 6,
+              "type": "multiple_choice",
+              "topic": "Theme",
+              "question_text": "What is the central theme in a story where a character overcomes great odds to achieve a goal?",
+              "choices": ["A. The importance of wealth", "B. Perseverance and determination", "C. The dangers of ambition", "D. Nature vs. nurture"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g9-7",
+              "number": 7,
+              "type": "multiple_choice",
+              "topic": "Mood",
+              "question_text": "Read the sentence: 'She sprinted across the finish line, her heart pounding with triumph.' What mood does this create?",
+              "choices": ["A. Fearful", "B. Tense", "C. Joyful", "D. Confused"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g9-8",
+              "number": 8,
+              "type": "multiple_choice",
+              "topic": "Misplaced Modifiers",
+              "question_text": "Which sentence contains a misplaced modifier?",
+              "choices": ["A. Walking through the park, the trees were in full bloom.", "B. I saw a deer while driving to work.", "C. He gave the speech confidently and clearly.", "D. She wore her new shoes to school."],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g9-9",
+              "number": 9,
+              "type": "multiple_choice",
+              "topic": "Tone",
+              "question_text": "Which best describes the author's tone in a persuasive essay promoting clean energy?",
+              "choices": ["A. Indifferent", "B. Objective", "C. Passionate", "D. Humorous"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g9-10",
+              "number": 10,
+              "type": "multiple_choice",
+              "topic": "Revision",
+              "question_text": "What is the best strategy for revising a paragraph for clarity?",
+              "choices": ["A. Add more adjectives", "B. Remove transition words", "C. Combine related ideas and remove redundancy", "D. Replace all pronouns"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g9-11",
+              "number": 11,
+              "type": "multiple_choice",
+              "topic": "Root Words",
+              "question_text": "What does the root word 'bene-' mean in the word beneficial?",
+              "choices": ["A. Bad", "B. Good", "C. Life", "D. Against"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g9-12",
+              "number": 12,
+              "type": "multiple_choice",
+              "topic": "Situational Irony",
+              "question_text": "Which of the following best explains the irony in 'The fire station burned down last night'?",
+              "choices": ["A. The fire station was poorly built", "B. Firefighters were not on duty", "C. A fire station is expected to be safe from fire", "D. It was intentional"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g9-13",
+              "number": 13,
+              "type": "multiple_choice",
+              "topic": "Text Features",
+              "question_text": "In nonfiction, what is a common purpose for using subheadings?",
+              "choices": ["A. To confuse the reader", "B. To make the page look busy", "C. To organize and preview content", "D. To replace images"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g9-14",
+              "number": 14,
+              "type": "multiple_choice",
+              "topic": "Evidence",
+              "question_text": "What type of evidence is strongest in an argumentative essay?",
+              "choices": ["A. Personal opinion", "B. Repetition", "C. Anecdotal stories", "D. Statistical data from a credible source"],
+              "correct_answer": "D"
+            },
+            {
+              "id": "g9-15",
+              "number": 15,
+              "type": "multiple_choice",
+              "topic": "Tone Shift",
+              "question_text": "Which of the following best shows a shift in tone?",
+              "choices": ["A. The story continued with the same emotion.", "B. The joyful paragraph turned suddenly tragic.", "C. The sentences repeat the same idea.", "D. The author lists their sources."],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g9-16",
+              "number": 16,
+              "type": "multiple_choice",
+              "topic": "Thesis Statement",
+              "question_text": "What is the role of a thesis statement in an essay?",
+              "choices": ["A. To summarize the conclusion", "B. To state the main claim of the essay", "C. To list all sources used", "D. To include the opposing viewpoint of the essay"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g9-17",
+              "number": 17,
+              "type": "multiple_choice",
+              "topic": "Parallel Structure",
+              "question_text": "Which phrase uses parallel structure?",
+              "choices": ["A. She likes reading, to jog, and hiking.", "B. Running, swimming, and biking are my hobbies.", "C. I want to eat, sleep, and for dancing.", "D. We went to the park, movies, and we danced."],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g9-18",
+              "number": 18,
+              "type": "multiple_choice",
+              "topic": "Author's Purpose",
+              "question_text": "What is the author's purpose in a news article?",
+              "choices": ["A. To entertain", "B. To persuade emotionally", "C. To inform with facts", "D. To reflect on personal experiences"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g9-19",
+              "number": 19,
+              "type": "multiple_choice",
+              "topic": "Simile",
+              "question_text": "Read the sentence: 'The boy's laughter echoed like bells.' This is an example of:",
+              "choices": ["A. Metaphor", "B. Alliteration", "C. Hyperbole", "D. Simile"],
+              "correct_answer": "D"
+            },
+            {
+              "id": "g9-20",
+              "number": 20,
+              "type": "multiple_choice",
+              "topic": "Sentence Revision",
+              "question_text": "Which of the following best revises this sentence for clarity? 'Despite of the fact that he was tired, but he still finished the race.'",
+              "choices": ["A. Despite he was tired, he still finished.", "B. Although he was tired, he still finished the race.", "C. Being tired but he still finished.", "D. Despite of tiredness, he completed."],
+              "correct_answer": "B"
+            }
+          ]
+        },
+        {
+          "section_title": "Section II: Reading Comprehension",
+          "instructions": "Read the passage and answer the questions that follow.",
+          "time_limit_minutes": 25,
+          "passage_title": "The Weight of Silence",
+          "passage": "(Reading passage about Liana and investigative journalism)",
+          "questions": [
+            {
+              "id": "g9-21",
+              "number": 21,
+              "type": "multiple_choice",
+              "topic": "Inference",
+              "question_text": "What is the most likely reason Liana disappeared before publishing her article?",
+              "choices": ["A. She got sick suddenly.", "B. She feared retaliation for her discovery.", "C. Her family moved away.", "D. She lost interest in the story."],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g9-22",
+              "number": 22,
+              "type": "multiple_choice",
+              "topic": "Literary Device",
+              "question_text": "How does the author use silence as a literary device in the opening and closing in the story?",
+              "choices": ["A. To suggest that the school had poor acoustics.", "B. To symbolize confusion and later, understanding.", "C. To highlight the lack of classroom participation.", "D. To create a peaceful tone."],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g9-23",
+              "number": 23,
+              "type": "multiple_choice",
+              "topic": "Character Development",
+              "question_text": "What can be inferred about Malik's character development throughout the passage?",
+              "choices": ["A. He becomes less interested in journalism.", "B. He learns to follow school rules more closely.", "C. He evolves from a passive observer to an active truth-seeker.", "D. He blames himself for Liana's disappearance."],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g9-24",
+              "number": 24,
+              "type": "multiple_choice",
+              "topic": "Plot Structure",
+              "question_text": "What is the effect of the final envelope and photo revealed at the end?",
+              "choices": ["A. It confirms that the investigation was a failure.", "B. It serves as a plot twist that confuses the reader.", "C. It provides closure and shows Liana's continued work.", "D. It explains the school's renovation plans in detail."],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g9-25",
+              "number": 25,
+              "type": "multiple_choice",
+              "topic": "Theme",
+              "question_text": "Which central theme is most prominent in the story?",
+              "choices": ["A. The importance of school traditions.", "B. Friendship and loyalty.", "C. The power of investigative journalism and truth.", "D. The danger of digital technology."],
+              "correct_answer": "C"
+            }
+          ]
+        },
+        {
+          "section_title": "Section III: Writing Prompts",
+          "instructions": "Choose one of the following prompts. Write clearly and support your ideas with examples.",
+          "time_limit_minutes": 25,
+          "questions": [
+            {
+              "id": "g9-w1",
+              "number": 1,
+              "type": "writing",
+              "topic": "Narrative Writing",
+              "question_text": "Imagine Julia continues her journey and makes a surprising discovery in the lighthouse. Write the next chapter of her adventure. Describe the setting, what she finds, and how it changes her understanding of her grandfather's story. Write in story format, include dialogue and emotion if appropriate."
+            },
+            {
+              "id": "g9-w2",
+              "number": 2,
+              "type": "writing",
+              "topic": "Argumentative Essay",
+              "question_text": "Do you believe it's important to follow your family's legacy, even if others don't believe in it? Write an argumentative essay stating your position and supporting it with examples from the passage, your experience, or outside knowledge. Include a clear thesis, body paragraphs with reasons, and a conclusion."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "grade": "10",
+      "test_name": "Grade 10 ELA Diagnostic Assessment",
+      "total_time_minutes": 90,
+      "calculator_allowed": false,
+      "standards": "Aligned to NYS Next Generation ELA Standards",
+      "target_skills": "Literary analysis, central idea, inferencing, vocabulary in context, writing structure, grammar, and author's craft",
+      "directions": "Choose the best answer. Each question is worth 1 point.",
+      "sections": [
+        {
+          "section_title": "Section I: Multiple Choice Questions",
+          "instructions": "Choose the best answer. Each question is worth 1 point.",
+          "time_limit_minutes": 30,
+          "questions": [
+            {
+              "id": "g10-1",
+              "number": 1,
+              "type": "multiple_choice",
+              "topic": "Central Idea",
+              "question_text": "What is the central idea of a passage?",
+              "choices": ["A. The author's opinion", "B. The setting and characters", "C. The most important message", "D. The first sentence"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g10-2",
+              "number": 2,
+              "type": "multiple_choice",
+              "topic": "Vocabulary in Context",
+              "question_text": "Which word best fits this sentence? \"The boy's __________ response showed his confusion.\"",
+              "choices": ["A. lucid", "B. coherent", "C. bewildered", "D. articulate"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g10-3",
+              "number": 3,
+              "type": "multiple_choice",
+              "topic": "Metaphor",
+              "question_text": "Which sentence contains a metaphor?",
+              "choices": ["A. She was as quiet as a mouse.", "B. He ran like lightning.", "C. The classroom was a zoo.", "D. The wind whispered softly."],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g10-4",
+              "number": 4,
+              "type": "multiple_choice",
+              "topic": "Tone",
+              "question_text": "What is the author's tone in a passage described as reflective and emotional?",
+              "choices": ["A. Objective", "B. Humorous", "C. Nostalgic", "D. Persuasive"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g10-5",
+              "number": 5,
+              "type": "multiple_choice",
+              "topic": "Vocabulary",
+              "question_text": "What does the word \"inevitable\" mean?",
+              "choices": ["A. Can be avoided", "B. Likely to change", "C. Certain to happen", "D. Difficult to measure"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g10-6",
+              "number": 6,
+              "type": "multiple_choice",
+              "topic": "Passive Voice",
+              "question_text": "Which sentence is written in a passive voice?",
+              "choices": ["A. The committee approved the new policy.", "B. The teacher graded the tests.", "C. The book was read by every student.", "D. The students completed the project."],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g10-7",
+              "number": 7,
+              "type": "multiple_choice",
+              "topic": "Theme",
+              "question_text": "Which of the following best identifies a theme?",
+              "choices": ["A. A young girl discovers a hidden talent", "B. The city is noisy and bright", "C. Hard work leads to success", "D. A boy travels through a forest"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g10-8",
+              "number": 8,
+              "type": "multiple_choice",
+              "topic": "Transitions",
+              "question_text": "In writing, what is a transition word?",
+              "choices": ["A. A word that introduces dialogue", "B. A word that connects ideas", "C. A word that starts a sentence", "D. A word that ends a paragraph"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g10-9",
+              "number": 9,
+              "type": "multiple_choice",
+              "topic": "Conclusion",
+              "question_text": "What is the purpose of a conclusion paragraph?",
+              "choices": ["A. Introduce the topic", "B. Add new information", "C. Restate the thesis and summarize", "D. Use persuasive language only"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g10-10",
+              "number": 10,
+              "type": "multiple_choice",
+              "topic": "Inference",
+              "question_text": "What is an inference?",
+              "choices": ["A. A guess based on emotion", "B. A conclusion drawn from evidence", "C. A personal opinion", "D. A plot summary"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g10-11",
+              "number": 11,
+              "type": "multiple_choice",
+              "topic": "Complex Sentences",
+              "question_text": "Which of the following is a complex sentence?",
+              "choices": ["A. She danced and he sang.", "B. After the bell rang, the students left.", "C. The sun set.", "D. They walked to school and studied."],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g10-12",
+              "number": 12,
+              "type": "multiple_choice",
+              "topic": "Rhetorical Questions",
+              "question_text": "What is the purpose of a rhetorical question?",
+              "choices": ["A. To gather information", "B. To confuse the reader", "C. To persuade or emphasize", "D. To describe a character"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g10-13",
+              "number": 13,
+              "type": "multiple_choice",
+              "topic": "Gerunds",
+              "question_text": "Which sentence contains a gerund?",
+              "choices": ["A. I am swimming in the pool.", "B. She plans to swim tomorrow.", "C. Swimming is my favorite activity.", "D. I swim every morning."],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g10-14",
+              "number": 14,
+              "type": "multiple_choice",
+              "topic": "Prefixes",
+              "question_text": "What does the prefix \"pre-\" mean?",
+              "choices": ["A. After", "B. During", "C. Before", "D. Between"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g10-15",
+              "number": 15,
+              "type": "multiple_choice",
+              "topic": "Dramatic Irony",
+              "question_text": "What is dramatic irony?",
+              "choices": ["A. When the narrator speaks", "B. When characters argue", "C. When the audience knows more than the characters", "D. When the plot repeats itself"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g10-16",
+              "number": 16,
+              "type": "multiple_choice",
+              "topic": "Credible Sources",
+              "question_text": "Which of the following is a credible source?",
+              "choices": ["A. A personal blog", "B. A peer-reviewed journal", "C. A social media post", "D. A Wikipedia entry"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g10-17",
+              "number": 17,
+              "type": "multiple_choice",
+              "topic": "Textual Evidence",
+              "question_text": "What is the function of textual evidence?",
+              "choices": ["A. Add unrelated facts", "B. Support claims or arguments", "C. Introduce new characters", "D. Entertain the reader"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g10-18",
+              "number": 18,
+              "type": "multiple_choice",
+              "topic": "Parallel Structure",
+              "question_text": "What is the parallel structure in a sentence?",
+              "choices": ["A. Repeating the same word", "B. Using the same grammatical form", "C. Adding punctuation", "D. Changing verb tense"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g10-19",
+              "number": 19,
+              "type": "multiple_choice",
+              "topic": "Persuasive Writing",
+              "question_text": "In a persuasive essay, which element is most important?",
+              "choices": ["A. Imagery", "B. Dialogue", "C. Thesis and supporting arguments", "D. Conflict and resolution"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g10-20",
+              "number": 20,
+              "type": "multiple_choice",
+              "topic": "Memoir vs Autobiography",
+              "question_text": "What is the difference between a memoir and an autobiography?",
+              "choices": ["A. Memoirs are fictional", "B. Autobiographies are told by others", "C. Memoirs focus on one part of life", "D. Autobiographies are shorter"],
+              "correct_answer": "C"
+            }
+          ]
+        },
+        {
+          "section_title": "Section II: Reading Comprehension Passage",
+          "instructions": "Read the passage carefully and answer the five questions that follow. You may annotate the text. Total time for this section: 20 minutes.",
+          "time_limit_minutes": 20,
+          "passage_title": "The Cost of Silence",
+          "passage": "It began with a whisper.\n\nAt first, no one noticed the new girl, Samira, sitting quietly in the back of Mr. Langston's 10th-grade English class. Her presence barely rippled the room's typical morning chaos: the scraping of metal chairs, the thud of backpacks, the murmur of gossip floating like smoke. She was a shadow—visible but unacknowledged.\n\n(Passage continues with story about Samira and her journey of finding her voice...)",
+          "questions": [
+            {
+              "id": "g10-21",
+              "number": 21,
+              "type": "multiple_choice",
+              "topic": "Characterization",
+              "question_text": "Based on the passage, what best describes Samira at the beginning of the story?",
+              "choices": ["A. Confident and outspoken", "B. Quiet and overlooked", "C. Popular and admired", "D. Angry and rebellious"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g10-22",
+              "number": 22,
+              "type": "multiple_choice",
+              "topic": "Figurative Language",
+              "question_text": "What does the phrase 'the murmur of gossip floating like smoke' suggest?",
+              "choices": ["A. The room was on fire", "B. Gossip spread quietly and pervasively", "C. Students were whispering secrets", "D. The room was foggy"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g10-23",
+              "number": 23,
+              "type": "multiple_choice",
+              "topic": "Theme",
+              "question_text": "What theme is most likely developed in this passage?",
+              "choices": ["A. The dangers of popularity", "B. Finding one's voice", "C. The importance of academics", "D. Teacher-student relationships"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g10-24",
+              "number": 24,
+              "type": "multiple_choice",
+              "topic": "Author's Purpose",
+              "question_text": "Why does the author begin with 'It began with a whisper'?",
+              "choices": ["A. To show the room was quiet", "B. To create mystery and foreshadow change", "C. To describe the setting", "D. To introduce the main character"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g10-25",
+              "number": 25,
+              "type": "multiple_choice",
+              "topic": "Inference",
+              "question_text": "What can be inferred about Mr. Langston's classroom?",
+              "choices": ["A. It is a calm and organized environment", "B. It is chaotic and typical of a high school setting", "C. Students are always attentive", "D. It is a small class with few students"],
+              "correct_answer": "B"
+            }
+          ]
+        },
+        {
+          "section_title": "Section III: Writing",
+          "instructions": "Choose one prompt and write a well-organized response.",
+          "time_limit_minutes": 40,
+          "questions": [
+            {
+              "id": "g10-w1",
+              "number": 1,
+              "type": "writing",
+              "topic": "Literary Analysis",
+              "question_text": "Analyze how the author develops Samira's character in the passage. What literary techniques does the author use, and how do they contribute to the theme of finding one's voice?"
+            },
+            {
+              "id": "g10-w2",
+              "number": 2,
+              "type": "writing",
+              "topic": "Argumentative Essay",
+              "question_text": "Some people believe that silence can be a form of strength, while others argue that speaking up is always necessary. Write an argumentative essay taking a position on this issue. Support your argument with evidence from literature, history, or personal experience."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "grade": "11",
+      "test_name": "Grade 11 ELA Diagnostic Test",
+      "total_time_minutes": 90,
+      "directions": "This diagnostic test will assess your reading comprehension, literary analysis, vocabulary, grammar, and writing skills. Read each question carefully and choose the best answer.",
+      "sections": [
+        {
+          "section_title": "Section I: Multiple Choice",
+          "instructions": "Choose the best answer for each question.",
+          "time_limit_minutes": 40,
+          "questions": [
+            {
+              "id": "g11-1",
+              "number": 1,
+              "type": "multiple_choice",
+              "topic": "Rhetoric",
+              "question_text": "Which rhetorical appeal relies on the credibility of the speaker?",
+              "choices": ["A. Pathos", "B. Logos", "C. Ethos", "D. Kairos"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g11-2",
+              "number": 2,
+              "type": "multiple_choice",
+              "topic": "Vocabulary",
+              "question_text": "What does the word 'ephemeral' mean?",
+              "choices": ["A. Lasting forever", "B. Short-lived", "C. Extremely important", "D. Difficult to understand"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g11-3",
+              "number": 3,
+              "type": "multiple_choice",
+              "topic": "Literary Analysis",
+              "question_text": "In a bildungsroman, what is the primary focus?",
+              "choices": ["A. A detective solving a crime", "B. A character's moral and psychological growth", "C. A romantic relationship", "D. A journey to a new land"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g11-4",
+              "number": 4,
+              "type": "multiple_choice",
+              "topic": "Syntax",
+              "question_text": "How does an author's use of short, choppy sentences typically affect the reader?",
+              "choices": ["A. Creates a calm, relaxed mood", "B. Builds tension or urgency", "C. Shows deep reflection", "D. Indicates a flashback"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g11-5",
+              "number": 5,
+              "type": "multiple_choice",
+              "topic": "Vocabulary",
+              "question_text": "What does the word 'ubiquitous' mean?",
+              "choices": ["A. Rare and unusual", "B. Present everywhere", "C. Hidden from view", "D. Extremely loud"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g11-6",
+              "number": 6,
+              "type": "multiple_choice",
+              "topic": "Allegory",
+              "question_text": "What is an allegory?",
+              "choices": ["A. A type of rhyme scheme", "B. A story with a hidden meaning, usually moral or political", "C. An exaggerated statement", "D. A comparison without using 'like' or 'as'"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g11-7",
+              "number": 7,
+              "type": "multiple_choice",
+              "topic": "Paradox",
+              "question_text": "Which of the following is an example of a paradox?",
+              "choices": ["A. 'The early bird catches the worm.'", "B. 'Less is more.'", "C. 'Time flies like an arrow.'", "D. 'Actions speak louder than words.'"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g11-8",
+              "number": 8,
+              "type": "multiple_choice",
+              "topic": "Vocabulary",
+              "question_text": "What does 'acrimonious' mean?",
+              "choices": ["A. Friendly and warm", "B. Bitter and angry", "C. Quiet and reserved", "D. Hopeful and optimistic"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g11-9",
+              "number": 9,
+              "type": "multiple_choice",
+              "topic": "Unreliable Narrator",
+              "question_text": "What is the effect of using an unreliable narrator?",
+              "choices": ["A. The story becomes more objective", "B. The reader questions the truth of the narrative", "C. The plot becomes simpler", "D. Character development is limited"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g11-10",
+              "number": 10,
+              "type": "multiple_choice",
+              "topic": "Juxtaposition",
+              "question_text": "What is juxtaposition in literature?",
+              "choices": ["A. Repeating a word for emphasis", "B. Placing contrasting elements side by side", "C. Using humor to criticize", "D. Breaking the fourth wall"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g11-11",
+              "number": 11,
+              "type": "multiple_choice",
+              "topic": "Satire",
+              "question_text": "What is the primary purpose of satire?",
+              "choices": ["A. To entertain with humor", "B. To criticize and expose flaws through humor or irony", "C. To tell a tragic story", "D. To describe nature"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g11-12",
+              "number": 12,
+              "type": "multiple_choice",
+              "topic": "Vocabulary",
+              "question_text": "What does 'pragmatic' mean?",
+              "choices": ["A. Idealistic and dreamy", "B. Practical and realistic", "C. Artistic and creative", "D. Pessimistic and doubtful"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g11-13",
+              "number": 13,
+              "type": "multiple_choice",
+              "topic": "Motif",
+              "question_text": "What is a motif?",
+              "choices": ["A. The main character's goal", "B. A recurring element that has symbolic significance", "C. The setting of a story", "D. The climax of the plot"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g11-14",
+              "number": 14,
+              "type": "multiple_choice",
+              "topic": "Archetype",
+              "question_text": "Which of the following is an example of an archetype?",
+              "choices": ["A. A specific historical figure", "B. The hero's journey", "C. A unique plot twist", "D. Modern slang"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g11-15",
+              "number": 15,
+              "type": "multiple_choice",
+              "topic": "Diction",
+              "question_text": "How does formal diction affect the tone of a text?",
+              "choices": ["A. Makes it casual and friendly", "B. Creates a serious or professional atmosphere", "C. Adds humor", "D. Makes it more confusing"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g11-16",
+              "number": 16,
+              "type": "multiple_choice",
+              "topic": "Vocabulary",
+              "question_text": "What does 'ambivalent' mean?",
+              "choices": ["A. Strongly opposed", "B. Having mixed feelings", "C. Completely certain", "D. Extremely happy"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g11-17",
+              "number": 17,
+              "type": "multiple_choice",
+              "topic": "Foil Character",
+              "question_text": "What is the purpose of a foil character?",
+              "choices": ["A. To provide comic relief", "B. To highlight the qualities of the main character by contrast", "C. To narrate the story", "D. To create the main conflict"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g11-18",
+              "number": 18,
+              "type": "multiple_choice",
+              "topic": "Stream of Consciousness",
+              "question_text": "What characterizes stream of consciousness writing?",
+              "choices": ["A. Formal dialogue between characters", "B. The continuous flow of a character's thoughts and feelings", "C. Third-person omniscient narration", "D. Chronological plot structure"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g11-19",
+              "number": 19,
+              "type": "multiple_choice",
+              "topic": "Vocabulary",
+              "question_text": "What does 'loquacious' mean?",
+              "choices": ["A. Shy and quiet", "B. Talkative", "C. Angry", "D. Careful"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g11-20",
+              "number": 20,
+              "type": "multiple_choice",
+              "topic": "Antithesis",
+              "question_text": "Which of the following is an example of antithesis?",
+              "choices": ["A. 'To be or not to be'", "B. 'It was the best of times, it was the worst of times.'", "C. 'The wind whispered secrets.'", "D. 'She sells seashells by the seashore.'"],
+              "correct_answer": "B"
+            }
+          ]
+        },
+        {
+          "section_title": "Section II: Reading Comprehension",
+          "instructions": "Read the passage and answer the questions that follow.",
+          "time_limit_minutes": 25,
+          "passage_title": "The Burden of Legacy",
+          "passage": "(Passage about generational expectations and individual identity)",
+          "questions": [
+            {
+              "id": "g11-21",
+              "number": 21,
+              "type": "multiple_choice",
+              "topic": "Central Idea",
+              "question_text": "What is the central idea of the passage?",
+              "choices": ["A. The importance of following family traditions", "B. The tension between individual identity and family expectations", "C. The benefits of inherited wealth", "D. The history of a particular family"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g11-22",
+              "number": 22,
+              "type": "multiple_choice",
+              "topic": "Tone",
+              "question_text": "What is the author's tone toward the concept of legacy?",
+              "choices": ["A. Entirely positive", "B. Completely dismissive", "C. Nuanced and complex", "D. Indifferent"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g11-23",
+              "number": 23,
+              "type": "multiple_choice",
+              "topic": "Symbolism",
+              "question_text": "What does the heirloom watch symbolize in the passage?",
+              "choices": ["A. Wealth and status", "B. The passage of time and family connection", "C. Modern technology", "D. Personal achievement"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g11-24",
+              "number": 24,
+              "type": "multiple_choice",
+              "topic": "Author's Purpose",
+              "question_text": "What is the author's purpose in including the grandmother's perspective?",
+              "choices": ["A. To add comic relief", "B. To provide historical context and emotional depth", "C. To criticize younger generations", "D. To introduce a plot twist"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g11-25",
+              "number": 25,
+              "type": "multiple_choice",
+              "topic": "Inference",
+              "question_text": "What can be inferred about the protagonist's final decision?",
+              "choices": ["A. They completely reject their family's legacy", "B. They find a way to honor the past while forging their own path", "C. They become exactly like their parents", "D. They leave their family permanently"],
+              "correct_answer": "B"
+            }
+          ]
+        },
+        {
+          "section_title": "Section III: Writing",
+          "instructions": "Choose one prompt and write a well-organized response.",
+          "time_limit_minutes": 25,
+          "questions": [
+            {
+              "id": "g11-w1",
+              "number": 1,
+              "type": "writing",
+              "topic": "Rhetorical Analysis",
+              "question_text": "Analyze the rhetorical strategies used in a speech or essay of your choice. Discuss how the author uses ethos, pathos, and logos to persuade the audience. Include specific examples and evaluate the effectiveness of each strategy."
+            },
+            {
+              "id": "g11-w2",
+              "number": 2,
+              "type": "writing",
+              "topic": "Argumentative Essay",
+              "question_text": "Is it more important to honor family traditions or to forge one's own path in life? Write an argumentative essay taking a position on this issue. Support your argument with evidence from literature, history, or personal experience."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "grade": "12",
+      "test_name": "Grade 12 ELA Diagnostic Assessment",
+      "total_time_minutes": 90,
+      "directions": "This diagnostic test will assess your reading comprehension, literary analysis, vocabulary, grammar, and writing skills. Choose the best answer for each question. Circle the correct option.",
+      "sections": [
+        {
+          "section_title": "Section I: Multiple Choice",
+          "instructions": "Choose the best answer for each question. Circle the correct option.",
+          "time_limit_minutes": 35,
+          "questions": [
+            {
+              "id": "g12-1",
+              "number": 1,
+              "type": "multiple_choice",
+              "topic": "Vocabulary in Context",
+              "question_text": "The scientist's ______ explanation impressed the panel.",
+              "choices": ["A. lucid", "B. vague", "C. obscure", "D. abrupt"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g12-2",
+              "number": 2,
+              "type": "multiple_choice",
+              "topic": "Vocabulary",
+              "question_text": "In context, the word benevolent most nearly means:",
+              "choices": ["A. generous", "B. hostile", "C. distant", "D. indifferent"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g12-3",
+              "number": 3,
+              "type": "multiple_choice",
+              "topic": "Parallel Structure",
+              "question_text": "Which sentence uses proper parallel structure?",
+              "choices": ["A. She likes running, to swim, and biking.", "B. She likes running, swimming, and biking.", "C. She likes to run, swim, and biking.", "D. She likes to running, to swim, and to bike."],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g12-4",
+              "number": 4,
+              "type": "multiple_choice",
+              "topic": "Central Idea",
+              "question_text": "The central idea of a passage is:",
+              "choices": ["A. A minor detail", "B. A character's opinion", "C. The main point or theme", "D. The setting description"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g12-5",
+              "number": 5,
+              "type": "multiple_choice",
+              "topic": "Punctuation",
+              "question_text": "Which punctuation best completes: She packed the essentials _____ toothbrush, toothpaste, and soap.",
+              "choices": ["A. :", "B. ;", "C. ,", "D. –"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g12-6",
+              "number": 6,
+              "type": "multiple_choice",
+              "topic": "Personification",
+              "question_text": "Which is an example of personification?",
+              "choices": ["A. The leaves danced in the wind.", "B. The rock was jagged and cold.", "C. The sun was bright and warm.", "D. The wind blew fast."],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g12-7",
+              "number": 7,
+              "type": "multiple_choice",
+              "topic": "Counterclaim",
+              "question_text": "A counterclaim is used to:",
+              "choices": ["A. Support the main idea", "B. Provide evidence", "C. Acknowledge opposing views", "D. Repeat the thesis"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g12-8",
+              "number": 8,
+              "type": "multiple_choice",
+              "topic": "Foreshadowing",
+              "question_text": "What effect does foreshadowing have?",
+              "choices": ["A. Introduces the climax", "B. Builds suspense", "C. Resolves conflict", "D. Explains background"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g12-9",
+              "number": 9,
+              "type": "multiple_choice",
+              "topic": "Figurative Language",
+              "question_text": "Which is figurative language?",
+              "choices": ["A. Raining cats and dogs", "B. It was raining hard", "C. The rain was steady", "D. He took an umbrella"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g12-10",
+              "number": 10,
+              "type": "multiple_choice",
+              "topic": "Misplaced Modifiers",
+              "question_text": "Which sentence has a misplaced modifier?",
+              "choices": ["A. Running quickly, the dog chased the ball.", "B. The dog chased the ball running quickly.", "C. The ball was chased quickly by the dog.", "D. The quick dog chased the ball."],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g12-11",
+              "number": 11,
+              "type": "multiple_choice",
+              "topic": "Tone",
+              "question_text": "Tone refers to:",
+              "choices": ["A. The author's attitude toward the subject", "B. The subject of the piece", "C. The format of the writing", "D. The theme of the piece"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g12-12",
+              "number": 12,
+              "type": "multiple_choice",
+              "topic": "Vocabulary",
+              "question_text": "What is a synonym for arduous?",
+              "choices": ["A. Easy", "B. Tedious", "C. Relaxing", "D. Enjoyable"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g12-13",
+              "number": 13,
+              "type": "multiple_choice",
+              "topic": "Flashback",
+              "question_text": "Flashback in a narrative:",
+              "choices": ["A. Shows past events", "B. Introduces a subplot", "C. Highlights the climax", "D. Ends the story"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g12-14",
+              "number": 14,
+              "type": "multiple_choice",
+              "topic": "Grammar",
+              "question_text": "Which sentence has a grammatical error?",
+              "choices": ["A. Each student brought their book.", "B. Each student brought his or her book.", "C. The students brought their books.", "D. All of the students came prepared."],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g12-15",
+              "number": 15,
+              "type": "multiple_choice",
+              "topic": "Thesis Statement",
+              "question_text": "Purpose of a thesis statement:",
+              "choices": ["A. Provide a summary", "B. State the main argument", "C. List sources", "D. Include background"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g12-16",
+              "number": 16,
+              "type": "multiple_choice",
+              "topic": "Ethos",
+              "question_text": "In persuasive writing, ethos refers to:",
+              "choices": ["A. Emotional appeal", "B. Logical reasoning", "C. Credibility", "D. Statistics"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g12-17",
+              "number": 17,
+              "type": "multiple_choice",
+              "topic": "Complex Sentences",
+              "question_text": "Which is a complex sentence?",
+              "choices": ["A. I like pizza.", "B. I like pizza, and I like pasta.", "C. Although I like pizza, I prefer pasta.", "D. Pizza is good"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g12-18",
+              "number": 18,
+              "type": "multiple_choice",
+              "topic": "Point of View",
+              "question_text": "What type of narrator uses \"I\"?",
+              "choices": ["A. Third-person omniscient", "B. Third-person limited", "C. Second-person", "D. First-person"],
+              "correct_answer": "D"
+            },
+            {
+              "id": "g12-19",
+              "number": 19,
+              "type": "multiple_choice",
+              "topic": "Simile",
+              "question_text": "A simile is a comparison using:",
+              "choices": ["A. Metaphor", "B. 'Like' or 'as'", "C. Hyperbole", "D. Irony"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g12-20",
+              "number": 20,
+              "type": "multiple_choice",
+              "topic": "Text Structure",
+              "question_text": "To \"analyze structure\" means to:",
+              "choices": ["A. Identify grammar errors", "B. Examine how parts are organized", "C. Count the words", "D. Summarize the ending"],
+              "correct_answer": "B"
+            }
+          ]
+        },
+        {
+          "section_title": "Section II: Reading Comprehension",
+          "instructions": "Read the passage carefully. Then answer the questions that follow, which assess your ability to interpret, analyze, and evaluate the structure, purpose, and meaning of the text. Use textual evidence where necessary.",
+          "time_limit_minutes": 25,
+          "passage_title": "The Cost of Knowing",
+          "passage": "In the early spring of 1925, nestled deep within the Tennessee Valley, the town of Dayton stood on the precipice of an unexpected spotlight...John T. Scopes, a substitute teacher and football coach, had little reason to defy the state...Reporters from New York, Chicago, and beyond flooded the town...The trial was more than a legal proceeding; it was a stage for national identity...Outside the courthouse, Dayton buzzed with activity...As the civil rights era advanced, the judicial system found itself pressed between the will of the people and the promises of the Constitution...Thurgood Marshall, the nation's first African American Supreme Court Justice, once said...The impact of Brown went beyond its immediate implications...In the decades following Brown, the courts would hear cases on gender equality, voting rights, and disability access...",
+          "questions": [
+            {
+              "id": "g12-21",
+              "number": 21,
+              "type": "multiple_choice",
+              "topic": "Inference",
+              "question_text": "What does the phrase \"silent architects of justice\" most likely refer to in the context of the passage?",
+              "choices": ["A. Politicians who passed civil rights laws", "B. Citizens protesting on the streets", "C. Legal professionals who influenced societal change", "D. News reporters covering court cases"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g12-22",
+              "number": 22,
+              "type": "multiple_choice",
+              "topic": "Central Idea",
+              "question_text": "What central idea is best supported by this passage?",
+              "choices": ["A. Court cases are the only way to achieve justice", "B. Courtroom decisions are irrelevant without public support.", "C. Civil rights progress is made through both legal and public action.", "D. Protests alone are enough to enact systemic reform."],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g12-23",
+              "number": 23,
+              "type": "multiple_choice",
+              "topic": "Character Analysis",
+              "question_text": "Which of the following best characterizes Thurgood Marshall's role according to the passage?",
+              "choices": ["A. A symbolic figurehead of integration", "B. A military leader in the civil rights movement", "C. A strategic legal advocate who helped shape national policy", "D. A political campaigner focused on changing public sentiment"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g12-24",
+              "number": 24,
+              "type": "multiple_choice",
+              "topic": "Tone",
+              "question_text": "What is the tone of the author toward the legal system?",
+              "choices": ["A. Dismissive and critical", "B. Celebratory and admiring", "C. Cautiously optimistic", "D. Indifferent and analytical"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g12-25",
+              "number": 25,
+              "type": "multiple_choice",
+              "topic": "Textual Evidence",
+              "question_text": "Which sentence from the passage best supports the idea that change through the courts can influence other areas of life?",
+              "choices": ["A. \"That decision, handed down by the Supreme Court in 1954…\"", "B. \"The impact of Brown went beyond its immediate implications.\"", "C. \"He famously believed in the rule of law as both a sword and a shield.\"", "D. \"Progress, as the passage implies, is rarely loud, but it is deliberate.\""],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g12-26",
+              "number": 26,
+              "type": "multiple_choice",
+              "topic": "Historical Significance",
+              "question_text": "According to the passage, why is the Brown v. Board case historically significant?",
+              "choices": ["A. It marked the first televised civil rights case in the U.S.", "B. It inspired political protests across the country.", "C. It legally ended slavery in all U.S. territories.", "D. It became the legal foundation for many future rights cases."],
+              "correct_answer": "D"
+            },
+            {
+              "id": "g12-27",
+              "number": 27,
+              "type": "multiple_choice",
+              "topic": "Author's Purpose",
+              "question_text": "Which best explains the author's purpose in writing this passage?",
+              "choices": ["A. To critique the limitations of the U.S. legal system", "B. To explain how court rulings are made", "C. To highlight the quiet but powerful influence of legal reform", "D. To compare modern and historical protests"],
+              "correct_answer": "C"
+            }
+          ]
+        },
+        {
+          "section_title": "Section III: Writing Task",
+          "instructions": "Choose two (2) of the four prompts below. Write your responses in full paragraphs. Each response should be at least 250 words and must include textual references, logical reasoning, and clear organization. Your writing will be assessed on: Development of ideas, Clarity of purpose, Use of evidence, Organization, Language conventions.",
+          "time_limit_minutes": 30,
+          "questions": [
+            {
+              "id": "g12-w1",
+              "number": 1,
+              "type": "writing",
+              "topic": "Argumentative Essay",
+              "question_text": "\"The cost of progress is often paid by those who never benefit from it.\" Write an argumentative response agreeing or disagreeing with this statement. Use examples from literature, history, or current events to support your reasoning."
+            },
+            {
+              "id": "g12-w2",
+              "number": 2,
+              "type": "writing",
+              "topic": "Persuasive Essay",
+              "question_text": "A student argues: 'Social media has become the modern-day diary, but it lacks privacy and reflection.' Do you agree or disagree? Write a personal or persuasive response that explores how social media influences personal growth, communication, or self-awareness."
+            },
+            {
+              "id": "g12-w3",
+              "number": 3,
+              "type": "writing",
+              "topic": "Analytical Essay",
+              "question_text": "Read this quote from author James Baldwin: \"Not everything that is faced can be changed. But nothing can be changed until it is faced.\" Write an analytical essay that explains what Baldwin means and how this idea can be applied to one or more societal challenges today."
+            },
+            {
+              "id": "g12-w4",
+              "number": 4,
+              "type": "writing",
+              "topic": "Literary Analysis",
+              "question_text": "Choose a character from a book, film, or play you've read who made a difficult choice. Explain the consequences of that choice and evaluate whether it was justified. How does this decision connect to a real-world situation?"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
