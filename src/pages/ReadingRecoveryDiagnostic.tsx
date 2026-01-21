@@ -401,6 +401,8 @@ const ReadingRecoveryDiagnostic = () => {
                         questionId={q.id}
                         questionText={q.text}
                         questionNumber={q.number}
+                        questionType={level}
+                        passageText={passage.text}
                         isCorrect={scores.questionResults[q.id] ?? null}
                         consentGiven={oralConsentGiven}
                         onTranscriptUpdate={(data) => {
