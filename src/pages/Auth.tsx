@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -76,6 +76,8 @@ const resetSchema = z.object({
 
 const Auth = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectTo = searchParams.get('redirect') || '/dashboard';
   const { t } = useTranslation();
   const [isLogin, setIsLogin] = useState(true);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
@@ -210,7 +212,7 @@ const Auth = () => {
           return;
         }
         toast.success("Logged in successfully!");
-        navigate("/dashboard");
+        navigate(redirectTo);
       } else {
         const validation = signupSchema.safeParse({ 
           username, 
@@ -250,7 +252,7 @@ const Auth = () => {
         });
         if (error) throw error;
         toast.success("Account created successfully!");
-        navigate("/dashboard");
+        navigate(redirectTo);
       }
     } catch (error: any) {
       toast.error(error.message || "An error occurred");
