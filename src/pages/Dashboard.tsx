@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Activity, Target, Users, Shield, BookOpen, UserPlus, ClipboardList, XCircle, PlayCircle, AlertTriangle } from "lucide-react";
+import { Activity, Target, Users, Shield, BookOpen, UserPlus, ClipboardList, XCircle, PlayCircle, AlertTriangle, Trophy, Eye, Plus } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,11 +43,21 @@ interface DashboardAttempt {
   } | null;
 }
 
+interface ReadingDiagnostic {
+  id: string;
+  student_name: string;
+  grade_band: string;
+  passage_title: string;
+  final_error_count: number | null;
+  created_at: string;
+}
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [profileName, setProfileName] = useState<string>("there");
   const [attempts, setAttempts] = useState<DashboardAttempt[]>([]);
+  const [readingDiagnostics, setReadingDiagnostics] = useState<ReadingDiagnostic[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [isTeacher, setIsTeacher] = useState<boolean>(false);
@@ -161,6 +171,17 @@ const Dashboard = () => {
         }));
 
         setAttempts(attemptsWithCerts as DashboardAttempt[]);
+
+        // Fetch Reading Recovery diagnostics
+        const { data: readingData, error: readingError } = await supabase
+          .from("reading_diagnostic_transcripts")
+          .select("id, student_name, grade_band, passage_title, final_error_count, created_at")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false });
+
+        if (!readingError && readingData) {
+          setReadingDiagnostics(readingData as ReadingDiagnostic[]);
+        }
       } catch (err) {
         console.error("Dashboard load error:", err);
         toast.error("Something went wrong loading your dashboard.");
@@ -702,6 +723,102 @@ const Dashboard = () => {
                     </div>
                   );
                 })}
+              </CardContent>
+            </Card>
+
+            {/* Reading Recovery Assessments */}
+            <Card className="border-border">
+              <CardHeader className="border-b border-border pb-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-sm font-semibold text-foreground flex items-center gap-2">
+                      <BookOpen className="h-4 w-4 text-primary" />
+                      Reading Recovery Programme
+                    </CardTitle>
+                    <CardDescription className="text-xs text-muted-foreground">
+                      Your reading assessment history and results
+                    </CardDescription>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-[11px]"
+                    onClick={() => navigate("/reading-recovery/diagnostic")}
+                  >
+                    <Plus className="mr-1 h-3 w-3" />
+                    New Assessment
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3 pt-4 text-xs">
+                {readingDiagnostics.length === 0 ? (
+                  <div className="rounded-lg border border-dashed border-border bg-muted/50 px-4 py-6 text-center text-xs text-muted-foreground">
+                    <BookOpen className="mx-auto h-8 w-8 mb-2 text-muted-foreground/50" />
+                    <p>No reading assessments yet.</p>
+                    <Button
+                      size="sm"
+                      variant="link"
+                      className="mt-2 text-xs"
+                      onClick={() => navigate("/reading-recovery/diagnostic")}
+                    >
+                      Start your first assessment
+                    </Button>
+                  </div>
+                ) : (
+                  readingDiagnostics.map((diag) => {
+                    const tier = diag.final_error_count === null 
+                      ? "Unknown" 
+                      : diag.final_error_count <= 3 
+                        ? "Tier 1" 
+                        : diag.final_error_count <= 7 
+                          ? "Tier 2" 
+                          : "Tier 3";
+                    
+                    const tierColorClass = tier === "Tier 1"
+                      ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                      : tier === "Tier 2"
+                        ? "border-amber-200 bg-amber-50 text-amber-800"
+                        : tier === "Tier 3"
+                          ? "border-red-200 bg-red-50 text-red-800"
+                          : "border-muted bg-muted text-muted-foreground";
+
+                    return (
+                      <div
+                        key={diag.id}
+                        className="flex flex-col gap-2 rounded-lg border border-border bg-card p-3 sm:flex-row sm:items-center sm:justify-between"
+                      >
+                        <div>
+                          <div className="text-sm font-semibold text-foreground flex items-center gap-2">
+                            <Trophy className="h-4 w-4 text-primary" />
+                            {diag.student_name}
+                          </div>
+                          <div className="mt-0.5 text-[11px] text-muted-foreground">
+                            {diag.passage_title} · Grades {diag.grade_band}
+                            <span
+                              className={`ml-2 inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] ${tierColorClass}`}
+                            >
+                              {tier}
+                            </span>
+                          </div>
+                          <div className="mt-0.5 text-[11px] text-muted-foreground/70">
+                            Completed · {formatDate(diag.created_at)}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <Button
+                            size="sm"
+                            className="h-7 px-3 text-[11px]"
+                            onClick={() => navigate(`/reading-recovery/results/${diag.id}`)}
+                          >
+                            <Eye className="mr-1 h-3 w-3" />
+                            View Results
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
               </CardContent>
             </Card>
           </div>

@@ -23,6 +23,7 @@ import ManualGrading from "./pages/ManualGrading";
 import SchoolSetup from "./pages/SchoolSetup";
 import ReadingRecovery from "./pages/ReadingRecovery";
 import ReadingRecoveryDiagnostic from "./pages/ReadingRecoveryDiagnostic";
+import ReadingRecoveryResults from "./pages/ReadingRecoveryResults";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -54,6 +55,7 @@ const App = () => (
             <Route path="/teacher" element={<TeacherDashboard />} />
             <Route path="/reading-recovery" element={<ReadingRecovery />} />
             <Route path="/reading-recovery/diagnostic" element={<ReadingRecoveryDiagnostic />} />
+            <Route path="/reading-recovery/results/:transcriptId" element={<ReadingRecoveryResults />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
