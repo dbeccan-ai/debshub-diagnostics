@@ -347,6 +347,69 @@ export type Database = {
           },
         ]
       }
+      reading_diagnostic_transcripts: {
+        Row: {
+          audio_auto_delete_at: string | null
+          audio_uploaded_at: string | null
+          auto_delete_enabled: boolean
+          confirmed_errors: Json | null
+          consent_given: boolean
+          created_at: string
+          detected_errors: Json | null
+          final_error_count: number | null
+          grade_band: string
+          id: string
+          original_text: string
+          passage_title: string
+          student_name: string
+          transcript: string | null
+          updated_at: string
+          user_id: string
+          version: string
+          word_timings: Json | null
+        }
+        Insert: {
+          audio_auto_delete_at?: string | null
+          audio_uploaded_at?: string | null
+          auto_delete_enabled?: boolean
+          confirmed_errors?: Json | null
+          consent_given?: boolean
+          created_at?: string
+          detected_errors?: Json | null
+          final_error_count?: number | null
+          grade_band: string
+          id?: string
+          original_text: string
+          passage_title: string
+          student_name: string
+          transcript?: string | null
+          updated_at?: string
+          user_id: string
+          version: string
+          word_timings?: Json | null
+        }
+        Update: {
+          audio_auto_delete_at?: string | null
+          audio_uploaded_at?: string | null
+          auto_delete_enabled?: boolean
+          confirmed_errors?: Json | null
+          consent_given?: boolean
+          created_at?: string
+          detected_errors?: Json | null
+          final_error_count?: number | null
+          grade_band?: string
+          id?: string
+          original_text?: string
+          passage_title?: string
+          student_name?: string
+          transcript?: string | null
+          updated_at?: string
+          user_id?: string
+          version?: string
+          word_timings?: Json | null
+        }
+        Relationships: []
+      }
       schools: {
         Row: {
           contact_email: string | null

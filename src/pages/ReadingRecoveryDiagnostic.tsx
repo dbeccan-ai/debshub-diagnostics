@@ -9,6 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, ArrowRight, BookOpen, CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
+import { OralReadingAutoAssist } from "@/components/OralReadingAutoAssist";
 import { 
   getPassage, 
   gradeBands, 
@@ -28,9 +29,17 @@ interface AdminInfo {
   adminEmail: string;
 }
 
+interface DetectedErrors {
+  omissions: string[];
+  substitutions: Array<{ expected: string; actual: string }>;
+  insertions: string[];
+}
+
 interface Scores {
   oralReadingErrors: number;
   questionResults: Record<string, boolean>;
+  transcript?: string;
+  detectedErrors?: DetectedErrors;
 }
 
 const ReadingRecoveryDiagnostic = () => {
@@ -233,10 +242,28 @@ const ReadingRecoveryDiagnostic = () => {
               </CardContent>
             </Card>
 
+            {/* Auto-Assist Recording */}
+            <OralReadingAutoAssist
+              passageText={passage.text}
+              passageTitle={passage.title}
+              gradeBand={passage.gradeBand}
+              version={passage.version}
+              studentName={adminInfo.studentName}
+              initialErrorCount={scores.oralReadingErrors}
+              onErrorCountConfirmed={(count, transcript, errors) => {
+                setScores(prev => ({
+                  ...prev,
+                  oralReadingErrors: count,
+                  transcript,
+                  detectedErrors: errors
+                }));
+              }}
+            />
+
             <Card>
               <CardHeader>
                 <CardTitle>Decoding Observation</CardTitle>
-                <p className="text-sm text-muted-foreground">Mark while child reads aloud</p>
+                <p className="text-sm text-muted-foreground">Manual entry (or use Auto-Assist above)</p>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
