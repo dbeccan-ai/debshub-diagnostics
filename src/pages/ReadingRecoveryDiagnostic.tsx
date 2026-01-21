@@ -250,13 +250,31 @@ const ReadingRecoveryDiagnostic = () => {
               version={passage.version}
               studentName={adminInfo.studentName}
               initialErrorCount={scores.oralReadingErrors}
-              onErrorCountConfirmed={(count, transcript, errors) => {
+              onErrorCountConfirmed={(count, transcript, errors, suggestedStrategy) => {
                 setScores(prev => ({
                   ...prev,
                   oralReadingErrors: count,
                   transcript,
                   detectedErrors: errors
                 }));
+                // Auto-check the suggested decoding strategy
+                if (suggestedStrategy && passage?.decodingChecklist?.strategies) {
+                  const matchingStrategy = passage.decodingChecklist.strategies.find(
+                    s => s.toLowerCase().includes(suggestedStrategy.toLowerCase().split(' ')[0]) ||
+                         suggestedStrategy.toLowerCase().includes(s.toLowerCase().split(' ')[0])
+                  );
+                  if (matchingStrategy && !decodingChecks.includes(matchingStrategy)) {
+                    setDecodingChecks(prev => [...prev.filter(s => s !== matchingStrategy), matchingStrategy]);
+                  } else if (suggestedStrategy) {
+                    // Try exact match from the strategies list
+                    const exactMatch = passage.decodingChecklist.strategies.find(s => 
+                      s === suggestedStrategy
+                    );
+                    if (exactMatch && !decodingChecks.includes(exactMatch)) {
+                      setDecodingChecks(prev => [...prev.filter(s => s !== exactMatch), exactMatch]);
+                    }
+                  }
+                }
               }}
             />
 
