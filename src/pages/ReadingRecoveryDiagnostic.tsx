@@ -8,8 +8,9 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, ArrowRight, BookOpen, CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, CheckCircle2, XCircle, AlertTriangle, Volume2, Mic } from "lucide-react";
 import { OralReadingAutoAssist } from "@/components/OralReadingAutoAssist";
+import { OralQuestionAssist, type QuestionTranscript } from "@/components/OralQuestionAssist";
 import { 
   getPassage, 
   gradeBands, 
@@ -40,6 +41,7 @@ interface Scores {
   questionResults: Record<string, boolean>;
   transcript?: string;
   detectedErrors?: DetectedErrors;
+  questionTranscripts?: Record<string, QuestionTranscript>;
 }
 
 const ReadingRecoveryDiagnostic = () => {
@@ -53,8 +55,10 @@ const ReadingRecoveryDiagnostic = () => {
   const [selectedGradeBand, setSelectedGradeBand] = useState<string>("");
   const [selectedVersion, setSelectedVersion] = useState<"A" | "B" | "C" | "">("");
   const [passage, setPassage] = useState<Passage | null>(null);
-  const [scores, setScores] = useState<Scores>({ oralReadingErrors: 0, questionResults: {} });
+  const [scores, setScores] = useState<Scores>({ oralReadingErrors: 0, questionResults: {}, questionTranscripts: {} });
   const [decodingChecks, setDecodingChecks] = useState<string[]>([]);
+  const [oralConsentGiven, setOralConsentGiven] = useState(false);
+  const [deleteAudioAfter24h, setDeleteAudioAfter24h] = useState(true);
 
   const handleNext = () => {
     if (step === 2 && selectedGradeBand && selectedVersion) {
@@ -320,18 +324,57 @@ const ReadingRecoveryDiagnostic = () => {
         {step === 4 && passage && (
           <div className="space-y-6">
             {/* Instruction Banner */}
-            <Card className="border-blue-200 bg-blue-50">
+            <Card className="border-primary/20 bg-primary/5">
               <CardContent className="py-4">
                 <div className="flex items-start gap-3">
-                  <BookOpen className="w-5 h-5 text-blue-600 mt-0.5" />
+                  <BookOpen className="w-5 h-5 text-primary mt-0.5" />
                   <div>
-                    <p className="font-medium text-blue-900">Oral Assessment Instructions</p>
-                    <p className="text-sm text-blue-700 mt-1">
+                    <p className="font-medium text-foreground">Oral Assessment Instructions</p>
+                    <p className="text-sm text-muted-foreground mt-1">
                       Ask each question <strong>verbally</strong> to the student and listen to their response. 
                       Mark "Correct" if their answer demonstrates understanding, or "Incorrect" if they struggle 
                       or give an inaccurate response. There are no multiple-choice options—evaluate the quality 
                       of the student's verbal explanation.
                     </p>
+                    <p className="text-xs text-muted-foreground mt-2 flex items-center gap-2">
+                      <Volume2 className="w-3 h-3" />
+                      <span><strong>Tip:</strong> Use the speaker to read the question aloud. Use the mic to capture the student's verbal response.</span>
+                      <Mic className="w-3 h-3 ml-1" />
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Consent Checkbox */}
+            <Card className="border-amber-200 bg-amber-50">
+              <CardContent className="py-4">
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3">
+                    <Checkbox
+                      id="oral-consent"
+                      checked={oralConsentGiven}
+                      onCheckedChange={(c) => setOralConsentGiven(!!c)}
+                    />
+                    <div className="flex-1">
+                      <Label htmlFor="oral-consent" className="text-sm font-medium cursor-pointer">
+                        I have permission to record/transcribe the student's voice for this assessment.
+                      </Label>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Microphone features are disabled until consent is provided.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 pl-6">
+                    <Checkbox
+                      id="delete-audio-24h"
+                      checked={deleteAudioAfter24h}
+                      onCheckedChange={(c) => setDeleteAudioAfter24h(!!c)}
+                      disabled={!oralConsentGiven}
+                    />
+                    <Label htmlFor="delete-audio-24h" className="text-xs text-muted-foreground cursor-pointer">
+                      Delete audio recordings after 24 hours (recommended)
+                    </Label>
                   </div>
                 </div>
               </CardContent>
@@ -353,23 +396,32 @@ const ReadingRecoveryDiagnostic = () => {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {questions.map((q) => (
-                      <div key={q.id} className="flex items-start gap-4 p-4 bg-slate-50 rounded-lg">
-                        <div className="flex-1">
-                          <p className="text-xs text-muted-foreground mb-1">Ask the student:</p>
-                          <p className="font-medium">"{q.text}"</p>
-                        </div>
-                        <div className="flex flex-col gap-1">
-                          <span className="text-xs text-muted-foreground text-center">Student's response:</span>
-                          <div className="flex gap-2">
-                            <Button size="sm" variant={scores.questionResults[q.id] ? "default" : "outline"} className={scores.questionResults[q.id] ? "bg-emerald-600 hover:bg-emerald-700" : ""} onClick={() => toggleQuestionResult(q.id)}>
-                              <CheckCircle2 className="w-4 h-4 mr-1" /> Correct
-                            </Button>
-                            <Button size="sm" variant={scores.questionResults[q.id] === false ? "destructive" : "outline"} onClick={() => setScores(prev => ({ ...prev, questionResults: { ...prev.questionResults, [q.id]: false } }))}>
-                              <XCircle className="w-4 h-4 mr-1" /> Incorrect
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
+                      <OralQuestionAssist
+                        key={q.id}
+                        questionId={q.id}
+                        questionText={q.text}
+                        questionNumber={q.number}
+                        isCorrect={scores.questionResults[q.id] ?? null}
+                        consentGiven={oralConsentGiven}
+                        onTranscriptUpdate={(data) => {
+                          setScores(prev => ({
+                            ...prev,
+                            questionTranscripts: {
+                              ...prev.questionTranscripts,
+                              [q.id]: data,
+                            },
+                          }));
+                        }}
+                        onCorrectChange={(isCorrect) => {
+                          setScores(prev => ({
+                            ...prev,
+                            questionResults: {
+                              ...prev.questionResults,
+                              [q.id]: isCorrect,
+                            },
+                          }));
+                        }}
+                      />
                     ))}
                   </CardContent>
                 </Card>
@@ -377,7 +429,7 @@ const ReadingRecoveryDiagnostic = () => {
             })}
             <div className="flex justify-between">
               <Button variant="outline" onClick={handleBack}><ArrowLeft className="mr-2 w-4 h-4" /> Back</Button>
-              <Button onClick={handleNext} className="bg-emerald-600 hover:bg-emerald-700">Complete Assessment <ArrowRight className="ml-2 w-4 h-4" /></Button>
+              <Button onClick={handleNext} className="bg-primary hover:bg-primary/90">Complete Assessment <ArrowRight className="ml-2 w-4 h-4" /></Button>
             </div>
           </div>
         )}
