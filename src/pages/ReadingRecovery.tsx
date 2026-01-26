@@ -18,7 +18,7 @@ const ReadingRecovery = () => {
               <p className="text-xs text-muted-foreground">Unlocking Brilliance Through Learning</p>
             </div>
           </Link>
-          <Link to="/auth?redirect=/reading-recovery">
+          <Link to="/auth">
             <Button variant="outline">Sign In</Button>
           </Link>
         </div>
