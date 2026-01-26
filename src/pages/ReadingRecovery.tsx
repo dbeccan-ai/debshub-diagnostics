@@ -1,9 +1,48 @@
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { BookOpen, CheckCircle2, Target, TrendingUp, Users, FileText, Award, ArrowRight } from "lucide-react";
+import { BookOpen, CheckCircle2, Target, TrendingUp, Users, FileText, Award, ArrowRight, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const ReadingRecovery = () => {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setIsAuthenticated(true);
+      }
+      setLoading(false);
+    };
+    checkAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setIsAuthenticated(!!session?.user);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleAccessProgramme = () => {
+    if (isAuthenticated) {
+      navigate("/reading-recovery/diagnostic");
+    } else {
+      navigate("/auth?redirect=/reading-recovery/diagnostic");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-sky-50 via-white to-amber-50">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky-50 via-white to-amber-50">
       {/* Header */}
@@ -37,12 +76,14 @@ const ReadingRecovery = () => {
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
             Identify exactly where your child's reading breaks down and get a clear 21-day roadmap to fluency
           </p>
-          <Link to="/reading-recovery/diagnostic">
-            <Button size="lg" className="bg-emerald-600 hover:bg-emerald-700 text-lg px-8 py-6">
-              Start the Reading Recovery Diagnostic
-              <ArrowRight className="ml-2 w-5 h-5" />
-            </Button>
-          </Link>
+          <Button 
+            size="lg" 
+            className="bg-emerald-600 hover:bg-emerald-700 text-lg px-8 py-6"
+            onClick={handleAccessProgramme}
+          >
+            {isAuthenticated ? "Start the Reading Recovery Diagnostic" : "Sign Up to Access Programme"}
+            <ArrowRight className="ml-2 w-5 h-5" />
+          </Button>
         </div>
       </section>
 
@@ -123,12 +164,14 @@ const ReadingRecovery = () => {
           <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
             Begin the Reading Recovery Diagnostic today and unlock your child's reading potential.
           </p>
-          <Link to="/reading-recovery/diagnostic">
-            <Button size="lg" className="bg-emerald-600 hover:bg-emerald-700 text-lg px-8 py-6">
-              Start / Preview the Reading Recovery Diagnostic
-              <ArrowRight className="ml-2 w-5 h-5" />
-            </Button>
-          </Link>
+          <Button 
+            size="lg" 
+            className="bg-emerald-600 hover:bg-emerald-700 text-lg px-8 py-6"
+            onClick={handleAccessProgramme}
+          >
+            {isAuthenticated ? "Start the Reading Recovery Diagnostic" : "Sign Up to Access Programme"}
+            <ArrowRight className="ml-2 w-5 h-5" />
+          </Button>
         </div>
       </section>
 

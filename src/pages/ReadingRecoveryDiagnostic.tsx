@@ -1,14 +1,15 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, ArrowRight, BookOpen, CheckCircle2, XCircle, AlertTriangle, Volume2, Mic, Trophy, BarChart3 } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, CheckCircle2, XCircle, AlertTriangle, Volume2, Mic, Trophy, BarChart3, Loader2 } from "lucide-react";
 import { OralReadingAutoAssist } from "@/components/OralReadingAutoAssist";
 import { OralQuestionAssist, type QuestionTranscript } from "@/components/OralQuestionAssist";
 import { 
@@ -45,6 +46,8 @@ interface Scores {
 }
 
 const ReadingRecoveryDiagnostic = () => {
+  const navigate = useNavigate();
+  const [authLoading, setAuthLoading] = useState(true);
   const [step, setStep] = useState<Step>(1);
   const [adminInfo, setAdminInfo] = useState<AdminInfo>({
     studentName: "",
@@ -59,6 +62,20 @@ const ReadingRecoveryDiagnostic = () => {
   const [decodingChecks, setDecodingChecks] = useState<string[]>([]);
   const [oralConsentGiven, setOralConsentGiven] = useState(false);
   const [deleteAudioAfter24h, setDeleteAudioAfter24h] = useState(true);
+
+  // Check authentication on mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
+        // Redirect to auth with redirect back
+        navigate("/auth?redirect=/reading-recovery/diagnostic");
+        return;
+      }
+      setAuthLoading(false);
+    };
+    checkAuth();
+  }, [navigate]);
 
   const handleNext = () => {
     if (step === 2 && selectedGradeBand && selectedVersion) {
@@ -126,6 +143,15 @@ const ReadingRecoveryDiagnostic = () => {
   };
 
   const progressPercent = (step / 5) * 100;
+
+  // Show loading while checking auth
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-sky-50 via-white to-amber-50">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky-50 via-white to-amber-50">
