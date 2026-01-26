@@ -435,7 +435,7 @@ const Auth = () => {
           </CardHeader>
           <CardContent className="space-y-3">
             <Button 
-              onClick={() => navigate("/dashboard")} 
+              onClick={() => navigate(redirectTo)} 
               className="w-full"
             >
               {t.auth.goToDashboard}
