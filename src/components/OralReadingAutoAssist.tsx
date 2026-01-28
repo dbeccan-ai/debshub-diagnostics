@@ -28,6 +28,12 @@ interface DetectedErrors {
   insertions: string[];
 }
 
+interface LanguageInfo {
+  detectedAccent: string | null;
+  confidence: number;
+  notes: string;
+}
+
 interface OralReadingAutoAssistProps {
   passageText: string;
   passageTitle: string;
@@ -104,6 +110,7 @@ export const OralReadingAutoAssist = ({
   const [confirmedErrorCount, setConfirmedErrorCount] = useState<number>(initialErrorCount);
   const [isEditing, setIsEditing] = useState(false);
   const [editedErrors, setEditedErrors] = useState<DetectedErrors | null>(null);
+  const [languageInfo, setLanguageInfo] = useState<LanguageInfo | null>(null);
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -201,7 +208,16 @@ export const OralReadingAutoAssist = ({
       setSuggestedErrorCount(result.suggestedErrorCount);
       setConfirmedErrorCount(result.suggestedErrorCount);
       
-      toast.success(`Transcription complete! Detected ${result.suggestedErrorCount} potential errors.`);
+      // Set language/accent info if detected
+      if (result.languageInfo) {
+        setLanguageInfo(result.languageInfo);
+      }
+      
+      let successMessage = `Transcription complete! Detected ${result.suggestedErrorCount} potential errors.`;
+      if (result.languageInfo?.detectedAccent && result.languageInfo.detectedAccent !== "Native English") {
+        successMessage += ` Detected ${result.languageInfo.detectedAccent} accent.`;
+      }
+      toast.success(successMessage);
     } catch (error) {
       console.error("Transcription error:", error);
       toast.error("Failed to transcribe audio. Please try again.");
@@ -227,6 +243,7 @@ export const OralReadingAutoAssist = ({
     setAudioUrl(null);
     setTranscript(null);
     setDetectedErrors(null);
+    setLanguageInfo(null);
     setEditedErrors(null);
     setSuggestedErrorCount(null);
   };
@@ -391,6 +408,44 @@ export const OralReadingAutoAssist = ({
             {transcript && editedErrors && (
               <div className="space-y-4 pt-2">
                 <Separator />
+
+                {/* Language/Accent Detection */}
+                {languageInfo && languageInfo.detectedAccent && (
+                  <div className={`p-3 rounded-lg border ${
+                    languageInfo.detectedAccent === "Native English" 
+                      ? "bg-green-50 border-green-200" 
+                      : "bg-indigo-50 border-indigo-200"
+                  }`}>
+                    <div className="flex items-center justify-between mb-1">
+                      <Label className={`font-medium flex items-center gap-2 ${
+                        languageInfo.detectedAccent === "Native English" 
+                          ? "text-green-800" 
+                          : "text-indigo-800"
+                      }`}>
+                        🌍 Detected Accent/Language
+                      </Label>
+                      <Badge variant="outline" className={
+                        languageInfo.detectedAccent === "Native English" 
+                          ? "bg-green-100 text-green-700" 
+                          : "bg-indigo-100 text-indigo-700"
+                      }>
+                        {languageInfo.confidence}% confidence
+                      </Badge>
+                    </div>
+                    <p className={`font-semibold ${
+                      languageInfo.detectedAccent === "Native English" 
+                        ? "text-green-700" 
+                        : "text-indigo-700"
+                    }`}>
+                      {languageInfo.detectedAccent}
+                    </p>
+                    {languageInfo.notes && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {languageInfo.notes}
+                      </p>
+                    )}
+                  </div>
+                )}
                 
                 {/* Transcript */}
                 <div>
