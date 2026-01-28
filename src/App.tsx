@@ -22,6 +22,8 @@ import TeacherDashboard from "./pages/TeacherDashboard";
 import ManualGrading from "./pages/ManualGrading";
 import SchoolSetup from "./pages/SchoolSetup";
 import ReadingRecovery from "./pages/ReadingRecovery";
+import ReadingRecoveryAuth from "./pages/ReadingRecoveryAuth";
+import ReadingRecoveryDashboard from "./pages/ReadingRecoveryDashboard";
 import ReadingRecoveryDiagnostic from "./pages/ReadingRecoveryDiagnostic";
 import ReadingRecoveryResults from "./pages/ReadingRecoveryResults";
 import ELADiagnosticHub from "./pages/ELADiagnosticHub";
@@ -55,6 +57,8 @@ const App = () => (
             <Route path="/school-setup" element={<SchoolSetup />} />
             <Route path="/teacher" element={<TeacherDashboard />} />
             <Route path="/reading-recovery" element={<ReadingRecovery />} />
+            <Route path="/reading-recovery/auth" element={<ReadingRecoveryAuth />} />
+            <Route path="/reading-recovery/dashboard" element={<ReadingRecoveryDashboard />} />
             <Route path="/reading-recovery/diagnostic" element={<ReadingRecoveryDiagnostic />} />
             <Route path="/reading-recovery/results/:transcriptId" element={<ReadingRecoveryResults />} />
             <Route path="/diagnostics/ela" element={<ELADiagnosticHub />} />

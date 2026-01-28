@@ -45,7 +45,7 @@ const ReadingRecoveryResults = () => {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
           toast.error("Please sign in to view results");
-          navigate("/auth");
+          navigate("/reading-recovery/auth");
           return;
         }
 
@@ -131,7 +131,7 @@ const ReadingRecoveryResults = () => {
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-border">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")}>
+            <Button variant="ghost" size="icon" onClick={() => navigate("/reading-recovery/dashboard")}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div className="flex items-center gap-3">
@@ -273,7 +273,7 @@ const ReadingRecoveryResults = () => {
 
         {/* Actions */}
         <div className="flex flex-wrap gap-4 justify-center">
-          <Button onClick={() => navigate("/dashboard")}>
+          <Button onClick={() => navigate("/reading-recovery/dashboard")}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Dashboard
           </Button>

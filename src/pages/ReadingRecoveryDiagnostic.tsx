@@ -63,15 +63,29 @@ const ReadingRecoveryDiagnostic = () => {
   const [oralConsentGiven, setOralConsentGiven] = useState(false);
   const [deleteAudioAfter24h, setDeleteAudioAfter24h] = useState(true);
 
-  // Check authentication on mount
+  // Check authentication and enrollment on mount
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) {
-        // Redirect to auth with redirect back
-        navigate("/auth?redirect=/reading-recovery/diagnostic");
+        // Redirect to Reading Recovery auth with redirect back
+        navigate("/reading-recovery/auth?redirect=/reading-recovery/diagnostic");
         return;
       }
+      
+      // Check if enrolled in Reading Recovery
+      const { data: enrollment } = await supabase
+        .from("reading_recovery_enrollments")
+        .select("id")
+        .eq("user_id", session.user.id)
+        .maybeSingle();
+      
+      if (!enrollment) {
+        // Redirect to enroll
+        navigate("/reading-recovery/auth?redirect=/reading-recovery/diagnostic");
+        return;
+      }
+      
       setAuthLoading(false);
     };
     checkAuth();
