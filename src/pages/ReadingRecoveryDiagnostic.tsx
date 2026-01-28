@@ -48,7 +48,9 @@ interface Scores {
 const ReadingRecoveryDiagnostic = () => {
   const navigate = useNavigate();
   const [authLoading, setAuthLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
   const [step, setStep] = useState<Step>(1);
+  const [savedTranscriptId, setSavedTranscriptId] = useState<string | null>(null);
   const [adminInfo, setAdminInfo] = useState<AdminInfo>({
     studentName: "",
     assessmentDate: new Date().toISOString().split("T")[0],
@@ -72,6 +74,8 @@ const ReadingRecoveryDiagnostic = () => {
         navigate("/reading-recovery/auth?redirect=/reading-recovery/diagnostic");
         return;
       }
+      
+      setUserId(session.user.id);
       
       // Check if enrolled in Reading Recovery
       const { data: enrollment } = await supabase
@@ -156,9 +160,52 @@ const ReadingRecoveryDiagnostic = () => {
     return interpretationGuide[breakdown as keyof typeof interpretationGuide];
   };
 
-  const progressPercent = (step / 5) * 100;
+  // Save assessment to database when reaching Step 5
+  useEffect(() => {
+    const saveAssessment = async () => {
+      if (step !== 5 || !passage || !userId || savedTranscriptId) return;
+      
+      const sc = calculateScores();
+      const percentage = Math.round((sc.total / passage.scoringThresholds.totalQuestions) * 100);
+      
+      try {
+        const { data, error } = await supabase
+          .from("reading_diagnostic_transcripts")
+          .insert({
+            user_id: userId,
+            student_name: adminInfo.studentName,
+            passage_title: passage.title,
+            grade_band: passage.gradeBand,
+            version: passage.version,
+            original_text: passage.text,
+            transcript: scores.transcript || null,
+            detected_errors: scores.detectedErrors ? {
+              omissions: scores.detectedErrors.omissions,
+              substitutions: scores.detectedErrors.substitutions,
+              insertions: scores.detectedErrors.insertions,
+            } : null,
+            final_error_count: scores.oralReadingErrors,
+            consent_given: oralConsentGiven,
+            auto_delete_enabled: deleteAudioAfter24h,
+          })
+          .select("id")
+          .single();
+        
+        if (error) {
+          console.error("Error saving assessment:", error);
+        } else if (data) {
+          setSavedTranscriptId(data.id);
+          console.log("Assessment saved with ID:", data.id);
+        }
+      } catch (err) {
+        console.error("Failed to save assessment:", err);
+      }
+    };
+    
+    saveAssessment();
+  }, [step, passage, userId, savedTranscriptId, adminInfo.studentName, scores, oralConsentGiven, deleteAudioAfter24h]);
 
-  // Show loading while checking auth
+  const progressPercent = (step / 5) * 100;
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-sky-50 via-white to-amber-50">
@@ -625,9 +672,16 @@ const ReadingRecoveryDiagnostic = () => {
 
             <div className="flex justify-between">
               <Button variant="outline" onClick={handleBack}><ArrowLeft className="mr-2 w-4 h-4" /> Back</Button>
-              <Link to="/reading-recovery">
-                <Button>Done</Button>
-              </Link>
+              <div className="flex gap-3">
+                {savedTranscriptId && (
+                  <Link to={`/reading-recovery/results/${savedTranscriptId}`}>
+                    <Button variant="outline">View Detailed Results</Button>
+                  </Link>
+                )}
+                <Link to="/reading-recovery/dashboard">
+                  <Button>Go to Dashboard</Button>
+                </Link>
+              </div>
             </div>
           </div>
         )}
