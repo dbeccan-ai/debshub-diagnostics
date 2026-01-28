@@ -422,6 +422,8 @@ export type Database = {
           student_name: string
           updated_at: string
           user_id: string
+          version_a_completed_at: string | null
+          version_b_completed_at: string | null
         }
         Insert: {
           enrolled_at?: string
@@ -434,6 +436,8 @@ export type Database = {
           student_name: string
           updated_at?: string
           user_id: string
+          version_a_completed_at?: string | null
+          version_b_completed_at?: string | null
         }
         Update: {
           enrolled_at?: string
@@ -446,6 +450,8 @@ export type Database = {
           student_name?: string
           updated_at?: string
           user_id?: string
+          version_a_completed_at?: string | null
+          version_b_completed_at?: string | null
         }
         Relationships: []
       }

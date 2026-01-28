@@ -9,7 +9,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, ArrowRight, BookOpen, CheckCircle2, XCircle, AlertTriangle, Volume2, Mic, Trophy, BarChart3, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, CheckCircle2, XCircle, AlertTriangle, Volume2, Mic, Trophy, BarChart3, Loader2, Lock, Shield } from "lucide-react";
 import { OralReadingAutoAssist } from "@/components/OralReadingAutoAssist";
 import { OralQuestionAssist, type QuestionTranscript } from "@/components/OralQuestionAssist";
 import { 
@@ -45,12 +45,25 @@ interface Scores {
   questionTranscripts?: Record<string, QuestionTranscript>;
 }
 
+interface VersionUnlockStatus {
+  A: { locked: false };
+  B: { locked: boolean; unlocksAt?: Date };
+  C: { locked: boolean; unlocksAt?: Date };
+}
+
 const ReadingRecoveryDiagnostic = () => {
   const navigate = useNavigate();
   const [authLoading, setAuthLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
+  const [enrollmentId, setEnrollmentId] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [step, setStep] = useState<Step>(1);
   const [savedTranscriptId, setSavedTranscriptId] = useState<string | null>(null);
+  const [versionUnlockStatus, setVersionUnlockStatus] = useState<VersionUnlockStatus>({
+    A: { locked: false },
+    B: { locked: true },
+    C: { locked: true },
+  });
   const [adminInfo, setAdminInfo] = useState<AdminInfo>({
     studentName: "",
     assessmentDate: new Date().toISOString().split("T")[0],
@@ -65,29 +78,81 @@ const ReadingRecoveryDiagnostic = () => {
   const [oralConsentGiven, setOralConsentGiven] = useState(false);
   const [deleteAudioAfter24h, setDeleteAudioAfter24h] = useState(true);
 
-  // Check authentication and enrollment on mount
+  // Check authentication, enrollment, and version unlock status
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) {
-        // Redirect to Reading Recovery auth with redirect back
         navigate("/reading-recovery/auth?redirect=/reading-recovery/diagnostic");
         return;
       }
       
-      setUserId(session.user.id);
+      const currentUserId = session.user.id;
+      setUserId(currentUserId);
       
-      // Check if enrolled in Reading Recovery
+      // Check if user is admin (admins bypass version restrictions)
+      const { data: adminRole } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", currentUserId)
+        .eq("role", "admin")
+        .maybeSingle();
+      
+      const userIsAdmin = !!adminRole;
+      setIsAdmin(userIsAdmin);
+      
+      // Check enrollment and get version completion dates
       const { data: enrollment } = await supabase
         .from("reading_recovery_enrollments")
-        .select("id")
-        .eq("user_id", session.user.id)
+        .select("id, version_a_completed_at, version_b_completed_at")
+        .eq("user_id", currentUserId)
         .maybeSingle();
       
       if (!enrollment) {
-        // Redirect to enroll
         navigate("/reading-recovery/auth?redirect=/reading-recovery/diagnostic");
         return;
+      }
+      
+      setEnrollmentId(enrollment.id);
+      
+      // Calculate version unlock status (admins bypass all restrictions)
+      if (userIsAdmin) {
+        setVersionUnlockStatus({
+          A: { locked: false },
+          B: { locked: false },
+          C: { locked: false },
+        });
+      } else {
+        const now = new Date();
+        const TEN_DAYS_MS = 10 * 24 * 60 * 60 * 1000;
+        
+        // Version B unlocks 10 days after Version A completion
+        let versionBStatus: { locked: boolean; unlocksAt?: Date } = { locked: true };
+        if (enrollment.version_a_completed_at) {
+          const versionADate = new Date(enrollment.version_a_completed_at);
+          const versionBUnlockDate = new Date(versionADate.getTime() + TEN_DAYS_MS);
+          versionBStatus = {
+            locked: now < versionBUnlockDate,
+            unlocksAt: versionBUnlockDate,
+          };
+        }
+        
+        // Version C unlocks 10 days after Version B completion
+        let versionCStatus: { locked: boolean; unlocksAt?: Date } = { locked: true };
+        if (enrollment.version_b_completed_at) {
+          const versionBDate = new Date(enrollment.version_b_completed_at);
+          const versionCUnlockDate = new Date(versionBDate.getTime() + TEN_DAYS_MS);
+          versionCStatus = {
+            locked: now < versionCUnlockDate,
+            unlocksAt: versionCUnlockDate,
+          };
+        }
+        
+        setVersionUnlockStatus({
+          A: { locked: false },
+          B: versionBStatus,
+          C: versionCStatus,
+        });
       }
       
       setAuthLoading(false);
@@ -160,7 +225,7 @@ const ReadingRecoveryDiagnostic = () => {
     return interpretationGuide[breakdown as keyof typeof interpretationGuide];
   };
 
-  // Save assessment to database when reaching Step 5
+  // Save assessment to database and mark version completion when reaching Step 5
   useEffect(() => {
     const saveAssessment = async () => {
       if (step !== 5 || !passage || !userId || savedTranscriptId) return;
@@ -169,6 +234,7 @@ const ReadingRecoveryDiagnostic = () => {
       const percentage = Math.round((sc.total / passage.scoringThresholds.totalQuestions) * 100);
       
       try {
+        // Save the transcript
         const { data, error } = await supabase
           .from("reading_diagnostic_transcripts")
           .insert({
@@ -196,6 +262,28 @@ const ReadingRecoveryDiagnostic = () => {
         } else if (data) {
           setSavedTranscriptId(data.id);
           console.log("Assessment saved with ID:", data.id);
+          
+          // Update enrollment to mark version completion (for non-admins, starts unlock timer)
+          if (enrollmentId && passage.version) {
+            const updateField = passage.version === "A" 
+              ? { version_a_completed_at: new Date().toISOString() }
+              : passage.version === "B"
+              ? { version_b_completed_at: new Date().toISOString() }
+              : null;
+            
+            if (updateField) {
+              const { error: enrollmentError } = await supabase
+                .from("reading_recovery_enrollments")
+                .update(updateField)
+                .eq("id", enrollmentId);
+              
+              if (enrollmentError) {
+                console.error("Error updating enrollment completion:", enrollmentError);
+              } else {
+                console.log(`Marked Version ${passage.version} as completed`);
+              }
+            }
+          }
         }
       } catch (err) {
         console.error("Failed to save assessment:", err);
@@ -203,7 +291,7 @@ const ReadingRecoveryDiagnostic = () => {
     };
     
     saveAssessment();
-  }, [step, passage, userId, savedTranscriptId, adminInfo.studentName, scores, oralConsentGiven, deleteAudioAfter24h]);
+  }, [step, passage, userId, savedTranscriptId, adminInfo.studentName, scores, oralConsentGiven, deleteAudioAfter24h, enrollmentId]);
 
   const progressPercent = (step / 5) * 100;
   if (authLoading) {
@@ -297,17 +385,65 @@ const ReadingRecoveryDiagnostic = () => {
               </div>
               <Separator />
               <div>
-                <Label className="text-base font-semibold mb-3 block">Version</Label>
-                <RadioGroup value={selectedVersion} onValueChange={(v) => setSelectedVersion(v as "A" | "B" | "C")} className="grid md:grid-cols-3 gap-3">
-                  {versions.map((v) => (
-                    <Label key={v.value} htmlFor={`v-${v.value}`} className={`flex items-center gap-3 p-4 border rounded-lg cursor-pointer transition-colors ${selectedVersion === v.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"}`}>
-                      <RadioGroupItem value={v.value} id={`v-${v.value}`} />
-                      <div>
-                        <div className="font-medium">{v.label}</div>
-                        <div className="text-sm text-muted-foreground">{v.description}</div>
-                      </div>
-                    </Label>
-                  ))}
+                <div className="flex items-center justify-between mb-3">
+                  <Label className="text-base font-semibold block">Version</Label>
+                  {isAdmin && (
+                    <span className="inline-flex items-center gap-1 text-xs text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">
+                      <Shield className="w-3 h-3" />
+                      Admin: All Unlocked
+                    </span>
+                  )}
+                </div>
+                <RadioGroup 
+                  value={selectedVersion} 
+                  onValueChange={(v) => {
+                    const version = v as "A" | "B" | "C";
+                    const status = versionUnlockStatus[version];
+                    if (!status.locked) {
+                      setSelectedVersion(version);
+                    }
+                  }} 
+                  className="grid md:grid-cols-3 gap-3"
+                >
+                  {versions.map((v) => {
+                    const versionKey = v.value as "A" | "B" | "C";
+                    const status = versionUnlockStatus[versionKey];
+                    const isLocked = status.locked;
+                    const unlocksAt = 'unlocksAt' in status ? status.unlocksAt : null;
+                    
+                    return (
+                      <Label 
+                        key={v.value} 
+                        htmlFor={`v-${v.value}`} 
+                        className={`relative flex items-center gap-3 p-4 border rounded-lg transition-colors ${
+                          isLocked 
+                            ? "cursor-not-allowed opacity-60 border-border bg-muted/30" 
+                            : selectedVersion === v.value 
+                            ? "cursor-pointer border-primary bg-primary/5" 
+                            : "cursor-pointer border-border hover:border-primary/50"
+                        }`}
+                      >
+                        <RadioGroupItem value={v.value} id={`v-${v.value}`} disabled={isLocked} />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">{v.label}</span>
+                            {isLocked && <Lock className="w-4 h-4 text-muted-foreground" />}
+                          </div>
+                          <div className="text-sm text-muted-foreground">{v.description}</div>
+                          {isLocked && unlocksAt && (
+                            <div className="text-xs text-amber-600 mt-1">
+                              Unlocks: {unlocksAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                            </div>
+                          )}
+                          {isLocked && !unlocksAt && (
+                            <div className="text-xs text-muted-foreground mt-1">
+                              Complete {versionKey === "B" ? "Version A" : "Version B"} first
+                            </div>
+                          )}
+                        </div>
+                      </Label>
+                    );
+                  })}
                 </RadioGroup>
               </div>
               <div className="flex justify-between pt-4">
