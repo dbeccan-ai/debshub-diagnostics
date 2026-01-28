@@ -2,12 +2,11 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { BookOpen, CheckCircle2, Target, TrendingUp, Users, FileText, Award, ArrowRight, Loader2, LogIn } from "lucide-react";
+import { BookOpen, CheckCircle2, Target, TrendingUp, Users, FileText, Award, ArrowRight, LogIn } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 const ReadingRecovery = () => {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
   const [isEnrolled, setIsEnrolled] = useState(false);
 
   useEffect(() => {
@@ -23,7 +22,6 @@ const ReadingRecovery = () => {
         
         setIsEnrolled(!!enrollment);
       }
-      setLoading(false);
     };
     checkEnrollment();
 
@@ -51,13 +49,7 @@ const ReadingRecovery = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-emerald-50 via-white to-sky-50">
-        <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
-      </div>
-    );
-  }
+  // Removed blocking loading state - page renders immediately while auth checks in background
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-white to-sky-50">
