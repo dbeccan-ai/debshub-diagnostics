@@ -50,3 +50,6 @@ verify_jwt = true
 
 [functions.evaluate-oral-answer]
 verify_jwt = true
+
+[functions.notify-version-b-due]
+verify_jwt = false
