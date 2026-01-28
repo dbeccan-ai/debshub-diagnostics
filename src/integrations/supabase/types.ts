@@ -410,6 +410,83 @@ export type Database = {
         }
         Relationships: []
       }
+      reading_recovery_enrollments: {
+        Row: {
+          enrolled_at: string
+          grade_level: number | null
+          id: string
+          is_active: boolean
+          parent_email: string
+          parent_name: string | null
+          reading_challenges: string[] | null
+          student_name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          enrolled_at?: string
+          grade_level?: number | null
+          id?: string
+          is_active?: boolean
+          parent_email: string
+          parent_name?: string | null
+          reading_challenges?: string[] | null
+          student_name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          enrolled_at?: string
+          grade_level?: number | null
+          id?: string
+          is_active?: boolean
+          parent_email?: string
+          parent_name?: string | null
+          reading_challenges?: string[] | null
+          student_name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      reading_recovery_progress: {
+        Row: {
+          activity_title: string
+          completed_at: string | null
+          created_at: string
+          day_number: number
+          enrollment_id: string
+          id: string
+          notes: string | null
+        }
+        Insert: {
+          activity_title: string
+          completed_at?: string | null
+          created_at?: string
+          day_number: number
+          enrollment_id: string
+          id?: string
+          notes?: string | null
+        }
+        Update: {
+          activity_title?: string
+          completed_at?: string | null
+          created_at?: string
+          day_number?: number
+          enrollment_id?: string
+          id?: string
+          notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reading_recovery_progress_enrollment_id_fkey"
+            columns: ["enrollment_id"]
+            isOneToOne: false
+            referencedRelation: "reading_recovery_enrollments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       schools: {
         Row: {
           contact_email: string | null
