@@ -103,7 +103,7 @@ const ReadingRecoveryPreviewDialog = ({ children }: ReadingRecoveryPreviewDialog
 
           {/* CTA */}
           <div className="pt-2">
-            <Link to="/auth?redirect=/reading-recovery">
+            <Link to="/reading-recovery">
               <Button className="w-full bg-emerald-600 hover:bg-emerald-700">
                 Sign In to Access Full Programme
                 <ArrowRight className="ml-2 w-4 h-4" />
