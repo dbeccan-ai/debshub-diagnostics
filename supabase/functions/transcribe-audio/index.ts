@@ -15,6 +15,11 @@ interface TranscriptionResult {
     insertions: string[];
   };
   suggestedErrorCount: number;
+  languageInfo?: {
+    detectedAccent: string | null;
+    confidence: number;
+    notes: string;
+  };
 }
 
 // Normalize text for comparison (lowercase, remove punctuation, trim)
@@ -135,6 +140,7 @@ serve(async (req) => {
     const formData = await req.formData();
     const audioFile = formData.get("audio") as File;
     const originalText = formData.get("originalText") as string;
+    const detectAccent = formData.get("detectAccent") !== "false"; // Default to true
 
     if (!audioFile || !originalText) {
       return new Response(JSON.stringify({ error: "Missing audio file or original text" }), {
@@ -162,7 +168,33 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    console.log("Sending audio for transcription...");
+    console.log("Sending audio for transcription with accent detection...");
+
+    // Enhanced system prompt with accent/language detection
+    const systemPrompt = `You are a precise speech-to-text transcription assistant specializing in children's reading assessments. Your task is to transcribe audio of a child reading aloud.
+
+Transcribe EXACTLY what you hear, including:
+- Mispronunciations (write what was actually said)
+- Hesitations or repeated words
+- Any words the child adds or skips
+
+Additionally, analyze the speaker's accent/language background:
+- Detect if the speaker has a non-native English accent
+- Identify common accent patterns (Spanish, French, Asian languages, African languages, etc.)
+- Note pronunciation patterns that may indicate the speaker's first language
+
+Return ONLY a JSON object in this exact format:
+{
+  "transcript": "the exact words spoken",
+  "wordTimings": [{"word": "the", "start": 0.0, "end": 0.3}, ...],
+  "accentAnalysis": {
+    "detectedAccent": "Spanish" | "French" | "Chinese" | "Indian" | "African" | "Native English" | "Other" | null,
+    "confidence": 0-100,
+    "notes": "Brief description of pronunciation patterns observed, e.g., 'Rolled Rs, vowel sounds typical of Spanish speakers'"
+  }
+}
+
+Do not include any explanation, just the JSON.`;
 
     // Use Gemini Flash for audio transcription
     const transcriptionResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -176,27 +208,14 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `You are a precise speech-to-text transcription assistant. Your task is to transcribe audio of a child reading aloud. 
-            
-Transcribe EXACTLY what you hear, including:
-- Mispronunciations (write what was actually said)
-- Hesitations or repeated words
-- Any words the child adds or skips
-
-Return ONLY a JSON object in this exact format:
-{
-  "transcript": "the exact words spoken",
-  "wordTimings": [{"word": "the", "start": 0.0, "end": 0.3}, ...]
-}
-
-Do not include any explanation, just the JSON.`
+            content: systemPrompt
           },
           {
             role: "user",
             content: [
               {
                 type: "text",
-                text: `Transcribe this audio recording of a child reading the following passage. Return the transcription as JSON with the transcript and word timings.
+                text: `Transcribe this audio recording of a child reading the following passage. Analyze their accent/language background and return the transcription as JSON.
 
 Original passage (for context only - transcribe what you HEAR, not this text):
 "${originalText}"`
@@ -242,6 +261,7 @@ Original passage (for context only - transcribe what you HEAR, not this text):
     // Parse the JSON response
     let transcript = "";
     let wordTimings: Array<{ word: string; start: number; end: number }> = [];
+    let languageInfo: TranscriptionResult["languageInfo"] = undefined;
     
     try {
       // Extract JSON from the response (might be wrapped in markdown code blocks)
@@ -250,6 +270,15 @@ Original passage (for context only - transcribe what you HEAR, not this text):
         const parsed = JSON.parse(jsonMatch[0]);
         transcript = parsed.transcript || "";
         wordTimings = parsed.wordTimings || [];
+        
+        // Extract accent analysis if present
+        if (parsed.accentAnalysis) {
+          languageInfo = {
+            detectedAccent: parsed.accentAnalysis.detectedAccent || null,
+            confidence: parsed.accentAnalysis.confidence || 0,
+            notes: parsed.accentAnalysis.notes || "",
+          };
+        }
       } else {
         // If no JSON found, treat the whole content as transcript
         transcript = content;
@@ -271,9 +300,13 @@ Original passage (for context only - transcribe what you HEAR, not this text):
       wordTimings,
       errors,
       suggestedErrorCount,
+      languageInfo,
     };
 
     console.log("Transcription complete. Detected errors:", suggestedErrorCount);
+    if (languageInfo) {
+      console.log("Detected accent:", languageInfo.detectedAccent, "Confidence:", languageInfo.confidence);
+    }
 
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
