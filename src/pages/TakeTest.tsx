@@ -18,6 +18,7 @@ import { PreTestSecurityCheck } from "@/components/PreTestSecurityCheck";
 import { useLanguage, languageOptions } from "@/contexts/LanguageContext";
 import QuestionVisual from "@/components/QuestionVisual";
 import DEBsHeader from "@/components/DEBsHeader";
+import DiagnosticLanding from "@/components/DiagnosticLanding";
 
 interface SkillPerformance {
   correct: number;
@@ -41,6 +42,7 @@ const TakeTest = () => {
   const [profile, setProfile] = useState<any>(null);
   const [testStarted, setTestStarted] = useState(false);
   const [showSecurityCheck, setShowSecurityCheck] = useState(false);
+  const [showLanding, setShowLanding] = useState(true);
   const [isTranslating, setIsTranslating] = useState(false);
   const [translatedLanguage, setTranslatedLanguage] = useState<string>("en");
   
@@ -180,8 +182,8 @@ const TakeTest = () => {
         setTranslatedLanguage("en");
       }
       
-      // Show security check dialog before starting test
-      setShowSecurityCheck(true);
+      // Show landing page first (not security check immediately)
+      // Security check will be shown when user clicks Start
     } catch (error: any) {
       console.error("Error loading test:", error);
       toast.error("Failed to load test");
@@ -446,6 +448,49 @@ const TakeTest = () => {
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-100 via-blue-50 to-yellow-100">
         <p className="text-lg text-[#1e3a8a]">No questions found for this test.</p>
       </div>
+    );
+  }
+
+  // Extract grade and subject from test name
+  const getTestInfo = (testName: string) => {
+    const gradeMatch = testName.match(/Grade\s*(\d+)/i);
+    const grade = gradeMatch ? gradeMatch[1] : "N/A";
+    const isMath = testName.toLowerCase().includes("math");
+    const isELA = testName.toLowerCase().includes("ela") || testName.toLowerCase().includes("english");
+    const subject: "Math" | "ELA" = isMath ? "Math" : "ELA";
+    const description = isMath 
+      ? "Comprehensive math assessment covering arithmetic, problem-solving, and mathematical reasoning"
+      : "Reading comprehension, vocabulary, grammar, and writing skills assessment";
+    return { grade, subject, description };
+  };
+
+  const testInfo = getTestInfo(test.name);
+
+  // Show landing page before test starts
+  if (showLanding && !testStarted) {
+    return (
+      <DiagnosticLanding
+        grade={testInfo.grade}
+        subject={testInfo.subject}
+        description={testInfo.description}
+        totalTime={test.duration_minutes}
+        totalPoints={questions.length * 4}
+        testInfo={testInfo.subject === "Math" ? [
+          { label: "Total Time", value: `${test.duration_minutes} min`, emoji: "⏰" },
+          { label: "Questions", value: `${questions.length}`, emoji: "📊" },
+          { label: "Calculator", value: "Part C", emoji: "🧮" },
+          { label: "Show Work", value: "B & C", emoji: "📝" },
+        ] : [
+          { label: "Total Time", value: `${test.duration_minutes} min`, emoji: "⏰" },
+          { label: "Questions", value: `${questions.length}`, emoji: "📊" },
+          { label: "Sections", value: "3", emoji: "📚" },
+          { label: "Writing", value: "Required", emoji: "✏️" },
+        ]}
+        onStart={() => {
+          setShowLanding(false);
+          setShowSecurityCheck(true);
+        }}
+      />
     );
   }
 
