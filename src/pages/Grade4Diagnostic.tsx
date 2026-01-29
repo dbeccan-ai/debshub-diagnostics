@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowDown, Printer, BookOpen } from "lucide-react";
+import { ArrowDown, Printer } from "lucide-react";
+import DEBsHeader from "@/components/DEBsHeader";
 
 export default function Grade4Diagnostic() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -8,7 +9,6 @@ export default function Grade4Diagnostic() {
 
   const handleStartDiagnostic = () => {
     setShowLanding(false);
-    // Scroll to top after hiding landing
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -20,7 +20,6 @@ export default function Grade4Diagnostic() {
 
   useEffect(() => {
     if (!showLanding) {
-      // Ensure iframe is focused for proper interaction
       iframeRef.current?.focus();
     }
   }, [showLanding]);
@@ -28,20 +27,7 @@ export default function Grade4Diagnostic() {
   if (showLanding) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-100 via-blue-50 to-amber-50">
-        {/* Header */}
-        <header className="bg-[#001F3F] text-white py-4 px-6 border-b-4 border-[#FFD700]">
-          <div className="container mx-auto flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-[#FFD700] flex items-center justify-center">
-                <span className="text-[#001F3F] font-bold text-lg">DEB</span>
-              </div>
-              <div>
-                <h1 className="font-bold text-lg">D.E.Bs LEARNING ACADEMY</h1>
-                <p className="text-[#FFD700] text-sm">DEBs Diagnostic Hub</p>
-              </div>
-            </div>
-          </div>
-        </header>
+        <DEBsHeader />
 
         {/* Hero Section */}
         <main className="container mx-auto px-4 py-12">
@@ -81,30 +67,6 @@ export default function Grade4Diagnostic() {
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl p-8 shadow-xl border-4 border-[#FFD700] mb-8">
-              <h2 className="text-2xl font-bold text-[#001F3F] mb-4 flex items-center justify-center gap-2">
-                <BookOpen className="h-6 w-6" />
-                Test Structure
-              </h2>
-              <div className="grid md:grid-cols-3 gap-6 text-left">
-                <div className="bg-purple-50 rounded-xl p-4">
-                  <h3 className="font-bold text-[#9B59B6] mb-2">🌟 Part A</h3>
-                  <p className="text-sm text-gray-600">15 Multiple Choice Questions</p>
-                  <p className="text-sm text-gray-600">60 Points • NO Calculator</p>
-                </div>
-                <div className="bg-blue-50 rounded-xl p-4">
-                  <h3 className="font-bold text-[#3498DB] mb-2">✏️ Part B</h3>
-                  <p className="text-sm text-gray-600">5 Short Answer Questions</p>
-                  <p className="text-sm text-gray-600">20 Points • Show Your Work</p>
-                </div>
-                <div className="bg-amber-50 rounded-xl p-4">
-                  <h3 className="font-bold text-[#F39C12] mb-2">🎯 Part C</h3>
-                  <p className="text-sm text-gray-600">Choose 3 of 5 Extended Response</p>
-                  <p className="text-sm text-gray-600">20 Points • Calculator Allowed</p>
-                </div>
-              </div>
-            </div>
-
             <Button
               onClick={handleStartDiagnostic}
               size="lg"
@@ -136,18 +98,9 @@ export default function Grade4Diagnostic() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-purple-100 via-blue-50 to-amber-50">
-      {/* Fixed Header with Print Button */}
-      <header className="bg-[#001F3F] text-white py-3 px-4 border-b-4 border-[#FFD700] sticky top-0 z-50">
-        <div className="container mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-[#FFD700] flex items-center justify-center">
-              <span className="text-[#001F3F] font-bold text-sm">DEB</span>
-            </div>
-            <div className="hidden sm:block">
-              <h1 className="font-bold text-sm">D.E.Bs LEARNING ACADEMY</h1>
-              <p className="text-[#FFD700] text-xs">Grade 4 Math Diagnostic</p>
-            </div>
-          </div>
+      <DEBsHeader 
+        subtitle="Grade 4 Math Diagnostic"
+        rightContent={
           <Button
             onClick={handlePrint}
             variant="outline"
@@ -156,8 +109,8 @@ export default function Grade4Diagnostic() {
             <Printer className="mr-2 h-4 w-4" />
             Print / Save PDF
           </Button>
-        </div>
-      </header>
+        }
+      />
 
       {/* Full-width iframe */}
       <div className="flex-1">
