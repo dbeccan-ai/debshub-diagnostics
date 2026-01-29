@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grade 4 Math Diagnostic - D.E.Bs Learning Academy</title>
+    <style>
+        :root {
+            --navy: #001F3F;
+            --gold: #FFD700;
+            --cream: #FFFDD0;
+            --light-gray: #F5F5F5;
+            --success: #28A745;
+            --warning: #FFC107;
+            --danger: #DC3545;
+            --grade4-primary: #9B59B6;
+            --grade4-secondary: #3498DB;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            background: linear-gradient(135deg, #E8D5FF 0%, #D5E8FF 100%);
+            padding: 20px;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 950px;
+            margin: 0 auto;
+            background: white;
+            padding: 35px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--navy) 0%, #003d7a 100%);
+            color: white;
+            padding: 35px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 30px;
+            border: 5px solid var(--gold);
+        }
+
+        .header h1 {
+            font-size: 2.2em;
+            margin-bottom: 12px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            font-weight: bold;
+        }
+
+        .header .academy-name {
+            color: var(--gold);
+            font-size: 1.4em;
+            font-weight: bold;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+
+        .grade-badge {
+            background: var(--grade4-primary);
+            color: white;
+            padding: 14px 30px;
+            border-radius: 50px;
+            display: inline-block;
+            font-size: 1.4em;
+            font-weight: bold;
+            margin: 15px 0;
+            box-shadow: 0 4px 15px rgba(155, 89, 182, 0.4);
+        }
+
+        .student-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 18px;
+            margin-bottom: 28px;
+            padding: 25px;
+            background: var(--light-gray);
+            border-radius: 15px;
+            border: 3px solid var(--grade4-secondary);
+        }
+
+        .info-field {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-field label {
+            font-weight: bold;
+            color: var(--navy);
+            margin-bottom: 6px;
+            font-size: 1.05em;
+        }
+
+        .info-field input {
+            padding: 12px;
+            border: 2px solid var(--grade4-secondary);
+            border-radius: 10px;
+            font-size: 1.05em;
+            width: 100%;
+            font-family: inherit;
+        }
+
+        .email-section {
+            background: #FFF9E6;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 28px;
+            border-left: 6px solid var(--gold);
+        }
+
+        .email-section h3 {
+            color: var(--navy);
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .email-input-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+        }
+
+        .email-input-group input {
+            flex: 1;
+            min-width: 220px;
+            padding: 12px;
+            border: 2px solid var(--grade4-secondary);
+            border-radius: 10px;
+            font-size: 1.05em;
+        }
+
+        .add-email-btn {
+            background: var(--grade4-secondary);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1.05em;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .add-email-btn:hover {
+            background: #2980B9;
+            transform: translateY(-2px);
+        }
+
+        .email-chip {
+            display: inline-flex;
+            align-items: center;
+            background: var(--navy);
+            color: white;
+            padding: 10px 18px;
+            border-radius: 25px;
+            margin: 6px;
+            font-size: 0.95em;
+        }
+
+        .email-chip .remove-email {
+            margin-left: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            color: var(--gold);
+            font-size: 1.3em;
+        }
+
+        .test-info-box {
+            background: linear-gradient(135deg, #E8D5FF 0%, #D5D5FF 100%);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 28px;
+            border: 4px solid var(--grade4-primary);
+        }
+
+        .test-info-box h3 {
+            color: var(--navy);
+            margin-bottom: 18px;
+            font-size: 1.4em;
+        }
+
+        .test-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 18px;
+            margin-top: 18px;
+        }
+
+        .info-item {
+            background: white;
+            padding: 18px;
+            border-radius: 10px;
+            text-align: center;
+            border: 3px solid var(--grade4-primary);
+        }
+
+        .info-item .icon {
+            font-size: 2.2em;
+            margin-bottom: 8px;
+        }
+
+        .info-item .label {
+            font-weight: bold;
+            color: var(--navy);
+            font-size: 0.95em;
+        }
+
+        .info-item .value {
+            color: var(--grade4-primary);
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+
+        .section-header {
+            background: linear-gradient(135deg, var(--grade4-primary) 0%, #8E44AD 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin: 35px 0 25px 0;
+            font-size: 1.4em;
+            font-weight: bold;
+            text-align: center;
+            box-shadow: 0 6px 20px rgba(155, 89, 182, 0.4);
+        }
+
+        .instructions {
+            background: #EBF5FB;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 28px;
+            border-left: 6px solid var(--grade4-secondary);
+        }
+
+        .instructions h4 {
+            color: var(--navy);
+            margin-bottom: 12px;
+            font-size: 1.2em;
+        }
+
+        .instructions ul {
+            margin-left: 30px;
+            line-height: 2;
+        }
+
+        .question {
+            margin-bottom: 30px;
+            padding: 25px;
+            background: white;
+            border: 3px solid var(--light-gray);
+            border-radius: 15px;
+            transition: all 0.3s;
+            page-break-inside: avoid;
+        }
+
+        .question:hover {
+            border-color: var(--grade4-secondary);
+            box-shadow: 0 8px 25px rgba(52, 152, 219, 0.2);
+        }
+
+        .question-number {
+            color: white;
+            background: var(--grade4-primary);
+            font-weight: bold;
+            font-size: 1.15em;
+            margin-bottom: 15px;
+            padding: 10px 18px;
+            border-radius: 10px;
+            display: inline-block;
+        }
+
+        .question-text {
+            margin-bottom: 18px;
+            color: #2C3E50;
+            font-size: 1.15em;
+            line-height: 1.7;
+        }
+
+        .standard-tag {
+            background: #EBF5FB;
+            color: var(--navy);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            display: inline-block;
+            margin: 6px 6px 12px 0;
+            border: 2px solid var(--grade4-secondary);
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: var(--light-gray);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .option:hover {
+            background: #E8D5FF;
+            border-color: var(--grade4-primary);
+            transform: translateX(5px);
+        }
+
+        .option input[type="radio"] {
+            margin-right: 15px;
+            width: 22px;
+            height: 22px;
+            cursor: pointer;
+        }
+
+        .diagram-box {
+            margin: 25px 0;
+            padding: 30px;
+            background: white;
+            border: 4px dashed var(--grade4-secondary);
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .short-answer-input,
+        .extended-answer-input {
+            width: 100%;
+            padding: 15px;
+            border: 3px solid var(--grade4-secondary);
+            border-radius: 12px;
+            font-size: 1.05em;
+            font-family: 'Courier New', monospace;
+            margin-top: 12px;
+            resize: vertical;
+        }
+
+        .short-answer-input {
+            min-height: 120px;
+        }
+
+        .extended-answer-input {
+            min-height: 180px;
+        }
+
+        .submit-button {
+            background: linear-gradient(135deg, var(--grade4-primary) 0%, #8E44AD 100%);
+            color: white;
+            border: 5px solid var(--gold);
+            padding: 20px 50px;
+            font-size: 1.4em;
+            font-weight: bold;
+            border-radius: 18px;
+            cursor: pointer;
+            display: block;
+            margin: 45px auto;
+            transition: all 0.3s;
+            box-shadow: 0 8px 25px rgba(155, 89, 182, 0.5);
+        }
+
+        .submit-button:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px rgba(155, 89, 182, 0.7);
+        }
+
+        .warning-note {
+            background: #FFF9E6;
+            border: 4px solid #FFC107;
+            padding: 18px;
+            border-radius: 15px;
+            margin: 25px 0;
+            color: #856404;
+            font-size: 1.05em;
+            font-weight: 500;
+        }
+
+        .calculator-note {
+            background: #D4EDDA;
+            border: 3px solid #28A745;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            color: #155724;
+            font-weight: 600;
+        }
+
+        .report-container {
+            display: none;
+            animation: fadeIn 0.6s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(25px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .report-header {
+            background: linear-gradient(135deg, var(--navy) 0%, #003d7a 100%);
+            color: white;
+            padding: 35px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 35px;
+            border: 5px solid var(--gold);
+        }
+
+        .student-name-display {
+            font-size: 2em;
+            color: var(--gold);
+            margin: 18px 0;
+            font-weight: bold;
+        }
+
+        .tier-badge {
+            padding: 35px;
+            border-radius: 25px;
+            text-align: center;
+            margin: 30px 0;
+            border: 6px solid;
+        }
+
+        .tier-1 {
+            background: linear-gradient(135deg, #28A745 0%, #20c997 100%);
+            border-color: #155724;
+            color: white;
+        }
+
+        .tier-2 {
+            background: linear-gradient(135deg, #17A2B8 0%, #20c997 100%);
+            border-color: #0c5460;
+            color: white;
+        }
+
+        .tier-3 {
+            background: linear-gradient(135deg, #FFC107 0%, #ffd966 100%);
+            border-color: #856404;
+            color: #333;
+        }
+
+        .tier-4 {
+            background: linear-gradient(135deg, #FF8C00 0%, #ffa500 100%);
+            border-color: #721c24;
+            color: white;
+        }
+
+        .tier-5 {
+            background: linear-gradient(135deg, #DC3545 0%, #ff6b6b 100%);
+            border-color: #721c24;
+            color: white;
+        }
+
+        .score-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+
+        .score-card {
+            background: white;
+            padding: 28px;
+            border-radius: 18px;
+            text-align: center;
+            border: 4px solid var(--grade4-secondary);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+        }
+
+        .score-value {
+            font-size: 3.2em;
+            font-weight: bold;
+            color: var(--grade4-primary);
+            margin: 12px 0;
+        }
+
+        .progress-bar-container {
+            background: #e0e0e0;
+            border-radius: 30px;
+            height: 40px;
+            margin: 18px 0;
+            overflow: hidden;
+            box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.15);
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--grade4-primary) 0%, var(--grade4-secondary) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.15em;
+            transition: width 1.2s ease-out;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 18px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .print-button {
+            background: var(--gold);
+            color: var(--navy);
+            border: 4px solid var(--navy);
+            padding: 15px 35px;
+            font-size: 1.1em;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .print-button:hover {
+            background: var(--navy);
+            color: var(--gold);
+            transform: translateY(-3px);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 8% auto;
+            padding: 30px;
+            border-radius: 25px;
+            width: 90%;
+            max-width: 550px;
+            box-shadow: 0 12px 50px rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-header {
+            background: var(--grade4-primary);
+            color: white;
+            padding: 25px;
+            margin: -30px -30px 25px -30px;
+            border-radius: 25px 25px 0 0;
+            text-align: center;
+        }
+
+        .close {
+            color: white;
+            float: right;
+            font-size: 32px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .success-icon {
+            font-size: 4.5em;
+            text-align: center;
+            margin: 25px 0;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .print-button, .submit-button, .email-section {
+                display: none !important;
+            }
+            .container {
+                box-shadow: none;
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 18px;
+            }
+            .header h1 {
+                font-size: 1.6em;
+            }
+            .student-info {
+                grid-template-columns: 1fr;
+            }
+            .test-info-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .score-summary {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="testSection">
+            <div class="header">
+                <div class="academy-name">D.E.Bs LEARNING ACADEMY</div>
+                <h1>Grade 4 Math Diagnostic Test</h1>
+                <div class="grade-badge">📚 GRADE 4 📚</div>
+                <p style="font-size: 1.1em; margin-top: 12px;">60 Minutes • 100 Points</p>
+            </div>
+
+            <div class="student-info">
+                <div class="info-field">
+                    <label>Student Name *</label>
+                    <input type="text" id="studentName" required placeholder="Full name">
+                </div>
+                <div class="info-field">
+                    <label>Date</label>
+                    <input type="date" id="testDate" required>
+                </div>
+                <div class="info-field">
+                    <label>Grade</label>
+                    <input type="text" id="gradeLevel" value="4th Grade" readonly>
+                </div>
+                <div class="info-field">
+                    <label>Teacher</label>
+                    <input type="text" id="teacherName" placeholder="Teacher name">
+                </div>
+            </div>
+
+            <div class="email-section">
+                <h3>📧 Send Report to Parents/Guardians</h3>
+                <p style="color: #666; margin-bottom: 12px; font-size: 1em;">Add email addresses to receive the diagnostic report</p>
+                <div class="email-input-group">
+                    <input type="email" id="emailInput" placeholder="parent@email.com">
+                    <button class="add-email-btn" onclick="addEmail()">+ Add Email</button>
+                </div>
+                <div class="email-list" id="emailList"></div>
+            </div>
+
+            <div class="test-info-box">
+                <h3>📋 Test Information</h3>
+                <div class="test-info-grid">
+                    <div class="info-item">
+                        <div class="icon">⏰</div>
+                        <div class="label">Total Time</div>
+                        <div class="value">60 min</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="icon">📊</div>
+                        <div class="label">Total Points</div>
+                        <div class="value">100</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="icon">🧮</div>
+                        <div class="label">Calculator</div>
+                        <div class="value">Part C</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="icon">📝</div>
+                        <div class="label">Show Work</div>
+                        <div class="value">B & C</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="instructions">
+                <h4>📖 Important Instructions</h4>
+                <ul>
+                    <li>Read each question carefully before answering</li>
+                    <li><strong>NO calculator</strong> for Part A</li>
+                    <li><strong>Calculator allowed</strong> for Question 19 only in Part B</li>
+                    <li><strong>Calculator allowed</strong> for all questions in Part C</li>
+                    <li>Show ALL your work for Parts B and C</li>
+                    <li>For Part C, select exactly <strong>3 out of 5</strong> questions</li>
+                    <li>Check your work before submitting</li>
+                </ul>
+            </div>
+
+            <div class="section-header">
+                🌟 PART A: Multiple Choice 🌟<br>
+                <span style="font-size: 0.75em;">15 Questions • 60 Points • NO Calculator</span>
+            </div>
+            <div id="partA"></div>
+
+            <div class="section-header">
+                ✏️ PART B: Short Answer ✏️<br>
+                <span style="font-size: 0.75em;">5 Questions • 20 Points • Calculator for Q19 Only</span>
+            </div>
+            <div id="partB"></div>
+
+            <div class="section-header">
+                🎯 PART C: Extended Response 🎯<br>
+                <span style="font-size: 0.75em;">Choose 3 of 5 • 20 Points • Calculator Permitted</span>
+            </div>
+
+            <div class="warning-note">
+                <strong>⚠️ IMPORTANT:</strong> You must select exactly 3 questions in Part C!
+            </div>
+
+            <div id="partC"></div>
+
+            <button class="submit-button" onclick="gradeTest()">🎉 Submit Test 🎉</button>
+        </div>
+
+        <div id="reportSection" class="report-container"></div>
+    </div>
+
+    <div id="emailModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="close" onclick="closeModal()">&times;</span>
+                <h2>📧 Email Diagnostic Report</h2>
+            </div>
+            <div class="success-icon">✉️</div>
+            <div class="success-message" id="modalMessage"></div>
+            <button class="print-button" style="display: block; margin: 25px auto;" onclick="closeModal()">Close</button>
+        </div>
+    </div>
+
+    <script>
+        let emailRecipients = [];
+
+        function addEmail() {
+            const emailInput = document.getElementById('emailInput');
+            const email = emailInput.value.trim();
+            
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!email) {
+                alert('Please enter an email address.');
+                return;
+            }
+            if (!emailRegex.test(email)) {
+                alert('Please enter a valid email address.');
+                return;
+            }
+            if (emailRecipients.includes(email)) {
+                alert('This email address has already been added.');
+                return;
+            }
+
+            emailRecipients.push(email);
+            updateEmailList();
+            emailInput.value = '';
+        }
+
+        function removeEmail(email) {
+            emailRecipients = emailRecipients.filter(e => e !== email);
+            updateEmailList();
+        }
+
+        function updateEmailList() {
+            const emailList = document.getElementById('emailList');
+            if (emailRecipients.length === 0) {
+                emailList.innerHTML = '<p style="color: #666; margin-top: 12px; font-size: 0.95em;"><em>No email addresses added yet.</em></p>';
+            } else {
+                emailList.innerHTML = emailRecipients.map(email => 
+                    `<span class="email-chip">
+                        ${email}
+                        <span class="remove-email" onclick="removeEmail('${email}')">✕</span>
+                    </span>`
+                ).join('');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('emailModal').style.display = 'none';
+        }
+
+        const partAQuestions = [
+            {
+                q: "When counting by 2s, what number comes next in this sequence?<br><strong>2, 4, 6, 8, ___</strong>",
+                options: ["9", "10", "11", "12"],
+                answer: 1,
+                standard: "1.OA.C.6",
+                grade: "Grade 1"
+            },
+            {
+                q: "What is the sum of 15 + 9?",
+                options: ["23", "24", "25", "26"],
+                answer: 1,
+                standard: "2.OA.B.2",
+                grade: "Grade 2"
+            },
+            {
+                q: "Which shape has exactly 5 sides and 5 vertices (corners)?",
+                options: ["Pentagon", "Hexagon", "Octagon", "Rectangle"],
+                answer: 0,
+                standard: "2.G.A.1",
+                grade: "Grade 2",
+                hasDiagram: true,
+                diagram: `
+                    <svg width="100%" height="100" viewBox="0 0 500 100">
+                        <polygon points="60,20 90,40 80,75 40,75 30,40" fill="none" stroke="#2C3E50" stroke-width="2"/>
+                        <polygon points="140,30 170,20 190,50 170,80 140,80 120,50" fill="none" stroke="#2C3E50" stroke-width="2"/>
+                        <polygon points="250,20 280,20 300,40 300,70 280,90 250,90 230,70 230,40" fill="none" stroke="#2C3E50" stroke-width="2"/>
+                        <rect x="350" y="30" width="60" height="40" fill="none" stroke="#2C3E50" stroke-width="2"/>
+                        <text x="60" y="95" text-anchor="middle" font-size="13" fill="#2C3E50">Pentagon</text>
+                        <text x="155" y="95" text-anchor="middle" font-size="13" fill="#2C3E50">Hexagon</text>
+                        <text x="265" y="95" text-anchor="middle" font-size="13" fill="#2C3E50">Octagon</text>
+                        <text x="380" y="95" text-anchor="middle" font-size="13" fill="#2C3E50">Rectangle</text>
+                    </svg>
+                `
+            },
+            {
+                q: "What is 7 × 8?",
+                options: ["54", "56", "63", "64"],
+                answer: 1,
+                standard: "3.OA.C.7",
+                grade: "Grade 3"
+            },
+            {
+                q: "Round the number 347 to the nearest hundred.",
+                options: ["300", "340", "350", "400"],
+                answer: 0,
+                standard: "3.NBT.A.1",
+                grade: "Grade 3"
+            },
+            {
+                q: "Look at the fraction model below. What fraction of the rectangle is shaded?",
+                options: ["1/3", "3/5", "3/8", "5/8"],
+                answer: 2,
+                standard: "3.NF.A.1",
+                grade: "Grade 3",
+                hasDiagram: true,
+                diagram: `
+                    <svg width="100%" height="80" viewBox="0 0 350 80">
+                        <rect x="50" y="20" width="35" height="40" fill="#9B59B6" stroke="#2C3E50" stroke-width="2"/>
+                        <rect x="85" y="20" width="35" height="40" fill="#9B59B6" stroke="#2C3E50" stroke-width="2"/>
+                        <rect x="120" y="20" width="35" height="40" fill="#9B59B6" stroke="#2C3E50" stroke-width="2"/>
+                        <rect x="155" y="20" width="35" height="40" fill="white" stroke="#2C3E50" stroke-width="2"/>
+                        <rect x="190" y="20" width="35" height="40" fill="white" stroke="#2C3E50" stroke-width="2"/>
+                        <rect x="225" y="20" width="35" height="40" fill="white" stroke="#2C3E50" stroke-width="2"/>
+                        <rect x="260" y="20" width="35" height="40" fill="white" stroke="#2C3E50" stroke-width="2"/>
+                        <rect x="295" y="20" width="35" height="40" fill="white" stroke="#2C3E50" stroke-width="2"/>
+                        <text x="192" y="75" text-anchor="middle" font-size="12" fill="#2C3E50" font-style="italic">3 out of 8 parts shaded</text>
+                    </svg>
+                `
+            },
+            {
+                q: "A bakery made 6 trays of cookies with 24 cookies on each tray. Which equation can be used to find the total number of cookies?",
+                options: ["6 + 24 = 30", "24 - 6 = 18", "6 × 24 = 144", "24 ÷ 6 = 4"],
+                answer: 2,
+                standard: "4.OA.A.3",
+                grade: "Grade 4"
+            },
+            {
+                q: "What is 3,456 + 2,789?",
+                options: ["5,245", "6,145", "6,245", "6,345"],
+                answer: 2,
+                standard: "4.NBT.B.5",
+                grade: "Grade 4"
+            },
+            {
+                q: "What is 5,000 - 2,347?",
+                options: ["2,653", "2,753", "3,653", "7,347"],
+                answer: 0,
+                standard: "4.NBT.B.5",
+                grade: "Grade 4"
+            },
+            {
+                q: "Which fraction is equivalent to 1/2?",
+                options: ["2/3", "3/6", "2/5", "1/4"],
+                answer: 1,
+                standard: "4.NF.A.1",
+                grade: "Grade 4"
+            },
+            {
+                q: "What is 2/5 + 1/5?",
+                options: ["2/5", "3/5", "3/10", "1/5"],
+                answer: 1,
+                standard: "4.NF.B.3",
+                grade: "Grade 4"
+            },
+            {
+                q: "Sarah measures the length of her desk. It is 48 inches long. How many feet is that?<br><em>(Remember: 12 inches = 1 foot)</em>",
+                options: ["3 feet", "4 feet", "5 feet", "6 feet"],
+                answer: 1,
+                standard: "4.MD.A.2",
+                grade: "Grade 4"
+            },
+            {
+                q: "Which number makes this equation true?<br><strong>7 × ___ = 56</strong>",
+                options: ["7", "8", "9", "49"],
+                answer: 1,
+                standard: "4.OA.B.4",
+                grade: "Grade 4"
+            },
+            {
+                q: "A triangle has one angle that measures exactly 90 degrees. What type of triangle is it?",
+                options: ["Equilateral triangle", "Right triangle", "Obtuse triangle", "Scalene triangle"],
+                answer: 1,
+                standard: "4.G.A.2",
+                grade: "Grade 4"
+            },
+            {
+                q: "Look at the rectangle below. What is the perimeter of this rectangle?",
+                options: ["13 cm", "18 cm", "26 cm", "36 cm"],
+                answer: 2,
+                standard: "3.MD.D.8",
+                grade: "Grade 3",
+                hasDiagram: true,
+                diagram: `
+                    <svg width="100%" height="100" viewBox="0 0 300 100">
+                        <rect x="100" y="20" width="108" height="48" fill="none" stroke="#2C3E50" stroke-width="3"/>
+                        <text x="154" y="12" text-anchor="middle" font-size="14" fill="#2C3E50" font-weight="bold">9 cm</text>
+                        <text x="215" y="48" text-anchor="start" font-size="14" fill="#2C3E50" font-weight="bold">4 cm</text>
+                        <line x1="100" y1="15" x2="208" y2="15" stroke="#9B59B6" stroke-width="2" marker-end="url(#arrowhead)" marker-start="url(#arrowhead2)"/>
+                        <line x1="213" y1="20" x2="213" y2="68" stroke="#9B59B6" stroke-width="2" marker-end="url(#arrowhead)" marker-start="url(#arrowhead2)"/>
+                        <defs>
+                            <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
+                                <polygon points="0 0, 10 5, 0 10" fill="#9B59B6"/>
+                            </marker>
+                            <marker id="arrowhead2" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
+                                <polygon points="10 0, 0 5, 10 10" fill="#9B59B6"/>
+                            </marker>
+                        </defs>
+                    </svg>
+                `
+            }
+        ];
+
+        const partBQuestions = [
+            {
+                q: "Solve this multiplication problem: <strong>34 × 6 = ?</strong>",
+                prompt: "Show your work using any strategy (area model, partial products, or standard algorithm):",
+                needsWork: true
+            },
+            {
+                q: "A pet store has 8 fish tanks. Each tank contains 15 fish. The store sells 23 fish. How many fish are left in the store?",
+                prompt: "Show all your work step-by-step. Label each step clearly:",
+                needsWork: true
+            },
+            {
+                q: "Calculate: <strong>3 × 2/3 = ?</strong><br>Show your work using a model or equation. Write your answer as a fraction.",
+                prompt: "You may draw a visual model or show your calculation:",
+                needsWork: true
+            },
+            {
+                q: "A movie starts at 2:45 PM and ends at 5:20 PM. How long is the movie in hours and minutes?",
+                prompt: "Show your work using any method (counting up, subtraction, or timeline):",
+                needsWork: true,
+                calculator: true
+            },
+            {
+                q: "Draw a line of symmetry on the shape shown below. Then explain how you know your line is correct.",
+                prompt: "Draw your line of symmetry and write your explanation:",
+                needsWork: true,
+                hasDiagram: true,
+                diagram: `
+                    <svg width="100%" height="120" viewBox="0 0 200 120">
+                        <polygon points="100,20 130,50 120,90 80,90 70,50" fill="#E8D5FF" stroke="#2C3E50" stroke-width="3"/>
+                        <text x="100" y="112" text-anchor="middle" font-size="12" fill="#666" font-style="italic">Draw your line of symmetry on this shape</text>
+                    </svg>
+                `
+            }
+        ];
+
+        const partCQuestions = [
+            {
+                q: "A school is planning a field trip. There are 156 students going on the trip. Each bus can hold 28 students.",
+                parts: [
+                    "a) How many buses will the school need? Show your work using division. (3 points)",
+                    "b) If the school rents exactly the number of buses needed, how many empty seats will there be? Explain your reasoning. (2 points)",
+                    "c) Each bus costs $175 to rent. What is the total cost to rent all the buses needed? Show your work. (2 points)"
+                ],
+                points: 7
+            },
+            {
+                q: "Mrs. Rodriguez made a pizza for her family. She cut it into 8 equal slices.",
+                parts: [
+                    "a) Maria ate 2 slices and Carlos ate 3 slices. What fraction of the pizza did they eat together? Show your work. (2 points)",
+                    "b) What fraction of the pizza is left? Show your work. (2 points)",
+                    "c) Mrs. Rodriguez wants to save 1/4 of the pizza for lunch tomorrow. Does she have enough pizza left? Explain your answer using fractions and show your comparison. (3 points)"
+                ],
+                points: 7
+            },
+            {
+                q: "Look at this rectangle with a length of 12 inches and a width of 7 inches.",
+                parts: [
+                    "a) What is the perimeter of this rectangle? Show your work and include the formula you used. (2 points)",
+                    "b) What is the area of this rectangle? Show your work and include the formula you used. (2 points)",
+                    "c) If you double the length but keep the width the same, what will be the new area? Show your calculations and explain how the area changed. (2 points)"
+                ],
+                points: 6,
+                hasDiagram: true,
+                diagram: `
+                    <svg width="100%" height="120" viewBox="0 0 350 120">
+                        <rect x="100" y="30" width="144" height="84" fill="none" stroke="#2C3E50" stroke-width="3"/>
+                        <text x="172" y="20" text-anchor="middle" font-size="16" fill="#2C3E50" font-weight="bold">12 inches</text>
+                        <text x="255" y="75" text-anchor="start" font-size="16" fill="#2C3E50" font-weight="bold">7 inches</text>
+                        <line x1="100" y1="25" x2="244" y2="25" stroke="#3498DB" stroke-width="2" marker-end="url(#arrow1)" marker-start="url(#arrow2)"/>
+                        <line x1="250" y1="30" x2="250" y2="114" stroke="#3498DB" stroke-width="2" marker-end="url(#arrow1)" marker-start="url(#arrow2)"/>
+                        <defs>
+                            <marker id="arrow1" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
+                                <polygon points="0 0, 10 5, 0 10" fill="#3498DB"/>
+                            </marker>
+                            <marker id="arrow2" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
+                                <polygon points="10 0, 0 5, 10 10" fill="#3498DB"/>
+                            </marker>
+                        </defs>
+                    </svg>
+                `
+            },
+            {
+                q: "A toy store is having a sale. The store has the following items in stock:<br>• 45 board games at $12 each<br>• 38 puzzles at $8 each<br>• 52 action figures at $6 each",
+                parts: [
+                    "a) What is the total value of all the board games in stock? Show your work. (2 points)",
+                    "b) What is the total value of all the puzzles in stock? Show your work. (2 points)",
+                    "c) Which item type has the greatest total value in the store? Compare all three types and explain your answer with calculations. (3 points)"
+                ],
+                points: 7
+            },
+            {
+                q: "The Martinez family is planning a road trip. The distances they will drive each day are:<br>• Monday: 234 miles<br>• Tuesday: 189 miles<br>• Wednesday: 256 miles<br>• Thursday: 178 miles",
+                parts: [
+                    "a) What is the total distance they will drive during the entire trip? Show your work. (2 points)",
+                    "b) On which day will they drive the longest distance? How many more miles is this compared to the shortest day? Show your work. (2 points)",
+                    "c) The family's car can travel 28 miles on one gallon of gas. About how many gallons of gas will they need for the entire trip? Round your answer to the nearest whole number and explain your reasoning. (3 points)"
+                ],
+                points: 7
+            }
+        ];
+
+        function generatePartA() {
+            const container = document.getElementById('partA');
+            partAQuestions.forEach((q, i) => {
+                const div = document.createElement('div');
+                div.className = 'question';
+                
+                let diagramHTML = '';
+                if (q.hasDiagram) {
+                    diagramHTML = `<div class="diagram-box">${q.diagram}</div>`;
+                }
+                
+                div.innerHTML = `
+                    <div class="question-number">Question ${i + 1}</div>
+                    <div class="standard-tag">${q.grade} • ${q.standard}</div>
+                    <div class="question-text">${q.q}</div>
+                    ${diagramHTML}
+                    <div class="options">
+                        ${q.options.map((opt, j) => `
+                            <label class="option">
+                                <input type="radio" name="q${i}" value="${j}">
+                                <span><strong>${String.fromCharCode(65 + j)})</strong> ${opt}</span>
+                            </label>
+                        `).join('')}
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function generatePartB() {
+            const container = document.getElementById('partB');
+            partBQuestions.forEach((q, i) => {
+                const div = document.createElement('div');
+                div.className = 'question';
+                
+                let calcNote = '';
+                if (q.calculator) {
+                    calcNote = '<div class="calculator-note">✅ CALCULATOR PERMITTED FOR THIS QUESTION</div>';
+                }
+                
+                let diagramHTML = '';
+                if (q.hasDiagram) {
+                    diagramHTML = `<div class="diagram-box">${q.diagram}</div>`;
+                }
+                
+                let textareaHTML = '';
+                if (q.needsWork) {
+                    textareaHTML = `<textarea class="short-answer-input" id="partB_${i}" placeholder="Show your work here..."></textarea>`;
+                }
+                
+                div.innerHTML = `
+                    <div class="question-number">Question ${16 + i}</div>
+                    ${calcNote}
+                    <div class="question-text">${q.q}</div>
+                    ${diagramHTML}
+                    <div style="margin: 12px 0; color: #555; font-style: italic; font-size: 1.05em;">${q.prompt}</div>
+                    ${textareaHTML}
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function generatePartC() {
+            const container = document.getElementById('partC');
+            partCQuestions.forEach((q, i) => {
+                const div = document.createElement('div');
+                div.className = 'question';
+                
+                let diagramHTML = '';
+                if (q.hasDiagram) {
+                    diagramHTML = `<div class="diagram-box">${q.diagram}</div>`;
+                }
+                
+                div.innerHTML = `
+                    <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                        <input type="checkbox" class="partC-checkbox" id="partC_check_${i}" style="width: 26px; height: 26px; margin-right: 15px;">
+                        <label for="partC_check_${i}" style="font-weight: bold; font-size: 1.2em; cursor: pointer; color: var(--grade4-primary);">
+                            ☐ Select Question ${21 + i} (${q.points} points)
+                        </label>
+                    </div>
+                    <div class="question-number">Question ${21 + i}</div>
+                    <div class="calculator-note">✅ CALCULATOR PERMITTED</div>
+                    <div class="question-text">${q.q}</div>
+                    ${diagramHTML}
+                    <div style="margin: 18px 0;">
+                        ${q.parts.map(p => `<div style="margin: 12px 0; padding: 15px; background: #EBF5FB; border-radius: 10px; border-left: 5px solid var(--grade4-secondary);">${p}</div>`).join('')}
+                    </div>
+                    <textarea class="extended-answer-input" id="partC_${i}" placeholder="Show all your work and explain your thinking here..."></textarea>
+                `;
+                container.appendChild(div);
+            });
+
+            document.querySelectorAll('.partC-checkbox').forEach(cb => {
+                cb.addEventListener('change', function() {
+                    const checked = document.querySelectorAll('.partC-checkbox:checked');
+                    if (checked.length > 3) {
+                        this.checked = false;
+                        alert('You can only select 3 questions in Part C.');
+                    }
+                });
+            });
+        }
+
+        generatePartA();
+        generatePartB();
+        generatePartC();
+        updateEmailList();
+        document.getElementById('testDate').valueAsDate = new Date();
+
+        let currentReport = null;
+
+        function gradeTest() {
+            const name = document.getElementById('studentName').value.trim();
+            if (!name) {
+                alert('Please enter the student name before submitting.');
+                document.getElementById('studentName').focus();
+                return;
+            }
+
+            const partC = document.querySelectorAll('.partC-checkbox:checked');
+            if (partC.length !== 3) {
+                alert(`You must select exactly 3 questions in Part C. You currently have ${partC.length} selected.`);
+                return;
+            }
+
+            let partA = 0;
+            partAQuestions.forEach((q, i) => {
+                const sel = document.querySelector(`input[name="q${i}"]:checked`);
+                if (sel && parseInt(sel.value) === q.answer) partA += 4;
+            });
+
+            let partB = 0;
+            partBQuestions.forEach((q, i) => {
+                const elem = document.getElementById(`partB_${i}`);
+                if (elem && elem.value.length > 25) partB += 3;
+            });
+
+            let partCScore = 0;
+            partC.forEach(cb => {
+                const idx = cb.id.split('_')[2];
+                if (document.getElementById(`partC_${idx}`).value.length > 60) partCScore += 5;
+            });
+
+            const total = partA + partB + partCScore;
+            const pct = Math.round((total / 100) * 100);
+
+            let tier, tierName, tierDesc, tierClass;
+            if (pct >= 90) {
+                tier = 1; tierName = "TIER 1: ADVANCED"; tierDesc = "Exceeds grade 4 expectations! 🌟"; tierClass = "tier-1";
+            } else if (pct >= 80) {
+                tier = 2; tierName = "TIER 2: PROFICIENT"; tierDesc = "Meets grade 4 standards! 👍"; tierClass = "tier-2";
+            } else if (pct >= 70) {
+                tier = 3; tierName = "TIER 3: DEVELOPING"; tierDesc = "Approaching grade-level standards"; tierClass = "tier-3";
+            } else if (pct >= 60) {
+                tier = 4; tierName = "TIER 4: BELOW BASIC"; tierDesc = "Needs additional support"; tierClass = "tier-4";
+            } else {
+                tier = 5; tierName = "TIER 5: INTENSIVE SUPPORT"; tierDesc = "Immediate intervention needed"; tierClass = "tier-5";
+            }
+
+            currentReport = {
+                name,
+                date: document.getElementById('testDate').value,
+                teacher: document.getElementById('teacherName').value,
+                partA,
+                partB,
+                partCScore,
+                total,
+                pct,
+                tier,
+                tierName,
+                tierDesc,
+                tierClass
+            };
+            
+            generateReport(currentReport);
+        }
+
+        function generateReport(d) {
+            const recs = {
+                1: ["🌟 Provide enrichment activities and challenging problems", "📚 Introduce Grade 5 concepts for acceleration", "👥 Opportunities for peer tutoring", "🎯 Math competitions (Math Olympiad, Math Counts)", "🚀 Project-based learning with real-world applications"],
+                2: ["📖 Continue practicing areas scoring below 80%", "🎲 Math games for fluency and engagement", "✏️ Weekly skill review and spiral practice", "👨‍👩‍👧 Encourage math discussions at home", "📊 Monthly progress check-ins"],
+                3: ["📅 Daily 20-30 minute targeted practice", "👥 Small group instruction (3-5 students)", "🎨 Use manipulatives and visual models", "📺 Educational videos and interactive lessons", "📈 Weekly skill assessments"],
+                4: ["⚡ Intensive daily intervention (30-40 minutes)", "👤 One-on-one or small pairs tutoring", "🔢 Systematic review of Grade 2-3 foundations", "🧩 Multi-sensory teaching approaches", "📝 Modified assignments with scaffolding"],
+                5: ["🚨 IMMEDIATE comprehensive intervention required", "👨‍🏫 1:1 instruction with certified specialist", "🏫 Consider special education evaluation", "📚 Intensive foundational skills recovery", "👪 Daily family partnership essential"]
+            };
+
+            document.getElementById('reportSection').innerHTML = `
+                <div class="report-header">
+                    <div class="academy-name">D.E.Bs LEARNING ACADEMY</div>
+                    <h1>📊 Grade 4 Math Diagnostic Report</h1>
+                    <div class="grade-badge">📚 GRADE 4 📚</div>
+                    <div class="student-name-display">${d.name}</div>
+                    <p style="font-size: 1.1em;">Assessment Date: ${new Date(d.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                    ${d.teacher ? `<p style="font-size: 1.1em; margin-top: 8px;">Teacher: ${d.teacher}</p>` : ''}
+                </div>
+
+                <div class="tier-badge ${d.tierClass}">
+                    <h2 style="font-size: 2.2em; margin-bottom: 12px;">${d.tierName}</h2>
+                    <div style="font-size: 1.4em; margin-bottom: 25px;">${d.tierDesc}</div>
+                    <div style="font-size: 4.5em; margin: 25px 0; font-weight: bold;">${d.pct}%</div>
+                    <div style="font-size: 1.3em;">${d.total} out of 100 points</div>
+                </div>
+
+                <div class="score-summary">
+                    <div class="score-card">
+                        <h3 style="color: var(--navy); font-size: 1.15em;">Part A<br>Multiple Choice</h3>
+                        <div class="score-value">${d.partA}</div>
+                        <div style="color: #666; font-size: 1.05em;">out of 60 points</div>
+                        <div class="progress-bar-container" style="height: 22px; margin-top: 12px;">
+                            <div class="progress-bar" style="width: ${(d.partA/60)*100}%; font-size: 0.95em;">${Math.round((d.partA/60)*100)}%</div>
+                        </div>
+                    </div>
+                    <div class="score-card">
+                        <h3 style="color: var(--navy); font-size: 1.15em;">Part B<br>Short Answer</h3>
+                        <div class="score-value">${d.partB}</div>
+                        <div style="color: #666; font-size: 1.05em;">out of 20 points</div>
+                        <div class="progress-bar-container" style="height: 22px; margin-top: 12px;">
+                            <div class="progress-bar" style="width: ${(d.partB/20)*100}%; font-size: 0.95em;">${Math.round((d.partB/20)*100)}%</div>
+                        </div>
+                    </div>
+                    <div class="score-card">
+                        <h3 style="color: var(--navy); font-size: 1.15em;">Part C<br>Extended Response</h3>
+                        <div class="score-value">${d.partCScore}</div>
+                        <div style="color: #666; font-size: 1.05em;">out of 20 points</div>
+                        <div class="progress-bar-container" style="height: 22px; margin-top: 12px;">
+                            <div class="progress-bar" style="width: ${(d.partCScore/20)*100}%; font-size: 0.95em;">${Math.round((d.partCScore/20)*100)}%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="background: var(--cream); padding: 30px; border-radius: 15px; margin: 30px 0; border: 4px solid var(--gold);">
+                    <h3 style="color: var(--navy); margin-bottom: 18px; font-size: 1.5em;">📋 Recommended Next Steps</h3>
+                    <ul style="line-height: 2.2; font-size: 1.1em; margin-left: 25px;">
+                        ${recs[d.tier].map(r => `<li style="margin-bottom: 12px;">${r}</li>`).join('')}
+                    </ul>
+                </div>
+
+                <div style="background: #EBF5FB; padding: 30px; border-radius: 15px; margin: 30px 0; border: 4px solid var(--grade4-secondary);">
+                    <h3 style="color: var(--navy); margin-bottom: 18px; font-size: 1.5em;">📚 What This Means for ${d.name.split(' ')[0]}</h3>
+                    <div style="font-size: 1.1em; line-height: 1.9;">
+                        ${d.tier === 1 ? `${d.name.split(' ')[0]} is performing exceptionally well in Grade 4 math! They demonstrate strong mastery of foundational skills and are ready for enrichment. Consider advanced math programs, leadership opportunities, and challenging projects where they can explore mathematics more deeply.` : ''}
+                        ${d.tier === 2 ? `${d.name.split(' ')[0]} is doing very well and meeting grade-level expectations. With continued practice in areas that scored below 80%, they'll maintain and strengthen this solid performance. Encourage daily math practice and celebrate their success!` : ''}
+                        ${d.tier === 3 ? `${d.name.split(' ')[0]} is making progress toward grade-level standards but needs additional practice and support. With consistent daily work, small group instruction, and targeted intervention, they can reach proficiency. Focus on building confidence alongside skills, and maintain open communication between home and school.` : ''}
+                        ${d.tier === 4 ? `${d.name.split(' ')[0]} needs extra help to catch up with grade-level expectations. Significant gaps in Grade 3 skills are impacting their Grade 4 performance. We recommend daily intervention with a certified tutor or specialist, review of foundational concepts, and modified assignments. A team meeting should be scheduled within 1-2 weeks to develop a comprehensive support plan.` : ''}
+                        ${d.tier === 5 ? `${d.name.split(' ')[0]} needs immediate, intensive intervention. This level of performance indicates critical gaps in foundational math skills from Grades 1-3. We strongly recommend scheduling an emergency team meeting this week to discuss comprehensive intervention, possible special education evaluation, and a detailed recovery plan. Daily 1:1 instruction with a math specialist is essential.` : ''}
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="print-button" onclick="window.print()">🖨️ Print Report</button>
+                    <button class="print-button" onclick="emailReport()">📧 Email Report${emailRecipients.length > 0 ? ' (' + emailRecipients.length + ')' : ''}</button>
+                    <button class="print-button" onclick="location.reload()">🔄 Start New Test</button>
+                </div>
+
+                <div style="margin-top: 35px; padding: 25px; background: var(--cream); border-radius: 15px; border: 4px solid var(--gold); text-align: center;">
+                    <h3 style="color: var(--navy); margin-bottom: 12px; font-size: 1.4em;">📞 Questions or Need Support?</h3>
+                    <p style="font-size: 1.1em;"><strong>D.E.Bs Learning Academy</strong></p>
+                    <p style="font-size: 1.1em; margin-top: 12px;">Contact your teacher to discuss this report and create a personalized action plan.</p>
+                    <p style="font-size: 1.3em; margin-top: 18px; color: var(--grade4-primary); font-weight: bold;">Unlocking Brilliance Through Learning</p>
+                </div>
+            `;
+
+            document.getElementById('testSection').style.display = 'none';
+            document.getElementById('reportSection').style.display = 'block';
+            window.scrollTo({top: 0, behavior: 'smooth'});
+        }
+
+        function emailReport() {
+            if (emailRecipients.length === 0) {
+                alert('Please add at least one email address to send the report.');
+                return;
+            }
+            
+            const modal = document.getElementById('emailModal');
+            const message = document.getElementById('modalMessage');
+            modal.style.display = 'block';
+            
+            message.innerHTML = '<div style="text-align: center; padding: 25px; font-size: 1.1em;">Sending diagnostic report...</div>';
+            
+            setTimeout(() => {
+                message.innerHTML = `
+                    <div style="font-size: 1.2em; color: var(--success); margin: 18px 0; text-align: center; font-weight: bold;">
+                        ✅ Success! Diagnostic report has been sent to:
+                    </div>
+                    <div style="margin: 25px 0;">
+                        ${emailRecipients.map(e => `<div style="margin: 10px 0; padding: 12px; background: #EBF5FB; border-radius: 8px; text-align: center; font-size: 1.05em;">📧 ${e}</div>`).join('')}
+                    </div>
+                    <div style="text-align: center; color: #666; font-size: 0.95em; margin-top: 20px;">
+                        Recipients will receive the complete diagnostic report with scores and recommendations.
+                    </div>
+                `;
+            }, 1800);
+        }
+    </script>
+</body>
+</html>
