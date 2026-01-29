@@ -9,6 +9,8 @@ import { Progress } from "@/components/ui/progress";
 import { Clock, ArrowLeft, ArrowRight, Check } from "lucide-react";
 import elaTests from "@/data/ela-diagnostic-tests.json";
 import DEBsHeader from "@/components/DEBsHeader";
+import DiagnosticLanding from "@/components/DiagnosticLanding";
+
 interface Question {
   id: string;
   number: number;
@@ -31,6 +33,7 @@ export default function TakeELATest() {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState((test?.total_time_minutes || 90) * 60);
   const [submitted, setSubmitted] = useState(false);
+  const [testStarted, setTestStarted] = useState(false);
 
   // Flatten all questions from all sections
   const allQuestions: Question[] = [];
@@ -48,7 +51,7 @@ export default function TakeELATest() {
   });
 
   useEffect(() => {
-    if (submitted) return;
+    if (submitted || !testStarted) return;
     const timer = setInterval(() => {
       setTimeRemaining(prev => {
         if (prev <= 1) {
@@ -60,7 +63,7 @@ export default function TakeELATest() {
       });
     }, 1000);
     return () => clearInterval(timer);
-  }, [submitted]);
+  }, [submitted, testStarted]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -98,6 +101,21 @@ export default function TakeELATest() {
     }));
   };
 
+  // Get ELA description based on grade
+  const getELADescription = (grade: string) => {
+    const descriptions: Record<string, string> = {
+      "5": "Reading comprehension, vocabulary, grammar, and writing skills assessment",
+      "6": "Literary analysis, central ideas, inferencing, and composition skills",
+      "7": "Language, grammar, literary devices, and analytical writing",
+      "8": "Reading comprehension, rhetoric, and structured writing assessment",
+      "9": "Literary analysis, vocabulary in context, and argumentative writing",
+      "10": "Advanced literary analysis, central idea development, and essay writing",
+      "11": "Rhetoric, literary analysis, advanced vocabulary, and critical writing",
+      "12": "College-ready analysis, reading comprehension, and extended writing",
+    };
+    return descriptions[grade] || "Comprehensive English Language Arts assessment";
+  };
+
   if (!test) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -111,6 +129,26 @@ export default function TakeELATest() {
     );
   }
 
+  // Show landing page before test starts
+  if (!testStarted && !submitted) {
+    return (
+      <DiagnosticLanding
+        grade={gradeNum || ""}
+        subject="ELA"
+        description={getELADescription(gradeNum || "")}
+        totalTime={test.total_time_minutes}
+        totalPoints={allQuestions.length * 4}
+        testInfo={[
+          { label: "Total Time", value: `${test.total_time_minutes} min`, emoji: "⏰" },
+          { label: "Questions", value: `${allQuestions.length}`, emoji: "📊" },
+          { label: "Sections", value: `${test.sections.length}`, emoji: "📚" },
+          { label: "Writing", value: "Required", emoji: "✏️" },
+        ]}
+        onStart={() => setTestStarted(true)}
+      />
+    );
+  }
+
   const currentQ = allQuestions[currentQuestion];
   const progress = ((currentQuestion + 1) / allQuestions.length) * 100;
 
@@ -120,8 +158,9 @@ export default function TakeELATest() {
     const tierColor = tier === "Tier 1" ? "bg-emerald-500" : tier === "Tier 2" ? "bg-amber-500" : "bg-red-500";
 
     return (
-      <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 py-8">
-        <div className="container max-w-2xl mx-auto px-4">
+      <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+        <DEBsHeader subtitle={`Grade ${gradeNum} ELA - Results`} />
+        <div className="container max-w-2xl mx-auto px-4 py-8">
           <Card>
             <CardHeader className="text-center">
               <div className={`mx-auto w-20 h-20 rounded-full ${tierColor} flex items-center justify-center mb-4`}>
