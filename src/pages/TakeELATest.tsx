@@ -6,9 +6,9 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
-import { Clock, BookOpen, ArrowLeft, ArrowRight, Check } from "lucide-react";
+import { Clock, ArrowLeft, ArrowRight, Check } from "lucide-react";
 import elaTests from "@/data/ela-diagnostic-tests.json";
-
+import DEBsHeader from "@/components/DEBsHeader";
 interface Question {
   id: string;
   number: number;
@@ -150,25 +150,22 @@ export default function TakeELATest() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
-      {/* Header */}
-      <div className="sticky top-0 bg-background/95 backdrop-blur border-b z-10">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <BookOpen className="h-5 w-5 text-primary" />
-            <span className="font-semibold">Grade {gradeNum} ELA Diagnostic</span>
-          </div>
+      {/* DEBs Header */}
+      <DEBsHeader 
+        subtitle={`Grade ${gradeNum} ELA Diagnostic`}
+        rightContent={
           <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground">
-              Question {currentQuestion + 1} of {allQuestions.length}
+            <span className="text-sm text-white/70 hidden sm:inline">
+              Q {currentQuestion + 1}/{allQuestions.length}
             </span>
-            <div className="flex items-center gap-2 text-primary">
-              <Clock className="h-4 w-4" />
-              <span className="font-mono">{formatTime(timeRemaining)}</span>
+            <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full">
+              <Clock className="h-4 w-4 text-[#FFD700]" />
+              <span className="font-mono text-[#FFD700]">{formatTime(timeRemaining)}</span>
             </div>
           </div>
-        </div>
-        <Progress value={progress} className="h-1" />
-      </div>
+        }
+      />
+      <Progress value={progress} className="h-1" />
 
       {/* Question */}
       <div className="container max-w-3xl mx-auto px-4 py-8">

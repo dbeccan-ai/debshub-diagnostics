@@ -17,6 +17,7 @@ import { TestSecurityWarning } from "@/components/TestSecurityWarning";
 import { PreTestSecurityCheck } from "@/components/PreTestSecurityCheck";
 import { useLanguage, languageOptions } from "@/contexts/LanguageContext";
 import QuestionVisual from "@/components/QuestionVisual";
+import DEBsHeader from "@/components/DEBsHeader";
 
 interface SkillPerformance {
   correct: number;
@@ -478,31 +479,31 @@ const TakeTest = () => {
         tabSwitchCount={tabSwitchCount}
       />
 
-      {/* Sticky Header */}
-      <header className="bg-white border-b border-gray-300 shadow-md sticky top-0 z-50">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-bold text-[#1e3a8a]">{test.name}</h1>
-                {translatedLanguage !== "en" && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs font-medium">
-                    <Globe className="h-3 w-3" />
-                    {languageOptions.find(l => l.value === translatedLanguage)?.label || translatedLanguage}
-                  </span>
-                )}
-              </div>
-              <p className="text-sm text-[#1e3a8a]/60 mt-1">
-                Question {currentQuestionIndex + 1} of {questions.length}
-              </p>
-            </div>
-            <div className={`flex items-center gap-2 px-4 py-2 rounded-full font-semibold ${getTimerColor()}`}>
-              <Clock className="h-5 w-5" />
+      {/* DEBs Header */}
+      <DEBsHeader 
+        subtitle={test.name}
+        rightContent={
+          <div className="flex items-center gap-3">
+            {translatedLanguage !== "en" && (
+              <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/20 text-white text-xs font-medium">
+                <Globe className="h-3 w-3" />
+                {languageOptions.find(l => l.value === translatedLanguage)?.label || translatedLanguage}
+              </span>
+            )}
+            <span className="text-sm text-white/70 hidden sm:inline">
+              Q {currentQuestionIndex + 1}/{questions.length}
+            </span>
+            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full font-semibold ${
+              timeRemaining < 300 ? "bg-red-500 text-white" : 
+              timeRemaining < 600 ? "bg-orange-400 text-white" : 
+              "bg-white/10 text-[#FFD700]"
+            }`}>
+              <Clock className="h-4 w-4" />
               {formatTime(timeRemaining)}
             </div>
           </div>
-        </div>
-      </header>
+        }
+      />
 
       {/* Time Warning Banner */}
       {showTimeWarning && timeRemaining < 300 && timeRemaining > 0 && (
