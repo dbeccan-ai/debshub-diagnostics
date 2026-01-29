@@ -28,6 +28,7 @@ import ReadingRecoveryDiagnostic from "./pages/ReadingRecoveryDiagnostic";
 import ReadingRecoveryResults from "./pages/ReadingRecoveryResults";
 import ELADiagnosticHub from "./pages/ELADiagnosticHub";
 import TakeELATest from "./pages/TakeELATest";
+import Grade4Diagnostic from "./pages/Grade4Diagnostic";
 import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
@@ -39,7 +40,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Index />} />
+            <Route path="/" element={<Grade4Diagnostic />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/admin/login" element={<AdminAuth />} />
             <Route path="/dashboard" element={<Dashboard />} />
