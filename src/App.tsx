@@ -40,7 +40,8 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Grade4Diagnostic />} />
+            <Route path="/" element={<Index />} />
+            <Route path="/diagnostics/math/grade-4" element={<Grade4Diagnostic />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/admin/login" element={<AdminAuth />} />
             <Route path="/dashboard" element={<Dashboard />} />
