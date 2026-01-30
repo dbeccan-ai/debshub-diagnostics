@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { BookOpen, ArrowLeft, Loader2, Eye, EyeOff } from "lucide-react";
 import { Link } from "react-router-dom";
+import { LanguageSelector } from "@/components/LanguageSelector";
 import { z } from "zod";
 
 const signupSchema = z.object({
@@ -240,6 +241,7 @@ const ReadingRecoveryAuth = () => {
               </div>
             </div>
           </Link>
+          <LanguageSelector />
         </div>
       </header>
 

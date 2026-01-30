@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { BookOpen, CheckCircle2, Target, TrendingUp, Users, FileText, Award, ArrowRight, LogIn } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { LanguageSelector } from "@/components/LanguageSelector";
 
 const ReadingRecovery = () => {
   const navigate = useNavigate();
@@ -65,7 +66,8 @@ const ReadingRecovery = () => {
               <p className="text-xs text-muted-foreground">by D.E.Bs Learning Academy</p>
             </div>
           </Link>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            <LanguageSelector />
             {isEnrolled ? (
               <Button 
                 className="bg-emerald-600 hover:bg-emerald-700"
