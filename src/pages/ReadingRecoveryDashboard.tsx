@@ -29,6 +29,7 @@ import {
   Award,
   FileText,
 } from "lucide-react";
+import { LanguageSelector } from "@/components/LanguageSelector";
 
 interface Enrollment {
   id: string;
@@ -235,7 +236,8 @@ const ReadingRecoveryDashboard = () => {
               <p className="text-xs text-muted-foreground">21-Day Learning Hub</p>
             </div>
           </Link>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            <LanguageSelector />
             <Button
               variant="outline"
               size="sm"
