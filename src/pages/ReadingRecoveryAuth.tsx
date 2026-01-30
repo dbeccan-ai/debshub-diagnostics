@@ -10,28 +10,31 @@ import { toast } from "sonner";
 import { BookOpen, ArrowLeft, Loader2, Eye, EyeOff } from "lucide-react";
 import { Link } from "react-router-dom";
 import { LanguageSelector } from "@/components/LanguageSelector";
+import { useTranslation } from "@/hooks/useTranslation";
 import { z } from "zod";
-
-const signupSchema = z.object({
-  studentName: z.string().min(2, "Student name must be at least 2 characters"),
-  parentEmail: z.string().email("Please enter a valid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-  confirmPassword: z.string(),
-  gradeLevel: z.string().optional(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-});
-
-const loginSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(1, "Password is required"),
-});
 
 const ReadingRecoveryAuth = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get("redirect") || "/reading-recovery/dashboard";
+  const { t } = useTranslation();
+  const rr = t.readingRecovery;
+
+  const signupSchema = z.object({
+    studentName: z.string().min(2, rr.studentName + " must be at least 2 characters"),
+    parentEmail: z.string().email("Please enter a valid email address"),
+    password: z.string().min(6, rr.password + " must be at least 6 characters"),
+    confirmPassword: z.string(),
+    gradeLevel: z.string().optional(),
+  }).refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  });
+
+  const loginSchema = z.object({
+    email: z.string().email("Please enter a valid email address"),
+    password: z.string().min(1, rr.password + " is required"),
+  });
 
   const [loading, setLoading] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
@@ -55,7 +58,6 @@ const ReadingRecoveryAuth = () => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
-        // Check if enrolled in Reading Recovery
         const { data: enrollment } = await supabase
           .from("reading_recovery_enrollments")
           .select("id")
@@ -99,7 +101,6 @@ const ReadingRecoveryAuth = () => {
 
     setLoading(true);
     try {
-      // Sign up with Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: parentEmail,
         password,
@@ -123,7 +124,6 @@ const ReadingRecoveryAuth = () => {
       }
 
       if (authData.user) {
-        // Create enrollment record
         const { error: enrollError } = await supabase
           .from("reading_recovery_enrollments")
           .insert({
@@ -181,7 +181,6 @@ const ReadingRecoveryAuth = () => {
       }
 
       if (data.user) {
-        // Check if enrolled in Reading Recovery
         const { data: enrollment } = await supabase
           .from("reading_recovery_enrollments")
           .select("id")
@@ -189,7 +188,6 @@ const ReadingRecoveryAuth = () => {
           .maybeSingle();
         
         if (!enrollment) {
-          // Create enrollment for existing user
           const { error: enrollError } = await supabase
             .from("reading_recovery_enrollments")
             .insert({
@@ -236,8 +234,8 @@ const ReadingRecoveryAuth = () => {
                 <BookOpen className="h-5 w-5 text-white" />
               </div>
               <div>
-                <span className="font-bold text-foreground">Reading Recovery</span>
-                <p className="text-xs text-muted-foreground">Programme Access</p>
+                <span className="font-bold text-foreground">{rr.programmeTitle}</span>
+                <p className="text-xs text-muted-foreground">{rr.programmeAccess}</p>
               </div>
             </div>
           </Link>
@@ -251,25 +249,25 @@ const ReadingRecoveryAuth = () => {
             <div className="mx-auto w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mb-2">
               <BookOpen className="h-8 w-8 text-emerald-600" />
             </div>
-            <CardTitle className="text-2xl">Reading Recovery Programme</CardTitle>
+            <CardTitle className="text-2xl">{rr.createAccountTitle}</CardTitle>
             <CardDescription>
-              Create your account to access the full programme
+              {rr.createAccountDesc}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "login" | "signup")}>
               <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="signup">Sign Up</TabsTrigger>
-                <TabsTrigger value="login">Sign In</TabsTrigger>
+                <TabsTrigger value="signup">{t.auth.signUp}</TabsTrigger>
+                <TabsTrigger value="login">{t.auth.signIn}</TabsTrigger>
               </TabsList>
 
               <TabsContent value="signup">
                 <form onSubmit={handleSignup} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="studentName">Student's Name *</Label>
+                    <Label htmlFor="studentName">{rr.studentName} *</Label>
                     <Input
                       id="studentName"
-                      placeholder="Enter student's full name"
+                      placeholder={rr.studentName}
                       value={studentName}
                       onChange={(e) => setStudentName(e.target.value)}
                       className={errors.studentName ? "border-red-500" : ""}
@@ -280,14 +278,14 @@ const ReadingRecoveryAuth = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="gradeLevel">Grade Level</Label>
+                    <Label htmlFor="gradeLevel">{rr.gradeLevel}</Label>
                     <select
                       id="gradeLevel"
                       value={gradeLevel}
                       onChange={(e) => setGradeLevel(e.target.value)}
                       className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
                     >
-                      <option value="">Select grade level</option>
+                      <option value="">{rr.selectGrade}</option>
                       {[1, 2, 3, 4, 5, 6, 7, 8].map((g) => (
                         <option key={g} value={g}>Grade {g}</option>
                       ))}
@@ -295,7 +293,7 @@ const ReadingRecoveryAuth = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="parentEmail">Parent/Guardian Email *</Label>
+                    <Label htmlFor="parentEmail">{rr.parentEmail} *</Label>
                     <Input
                       id="parentEmail"
                       type="email"
@@ -310,12 +308,12 @@ const ReadingRecoveryAuth = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="password">Password *</Label>
+                    <Label htmlFor="password">{rr.password} *</Label>
                     <div className="relative">
                       <Input
                         id="password"
                         type={showPassword ? "text" : "password"}
-                        placeholder="Create a password"
+                        placeholder={rr.password}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         className={errors.password ? "border-red-500 pr-10" : "pr-10"}
@@ -336,11 +334,11 @@ const ReadingRecoveryAuth = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="confirmPassword">Confirm Password *</Label>
+                    <Label htmlFor="confirmPassword">{rr.confirmPassword} *</Label>
                     <Input
                       id="confirmPassword"
                       type="password"
-                      placeholder="Confirm your password"
+                      placeholder={rr.confirmPassword}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       className={errors.confirmPassword ? "border-red-500" : ""}
@@ -358,10 +356,10 @@ const ReadingRecoveryAuth = () => {
                     {loading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Creating Account...
+                        {rr.creatingAccount}
                       </>
                     ) : (
-                      "Create Account & Access Programme"
+                      rr.createAccountBtn
                     )}
                   </Button>
                 </form>
@@ -370,7 +368,7 @@ const ReadingRecoveryAuth = () => {
               <TabsContent value="login">
                 <form onSubmit={handleLogin} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="loginEmail">Email Address</Label>
+                    <Label htmlFor="loginEmail">{rr.parentEmail}</Label>
                     <Input
                       id="loginEmail"
                       type="email"
@@ -385,12 +383,12 @@ const ReadingRecoveryAuth = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="loginPassword">Password</Label>
+                    <Label htmlFor="loginPassword">{rr.password}</Label>
                     <div className="relative">
                       <Input
                         id="loginPassword"
                         type={showPassword ? "text" : "password"}
-                        placeholder="Enter your password"
+                        placeholder={rr.password}
                         value={loginPassword}
                         onChange={(e) => setLoginPassword(e.target.value)}
                         className={errors.password ? "border-red-500 pr-10" : "pr-10"}
@@ -415,10 +413,10 @@ const ReadingRecoveryAuth = () => {
                     {loading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Signing In...
+                        {rr.signingIn}
                       </>
                     ) : (
-                      "Sign In to Programme"
+                      rr.signInBtn
                     )}
                   </Button>
                 </form>
@@ -427,9 +425,9 @@ const ReadingRecoveryAuth = () => {
 
             <div className="mt-6 text-center">
               <p className="text-sm text-muted-foreground">
-                Looking for diagnostic tests?{" "}
+                {rr.lookingForDiagnosticsLink}{" "}
                 <Link to="/auth" className="text-primary hover:underline">
-                  Go to Diagnostic Hub
+                  {rr.goToDiagnosticHub}
                 </Link>
               </p>
             </div>

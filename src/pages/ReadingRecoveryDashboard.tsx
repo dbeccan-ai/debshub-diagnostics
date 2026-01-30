@@ -30,6 +30,7 @@ import {
   FileText,
 } from "lucide-react";
 import { LanguageSelector } from "@/components/LanguageSelector";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface Enrollment {
   id: string;
@@ -111,6 +112,8 @@ const celebrationMilestones = [
 
 const ReadingRecoveryDashboard = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const rr = t.readingRecovery;
   const [loading, setLoading] = useState(true);
   const [enrollment, setEnrollment] = useState<Enrollment | null>(null);
   const [diagnostics, setDiagnostics] = useState<DiagnosticResult[]>([]);
@@ -177,17 +180,18 @@ const ReadingRecoveryDashboard = () => {
   };
 
   const getTierFromErrors = (errorCount: number | null) => {
-    if (errorCount === null) return { tier: "Unknown", color: "bg-muted", textColor: "text-muted-foreground" };
-    if (errorCount <= 3) return { tier: "Tier 1", color: "bg-emerald-500", textColor: "text-emerald-700", label: "Excellent" };
-    if (errorCount <= 7) return { tier: "Tier 2", color: "bg-amber-500", textColor: "text-amber-700", label: "Progressing" };
-    return { tier: "Tier 3", color: "bg-red-500", textColor: "text-red-700", label: "Needs Support" };
+    if (errorCount === null) return { tier: rr.notAssessed, color: "bg-muted", textColor: "text-muted-foreground" };
+    if (errorCount <= 3) return { tier: rr.tier1, color: "bg-emerald-500", textColor: "text-emerald-700", label: rr.tier1Label };
+    if (errorCount <= 7) return { tier: rr.tier2, color: "bg-amber-500", textColor: "text-amber-700", label: rr.tier2Label };
+    return { tier: rr.tier3, color: "bg-red-500", textColor: "text-red-700", label: rr.tier3Label };
+    return { tier: rr.tier3, color: "bg-red-500", textColor: "text-red-700", label: rr.tier3Label };
   };
 
   const getVersionLabel = (version: string) => {
     switch (version) {
-      case 'A': return 'Pre-Assessment';
-      case 'B': return 'Mid-Point';
-      case 'C': return 'Post-Assessment';
+      case 'A': return rr.preAssessment;
+      case 'B': return rr.midPoint;
+      case 'C': return rr.postAssessment;
       default: return version;
     }
   };
@@ -232,8 +236,8 @@ const ReadingRecoveryDashboard = () => {
               <BookOpen className="h-5 w-5 text-white" />
             </div>
             <div>
-              <span className="font-bold text-foreground">Reading Recovery</span>
-              <p className="text-xs text-muted-foreground">21-Day Learning Hub</p>
+              <span className="font-bold text-foreground">{rr.programmeTitle}</span>
+              <p className="text-xs text-muted-foreground">{rr.learningHub}</p>
             </div>
           </Link>
           <div className="flex items-center gap-3">
@@ -245,11 +249,11 @@ const ReadingRecoveryDashboard = () => {
               onClick={() => navigate("/reading-recovery/diagnostic")}
             >
               <PlayCircle className="mr-1 h-4 w-4" />
-              New Assessment
+              {rr.newAssessment}
             </Button>
             <Button variant="ghost" size="sm" onClick={handleSignOut}>
               <LogOut className="mr-1 h-4 w-4" />
-              Sign Out
+              {rr.signOut}
             </Button>
           </div>
         </div>
@@ -259,10 +263,10 @@ const ReadingRecoveryDashboard = () => {
         {/* Welcome Section */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">
-            Welcome back, {enrollment?.student_name}!
+            {rr.welcomeBack}, {enrollment?.student_name}!
           </h1>
           <p className="text-muted-foreground">
-            Track your reading progress through the 21-day recovery blueprint.
+            {rr.trackProgress}
           </p>
         </div>
 
@@ -275,8 +279,8 @@ const ReadingRecoveryDashboard = () => {
                   <Trophy className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Current Tier</p>
-                  <p className="text-xl font-bold">{latestTier?.tier || "Not assessed"}</p>
+                  <p className="text-sm text-muted-foreground">{rr.currentTier}</p>
+                  <p className="text-xl font-bold">{latestTier?.tier || rr.notAssessed}</p>
                   {latestTier?.label && (
                     <p className={`text-xs ${latestTier.textColor}`}>{latestTier.label}</p>
                   )}
@@ -291,9 +295,9 @@ const ReadingRecoveryDashboard = () => {
                   <BarChart3 className="h-5 w-5 text-sky-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Assessments</p>
+                  <p className="text-sm text-muted-foreground">{rr.assessments}</p>
                   <p className="text-xl font-bold">{diagnostics.length} / 3</p>
-                  <p className="text-xs text-muted-foreground">Pre, Mid, Post</p>
+                  <p className="text-xs text-muted-foreground">{rr.prePostMid}</p>
                 </div>
               </div>
             </CardContent>
@@ -305,9 +309,9 @@ const ReadingRecoveryDashboard = () => {
                   <Target className="h-5 w-5 text-amber-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Days Completed</p>
+                  <p className="text-sm text-muted-foreground">{rr.daysCompleted}</p>
                   <p className="text-xl font-bold">{completedDays} / 21</p>
-                  <p className="text-xs text-muted-foreground">Week {currentWeek}</p>
+                  <p className="text-xs text-muted-foreground">{rr.week} {currentWeek}</p>
                 </div>
               </div>
             </CardContent>
@@ -319,7 +323,7 @@ const ReadingRecoveryDashboard = () => {
                   <Calendar className="h-5 w-5 text-purple-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Enrolled Since</p>
+                  <p className="text-sm text-muted-foreground">{rr.enrolledSince}</p>
                   <p className="text-xl font-bold">
                     {enrollment ? formatDate(enrollment.enrolled_at) : "—"}
                   </p>
@@ -338,14 +342,14 @@ const ReadingRecoveryDashboard = () => {
                   <div>
                     <CardTitle className="flex items-center gap-2">
                       <TrendingUp className="h-5 w-5 text-emerald-600" />
-                      21-Day Recovery Blueprint
+                      {rr.recoveryBlueprint}
                     </CardTitle>
                     <CardDescription>
-                      Your personalized reading improvement journey
+                      {rr.blueprintDesc}
                     </CardDescription>
                   </div>
                   <Badge variant="outline" className="text-emerald-700 border-emerald-300">
-                    {progressPercent}% Complete
+                    {progressPercent}% {rr.complete}
                   </Badge>
                 </div>
                 <Progress value={progressPercent} className="mt-2" />
@@ -431,24 +435,24 @@ const ReadingRecoveryDashboard = () => {
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <BarChart3 className="h-5 w-5 text-primary" />
-                  Assessment Progress
+                  {rr.assessmentTracker}
                 </CardTitle>
                 <CardDescription>
-                  Track growth across all three assessments
+                  {rr.assessmentTrackerDesc}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 {diagnostics.length === 0 ? (
                   <div className="text-center py-6">
                     <p className="text-sm text-muted-foreground mb-4">
-                      Start with your Pre-Assessment diagnostic!
+                      {rr.noPastResults}
                     </p>
                     <Button
                       size="sm"
                       className="bg-emerald-600 hover:bg-emerald-700"
                       onClick={() => navigate("/reading-recovery/diagnostic")}
                     >
-                      Start Assessment
+                      {rr.startAssessment}
                     </Button>
                   </div>
                 ) : (
@@ -490,7 +494,7 @@ const ReadingRecoveryDashboard = () => {
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Award className="h-5 w-5 text-amber-500" />
-                  Celebration Milestones
+                  {rr.celebrationMilestones}
                 </CardTitle>
               </CardHeader>
               <CardContent>
