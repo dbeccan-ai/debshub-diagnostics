@@ -172,18 +172,24 @@ function countQuestions(data: any): number {
       return data.length;
     }
     // Check if it's sections with questions
-    if (data[0]?.questions) {
+    if (data[0]?.questions && Array.isArray(data[0].questions)) {
       return data.reduce((sum: number, section: any) => sum + (section.questions?.length || 0), 0);
     }
     // Check for sections array inside
-    if (data[0]?.sections) {
+    if (data[0]?.sections && Array.isArray(data[0].sections)) {
       return data.reduce((sum: number, item: any) => 
         sum + item.sections.reduce((s: number, sec: any) => s + (sec.questions?.length || 0), 0), 0);
     }
   }
   
-  if (data?.sections) {
+  // Only process sections if it's actually an array
+  if (data?.sections && Array.isArray(data.sections)) {
     return data.sections.reduce((sum: number, section: any) => sum + (section.questions?.length || 0), 0);
+  }
+  
+  // Handle case where data has total_questions metadata
+  if (data?.total_questions && typeof data.total_questions === 'number') {
+    return data.total_questions;
   }
   
   return 0;
