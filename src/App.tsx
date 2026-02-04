@@ -28,6 +28,7 @@ import ReadingRecoveryDiagnostic from "./pages/ReadingRecoveryDiagnostic";
 import ReadingRecoveryResults from "./pages/ReadingRecoveryResults";
 import ELADiagnosticHub from "./pages/ELADiagnosticHub";
 import TakeELATest from "./pages/TakeELATest";
+import Grade2Diagnostic from "./pages/Grade2Diagnostic";
 import Grade4Diagnostic from "./pages/Grade4Diagnostic";
 import Grade6Diagnostic from "./pages/Grade6Diagnostic";
 import NotFound from "./pages/NotFound";
@@ -42,6 +43,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/diagnostics/math/grade-2" element={<Grade2Diagnostic />} />
             <Route path="/diagnostics/math/grade-4" element={<Grade4Diagnostic />} />
             <Route path="/diagnostics/math/grade-6" element={<Grade6Diagnostic />} />
             <Route path="/auth" element={<Auth />} />
