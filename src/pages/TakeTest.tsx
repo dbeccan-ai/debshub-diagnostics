@@ -24,6 +24,7 @@ import {
   getPictureHelperForQuestion, 
   getDrawAreaForQuestion 
 } from "@/components/diagrams/Grade2Diagrams";
+import { getGrade3DiagramByVisual } from "@/components/diagrams/Grade3Diagrams";
 
 interface SkillPerformance {
   correct: number;
@@ -644,7 +645,7 @@ const TakeTest = () => {
               {/* Visual Component for questions with visuals */}
               {currentQuestion.visual && (
                 typeof currentQuestion.visual === 'string' 
-                  ? getGrade2DiagramByVisual(currentQuestion.visual)
+                  ? (getGrade2DiagramByVisual(currentQuestion.visual) || getGrade3DiagramByVisual(currentQuestion.visual))
                   : <QuestionVisual visual={currentQuestion.visual} />
               )}
               
