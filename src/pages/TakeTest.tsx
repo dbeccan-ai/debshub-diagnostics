@@ -19,6 +19,11 @@ import { useLanguage, languageOptions } from "@/contexts/LanguageContext";
 import QuestionVisual from "@/components/QuestionVisual";
 import DEBsHeader from "@/components/DEBsHeader";
 import DiagnosticLanding from "@/components/DiagnosticLanding";
+import { 
+  getGrade2DiagramByVisual, 
+  getPictureHelperForQuestion, 
+  getDrawAreaForQuestion 
+} from "@/components/diagrams/Grade2Diagrams";
 
 interface SkillPerformance {
   correct: number;
@@ -638,8 +643,16 @@ const TakeTest = () => {
               
               {/* Visual Component for questions with visuals */}
               {currentQuestion.visual && (
-                <QuestionVisual visual={currentQuestion.visual} />
+                typeof currentQuestion.visual === 'string' 
+                  ? getGrade2DiagramByVisual(currentQuestion.visual)
+                  : <QuestionVisual visual={currentQuestion.visual} />
               )}
+              
+              {/* Grade 2 Picture Helpers for word problems */}
+              {getPictureHelperForQuestion(currentQuestion.id)}
+              
+              {/* Grade 2 Draw Areas for extended response */}
+              {getDrawAreaForQuestion(currentQuestion.id)}
               
               {/* Diagram boxes for questions with diagrams (e.g., sentence diagrams) */}
               {currentQuestion.diagrams && currentQuestion.diagrams.length > 0 && (

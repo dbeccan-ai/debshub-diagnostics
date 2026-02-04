@@ -668,3 +668,18 @@ export const getDrawAreaForQuestion = (questionId: string): React.ReactNode | nu
   };
   return drawAreas[questionId] || null;
 };
+
+// Map visual string values from database to diagram components
+export const getGrade2DiagramByVisual = (visual: string): React.ReactNode | null => {
+  const diagrams: Record<string, React.ReactNode> = {
+    // Section I MCQ visuals
+    tens_ones: <TensOnesDiagram />,
+    clock_2_30: <ClockDiagram />,
+    coins: <CoinsDiagram />,
+    fraction_circle: <FractionCircleDiagram />,
+    ruler: <RulerDiagram />,
+    bar_graph: <BarGraphDiagram />,
+    cube: <CubeDiagram />,
+  };
+  return diagrams[visual] || null;
+};
