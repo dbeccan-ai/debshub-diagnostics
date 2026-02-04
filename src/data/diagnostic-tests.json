@@ -281,6 +281,311 @@
       ]
     },
     {
+      "grade": "6",
+      "test_name": "Grade 6 Diagnostic Math Test",
+      "total_time_minutes": 90,
+      "sections": [
+        {
+          "section_title": "SECTION I - Multiple Choice (No Calculator)",
+          "instructions": "Circle the best answer.",
+          "time_limit_minutes": 30,
+          "calculator_allowed": "no",
+          "questions": [
+            {
+              "id": "g6-s1-q1",
+              "number": 1,
+              "type": "multiple_choice",
+              "topic": "Fractions",
+              "question_text": "What is 5/6 + 1/3?",
+              "choices": ["A. 6/9", "B. 1", "C. 7/6", "D. 5/9", "E. I don't know"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g6-s1-q2",
+              "number": 2,
+              "type": "multiple_choice",
+              "topic": "Decimals",
+              "question_text": "What is 3.4 × 10?",
+              "choices": ["A. 34", "B. 3.4", "C. 3.04", "D. 340", "E. I don't know"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g6-s1-q3",
+              "number": 3,
+              "type": "multiple_choice",
+              "topic": "Order of Operations",
+              "question_text": "What is the value of the expression: 8 + 2 × 5?",
+              "choices": ["A. 50", "B. 60", "C. 18", "D. 20", "E. I don't know"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g6-s1-q4",
+              "number": 4,
+              "type": "multiple_choice",
+              "topic": "Distributive Property",
+              "question_text": "Which of the following is equivalent to 2(3 + x)?",
+              "choices": ["A. 6 + x", "B. 6x", "C. 3 + 2x", "D. 6 + 2x", "E. I don't know"],
+              "correct_answer": "D"
+            },
+            {
+              "id": "g6-s1-q5",
+              "number": 5,
+              "type": "multiple_choice",
+              "topic": "GCF",
+              "question_text": "Find the GCF of 24 and 36.",
+              "choices": ["A. 4", "B. 6", "C. 12", "D. 18", "E. I don't know"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g6-s1-q6",
+              "number": 6,
+              "type": "multiple_choice",
+              "topic": "Equations",
+              "question_text": "Which number is a solution to: x + 7 = 12?",
+              "choices": ["A. 3", "B. 5", "C. 6", "D. 7", "E. I don't know"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g6-s1-q7",
+              "number": 7,
+              "type": "multiple_choice",
+              "topic": "Area",
+              "question_text": "What is the area of a triangle with base 8 cm and height 6 cm?",
+              "choices": ["A. 24 cm²", "B. 48 cm²", "C. 14 cm²", "D. 28 cm²", "E. I don't know"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g6-s1-q8",
+              "number": 8,
+              "type": "multiple_choice",
+              "topic": "Expressions",
+              "question_text": "Which expression represents '4 more than 3 times a number n'?",
+              "choices": ["A. 3n + 4", "B. 4n + 3", "C. 4 + n + 3", "D. 3 + 4n", "E. I don't know"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g6-s1-q9",
+              "number": 9,
+              "type": "multiple_choice",
+              "topic": "Integers",
+              "question_text": "Which is the smallest: -3, 0, 2, -7?",
+              "choices": ["A. -3", "B. -7", "C. 0", "D. 2", "E. I don't know"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g6-s1-q10",
+              "number": 10,
+              "type": "multiple_choice",
+              "topic": "Number Line",
+              "question_text": "What is the coordinate of point A on a number line if it is 3 units to the right of -4?",
+              "choices": ["A. -1", "B. -7", "C. 1", "D. -2", "E. I don't know"],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g6-s1-q11",
+              "number": 11,
+              "type": "multiple_choice",
+              "topic": "Order of Operations",
+              "question_text": "Evaluate: 6 × (2 + 3)",
+              "choices": ["A. 11", "B. 30", "C. 36", "D. 25", "E. I don't know"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g6-s1-q12",
+              "number": 12,
+              "type": "multiple_choice",
+              "topic": "Percentages",
+              "question_text": "What is 10% of 250?",
+              "choices": ["A. 20", "B. 25", "C. 30", "D. 35", "E. I don't know"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g6-s1-q13",
+              "number": 13,
+              "type": "multiple_choice",
+              "topic": "Ratios",
+              "question_text": "Which of the following is a ratio?",
+              "choices": ["A. 6 + 2", "B. 6 out of 10", "C. x = 3", "D. x - 5", "E. I don't know"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g6-s1-q14",
+              "number": 14,
+              "type": "multiple_choice",
+              "topic": "Volume",
+              "question_text": "What is the volume of a rectangular prism with l=4, w=2, h=5?",
+              "choices": ["A. 11", "B. 40", "C. 20", "D. 80", "E. I don't know"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g6-s1-q15",
+              "number": 15,
+              "type": "multiple_choice",
+              "topic": "Inequalities",
+              "question_text": "Which is the correct inequality for: 5 is less than x?",
+              "choices": ["A. x < 5", "B. x > 5", "C. x = 5", "D. x ≤ 5", "E. I don't know"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g6-s1-q16",
+              "number": 16,
+              "type": "multiple_choice",
+              "topic": "Decimals to Fractions",
+              "question_text": "Convert 0.75 to a fraction.",
+              "choices": ["A. 1/2", "B. 3/4", "C. 2/3", "D. 1/4", "E. I don't know"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g6-s1-q17",
+              "number": 17,
+              "type": "multiple_choice",
+              "topic": "Properties",
+              "question_text": "Which property is shown: a + b = b + a",
+              "choices": ["A. Associative", "B. Distributive", "C. Commutative", "D. Identity", "E. I don't know"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g6-s1-q18",
+              "number": 18,
+              "type": "multiple_choice",
+              "topic": "Comparing Decimals",
+              "question_text": "Which decimal is greatest: 0.65, 0.56, 0.75, 0.72?",
+              "choices": ["A. 0.65", "B. 0.56", "C. 0.75", "D. 0.72", "E. I don't know"],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g6-s1-q19",
+              "number": 19,
+              "type": "multiple_choice",
+              "topic": "Prime Factorization",
+              "question_text": "What is the prime factorization of 30?",
+              "choices": ["A. 2 × 5", "B. 2 × 3 × 5", "C. 3 × 5", "D. 6 × 5", "E. I don't know"],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g6-s1-q20",
+              "number": 20,
+              "type": "multiple_choice",
+              "topic": "Unit Rate",
+              "question_text": "Which is a unit rate?",
+              "choices": ["A. 8 steps in 4 seconds", "B. 12 pages in 6 minutes", "C. 2 pencils per student", "D. 100 miles per 2 hours", "E. I don't know"],
+              "correct_answer": "C"
+            }
+          ]
+        },
+        {
+          "section_title": "SECTION II - Two-Step Word Problems (Calculator Allowed)",
+          "instructions": "Show all work. Each question is worth 2 points.",
+          "time_limit_minutes": 25,
+          "calculator_allowed": "yes",
+          "questions": [
+            {
+              "id": "g6-s2-q1",
+              "number": 1,
+              "type": "word_problem",
+              "topic": "Money",
+              "question_text": "Tom bought 3 notebooks at $2.50 each and a folder for $1.25. How much did he spend in total?",
+              "choices": []
+            },
+            {
+              "id": "g6-s2-q2",
+              "number": 2,
+              "type": "word_problem",
+              "topic": "Multiplication",
+              "question_text": "A baker uses 4 cups of flour per cake. How many cups are needed for 5 cakes?",
+              "choices": []
+            },
+            {
+              "id": "g6-s2-q3",
+              "number": 3,
+              "type": "word_problem",
+              "topic": "Money",
+              "question_text": "A movie ticket costs $8. If Sarah buys 2 tickets and a $5 snack, how much does she spend?",
+              "choices": []
+            },
+            {
+              "id": "g6-s2-q4",
+              "number": 4,
+              "type": "word_problem",
+              "topic": "Linear Equations",
+              "question_text": "A taxi charges a $3 flat fee plus $2 per mile. What is the cost of a 6-mile ride?",
+              "choices": []
+            },
+            {
+              "id": "g6-s2-q5",
+              "number": 5,
+              "type": "word_problem",
+              "topic": "Money",
+              "question_text": "Liam has $50. He buys 3 books for $12 each. How much money does he have left?",
+              "choices": []
+            }
+          ]
+        },
+        {
+          "section_title": "SECTION III - Multi-Step Problems (Calculator Allowed)",
+          "instructions": "Choose and complete ANY 3 of the 5 problems below. Show all work clearly. If more than 3 are answered, only the first 3 answered will be scored.",
+          "time_limit_minutes": 35,
+          "calculator_allowed": "yes",
+          "student_completes": 3,
+          "questions": [
+            {
+              "id": "g6-s3-q1",
+              "number": 1,
+              "type": "multi_step",
+              "topic": "Equations",
+              "question_text": "Solve for x: 2(x + 4) = 20",
+              "choices": []
+            },
+            {
+              "id": "g6-s3-q2",
+              "number": 2,
+              "type": "multi_step",
+              "topic": "Perimeter",
+              "question_text": "A rectangle has a length 3 units longer than its width. If the perimeter is 28 units, what are the dimensions?",
+              "choices": []
+            },
+            {
+              "id": "g6-s3-q3",
+              "number": 3,
+              "type": "multi_step",
+              "topic": "Money",
+              "question_text": "A school bought 3 sets of chairs at $75 each and 2 tables at $120 each. What is the total cost?",
+              "choices": []
+            },
+            {
+              "id": "g6-s3-q4",
+              "number": 4,
+              "type": "multi_step",
+              "topic": "Coordinate Geometry",
+              "question_text": "Draw and label a coordinate grid. Plot the points A(2,3), B(2,6), and C(5,3). What kind of shape is triangle ABC?",
+              "visual": {
+                "type": "coordinate_grid",
+                "xMin": 0,
+                "xMax": 6,
+                "yMin": 0,
+                "yMax": 7,
+                "points": [
+                  { "label": "A", "x": 2, "y": 3 },
+                  { "label": "B", "x": 2, "y": 6 },
+                  { "label": "C", "x": 5, "y": 3 }
+                ],
+                "description": "A coordinate grid with plotted points A(2,3), B(2,6), and C(5,3) forming a right triangle"
+              },
+              "choices": []
+            },
+            {
+              "id": "g6-s3-q5",
+              "number": 5,
+              "type": "multi_step",
+              "topic": "Unit Rate",
+              "question_text": "If a car travels 60 miles in 1.5 hours, what is its unit rate of speed in miles per hour?",
+              "choices": []
+            }
+          ]
+        }
+      ]
+    },
+    {
       "grade": "7",
       "test_name": "Grade 7 Math Diagnostic Test",
       "total_time_minutes": 90,
