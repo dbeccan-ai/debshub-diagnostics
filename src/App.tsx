@@ -29,6 +29,7 @@ import ReadingRecoveryResults from "./pages/ReadingRecoveryResults";
 import ELADiagnosticHub from "./pages/ELADiagnosticHub";
 import TakeELATest from "./pages/TakeELATest";
 import Grade4Diagnostic from "./pages/Grade4Diagnostic";
+import Grade6Diagnostic from "./pages/Grade6Diagnostic";
 import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
@@ -42,6 +43,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/diagnostics/math/grade-4" element={<Grade4Diagnostic />} />
+            <Route path="/diagnostics/math/grade-6" element={<Grade6Diagnostic />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/admin/login" element={<AdminAuth />} />
             <Route path="/dashboard" element={<Dashboard />} />
