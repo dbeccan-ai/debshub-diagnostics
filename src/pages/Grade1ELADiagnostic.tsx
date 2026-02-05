@@ -355,6 +355,238 @@ const ParkSceneImage: React.FC = () => (
   </div>
 );
 
+// Question Visual Components for ELA
+const QuestionVisuals: Record<number, React.FC> = {
+  // Q1: Letter /b/ sound - show the letter with visual
+  1: () => (
+    <div className="flex justify-center gap-6 my-4 p-4 bg-amber-50 rounded-xl border-2 border-amber-200">
+      {["d", "b", "p", "q"].map((letter, i) => (
+        <div key={i} className="w-16 h-16 bg-white rounded-xl border-2 border-gray-300 flex items-center justify-center text-4xl font-bold text-[#1C2D5A] shadow-sm">
+          {letter}
+        </div>
+      ))}
+    </div>
+  ),
+  // Q2: Cat beginning sound - show a cat
+  2: () => (
+    <div className="flex justify-center my-4">
+      <div className="bg-orange-50 rounded-xl p-4 border-2 border-orange-200">
+        <svg viewBox="0 0 120 100" className="w-32 h-28">
+          {/* Cat body */}
+          <ellipse cx="60" cy="70" rx="35" ry="25" fill="#F97316" />
+          {/* Cat head */}
+          <circle cx="60" cy="40" r="25" fill="#FB923C" />
+          {/* Ears */}
+          <polygon points="40,20 45,40 35,35" fill="#FB923C" />
+          <polygon points="80,20 75,40 85,35" fill="#FB923C" />
+          <polygon points="42,22 45,38 37,34" fill="#FBBF24" />
+          <polygon points="78,22 75,38 83,34" fill="#FBBF24" />
+          {/* Eyes */}
+          <ellipse cx="50" cy="38" rx="5" ry="6" fill="white" />
+          <ellipse cx="70" cy="38" rx="5" ry="6" fill="white" />
+          <circle cx="50" cy="39" r="3" fill="#1C2D5A" />
+          <circle cx="70" cy="39" r="3" fill="#1C2D5A" />
+          {/* Nose */}
+          <polygon points="60,48 57,52 63,52" fill="#EC4899" />
+          {/* Mouth */}
+          <path d="M55 54 Q60 58 65 54" stroke="#4B5563" strokeWidth="1.5" fill="none" />
+          {/* Whiskers */}
+          <line x1="35" y1="48" x2="48" y2="50" stroke="#4B5563" strokeWidth="1" />
+          <line x1="35" y1="52" x2="48" y2="52" stroke="#4B5563" strokeWidth="1" />
+          <line x1="72" y1="50" x2="85" y2="48" stroke="#4B5563" strokeWidth="1" />
+          <line x1="72" y1="52" x2="85" y2="52" stroke="#4B5563" strokeWidth="1" />
+          {/* Tail */}
+          <path d="M95 65 Q110 55 105 75" stroke="#F97316" strokeWidth="6" fill="none" strokeLinecap="round" />
+        </svg>
+        <p className="text-center text-lg font-bold text-orange-600 mt-2">🐱 CAT</p>
+      </div>
+    </div>
+  ),
+  // Q3: Rhymes with cat - show cat and hat
+  3: () => (
+    <div className="flex justify-center gap-8 my-4">
+      <div className="bg-orange-50 rounded-xl p-3 border-2 border-orange-200 text-center">
+        <div className="text-5xl mb-1">🐱</div>
+        <p className="font-bold text-orange-600">cat</p>
+      </div>
+      <div className="bg-blue-50 rounded-xl p-3 border-2 border-blue-200 text-center">
+        <div className="text-5xl mb-1">🎩</div>
+        <p className="font-bold text-blue-600">?</p>
+      </div>
+    </div>
+  ),
+  // Q4: How many sounds in "dog"
+  4: () => (
+    <div className="flex justify-center my-4">
+      <div className="bg-amber-50 rounded-xl p-4 border-2 border-amber-200">
+        <svg viewBox="0 0 140 100" className="w-36 h-28">
+          {/* Dog body */}
+          <ellipse cx="70" cy="70" rx="40" ry="25" fill="#92400E" />
+          {/* Dog head */}
+          <circle cx="50" cy="45" r="25" fill="#A16207" />
+          {/* Ears */}
+          <ellipse cx="30" cy="35" rx="10" ry="15" fill="#78350F" />
+          <ellipse cx="70" cy="30" rx="10" ry="12" fill="#78350F" />
+          {/* Eyes */}
+          <circle cx="42" cy="42" r="5" fill="white" />
+          <circle cx="58" cy="42" r="5" fill="white" />
+          <circle cx="43" cy="43" r="3" fill="#1C2D5A" />
+          <circle cx="59" cy="43" r="3" fill="#1C2D5A" />
+          {/* Nose */}
+          <ellipse cx="50" cy="54" rx="6" ry="4" fill="#1C2D5A" />
+          {/* Mouth */}
+          <path d="M45 58 Q50 62 55 58" stroke="#4B5563" strokeWidth="1.5" fill="none" />
+          {/* Tail */}
+          <path d="M110 60 Q130 40 120 70" stroke="#92400E" strokeWidth="8" fill="none" strokeLinecap="round" />
+          {/* Legs */}
+          <rect x="45" y="85" width="10" height="12" fill="#92400E" rx="3" />
+          <rect x="85" y="85" width="10" height="12" fill="#92400E" rx="3" />
+        </svg>
+        <div className="text-center mt-2">
+          <span className="text-3xl font-bold tracking-widest text-amber-700">D - O - G</span>
+        </div>
+      </div>
+    </div>
+  ),
+  // Q5: Letter after M
+  5: () => (
+    <div className="flex justify-center my-4">
+      <div className="flex items-center gap-2 bg-sky-50 rounded-xl p-4 border-2 border-sky-200">
+        {["K", "L", "M", "?", "O", "P"].map((letter, i) => (
+          <div key={i} className={`w-12 h-12 rounded-lg flex items-center justify-center text-2xl font-bold ${
+            letter === "?" ? "bg-[#FFDE59] text-[#1C2D5A] border-2 border-dashed border-[#1C2D5A]" : "bg-white border-2 border-sky-300 text-sky-700"
+          }`}>
+            {letter}
+          </div>
+        ))}
+      </div>
+    </div>
+  ),
+  // Q6: Ending sound in "map"
+  6: () => (
+    <div className="flex justify-center my-4">
+      <div className="bg-green-50 rounded-xl p-4 border-2 border-green-200 text-center">
+        <div className="text-5xl mb-2">🗺️</div>
+        <span className="text-3xl font-bold text-green-700">ma<span className="text-4xl text-green-500 underline decoration-wavy">p</span></span>
+      </div>
+    </div>
+  ),
+  // Q7: Uppercase letter
+  7: () => (
+    <div className="flex justify-center gap-4 my-4 p-4 bg-purple-50 rounded-xl border-2 border-purple-200">
+      {["a", "B", "c", "d"].map((letter, i) => (
+        <div key={i} className={`w-14 h-14 rounded-xl flex items-center justify-center text-3xl font-bold shadow-sm ${
+          letter === letter.toUpperCase() ? "bg-purple-200 text-purple-800 border-2 border-purple-400" : "bg-white text-gray-600 border-2 border-gray-300"
+        }`}>
+          {letter}
+        </div>
+      ))}
+    </div>
+  ),
+  // Q8: Same sound as "sun"
+  8: () => (
+    <div className="flex justify-center my-4">
+      <div className="bg-yellow-50 rounded-xl p-4 border-2 border-yellow-300 text-center">
+        <svg viewBox="0 0 100 100" className="w-24 h-24 mx-auto">
+          <circle cx="50" cy="50" r="25" fill="#FDE047" />
+          <circle cx="50" cy="50" r="20" fill="#FBBF24" />
+          {/* Sun rays */}
+          {[0, 45, 90, 135, 180, 225, 270, 315].map((angle, i) => (
+            <line key={i} x1="50" y1="50" x2={50 + 40 * Math.cos(angle * Math.PI / 180)} y2={50 + 40 * Math.sin(angle * Math.PI / 180)} stroke="#FDE047" strokeWidth="4" strokeLinecap="round" />
+          ))}
+          {/* Smile */}
+          <path d="M40 55 Q50 65 60 55" stroke="#92400E" strokeWidth="2" fill="none" />
+          {/* Eyes */}
+          <circle cx="42" cy="45" r="3" fill="#92400E" />
+          <circle cx="58" cy="45" r="3" fill="#92400E" />
+        </svg>
+        <p className="font-bold text-yellow-600 text-xl mt-1">☀️ SUN</p>
+      </div>
+    </div>
+  ),
+  // Q9: Missing vowel c_t
+  9: () => (
+    <div className="flex justify-center my-4">
+      <div className="flex items-center gap-2 bg-rose-50 rounded-xl p-5 border-2 border-rose-200">
+        <span className="text-5xl font-bold text-rose-700">c</span>
+        <div className="w-14 h-14 border-4 border-dashed border-rose-400 rounded-lg flex items-center justify-center text-3xl text-rose-400">?</div>
+        <span className="text-5xl font-bold text-rose-700">t</span>
+      </div>
+    </div>
+  ),
+  // Q10: Sight word
+  10: () => (
+    <div className="flex justify-center my-4">
+      <div className="bg-emerald-50 rounded-xl p-4 border-2 border-emerald-200">
+        <p className="text-sm text-emerald-600 mb-2 text-center font-medium">✨ Sight Words are special words to memorize!</p>
+        <div className="flex gap-3">
+          {["the", "and", "is", "it"].map((word, i) => (
+            <span key={i} className="px-4 py-2 bg-emerald-100 rounded-lg font-bold text-emerald-700 text-lg border border-emerald-300">{word}</span>
+          ))}
+        </div>
+      </div>
+    </div>
+  ),
+  // Q11: I see a dog
+  11: () => (
+    <div className="flex justify-center my-4">
+      <div className="bg-blue-50 rounded-xl p-4 border-2 border-blue-200 text-center">
+        <p className="text-2xl font-bold text-blue-700 mb-2">"I see a <span className="text-3xl">🐕</span>"</p>
+        <p className="text-sm text-blue-500">What animal do you see?</p>
+      </div>
+    </div>
+  ),
+  // Q18: More than one (cats)
+  18: () => (
+    <div className="flex justify-center gap-6 my-4">
+      <div className="bg-orange-50 rounded-xl p-3 border-2 border-orange-200 text-center">
+        <div className="text-4xl">🐱</div>
+        <p className="font-bold text-orange-600">cat</p>
+      </div>
+      <div className="bg-orange-100 rounded-xl p-3 border-2 border-orange-300 text-center">
+        <div className="text-4xl">🐱🐱🐱</div>
+        <p className="font-bold text-orange-700">cats</p>
+      </div>
+    </div>
+  ),
+  // Q19: Vowels
+  19: () => (
+    <div className="flex justify-center my-4">
+      <div className="bg-pink-50 rounded-xl p-4 border-2 border-pink-200">
+        <p className="text-sm text-pink-500 mb-2 text-center">🎵 The vowels sing!</p>
+        <div className="flex gap-3">
+          {["A", "E", "I", "O", "U"].map((v, i) => (
+            <div key={i} className="w-10 h-10 bg-pink-200 rounded-full flex items-center justify-center font-bold text-pink-700 text-lg">
+              {v}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  ),
+  // Q20: We go to school
+  20: () => (
+    <div className="flex justify-center my-4">
+      <div className="bg-indigo-50 rounded-xl p-4 border-2 border-indigo-200 text-center">
+        <div className="text-5xl mb-2">🏫</div>
+        <p className="text-xl font-bold text-indigo-700">"We go to school."</p>
+      </div>
+    </div>
+  ),
+  // Q24: Five vowels
+  24: () => (
+    <div className="flex justify-center my-4">
+      <div className="flex gap-4 bg-gradient-to-r from-pink-50 to-purple-50 rounded-xl p-4 border-2 border-pink-200">
+        {["A", "E", "I", "O", "U"].map((v, i) => (
+          <div key={i} className="w-12 h-12 bg-gradient-to-br from-pink-200 to-purple-200 rounded-full flex items-center justify-center font-bold text-purple-700 text-xl shadow-sm border-2 border-white">
+            ?
+          </div>
+        ))}
+      </div>
+    </div>
+  ),
+};
+
 // Alphabet Input Component
 const AlphabetInput: React.FC<{
   value: string;
@@ -896,9 +1128,16 @@ const Grade1ELADiagnostic: React.FC = () => {
           </CardHeader>
           <CardContent className="p-6">
             {/* Question Text */}
-            <h2 className="text-xl sm:text-2xl font-bold text-[#1C2D5A] mb-6 leading-relaxed">
+            <h2 className="text-xl sm:text-2xl font-bold text-[#1C2D5A] mb-4 leading-relaxed">
               {currentQuestion.text}
             </h2>
+
+            {/* Question Visual Helper (if available) */}
+            {QuestionVisuals[currentQuestion.id] && (
+              <div className="mb-4">
+                {React.createElement(QuestionVisuals[currentQuestion.id])}
+              </div>
+            )}
 
             {/* Section 1: Multiple Choice */}
             {currentSection === 1 && (
