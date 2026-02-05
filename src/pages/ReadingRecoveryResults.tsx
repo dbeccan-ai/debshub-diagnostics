@@ -34,10 +34,12 @@ const ReadingRecoveryResults = () => {
   const [passage, setPassage] = useState<Passage | null>(null);
 
   useEffect(() => {
+    let isMounted = true;
+    
     const fetchResult = async () => {
       if (!transcriptId) {
         toast.error("Invalid result ID");
-        navigate("/dashboard");
+        navigate("/reading-recovery/dashboard");
         return;
       }
 
@@ -45,7 +47,7 @@ const ReadingRecoveryResults = () => {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
           toast.error("Please sign in to view results");
-          navigate("/reading-recovery/auth");
+          navigate("/reading-recovery/auth?redirect=/reading-recovery/results/" + transcriptId);
           return;
         }
 
@@ -58,10 +60,11 @@ const ReadingRecoveryResults = () => {
 
         if (error || !data) {
           toast.error("Result not found");
-          navigate("/dashboard");
+          navigate("/reading-recovery/dashboard");
           return;
         }
 
+        if (!isMounted) return;
         setResult(data as DiagnosticResult);
 
         // Load the passage for context
@@ -71,11 +74,23 @@ const ReadingRecoveryResults = () => {
         console.error("Error fetching result:", err);
         toast.error("Failed to load result");
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_OUT" || !session) {
+        navigate("/reading-recovery/auth");
+      }
+    });
+
     fetchResult();
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, [transcriptId, navigate]);
 
   const calculateTier = (errorCount: number | null) => {
