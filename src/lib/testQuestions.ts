@@ -60,10 +60,10 @@ export function normalizeQuestions(rawQuestions: any): any[] {
     // Flat array of questions
     questions = rawQuestions.map((q: any) => ({
       ...q,
-      question: q.question_text || q.question,
+      question: q.question_text || q.question || q.text,
       options: q.choices || q.options || [],
       type: normalizeQuestionType(q.type),
-      topic: q.topic || q.skill_tag,
+      topic: q.topic || q.skill_tag || q.skill,
       visual: q.visual || null,
     }));
   } else if (rawQuestions?.sections && Array.isArray(rawQuestions.sections)) {
@@ -71,10 +71,10 @@ export function normalizeQuestions(rawQuestions: any): any[] {
     questions = rawQuestions.sections.flatMap((section: any) => 
       (section.questions || []).map((q: any) => ({
         ...q,
-        question: q.question_text || q.question,
+        question: q.question_text || q.question || q.text,
         options: q.choices || q.options || [],
         type: normalizeQuestionType(q.type),
-        topic: q.topic || q.skill_tag,
+        topic: q.topic || q.skill_tag || q.skill,
         section_title: section.section_title,
         section_instructions: section.instructions,
         student_completes: section.student_completes,
@@ -86,10 +86,10 @@ export function normalizeQuestions(rawQuestions: any): any[] {
     // Object with nested questions array
     questions = rawQuestions.questions.map((q: any) => ({
       ...q,
-      question: q.question_text || q.question,
+      question: q.question_text || q.question || q.text,
       options: q.choices || q.options || [],
       type: normalizeQuestionType(q.type),
-      topic: q.topic || q.skill_tag,
+      topic: q.topic || q.skill_tag || q.skill,
       visual: q.visual || null,
     }));
   }
