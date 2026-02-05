@@ -26,6 +26,7 @@ import {
 } from "@/components/diagrams/Grade2Diagrams";
 import { getGrade3DiagramByVisual } from "@/components/diagrams/Grade3Diagrams";
 import { getELAVisualForQuestion } from "@/components/diagrams/Grade1ELADiagrams";
+import { getGrade4ELAVisualForQuestion } from "@/components/diagrams/Grade4ELADiagrams";
 
 interface SkillPerformance {
   correct: number;
@@ -656,8 +657,9 @@ const TakeTest = () => {
               {/* Grade 2 Draw Areas for extended response (Math only) */}
               {testInfo.subject === "Math" && getDrawAreaForQuestion(currentQuestion.id)}
               
-              {/* ELA Visual Helpers for Grade 1 ELA */}
-              {testInfo.subject === "ELA" && getELAVisualForQuestion(currentQuestion.id)}
+              {/* ELA Visual Helpers */}
+              {testInfo.subject === "ELA" && testInfo.grade === "1" && getELAVisualForQuestion(currentQuestion.id)}
+              {testInfo.subject === "ELA" && testInfo.grade === "4" && getGrade4ELAVisualForQuestion(currentQuestion.id)}
               
               {/* Diagram boxes for questions with diagrams (e.g., sentence diagrams) */}
               {currentQuestion.diagrams && currentQuestion.diagrams.length > 0 && (
