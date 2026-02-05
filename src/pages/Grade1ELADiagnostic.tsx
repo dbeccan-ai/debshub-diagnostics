@@ -191,37 +191,165 @@ const DrawingCanvas: React.FC<{
   );
 };
 
-// Park Scene Image Component
+// Park Scene Image Component - A sunny day at the park with children playing
 const ParkSceneImage: React.FC = () => (
-  <div className="bg-gradient-to-b from-sky-300 to-sky-100 rounded-xl p-4 border-2 border-sky-400 mb-4">
-    <svg viewBox="0 0 400 200" className="w-full max-w-md mx-auto">
+  <div className="bg-gradient-to-b from-sky-200 to-green-100 rounded-xl p-4 border-2 border-sky-400 mb-4">
+    <svg viewBox="0 0 500 280" className="w-full max-w-lg mx-auto">
+      {/* Sky gradient background */}
+      <defs>
+        <linearGradient id="skyGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#60A5FA" />
+          <stop offset="100%" stopColor="#BAE6FD" />
+        </linearGradient>
+        <linearGradient id="grassGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#4ADE80" />
+          <stop offset="100%" stopColor="#22C55E" />
+        </linearGradient>
+      </defs>
+      
       {/* Sky */}
-      <rect x="0" y="0" width="400" height="120" fill="#87CEEB" />
-      {/* Sun */}
-      <circle cx="350" cy="40" r="30" fill="#FFDE59" />
-      {/* Grass */}
-      <rect x="0" y="120" width="400" height="80" fill="#22C55E" />
-      {/* Trees */}
-      <circle cx="50" cy="100" r="35" fill="#16A34A" />
-      <rect x="45" y="120" width="10" height="30" fill="#8B4513" />
-      <circle cx="350" cy="100" r="35" fill="#16A34A" />
-      <rect x="345" y="120" width="10" height="30" fill="#8B4513" />
-      {/* Children playing */}
-      <circle cx="150" cy="130" r="12" fill="#FDBF6F" /> {/* Head 1 */}
-      <rect x="145" y="142" width="10" height="20" fill="#D72638" />
-      <circle cx="200" cy="135" r="12" fill="#FDBF6F" /> {/* Head 2 */}
-      <rect x="195" y="147" width="10" height="20" fill="#3B82F6" />
-      <circle cx="250" cy="128" r="12" fill="#FDBF6F" /> {/* Head 3 */}
-      <rect x="245" y="140" width="10" height="20" fill="#A855F7" />
+      <rect x="0" y="0" width="500" height="160" fill="url(#skyGradient)" />
+      
+      {/* Fluffy Clouds */}
+      <g fill="white" opacity="0.9">
+        <circle cx="80" cy="40" r="20" />
+        <circle cx="100" cy="35" r="25" />
+        <circle cx="125" cy="40" r="18" />
+        <circle cx="380" cy="50" r="22" />
+        <circle cx="405" cy="45" r="28" />
+        <circle cx="435" cy="52" r="20" />
+      </g>
+      
+      {/* Bright Sun with rays */}
+      <g>
+        <circle cx="440" cy="50" r="35" fill="#FDE047" />
+        <circle cx="440" cy="50" r="28" fill="#FBBF24" />
+        {/* Sun rays */}
+        <line x1="440" y1="5" x2="440" y2="20" stroke="#FDE047" strokeWidth="4" strokeLinecap="round" />
+        <line x1="470" y1="20" x2="480" y2="10" stroke="#FDE047" strokeWidth="4" strokeLinecap="round" />
+        <line x1="485" y1="50" x2="495" y2="50" stroke="#FDE047" strokeWidth="4" strokeLinecap="round" />
+        <line x1="395" y1="50" x2="385" y2="50" stroke="#FDE047" strokeWidth="4" strokeLinecap="round" />
+        <line x1="470" y1="80" x2="480" y2="90" stroke="#FDE047" strokeWidth="4" strokeLinecap="round" />
+        <line x1="410" y1="20" x2="400" y2="10" stroke="#FDE047" strokeWidth="4" strokeLinecap="round" />
+        <line x1="410" y1="80" x2="400" y2="90" stroke="#FDE047" strokeWidth="4" strokeLinecap="round" />
+      </g>
+      
+      {/* Grass field */}
+      <rect x="0" y="160" width="500" height="120" fill="url(#grassGradient)" />
+      
+      {/* Park path */}
+      <ellipse cx="250" cy="260" rx="180" ry="30" fill="#D4A574" opacity="0.6" />
+      
+      {/* Left Tree */}
+      <rect x="45" y="130" width="15" height="50" fill="#8B5A2B" rx="2" />
+      <circle cx="52" cy="105" r="40" fill="#22C55E" />
+      <circle cx="30" cy="115" r="25" fill="#16A34A" />
+      <circle cx="75" cy="110" r="30" fill="#15803D" />
+      
+      {/* Right Tree */}
+      <rect x="420" y="125" width="15" height="55" fill="#8B5A2B" rx="2" />
+      <circle cx="427" cy="95" r="45" fill="#22C55E" />
+      <circle cx="400" cy="105" r="28" fill="#16A34A" />
+      <circle cx="455" cy="100" r="32" fill="#15803D" />
+      
+      {/* Slide */}
+      <rect x="130" y="140" width="8" height="60" fill="#6B7280" />
+      <rect x="175" y="140" width="8" height="60" fill="#6B7280" />
+      <rect x="125" y="135" width="65" height="8" fill="#6B7280" />
+      <polygon points="138,145 180,145 168,195 150,195" fill="#EF4444" />
+      <rect x="180" y="145" width="5" height="50" fill="#6B7280" />
+      
+      {/* Swing Set */}
+      <rect x="300" y="120" width="8" height="80" fill="#6B7280" />
+      <rect x="370" y="120" width="8" height="80" fill="#6B7280" />
+      <rect x="295" y="115" width="90" height="8" fill="#6B7280" />
+      {/* Swing 1 */}
+      <line x1="325" y1="123" x2="320" y2="165" stroke="#4B5563" strokeWidth="2" />
+      <line x1="335" y1="123" x2="340" y2="165" stroke="#4B5563" strokeWidth="2" />
+      <rect x="315" y="165" width="30" height="6" fill="#8B5A2B" rx="2" />
+      {/* Swing 2 */}
+      <line x1="355" y1="123" x2="355" y2="170" stroke="#4B5563" strokeWidth="2" />
+      <line x1="365" y1="123" x2="365" y2="170" stroke="#4B5563" strokeWidth="2" />
+      <rect x="350" y="170" width="20" height="6" fill="#8B5A2B" rx="2" />
+      
+      {/* Child 1 - on slide (girl with pink) */}
+      <circle cx="158" cy="162" r="10" fill="#FDBF6F" /> {/* Head */}
+      <circle cx="155" cy="159" r="2" fill="#4B5563" /> {/* Left eye */}
+      <circle cx="161" cy="159" r="2" fill="#4B5563" /> {/* Right eye */}
+      <path d="M155 165 Q158 168 161 165" stroke="#4B5563" strokeWidth="1.5" fill="none" /> {/* Smile */}
+      <rect x="152" y="172" width="12" height="15" fill="#EC4899" rx="2" /> {/* Body/dress */}
+      <ellipse cx="158" cy="155" rx="12" ry="6" fill="#92400E" /> {/* Hair */}
+      
+      {/* Child 2 - running with ball (boy in blue) */}
+      <circle cx="230" cy="200" r="12" fill="#FDBF6F" /> {/* Head */}
+      <circle cx="226" cy="197" r="2.5" fill="#4B5563" /> {/* Left eye */}
+      <circle cx="234" cy="197" r="2.5" fill="#4B5563" /> {/* Right eye */}
+      <path d="M225 204 Q230 208 235 204" stroke="#4B5563" strokeWidth="1.5" fill="none" /> {/* Smile */}
+      <rect x="222" y="212" width="16" height="18" fill="#3B82F6" rx="2" /> {/* Body/shirt */}
+      <rect x="223" y="230" width="6" height="12" fill="#1E3A5F" /> {/* Left leg */}
+      <rect x="231" y="230" width="6" height="12" fill="#1E3A5F" /> {/* Right leg */}
+      <ellipse cx="230" cy="192" rx="8" ry="5" fill="#1C1917" /> {/* Hair */}
+      {/* Arms reaching for ball */}
+      <line x1="238" y1="218" x2="255" y2="210" stroke="#FDBF6F" strokeWidth="5" strokeLinecap="round" />
+      
       {/* Ball */}
-      <circle cx="180" cy="170" r="10" fill="#D72638" />
-      {/* Swing set */}
-      <rect x="290" y="100" width="5" height="70" fill="#6B7280" />
-      <rect x="320" y="100" width="5" height="70" fill="#6B7280" />
-      <rect x="285" y="100" width="45" height="5" fill="#6B7280" />
-      <rect x="305" y="130" width="10" height="5" fill="#8B4513" />
+      <circle cx="265" cy="205" r="14" fill="#EF4444" />
+      <path d="M255 205 Q265 195 275 205" stroke="white" strokeWidth="2" fill="none" />
+      <path d="M255 205 Q265 215 275 205" stroke="white" strokeWidth="2" fill="none" />
+      
+      {/* Child 3 - on swing (girl with purple) */}
+      <circle cx="330" cy="155" r="10" fill="#FDBF6F" /> {/* Head */}
+      <circle cx="327" cy="152" r="2" fill="#4B5563" /> {/* Left eye */}
+      <circle cx="333" cy="152" r="2" fill="#4B5563" /> {/* Right eye */}
+      <path d="M326 158 Q330 162 334 158" stroke="#4B5563" strokeWidth="1.5" fill="none" /> {/* Smile */}
+      <rect x="324" y="165" width="12" height="12" fill="#A855F7" rx="2" /> {/* Body */}
+      <ellipse cx="330" cy="148" rx="11" ry="6" fill="#F59E0B" /> {/* Yellow hair */}
+      
+      {/* Child 4 - standing by tree waving (boy in green) */}
+      <circle cx="90" cy="175" r="11" fill="#FDBF6F" /> {/* Head */}
+      <circle cx="86" cy="172" r="2" fill="#4B5563" /> {/* Left eye */}
+      <circle cx="94" cy="172" r="2" fill="#4B5563" /> {/* Right eye */}
+      <path d="M85 179 Q90 183 95 179" stroke="#4B5563" strokeWidth="1.5" fill="none" /> {/* Smile */}
+      <rect x="82" y="186" width="16" height="18" fill="#22C55E" rx="2" /> {/* Body */}
+      <rect x="84" y="204" width="5" height="14" fill="#374151" /> {/* Left leg */}
+      <rect x="91" y="204" width="5" height="14" fill="#374151" /> {/* Right leg */}
+      <ellipse cx="90" cy="168" rx="8" ry="5" fill="#1C1917" /> {/* Hair */}
+      {/* Waving arm */}
+      <line x1="98" y1="190" x2="112" y2="175" stroke="#FDBF6F" strokeWidth="5" strokeLinecap="round" />
+      
+      {/* Flowers in grass */}
+      <g fill="#F472B6">
+        <circle cx="200" cy="250" r="5" />
+        <circle cx="280" cy="255" r="4" />
+        <circle cx="380" cy="245" r="5" />
+        <circle cx="120" cy="248" r="4" />
+      </g>
+      <g fill="#FBBF24">
+        <circle cx="200" cy="250" r="2" />
+        <circle cx="280" cy="255" r="1.5" />
+        <circle cx="380" cy="245" r="2" />
+        <circle cx="120" cy="248" r="1.5" />
+      </g>
+      
+      {/* Butterflies */}
+      <g fill="#F472B6" opacity="0.8">
+        <ellipse cx="180" cy="130" rx="6" ry="4" transform="rotate(-20 180 130)" />
+        <ellipse cx="188" cy="128" rx="6" ry="4" transform="rotate(20 188 128)" />
+        <circle cx="184" cy="131" r="2" fill="#1C1917" />
+      </g>
+      <g fill="#60A5FA" opacity="0.8">
+        <ellipse cx="320" cy="90" rx="5" ry="3" transform="rotate(-25 320 90)" />
+        <ellipse cx="327" cy="88" rx="5" ry="3" transform="rotate(25 327 88)" />
+        <circle cx="323" cy="90" r="1.5" fill="#1C1917" />
+      </g>
+      
+      {/* Birds in sky */}
+      <path d="M150 70 Q155 65 160 70" stroke="#4B5563" strokeWidth="2" fill="none" />
+      <path d="M160 70 Q165 65 170 70" stroke="#4B5563" strokeWidth="2" fill="none" />
+      <path d="M200 50 Q204 46 208 50" stroke="#4B5563" strokeWidth="2" fill="none" />
+      <path d="M208 50 Q212 46 216 50" stroke="#4B5563" strokeWidth="2" fill="none" />
     </svg>
-    <p className="text-center text-sm text-sky-700 mt-2 font-medium">
+    <p className="text-center text-sm text-sky-700 mt-3 font-medium">
       🌞 A sunny day at the park with children playing! 🎈
     </p>
   </div>
