@@ -80,6 +80,8 @@ const ReadingRecoveryDiagnostic = () => {
 
   // Check authentication, enrollment, and version unlock status
   useEffect(() => {
+    let isMounted = true;
+    
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) {
@@ -88,7 +90,7 @@ const ReadingRecoveryDiagnostic = () => {
       }
       
       const currentUserId = session.user.id;
-      setUserId(currentUserId);
+      if (isMounted) setUserId(currentUserId);
       
       // Check if user is admin (admins bypass version restrictions)
       const { data: adminRole } = await supabase
@@ -99,7 +101,7 @@ const ReadingRecoveryDiagnostic = () => {
         .maybeSingle();
       
       const userIsAdmin = !!adminRole;
-      setIsAdmin(userIsAdmin);
+      if (isMounted) setIsAdmin(userIsAdmin);
       
       // Check enrollment and get version completion dates
       const { data: enrollment } = await supabase
@@ -113,11 +115,11 @@ const ReadingRecoveryDiagnostic = () => {
         return;
       }
       
-      setEnrollmentId(enrollment.id);
+      if (isMounted) setEnrollmentId(enrollment.id);
       
       // Calculate version unlock status (admins bypass all restrictions)
       if (userIsAdmin) {
-        setVersionUnlockStatus({
+        if (isMounted) setVersionUnlockStatus({
           A: { locked: false },
           B: { locked: false },
           C: { locked: false },
@@ -148,16 +150,29 @@ const ReadingRecoveryDiagnostic = () => {
           };
         }
         
-        setVersionUnlockStatus({
+        if (isMounted) setVersionUnlockStatus({
           A: { locked: false },
           B: versionBStatus,
           C: versionCStatus,
         });
       }
       
-      setAuthLoading(false);
+      if (isMounted) setAuthLoading(false);
     };
+
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_OUT" || !session) {
+        navigate("/reading-recovery/auth?redirect=/reading-recovery/diagnostic");
+      }
+    });
+
     checkAuth();
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, [navigate]);
 
   const handleNext = () => {

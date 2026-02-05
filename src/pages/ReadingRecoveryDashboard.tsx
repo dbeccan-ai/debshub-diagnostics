@@ -120,6 +120,8 @@ const ReadingRecoveryDashboard = () => {
   const [progressItems, setProgressItems] = useState<ProgressItem[]>([]);
 
   useEffect(() => {
+    let isMounted = true;
+    
     const loadDashboard = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
@@ -140,6 +142,7 @@ const ReadingRecoveryDashboard = () => {
           return;
         }
 
+        if (!isMounted) return;
         setEnrollment(enrollmentData);
 
         // Fetch diagnostics
@@ -149,7 +152,7 @@ const ReadingRecoveryDashboard = () => {
           .eq("user_id", user.id)
           .order("created_at", { ascending: false });
 
-        if (diagnosticData) {
+        if (diagnosticData && isMounted) {
           setDiagnostics(diagnosticData as DiagnosticResult[]);
         }
 
@@ -160,18 +163,33 @@ const ReadingRecoveryDashboard = () => {
           .eq("enrollment_id", enrollmentData.id)
           .order("day_number", { ascending: true });
 
-        if (progressData) {
+        if (progressData && isMounted) {
           setProgressItems(progressData);
         }
       } catch (err) {
         console.error("Dashboard load error:", err);
         toast.error("Failed to load dashboard");
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_OUT" || !session) {
+        navigate("/reading-recovery/auth");
+      } else if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+        loadDashboard();
+      }
+    });
+
+    // THEN check for existing session
     loadDashboard();
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, [navigate]);
 
   const handleSignOut = async () => {
@@ -183,7 +201,6 @@ const ReadingRecoveryDashboard = () => {
     if (errorCount === null) return { tier: rr.notAssessed, color: "bg-muted", textColor: "text-muted-foreground" };
     if (errorCount <= 3) return { tier: rr.tier1, color: "bg-emerald-500", textColor: "text-emerald-700", label: rr.tier1Label };
     if (errorCount <= 7) return { tier: rr.tier2, color: "bg-amber-500", textColor: "text-amber-700", label: rr.tier2Label };
-    return { tier: rr.tier3, color: "bg-red-500", textColor: "text-red-700", label: rr.tier3Label };
     return { tier: rr.tier3, color: "bg-red-500", textColor: "text-red-700", label: rr.tier3Label };
   };
 
@@ -240,20 +257,31 @@ const ReadingRecoveryDashboard = () => {
               <p className="text-xs text-muted-foreground">{rr.learningHub}</p>
             </div>
           </Link>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <LanguageSelector />
             <Button
               variant="outline"
               size="sm"
-              className="text-emerald-700 border-emerald-200"
+              className="text-emerald-700 border-emerald-200 hidden sm:flex"
               onClick={() => navigate("/reading-recovery/diagnostic")}
             >
               <PlayCircle className="mr-1 h-4 w-4" />
               {rr.newAssessment}
             </Button>
-            <Button variant="ghost" size="sm" onClick={handleSignOut}>
+            <Button
+              variant="outline"
+              size="icon"
+              className="text-emerald-700 border-emerald-200 sm:hidden"
+              onClick={() => navigate("/reading-recovery/diagnostic")}
+            >
+              <PlayCircle className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="sm" onClick={handleSignOut} className="hidden sm:flex">
               <LogOut className="mr-1 h-4 w-4" />
               {rr.signOut}
+            </Button>
+            <Button variant="ghost" size="icon" onClick={handleSignOut} className="sm:hidden">
+              <LogOut className="h-4 w-4" />
             </Button>
           </div>
         </div>
