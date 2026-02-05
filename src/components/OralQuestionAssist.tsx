@@ -446,8 +446,18 @@ export const OralQuestionAssist = ({
         </div>
       </div>
 
-      {/* STT Section (when supported) */}
-      {sttSupported && (
+      {/* Consent Warning */}
+      {!consentGiven && (
+        <div className="border-t pt-3">
+          <div className="flex items-center gap-2 text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-2 text-sm">
+            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+            <span>Recording controls disabled — check the consent box above to enable.</span>
+          </div>
+        </div>
+      )}
+
+      {/* STT Section (when supported and consent given) */}
+      {sttSupported && consentGiven && (
         <div className="border-t pt-3 space-y-2">
           <div className="flex items-center gap-2">
             {sttStatus === "idle" && (
@@ -455,7 +465,6 @@ export const OralQuestionAssist = ({
                 size="sm"
                 variant="outline"
                 onClick={startListening}
-                disabled={!consentGiven}
                 className="gap-1"
               >
                 <Mic className="w-4 h-4" />
@@ -512,8 +521,8 @@ export const OralQuestionAssist = ({
         </div>
       )}
 
-      {/* Fallback Recording Section (when STT not supported) */}
-      {!sttSupported && (
+      {/* Fallback Recording Section (when STT not supported AND consent given) */}
+      {!sttSupported && consentGiven && (
         <div className="border-t pt-3 space-y-3">
           <div className="flex items-center gap-2 text-xs text-amber-600">
             <AlertCircle className="w-4 h-4" />
@@ -526,7 +535,6 @@ export const OralQuestionAssist = ({
                 size="sm"
                 variant="outline"
                 onClick={startRecording}
-                disabled={!consentGiven}
                 className="gap-1"
               >
                 <Mic className="w-4 h-4" />
