@@ -31,6 +31,7 @@ import TakeELATest from "./pages/TakeELATest";
 import Grade2Diagnostic from "./pages/Grade2Diagnostic";
 import Grade4Diagnostic from "./pages/Grade4Diagnostic";
 import Grade6Diagnostic from "./pages/Grade6Diagnostic";
+import Grade1ELADiagnostic from "./pages/Grade1ELADiagnostic";
 import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
@@ -46,6 +47,7 @@ const App = () => (
             <Route path="/diagnostics/math/grade-2" element={<Grade2Diagnostic />} />
             <Route path="/diagnostics/math/grade-4" element={<Grade4Diagnostic />} />
             <Route path="/diagnostics/math/grade-6" element={<Grade6Diagnostic />} />
+            <Route path="/diagnostics/ela/grade-1" element={<Grade1ELADiagnostic />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/admin/login" element={<AdminAuth />} />
             <Route path="/dashboard" element={<Dashboard />} />
