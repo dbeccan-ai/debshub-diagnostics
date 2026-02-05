@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -118,6 +118,8 @@ const ReadingRecoveryDashboard = () => {
   const [enrollment, setEnrollment] = useState<Enrollment | null>(null);
   const [diagnostics, setDiagnostics] = useState<DiagnosticResult[]>([]);
   const [progressItems, setProgressItems] = useState<ProgressItem[]>([]);
+  const roadmapScrollRef = useRef<HTMLDivElement>(null);
+  const currentTaskRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -234,6 +236,22 @@ const ReadingRecoveryDashboard = () => {
 
   // Determine which week we're in
   const currentWeek = Math.ceil((completedDays + 1) / 7);
+  
+  // Get current/next activity for "Continue where you left off"
+  const nextIncompleteActivity = roadmapActivities.find(a => a.day === completedDays + 1);
+
+  // Auto-scroll to current task when component mounts
+  useEffect(() => {
+    if (!loading && currentTaskRef.current && roadmapScrollRef.current) {
+      // Small delay to ensure DOM is ready
+      setTimeout(() => {
+        currentTaskRef.current?.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center' 
+        });
+      }, 300);
+    }
+  }, [loading, completedDays]);
 
   if (loading) {
     return (
@@ -288,14 +306,48 @@ const ReadingRecoveryDashboard = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8 max-w-6xl">
-        {/* Welcome Section */}
+        {/* Welcome Section with Continue CTA */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">
             {rr.welcomeBack}, {enrollment?.student_name}!
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground mb-4">
             {rr.trackProgress}
           </p>
+          
+          {/* Continue Where You Left Off CTA */}
+          {nextIncompleteActivity && (
+            <Card className="border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50">
+              <CardContent className="py-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-amber-500 flex items-center justify-center text-white font-bold">
+                      {nextIncompleteActivity.day}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-amber-800">Continue where you left off</p>
+                      <p className="font-semibold text-foreground">{nextIncompleteActivity.title}</p>
+                      <p className="text-sm text-muted-foreground">{nextIncompleteActivity.category}</p>
+                    </div>
+                  </div>
+                  <Button
+                    className="bg-amber-500 hover:bg-amber-600 text-white"
+                    onClick={() => {
+                      if (nextIncompleteActivity.category === "Assessment") {
+                        navigate("/reading-recovery/diagnostic");
+                      } else {
+                        // Scroll to the task in the roadmap
+                        currentTaskRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                      }
+                    }}
+                  >
+                    <ArrowRight className="mr-2 h-4 w-4" />
+                    {nextIncompleteActivity.category === "Assessment" ? "Start Assessment" : "View Activity"}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Quick Stats */}
@@ -382,7 +434,7 @@ const ReadingRecoveryDashboard = () => {
                 </div>
                 <Progress value={progressPercent} className="mt-2" />
               </CardHeader>
-              <CardContent className="max-h-[500px] overflow-y-auto">
+              <CardContent ref={roadmapScrollRef} className="max-h-[600px] overflow-y-auto scroll-smooth">
                 <div className="space-y-3">
                   {roadmapActivities.map((activity) => {
                     const progress = progressItems.find(p => p.day_number === activity.day);
@@ -394,11 +446,12 @@ const ReadingRecoveryDashboard = () => {
                     return (
                       <div
                         key={activity.day}
+                        ref={isCurrent ? currentTaskRef : undefined}
                         className={`flex items-start gap-4 p-4 rounded-lg border transition-all ${
                           isCompleted
                             ? "bg-emerald-50 border-emerald-200"
                             : isCurrent
-                            ? "bg-amber-50 border-amber-300 shadow-sm"
+                            ? "bg-amber-50 border-amber-300 shadow-md ring-2 ring-amber-200"
                             : "bg-muted/30 border-muted"
                         }`}
                       >

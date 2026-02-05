@@ -349,9 +349,16 @@ export type Database = {
       }
       reading_diagnostic_transcripts: {
         Row: {
+          admin_email: string | null
+          admin_name: string | null
+          all_questions_answered: boolean | null
+          assessment_completed_at: string | null
+          assessment_duration_seconds: number | null
+          assessment_started_at: string | null
           audio_auto_delete_at: string | null
           audio_uploaded_at: string | null
           auto_delete_enabled: boolean
+          completion_status: string | null
           confirmed_errors: Json | null
           consent_given: boolean
           created_at: string
@@ -369,9 +376,16 @@ export type Database = {
           word_timings: Json | null
         }
         Insert: {
+          admin_email?: string | null
+          admin_name?: string | null
+          all_questions_answered?: boolean | null
+          assessment_completed_at?: string | null
+          assessment_duration_seconds?: number | null
+          assessment_started_at?: string | null
           audio_auto_delete_at?: string | null
           audio_uploaded_at?: string | null
           auto_delete_enabled?: boolean
+          completion_status?: string | null
           confirmed_errors?: Json | null
           consent_given?: boolean
           created_at?: string
@@ -389,9 +403,16 @@ export type Database = {
           word_timings?: Json | null
         }
         Update: {
+          admin_email?: string | null
+          admin_name?: string | null
+          all_questions_answered?: boolean | null
+          assessment_completed_at?: string | null
+          assessment_duration_seconds?: number | null
+          assessment_started_at?: string | null
           audio_auto_delete_at?: string | null
           audio_uploaded_at?: string | null
           auto_delete_enabled?: boolean
+          completion_status?: string | null
           confirmed_errors?: Json | null
           consent_given?: boolean
           created_at?: string

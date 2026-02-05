@@ -9,7 +9,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, ArrowRight, BookOpen, CheckCircle2, XCircle, AlertTriangle, Volume2, Mic, Trophy, BarChart3, Loader2, Lock, Shield } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, CheckCircle2, XCircle, AlertTriangle, Volume2, Mic, Trophy, BarChart3, Loader2, Lock, Shield, Target } from "lucide-react";
 import { OralReadingAutoAssist } from "@/components/OralReadingAutoAssist";
 import { OralQuestionAssist, type QuestionTranscript } from "@/components/OralQuestionAssist";
 import { 
@@ -59,6 +59,7 @@ const ReadingRecoveryDiagnostic = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [step, setStep] = useState<Step>(1);
   const [savedTranscriptId, setSavedTranscriptId] = useState<string | null>(null);
+  const [assessmentStartedAt, setAssessmentStartedAt] = useState<Date | null>(null);
   const [versionUnlockStatus, setVersionUnlockStatus] = useState<VersionUnlockStatus>({
     A: { locked: false },
     B: { locked: true },
@@ -77,6 +78,29 @@ const ReadingRecoveryDiagnostic = () => {
   const [decodingChecks, setDecodingChecks] = useState<string[]>([]);
   const [oralConsentGiven, setOralConsentGiven] = useState(false);
   const [deleteAudioAfter24h, setDeleteAudioAfter24h] = useState(true);
+
+  // Calculate if all required items are complete for finalization
+  const calculateCompletionStatus = () => {
+    if (!passage) return { isComplete: false, missingItems: ["Select passage"] };
+    const missingItems: string[] = [];
+    
+    // Check all questions are answered
+    const totalQuestions = passage.questions.length;
+    const answeredQuestions = Object.keys(scores.questionResults).filter(
+      key => scores.questionResults[key] !== undefined && scores.questionResults[key] !== null
+    ).length;
+    
+    if (answeredQuestions < totalQuestions) {
+      missingItems.push(`${totalQuestions - answeredQuestions} unanswered questions`);
+    }
+    
+    return { 
+      isComplete: missingItems.length === 0, 
+      missingItems,
+      answeredQuestions,
+      totalQuestions
+    };
+  };
 
   // Check authentication, enrollment, and version unlock status
   useEffect(() => {
@@ -179,6 +203,10 @@ const ReadingRecoveryDiagnostic = () => {
     if (step === 2 && selectedGradeBand && selectedVersion) {
       const p = getPassage(selectedGradeBand, selectedVersion as "A" | "B" | "C");
       setPassage(p || null);
+      // Start tracking assessment time when entering step 3
+      if (!assessmentStartedAt) {
+        setAssessmentStartedAt(new Date());
+      }
     }
     setStep((s) => Math.min(s + 1, 5) as Step);
   };
@@ -246,10 +274,14 @@ const ReadingRecoveryDiagnostic = () => {
       if (step !== 5 || !passage || !userId || savedTranscriptId) return;
       
       const sc = calculateScores();
-      const percentage = Math.round((sc.total / passage.scoringThresholds.totalQuestions) * 100);
+      const completionStatus = calculateCompletionStatus();
+      const assessmentCompletedAt = new Date();
+      const durationSeconds = assessmentStartedAt 
+        ? Math.round((assessmentCompletedAt.getTime() - assessmentStartedAt.getTime()) / 1000)
+        : null;
       
       try {
-        // Save the transcript
+        // Save the transcript with full metadata
         const { data, error } = await supabase
           .from("reading_diagnostic_transcripts")
           .insert({
@@ -268,6 +300,14 @@ const ReadingRecoveryDiagnostic = () => {
             final_error_count: scores.oralReadingErrors,
             consent_given: oralConsentGiven,
             auto_delete_enabled: deleteAudioAfter24h,
+            // New metadata fields
+            admin_name: adminInfo.adminName,
+            admin_email: adminInfo.adminEmail,
+            assessment_started_at: assessmentStartedAt?.toISOString() || null,
+            assessment_completed_at: assessmentCompletedAt.toISOString(),
+            assessment_duration_seconds: durationSeconds,
+            completion_status: completionStatus.isComplete ? 'complete' : 'incomplete',
+            all_questions_answered: completionStatus.isComplete,
           })
           .select("id")
           .single();
@@ -403,9 +443,9 @@ const ReadingRecoveryDiagnostic = () => {
                 <div className="flex items-center justify-between mb-3">
                   <Label className="text-base font-semibold block">Version</Label>
                   {isAdmin && (
-                    <span className="inline-flex items-center gap-1 text-xs text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">
+                    <span className="inline-flex items-center gap-1 text-xs text-emerald-700 bg-emerald-50 px-2 py-1 rounded-full border border-emerald-200">
                       <Shield className="w-3 h-3" />
-                      Admin: All Unlocked
+                      <span className="font-medium">Teacher/Admin Access</span>
                     </span>
                   )}
                 </div>
@@ -667,9 +707,40 @@ const ReadingRecoveryDiagnostic = () => {
                 </Card>
               );
             })}
-            <div className="flex justify-between">
+            {/* Completion Status Warning */}
+            {(() => {
+              const status = calculateCompletionStatus();
+              if (!status.isComplete) {
+                return (
+                  <Card className="border-amber-300 bg-amber-50">
+                    <CardContent className="py-3">
+                      <div className="flex items-center gap-2 text-amber-800">
+                        <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                        <span className="text-sm font-medium">
+                          {status.answeredQuestions}/{status.totalQuestions} questions answered. 
+                          Complete all questions to finalize.
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              }
+              return null;
+            })()}
+            <div className="flex justify-between items-center">
               <Button variant="outline" onClick={handleBack}><ArrowLeft className="mr-2 w-4 h-4" /> Back</Button>
-              <Button onClick={handleNext} className="bg-primary hover:bg-primary/90">Complete Assessment <ArrowRight className="ml-2 w-4 h-4" /></Button>
+              {(() => {
+                const status = calculateCompletionStatus();
+                return (
+                  <Button 
+                    onClick={handleNext} 
+                    className="bg-primary hover:bg-primary/90"
+                    disabled={!status.isComplete}
+                  >
+                    Complete Assessment <ArrowRight className="ml-2 w-4 h-4" />
+                  </Button>
+                );
+              })()}
             </div>
           </div>
         )}
@@ -709,7 +780,7 @@ const ReadingRecoveryDiagnostic = () => {
                           <p className="mt-3 text-lg font-semibold">{sc.total}/{passage.scoringThresholds.totalQuestions} Correct</p>
                         </div>
 
-                        {/* Tier Badge & Description */}
+                         {/* Tier Badge & Description */}
                         <div className="flex-1 text-center md:text-left">
                           <div className="flex items-center justify-center md:justify-start gap-3 mb-3">
                             <span className={`px-4 py-2 rounded-full text-white font-bold text-lg ${tierColor}`}>
@@ -717,7 +788,7 @@ const ReadingRecoveryDiagnostic = () => {
                             </span>
                             {tier === 'Tier 1' && <Trophy className="w-6 h-6 text-emerald-600" />}
                           </div>
-                          <h2 className="text-2xl font-bold mb-2">
+                          <h2 className="text-2xl font-bold text-foreground mb-2">
                             Assessment Complete for {adminInfo.studentName}
                           </h2>
                           <p className="text-muted-foreground">{tierDesc}</p>
@@ -725,6 +796,56 @@ const ReadingRecoveryDiagnostic = () => {
                             {passage.title} • Grade Band {passage.gradeBand} • Version {passage.version}
                           </p>
                         </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Why This Tier? Explainer */}
+                  <Card className="border-slate-200">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-base">
+                        <Target className="w-5 h-5 text-primary" />
+                        Why This Tier? — Scoring Explained
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid md:grid-cols-2 gap-4 text-sm">
+                        <div className="bg-slate-50 p-4 rounded-lg border">
+                          <p className="font-semibold text-foreground mb-2">Raw Score Calculation</p>
+                          <p className="text-muted-foreground">
+                            <span className="font-mono bg-slate-200 px-1 rounded">{sc.total}</span> correct out of{" "}
+                            <span className="font-mono bg-slate-200 px-1 rounded">{passage.scoringThresholds.totalQuestions}</span> total questions
+                          </p>
+                          <p className="text-muted-foreground mt-1">
+                            Formula: <span className="font-mono">(correct ÷ total) × 100 = {percentage}%</span>
+                          </p>
+                        </div>
+                        <div className="bg-slate-50 p-4 rounded-lg border">
+                          <p className="font-semibold text-foreground mb-2">Cut Score Thresholds</p>
+                          <div className="space-y-1 text-muted-foreground">
+                            <p className="flex items-center gap-2">
+                              <span className="w-3 h-3 rounded-full bg-emerald-500"></span>
+                              <strong>Tier 1:</strong> 80% and above (Excellent)
+                            </p>
+                            <p className="flex items-center gap-2">
+                              <span className="w-3 h-3 rounded-full bg-amber-500"></span>
+                              <strong>Tier 2:</strong> 50–79% (Progressing)
+                            </p>
+                            <p className="flex items-center gap-2">
+                              <span className="w-3 h-3 rounded-full bg-red-500"></span>
+                              <strong>Tier 3:</strong> Below 50% (Needs Support)
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="bg-primary/5 border border-primary/20 p-4 rounded-lg">
+                        <p className="text-sm text-foreground">
+                          <strong>Result:</strong> {adminInfo.studentName} scored <strong>{percentage}%</strong>, 
+                          which places them in <strong className={tierColor.replace('bg-', 'text-')}>{tier}</strong>. 
+                          {tier === 'Tier 1' && " Keep up the excellent work!"}
+                          {tier === 'Tier 2' && " Targeted practice will help move toward mastery."}
+                          {tier === 'Tier 3' && " Intensive support is recommended for improvement."}
+                        </p>
                       </div>
                     </CardContent>
                   </Card>
@@ -740,22 +861,22 @@ const ReadingRecoveryDiagnostic = () => {
                     <CardContent>
                       <div className="grid md:grid-cols-3 gap-4">
                         <div className="bg-slate-100 p-4 rounded-lg text-center">
-                          <p className="text-sm text-muted-foreground mb-1">Literal Comprehension</p>
-                          <p className="text-3xl font-bold">{sc.literal}/{passage.scoringThresholds.literal.total}</p>
+                          <p className="text-sm text-foreground font-medium mb-1">Literal Comprehension</p>
+                          <p className="text-3xl font-bold text-foreground">{sc.literal}/{passage.scoringThresholds.literal.total}</p>
                           <p className="text-sm text-muted-foreground">
                             {Math.round((sc.literal / passage.scoringThresholds.literal.total) * 100)}%
                           </p>
                         </div>
                         <div className="bg-slate-100 p-4 rounded-lg text-center">
-                          <p className="text-sm text-muted-foreground mb-1">Inferential Comprehension</p>
-                          <p className="text-3xl font-bold">{sc.inferential}/{passage.scoringThresholds.inferential.total}</p>
+                          <p className="text-sm text-foreground font-medium mb-1">Inferential Comprehension</p>
+                          <p className="text-3xl font-bold text-foreground">{sc.inferential}/{passage.scoringThresholds.inferential.total}</p>
                           <p className="text-sm text-muted-foreground">
                             {Math.round((sc.inferential / passage.scoringThresholds.inferential.total) * 100)}%
                           </p>
                         </div>
                         <div className="bg-slate-100 p-4 rounded-lg text-center">
-                          <p className="text-sm text-muted-foreground mb-1">Analytical Comprehension</p>
-                          <p className="text-3xl font-bold">{sc.analytical}/{passage.scoringThresholds.analytical.total}</p>
+                          <p className="text-sm text-foreground font-medium mb-1">Analytical Comprehension</p>
+                          <p className="text-3xl font-bold text-foreground">{sc.analytical}/{passage.scoringThresholds.analytical.total}</p>
                           <p className="text-sm text-muted-foreground">
                             {Math.round((sc.analytical / passage.scoringThresholds.analytical.total) * 100)}%
                           </p>
