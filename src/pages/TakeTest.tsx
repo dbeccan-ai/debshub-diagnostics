@@ -649,11 +649,11 @@ const TakeTest = () => {
                   : <QuestionVisual visual={currentQuestion.visual} />
               )}
               
-              {/* Grade 2 Picture Helpers for word problems */}
-              {getPictureHelperForQuestion(currentQuestion.id)}
+              {/* Grade 2 Picture Helpers for word problems (Math only) */}
+              {testInfo.subject === "Math" && getPictureHelperForQuestion(currentQuestion.id)}
               
-              {/* Grade 2 Draw Areas for extended response */}
-              {getDrawAreaForQuestion(currentQuestion.id)}
+              {/* Grade 2 Draw Areas for extended response (Math only) */}
+              {testInfo.subject === "Math" && getDrawAreaForQuestion(currentQuestion.id)}
               
               {/* Diagram boxes for questions with diagrams (e.g., sentence diagrams) */}
               {currentQuestion.diagrams && currentQuestion.diagrams.length > 0 && (
