@@ -62,12 +62,20 @@ const ReadingRecoveryAuth = () => {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Listen for PASSWORD_RECOVERY event from the reset link
+  // Detect recovery token in URL hash IMMEDIATELY on mount — before any session check
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash && hash.includes("type=recovery")) {
+      setIsRecoveryMode(true);
+      setCheckingAuth(false);
+    }
+  }, []);
+
+  // Listen for PASSWORD_RECOVERY event from the reset link (backup detection)
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      (event, _session) => {
         if (event === "PASSWORD_RECOVERY") {
-          // User clicked the reset link — show "Set New Password" form
           setIsRecoveryMode(true);
           setCheckingAuth(false);
         }
@@ -77,22 +85,23 @@ const ReadingRecoveryAuth = () => {
   }, []);
 
   useEffect(() => {
-    // If already in recovery mode, skip normal session redirect
+    // If already in recovery mode, skip normal session redirect entirely
     if (isRecoveryMode) {
       setCheckingAuth(false);
       return;
     }
 
     const checkSession = async () => {
+      // Double-check hash again in case it was set after initial render
+      const hash = window.location.hash;
+      if (hash && hash.includes("type=recovery")) {
+        setIsRecoveryMode(true);
+        setCheckingAuth(false);
+        return;
+      }
+
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
-        // Check URL hash for recovery token — don't redirect yet
-        const hash = window.location.hash;
-        if (hash && hash.includes("type=recovery")) {
-          setCheckingAuth(false);
-          return;
-        }
-
         const { data: enrollment } = await supabase
           .from("reading_recovery_enrollments")
           .select("id")
