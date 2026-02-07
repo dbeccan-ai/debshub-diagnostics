@@ -40,6 +40,9 @@ const ReadingRecoveryAuth = () => {
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [activeTab, setActiveTab] = useState<"login" | "signup">("signup");
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetSent, setResetSent] = useState(false);
 
   // Signup form
   const [studentName, setStudentName] = useState("");
@@ -206,6 +209,34 @@ const ReadingRecoveryAuth = () => {
       }
     } catch (err) {
       console.error("Login error:", err);
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrors({});
+
+    if (!resetEmail || !z.string().email().safeParse(resetEmail).success) {
+      setErrors({ resetEmail: "Please enter a valid email address" });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: `${window.location.origin}/reading-recovery/auth`,
+      });
+
+      if (error) {
+        toast.error("Something went wrong. Please try again.");
+      } else {
+        setResetSent(true);
+        toast.success("Password reset link sent! Check your email.");
+      }
+    } catch {
       toast.error("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
@@ -419,9 +450,102 @@ const ReadingRecoveryAuth = () => {
                       rr.signInBtn
                     )}
                   </Button>
+
+                  <div className="text-center pt-2">
+                    <button
+                      type="button"
+                      className="text-sm text-emerald-600 hover:text-emerald-700 hover:underline"
+                      onClick={() => {
+                        setShowForgotPassword(true);
+                        setResetSent(false);
+                        setResetEmail(loginEmail);
+                        setErrors({});
+                      }}
+                    >
+                      Forgot Password?
+                    </button>
+                  </div>
                 </form>
               </TabsContent>
             </Tabs>
+
+            {/* Forgot Password Modal */}
+            {showForgotPassword && (
+              <div className="mt-6 p-4 rounded-lg border border-emerald-200 bg-emerald-50/50 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-foreground">Reset Password</h3>
+                  <button
+                    type="button"
+                    className="text-sm text-muted-foreground hover:text-foreground"
+                    onClick={() => {
+                      setShowForgotPassword(false);
+                      setResetSent(false);
+                      setErrors({});
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                {resetSent ? (
+                  <div className="text-center space-y-2">
+                    <div className="mx-auto w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center">
+                      <BookOpen className="h-6 w-6 text-emerald-600" />
+                    </div>
+                    <p className="text-sm text-foreground font-medium">Check your email!</p>
+                    <p className="text-sm text-muted-foreground">
+                      We've sent a password reset link to <strong>{resetEmail}</strong>. 
+                      Please check your inbox and follow the instructions.
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-2"
+                      onClick={() => {
+                        setShowForgotPassword(false);
+                        setResetSent(false);
+                      }}
+                    >
+                      Back to Sign In
+                    </Button>
+                  </div>
+                ) : (
+                  <form onSubmit={handleForgotPassword} className="space-y-3">
+                    <p className="text-sm text-muted-foreground">
+                      Enter your email address and we'll send you a link to reset your password.
+                    </p>
+                    <div className="space-y-2">
+                      <Label htmlFor="resetEmail">Email Address</Label>
+                      <Input
+                        id="resetEmail"
+                        type="email"
+                        placeholder="parent@example.com"
+                        value={resetEmail}
+                        onChange={(e) => setResetEmail(e.target.value)}
+                        className={errors.resetEmail ? "border-red-500" : ""}
+                      />
+                      {errors.resetEmail && (
+                        <p className="text-sm text-red-500">{errors.resetEmail}</p>
+                      )}
+                    </div>
+                    <Button
+                      type="submit"
+                      className="w-full bg-emerald-600 hover:bg-emerald-700"
+                      disabled={loading}
+                    >
+                      {loading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Sending...
+                        </>
+                      ) : (
+                        "Send Reset Link"
+                      )}
+                    </Button>
+                  </form>
+                )}
+              </div>
+            )}
 
             <div className="mt-6 text-center">
               <p className="text-sm text-muted-foreground">
