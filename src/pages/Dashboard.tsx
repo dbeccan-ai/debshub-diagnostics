@@ -384,6 +384,28 @@ const Dashboard = () => {
                 {t.dashboardPage.invite}
               </Button>
             )}
+            {isAdmin && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-emerald-300 bg-emerald-50 text-xs font-semibold text-emerald-700 hover:bg-emerald-100"
+                onClick={() => navigate("/admin/reading-recovery-results")}
+              >
+                <BookOpen className="mr-1 h-3 w-3" />
+                Reading Recovery
+              </Button>
+            )}
+            {isAdmin && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-indigo-300 bg-indigo-50 text-xs font-semibold text-indigo-700 hover:bg-indigo-100"
+                onClick={() => navigate("/admin/user-logins")}
+              >
+                <Users className="mr-1 h-3 w-3" />
+                All Users
+              </Button>
+            )}
             {isTeacher && (
               <Button
                 variant="outline"
