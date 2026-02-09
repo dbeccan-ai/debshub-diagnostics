@@ -359,81 +359,93 @@ const mathSkillPatterns: [RegExp, string][] = [
   [/place\s+value|digit.*place/i, 'Place Value'],
 ];
 
-// ELA skill inference patterns
+// ELA skill inference patterns - ordered by specificity (most specific first)
 const elaSkillPatterns: [RegExp, string][] = [
-  [/main\s+idea|central\s+idea/i, 'Main Idea'],
-  [/detail|supporting\s+detail/i, 'Supporting Details'],
-  [/inference|infer|imply|suggest|conclude/i, 'Making Inferences'],
-  [/vocabulary|meaning\s+of|word\s+means|define|definition/i, 'Vocabulary'],
-  [/context\s+clue/i, 'Context Clues'],
-  [/synonym|antonym/i, 'Synonyms & Antonyms'],
-  [/author.?s?\s+purpose|why\s+did\s+the\s+author|why.*write/i, "Author's Purpose"],
-  [/point\s+of\s+view|narrator|perspective/i, 'Point of View'],
-  [/tone|mood/i, 'Tone & Mood'],
-  [/theme|lesson|moral/i, 'Theme'],
-  [/cause\s+and\s+effect|because|result/i, 'Cause & Effect'],
-  [/compare|contrast|similar|different/i, 'Compare & Contrast'],
-  [/sequence|order\s+of\s+events|first.*then|chronolog/i, 'Sequence of Events'],
-  [/summary|summarize|retell/i, 'Summarizing'],
-  [/character\s+trait|character.*feel|character.*chang|protagonist|antagonist/i, 'Character Analysis'],
-  [/setting|where.*story|when.*story/i, 'Setting'],
-  [/plot|conflict|resolution|climax/i, 'Plot Structure'],
-  [/figurative|metaphor|simile|personif|hyperbole|idiom|onomatopoeia/i, 'Figurative Language'],
-  [/text\s+structure|organize/i, 'Text Structure'],
-  [/fact\s+and\s+opinion|fact.*opinion/i, 'Fact & Opinion'],
-  [/prefix|suffix|root\s+word|word\s+part/i, 'Word Parts'],
-  [/grammar|noun|verb|adjective|adverb|pronoun|preposition/i, 'Grammar'],
-  [/punctuat|comma|period|apostrophe|quotation/i, 'Punctuation'],
-  [/sentence|fragment|run-on|compound|complex/i, 'Sentence Structure'],
-  [/syllable|phonics|blend|digraph|vowel|consonant/i, 'Phonics'],
-  [/fluency|reading\s+rate/i, 'Reading Fluency'],
-  [/comprehension|understand|passage/i, 'Reading Comprehension'],
-  [/spelling|spell/i, 'Spelling'],
-  [/writing|essay|paragraph|compose/i, 'Writing'],
-  [/rhym|poem|poetry|stanza|verse|sound.*alike/i, 'Poetry'],
-  [/fiction|nonfiction|genre|fable|myth|legend/i, 'Genre Identification'],
-  [/text\s+feature|heading|caption|glossary|index|table\s+of\s+contents/i, 'Text Features'],
-  [/predict|what.*happen.*next/i, 'Predicting'],
+  // Spelling
+  [/spell(ed|ing)?|spelled?\s+correctly|correct\s+spelling/i, 'Spelling'],
+  // Grammar
+  [/grammar|noun|verb|adjective|adverb|pronoun|preposition|tense|plural|singular|subject|predicate/i, 'Grammar'],
+  [/punctuat|comma|period|apostrophe|quotation|exclamation|question\s+mark/i, 'Grammar'],
+  [/sentence|fragment|run-on|compound|complex|capital\s+letter|uppercase|lowercase/i, 'Grammar'],
+  [/more\s+than\s+one|circle\s+the\s+word\s+that\s+means/i, 'Grammar'],
+  // Vocabulary
+  [/vocabulary|meaning\s+of|word\s+means|define|definition|synonym|antonym/i, 'Vocabulary'],
+  [/context\s+clue|prefix|suffix|root\s+word|word\s+part|sight\s+word/i, 'Vocabulary'],
+  [/rhym|sound\s+alike|which\s+word\s+rhymes/i, 'Vocabulary'],
+  [/vowel|consonant|beginning\s+sound|ending\s+sound|phonics|blend|digraph|syllable/i, 'Vocabulary'],
+  [/which\s+letter|what\s+is\s+the.*sound|how\s+many\s+sounds/i, 'Vocabulary'],
+  [/names\s+a\s+person|names\s+a\s+place|names\s+a\s+thing/i, 'Vocabulary'],
+  // Reading Comprehension
+  [/read.*answer|passage|comprehension|understand|what\s+is|who\s+is|where\s+do|what\s+do/i, 'Reading Comprehension'],
+  [/main\s+idea|central\s+idea|detail|supporting/i, 'Reading Comprehension'],
+  [/inference|infer|imply|suggest|conclude/i, 'Reading Comprehension'],
+  [/author.?s?\s+purpose|point\s+of\s+view|narrator|perspective/i, 'Reading Comprehension'],
+  [/theme|lesson|moral|cause\s+and\s+effect|compare|contrast/i, 'Reading Comprehension'],
+  [/sequence|order\s+of\s+events|summary|summarize|retell/i, 'Reading Comprehension'],
+  [/character|setting|plot|conflict|resolution|climax/i, 'Reading Comprehension'],
+  [/figurative|metaphor|simile|personif|hyperbole|idiom/i, 'Reading Comprehension'],
+  [/tone|mood|text\s+structure|fact\s+and\s+opinion|predict/i, 'Reading Comprehension'],
+  [/fiction|nonfiction|genre|fable|myth|legend/i, 'Reading Comprehension'],
+  [/text\s+feature|heading|caption|glossary|index/i, 'Reading Comprehension'],
+  [/how\s+many\s+words|what\s+comes\s+at\s+the\s+end/i, 'Grammar'],
+  [/write.*sentence|writing|essay|paragraph|compose/i, 'Grammar'],
 ];
 
+// Map ELA section titles to the 4 core skill categories
+function mapElaSectionToSkill(section: string): string | null {
+  const s = section.toLowerCase();
+  if (s.includes('letter') || s.includes('sound') || s.includes('phonics') || s.includes('phonemic')) return 'Vocabulary';
+  if (s.includes('grammar') || s.includes('language') || s.includes('convention') || s.includes('writing')) return 'Grammar';
+  if (s.includes('spell')) return 'Spelling';
+  if (s.includes('reading') || s.includes('comprehension') || s.includes('passage') || s.includes('literature') || s.includes('informational')) return 'Reading Comprehension';
+  if (s.includes('vocabulary') || s.includes('word')) return 'Vocabulary';
+  return null;
+}
+
 function inferSkillFromQuestion(question: any, testType: string): string {
-  const text = `${question.question || question.question_text || ''} ${question.section || ''}`.toLowerCase();
-  
-  // Check for explicit topic/skill_tag first
-  if (question.topic && question.topic !== 'general') {
-    return formatSkillName(question.topic);
-  }
-  if (question.skill_tag && question.skill_tag !== 'general') {
-    return formatSkillName(question.skill_tag);
-  }
+  const questionText = question.question || question.question_text || '';
+  const sectionName = question.section || '';
+  const optionsText = (question.options || question.choices || []).join(' ');
+  const text = `${questionText} ${sectionName} ${optionsText}`.toLowerCase();
   
   const isELA = testType?.toLowerCase().includes('ela') || testType?.toLowerCase().includes('english') || testType?.toLowerCase().includes('reading');
-  const patterns = isELA ? elaSkillPatterns : mathSkillPatterns;
   
-  // Infer from question content using primary patterns
-  for (const [pattern, skill] of patterns) {
+  if (!isELA) {
+    // Check for explicit topic/skill_tag first
+    if (question.topic && question.topic !== 'general') {
+      return formatSkillName(question.topic);
+    }
+    if (question.skill_tag && question.skill_tag !== 'general') {
+      return formatSkillName(question.skill_tag);
+    }
+    
+    for (const [pattern, skill] of mathSkillPatterns) {
+      if (pattern.test(text)) {
+        return skill;
+      }
+    }
+    
+    if (question.section) {
+      if (question.section.includes('Word Problem')) return 'Word Problems';
+      return formatSkillName(question.section);
+    }
+    return 'General Math';
+  }
+  
+  // ELA: Try matching question text against patterns first
+  for (const [pattern, skill] of elaSkillPatterns) {
     if (pattern.test(text)) {
       return skill;
     }
   }
   
-  // Also check fallback patterns
-  const fallbackPatterns = isELA ? mathSkillPatterns : elaSkillPatterns;
-  for (const [pattern, skill] of fallbackPatterns) {
-    if (pattern.test(text)) {
-      return skill;
-    }
+  // ELA: Fall back to section name mapping
+  if (sectionName) {
+    const mapped = mapElaSectionToSkill(sectionName);
+    if (mapped) return mapped;
   }
   
-  // Infer from section name
-  if (question.section) {
-    if (question.section.includes('Word Problem')) {
-      return 'Word Problems';
-    }
-    return formatSkillName(question.section);
-  }
-  
-  return isELA ? 'General ELA' : 'General Math';
+  return 'Reading Comprehension';
 }
 
 // Format skill name for display (capitalize and clean up)
