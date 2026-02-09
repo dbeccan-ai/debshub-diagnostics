@@ -56,3 +56,6 @@ verify_jwt = false
 
 [functions.view-certificate]
 verify_jwt = false
+
+[functions.send-reading-recovery-results]
+verify_jwt = false
