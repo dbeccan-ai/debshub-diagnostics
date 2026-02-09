@@ -58,7 +58,17 @@ const Results = () => {
         return;
       }
 
-      const { data, error } = await supabase
+      // Check if user is admin
+      const { data: roleData } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+      
+      const isAdmin = !!roleData;
+
+      let query = supabase
         .from("test_attempts")
         .select(`
           id,
@@ -74,9 +84,14 @@ const Results = () => {
           tests:test_id (name, test_type),
           profiles:user_id (full_name)
         `)
-        .eq("id", attemptId)
-        .eq("user_id", user.id)
-        .single();
+        .eq("id", attemptId);
+      
+      // Only filter by user_id for non-admin users
+      if (!isAdmin) {
+        query = query.eq("user_id", user.id);
+      }
+      
+      const { data, error } = await query.single();
 
       if (error) throw error;
       setAttempt(data as unknown as TestAttempt);
