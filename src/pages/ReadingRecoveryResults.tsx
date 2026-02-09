@@ -374,7 +374,7 @@ body { margin: 0; padding: 40px; font-family: Georgia, serif; background: linear
           <CardContent>
             <div className="flex flex-wrap gap-4 text-sm">
               <Badge variant="outline">Grade Band: {result.grade_band}</Badge>
-              <Badge variant="outline">Version: {result.version}</Badge>
+              <Badge variant="outline">Version: {result.version === "A" ? "Pre-Test" : result.version === "B" ? "Mid-Test" : result.version === "C" ? "Post-Test" : result.version}</Badge>
               {passage && (
                 <>
                   <Badge variant="outline">Word Count: {passage.metadata.wordCount}</Badge>

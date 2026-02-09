@@ -70,7 +70,10 @@ const AdminReadingRecoveryResults = () => {
     let f = [...transcripts];
     if (searchTerm) f = f.filter(t => t.student_name.toLowerCase().includes(searchTerm.toLowerCase()));
     if (gradeBandFilter !== "all") f = f.filter(t => t.grade_band === gradeBandFilter);
-    if (statusFilter !== "all") f = f.filter(t => (t.completion_status || "incomplete") === statusFilter);
+    if (statusFilter !== "all") f = f.filter(t => {
+      const isComplete = t.completion_status === "completed" || t.completion_status === "complete";
+      return statusFilter === "completed" ? isComplete : !isComplete;
+    });
     setFiltered(f);
   }, [searchTerm, gradeBandFilter, statusFilter, transcripts]);
 
