@@ -77,6 +77,16 @@ const elaSkillPatterns: [RegExp, string][] = [
   [/write.*sentence|writing|essay|paragraph|compose/i, 'Grammar'],
 ];
 
+// Map any ELA skill/tag to one of the 4 core categories
+function mapToElaCoreSkill(skill: string): string {
+  const s = skill.toLowerCase().replace(/[_-]/g, ' ');
+  if (s.includes('spell')) return 'Spelling';
+  if (s.includes('grammar') || s.includes('punctuat') || s.includes('capitaliz') || s.includes('sentence') || s.includes('noun') || s.includes('verb') || s.includes('adjective') || s.includes('adverb') || s.includes('pronoun') || s.includes('preposition') || s.includes('tense') || s.includes('plural') || s.includes('singular') || s.includes('subject') || s.includes('predicate') || s.includes('writing') || s.includes('convention')) return 'Grammar';
+  if (s.includes('vocabulary') || s.includes('synonym') || s.includes('antonym') || s.includes('context clue') || s.includes('word meaning') || s.includes('prefix') || s.includes('suffix') || s.includes('root word') || s.includes('sight word') || s.includes('phonics') || s.includes('phonemic') || s.includes('rhym') || s.includes('vowel') || s.includes('consonant') || s.includes('blend') || s.includes('digraph') || s.includes('syllable') || s.includes('letter') || s.includes('sound') || s.includes('word part')) return 'Vocabulary';
+  if (s.includes('comprehension') || s.includes('reading') || s.includes('passage') || s.includes('inference') || s.includes('main idea') || s.includes('character') || s.includes('setting') || s.includes('plot') || s.includes('theme') || s.includes('author') || s.includes('summariz') || s.includes('detail') || s.includes('sequence') || s.includes('cause') || s.includes('compare') || s.includes('figurative') || s.includes('tone') || s.includes('mood') || s.includes('genre') || s.includes('fiction') || s.includes('predict') || s.includes('text feature') || s.includes('text structure') || s.includes('fact') || s.includes('opinion') || s.includes('point of view') || s.includes('fluency') || s.includes('poetry')) return 'Reading Comprehension';
+  return 'Reading Comprehension';
+}
+
 // Map ELA section titles to the 4 core skill categories
 function mapElaSectionToSkill(section: string): string | null {
   const s = section.toLowerCase();
@@ -117,7 +127,13 @@ function inferSkillFromQuestion(question: any, testType: string): string {
     return 'General Math';
   }
   
-  // ELA: Try matching question text against patterns first
+  // ELA: Check explicit skill/topic field first and map to core category
+  const explicitSkill = question.skill || question.topic || question.skill_tag || '';
+  if (explicitSkill && explicitSkill !== 'general') {
+    return mapToElaCoreSkill(explicitSkill);
+  }
+  
+  // ELA: Try matching question text against patterns
   for (const [pattern, skill] of elaSkillPatterns) {
     if (pattern.test(text)) {
       return skill;
@@ -180,9 +196,9 @@ function normalizeQuestion(q: any, testType: string): any {
     options: q.options || q.choices || [],
     correct_answer: q.correct_answer || q.correctAnswer || '',
     section: q.section || '',
-    topic: q.topic || q.skill_tag || '',
+    topic: q.topic || q.skill_tag || q.skill || '',
+    skill: q.skill || '',
   };
-  // Infer skill after normalization using test type
   normalized.topic = inferSkillFromQuestion({ ...q, ...normalized }, testType);
   return normalized;
 }
