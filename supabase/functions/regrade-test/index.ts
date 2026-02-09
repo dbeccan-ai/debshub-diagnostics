@@ -20,8 +20,8 @@ interface SkillAnalysis {
   skillStats: Record<string, SkillStat>;
 }
 
-// Skill inference patterns based on question content
-const skillPatterns: [RegExp, string][] = [
+// Math skill inference patterns
+const mathSkillPatterns: [RegExp, string][] = [
   [/round(ed|ing)?/i, 'Rounding'],
   [/multipli|×|times/i, 'Multiplication'],
   [/divid|÷|quotient/i, 'Division'],
@@ -45,7 +45,43 @@ const skillPatterns: [RegExp, string][] = [
   [/place\s+value|digit.*place/i, 'Place Value'],
 ];
 
-function inferSkillFromQuestion(question: any): string {
+// ELA skill inference patterns
+const elaSkillPatterns: [RegExp, string][] = [
+  [/main\s+idea|central\s+idea/i, 'Main Idea'],
+  [/detail|supporting\s+detail/i, 'Supporting Details'],
+  [/inference|infer|imply|suggest/i, 'Making Inferences'],
+  [/vocabulary|meaning\s+of|word\s+means|define|definition/i, 'Vocabulary'],
+  [/context\s+clue/i, 'Context Clues'],
+  [/synonym|antonym/i, 'Synonyms & Antonyms'],
+  [/author.?s?\s+purpose|why\s+did\s+the\s+author/i, "Author's Purpose"],
+  [/point\s+of\s+view|narrator|perspective/i, 'Point of View'],
+  [/tone|mood/i, 'Tone & Mood'],
+  [/theme|lesson|moral/i, 'Theme'],
+  [/cause\s+and\s+effect|because|result/i, 'Cause & Effect'],
+  [/compare|contrast|similar|different/i, 'Compare & Contrast'],
+  [/sequence|order\s+of\s+events|first.*then|chronolog/i, 'Sequence of Events'],
+  [/summary|summarize|retell/i, 'Summarizing'],
+  [/character\s+trait|character.*feel|character.*chang/i, 'Character Analysis'],
+  [/setting/i, 'Setting'],
+  [/plot|conflict|resolution|climax/i, 'Plot Structure'],
+  [/figurative|metaphor|simile|personif|hyperbole|idiom|onomatopoeia/i, 'Figurative Language'],
+  [/text\s+structure|organize/i, 'Text Structure'],
+  [/fact\s+and\s+opinion|fact.*opinion/i, 'Fact & Opinion'],
+  [/prefix|suffix|root\s+word|word\s+part/i, 'Word Parts'],
+  [/grammar|noun|verb|adjective|adverb|pronoun|preposition/i, 'Grammar'],
+  [/punctuat|comma|period|apostrophe|quotation/i, 'Punctuation'],
+  [/sentence|fragment|run-on|compound|complex/i, 'Sentence Structure'],
+  [/syllable|phonics|blend|digraph|vowel|consonant/i, 'Phonics'],
+  [/fluency|reading\s+rate/i, 'Reading Fluency'],
+  [/comprehension|understand|passage/i, 'Reading Comprehension'],
+  [/spelling|spell/i, 'Spelling'],
+  [/writing|essay|paragraph|compose/i, 'Writing'],
+  [/rhym|poem|poetry|stanza|verse/i, 'Poetry'],
+  [/fiction|nonfiction|genre|fable|myth|legend/i, 'Genre Identification'],
+  [/text\s+feature|heading|caption|glossary|index|table\s+of\s+contents/i, 'Text Features'],
+];
+
+function inferSkillFromQuestion(question: any, testType: string): string {
   const text = `${question.question || question.question_text || ''} ${question.section || ''}`.toLowerCase();
   
   // Check for explicit topic/skill_tag first
@@ -56,8 +92,19 @@ function inferSkillFromQuestion(question: any): string {
     return formatSkillName(question.skill_tag);
   }
   
+  const isELA = testType?.toLowerCase().includes('ela') || testType?.toLowerCase().includes('english') || testType?.toLowerCase().includes('reading');
+  const patterns = isELA ? elaSkillPatterns : mathSkillPatterns;
+  
   // Infer from question content
-  for (const [pattern, skill] of skillPatterns) {
+  for (const [pattern, skill] of patterns) {
+    if (pattern.test(text)) {
+      return skill;
+    }
+  }
+  
+  // Also check the other set as fallback
+  const fallbackPatterns = isELA ? mathSkillPatterns : elaSkillPatterns;
+  for (const [pattern, skill] of fallbackPatterns) {
     if (pattern.test(text)) {
       return skill;
     }
@@ -68,9 +115,10 @@ function inferSkillFromQuestion(question: any): string {
     if (question.section.includes('Word Problem')) {
       return 'Word Problems';
     }
+    return formatSkillName(question.section);
   }
   
-  return 'General Math';
+  return isELA ? 'General ELA' : 'General Math';
 }
 
 function formatSkillName(skill: string): string {
@@ -80,22 +128,24 @@ function formatSkillName(skill: string): string {
     .trim();
 }
 
-function normalizeQuestions(rawQuestions: any): any[] {
+function normalizeQuestions(rawQuestions: any, testType: string): any[] {
   if (!rawQuestions) return [];
+  
+  const normalize = (q: any) => normalizeQuestion(q, testType);
   
   if (Array.isArray(rawQuestions)) {
     if (rawQuestions[0]?.question || rawQuestions[0]?.question_text || rawQuestions[0]?.id) {
-      return rawQuestions.map(normalizeQuestion);
+      return rawQuestions.map(normalize);
     }
     if (rawQuestions[0]?.questions) {
       return rawQuestions.flatMap((section: any) => 
-        (section.questions || []).map(normalizeQuestion)
+        (section.questions || []).map(normalize)
       );
     }
     if (rawQuestions[0]?.sections) {
       return rawQuestions.flatMap((item: any) =>
         (item.sections || []).flatMap((section: any) =>
-          (section.questions || []).map(normalizeQuestion)
+          (section.questions || []).map(normalize)
         )
       );
     }
@@ -103,14 +153,14 @@ function normalizeQuestions(rawQuestions: any): any[] {
   
   if (rawQuestions.sections) {
     return rawQuestions.sections.flatMap((section: any) =>
-      (section.questions || []).map(normalizeQuestion)
+      (section.questions || []).map(normalize)
     );
   }
   
   return [];
 }
 
-function normalizeQuestion(q: any): any {
+function normalizeQuestion(q: any, testType: string): any {
   const normalized = {
     id: q.id || `q-${Math.random().toString(36).substr(2, 9)}`,
     question: q.question || q.question_text || '',
@@ -120,8 +170,8 @@ function normalizeQuestion(q: any): any {
     section: q.section || '',
     topic: q.topic || q.skill_tag || '',
   };
-  // Infer skill after normalization
-  normalized.topic = inferSkillFromQuestion({ ...q, ...normalized });
+  // Infer skill after normalization using test type
+  normalized.topic = inferSkillFromQuestion({ ...q, ...normalized }, testType);
   return normalized;
 }
 
@@ -218,9 +268,12 @@ serve(async (req) => {
       );
     }
 
-    // Normalize questions with skill inference
-    const questions = normalizeQuestions(test.questions);
-    console.log(`Re-processing ${questions.length} questions with skill inference`);
+    // Normalize questions with skill inference using test type
+    const testType = test.test_type || test.name || '';
+    const questions = normalizeQuestions(test.questions, testType);
+    const isELA = testType.toLowerCase().includes('ela') || testType.toLowerCase().includes('english') || testType.toLowerCase().includes('reading');
+    const defaultSkill = isELA ? 'General ELA' : 'General Math';
+    console.log(`Re-processing ${questions.length} questions with skill inference (type: ${testType})`);
 
     // Build skill stats from responses
     const skillStats: Record<string, SkillStat> = {};
@@ -231,7 +284,7 @@ serve(async (req) => {
       const question = questions.find((q: any) => q.id === response.question_id);
       if (!question) continue;
 
-      const skill = question.topic || 'General Math';
+      const skill = question.topic || defaultSkill;
       
       if (!skillStats[skill]) {
         skillStats[skill] = { 

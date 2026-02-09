@@ -128,8 +128,10 @@ serve(async (req) => {
     }
 
     // Normalize questions to a flat array with correct answers
-    const questions = normalizeQuestions(test.questions);
-    console.log(`Processing ${questions.length} questions for grading`);
+    const testType = test.test_type || test.name || '';
+    const questions = normalizeQuestions(test.questions, testType);
+    const isELA = testType.toLowerCase().includes('ela') || testType.toLowerCase().includes('english') || testType.toLowerCase().includes('reading');
+    console.log(`Processing ${questions.length} questions for grading (type: ${testType})`);
 
     // Grade each answer with detailed skill tracking
     const gradedResponses: any[] = [];
@@ -332,8 +334,8 @@ function isAnswerCorrect(answer: string, correctAnswer: string, options: string[
   return false;
 }
 
-// Skill inference patterns based on question content
-const skillPatterns: [RegExp, string][] = [
+// Math skill inference patterns
+const mathSkillPatterns: [RegExp, string][] = [
   [/round(ed|ing)?/i, 'Rounding'],
   [/multipli|×|times/i, 'Multiplication'],
   [/divid|÷|quotient/i, 'Division'],
@@ -355,26 +357,46 @@ const skillPatterns: [RegExp, string][] = [
   [/measurement|meter|centimeter|inch|feet|convert/i, 'Measurement'],
   [/order\s+of\s+operation|pemdas/i, 'Order of Operations'],
   [/place\s+value|digit.*place/i, 'Place Value'],
-  // ELA patterns
-  [/rhym(e|ing)|sound.*alike/i, 'Rhyming'],
+];
+
+// ELA skill inference patterns
+const elaSkillPatterns: [RegExp, string][] = [
   [/main\s+idea|central\s+idea/i, 'Main Idea'],
-  [/character|protagonist|antagonist/i, 'Character Analysis'],
-  [/setting|where.*story|when.*story/i, 'Setting'],
-  [/plot|events|sequence.*story/i, 'Plot'],
-  [/author.*purpose|why.*write/i, 'Author Purpose'],
-  [/inference|infer|conclude/i, 'Making Inferences'],
-  [/vocabulary|meaning.*word|word.*means/i, 'Vocabulary'],
+  [/detail|supporting\s+detail/i, 'Supporting Details'],
+  [/inference|infer|imply|suggest|conclude/i, 'Making Inferences'],
+  [/vocabulary|meaning\s+of|word\s+means|define|definition/i, 'Vocabulary'],
   [/context\s+clue/i, 'Context Clues'],
   [/synonym|antonym/i, 'Synonyms & Antonyms'],
-  [/prefix|suffix|root\s+word/i, 'Word Parts'],
-  [/cause.*effect|because|result/i, 'Cause and Effect'],
-  [/compare.*contrast|similar|different/i, 'Compare and Contrast'],
-  [/fact.*opinion/i, 'Fact vs Opinion'],
-  [/summariz|summary/i, 'Summarizing'],
+  [/author.?s?\s+purpose|why\s+did\s+the\s+author|why.*write/i, "Author's Purpose"],
+  [/point\s+of\s+view|narrator|perspective/i, 'Point of View'],
+  [/tone|mood/i, 'Tone & Mood'],
+  [/theme|lesson|moral/i, 'Theme'],
+  [/cause\s+and\s+effect|because|result/i, 'Cause & Effect'],
+  [/compare|contrast|similar|different/i, 'Compare & Contrast'],
+  [/sequence|order\s+of\s+events|first.*then|chronolog/i, 'Sequence of Events'],
+  [/summary|summarize|retell/i, 'Summarizing'],
+  [/character\s+trait|character.*feel|character.*chang|protagonist|antagonist/i, 'Character Analysis'],
+  [/setting|where.*story|when.*story/i, 'Setting'],
+  [/plot|conflict|resolution|climax/i, 'Plot Structure'],
+  [/figurative|metaphor|simile|personif|hyperbole|idiom|onomatopoeia/i, 'Figurative Language'],
+  [/text\s+structure|organize/i, 'Text Structure'],
+  [/fact\s+and\s+opinion|fact.*opinion/i, 'Fact & Opinion'],
+  [/prefix|suffix|root\s+word|word\s+part/i, 'Word Parts'],
+  [/grammar|noun|verb|adjective|adverb|pronoun|preposition/i, 'Grammar'],
+  [/punctuat|comma|period|apostrophe|quotation/i, 'Punctuation'],
+  [/sentence|fragment|run-on|compound|complex/i, 'Sentence Structure'],
+  [/syllable|phonics|blend|digraph|vowel|consonant/i, 'Phonics'],
+  [/fluency|reading\s+rate/i, 'Reading Fluency'],
+  [/comprehension|understand|passage/i, 'Reading Comprehension'],
+  [/spelling|spell/i, 'Spelling'],
+  [/writing|essay|paragraph|compose/i, 'Writing'],
+  [/rhym|poem|poetry|stanza|verse|sound.*alike/i, 'Poetry'],
+  [/fiction|nonfiction|genre|fable|myth|legend/i, 'Genre Identification'],
+  [/text\s+feature|heading|caption|glossary|index|table\s+of\s+contents/i, 'Text Features'],
   [/predict|what.*happen.*next/i, 'Predicting'],
 ];
 
-function inferSkillFromQuestion(question: any): string {
+function inferSkillFromQuestion(question: any, testType: string): string {
   const text = `${question.question || question.question_text || ''} ${question.section || ''}`.toLowerCase();
   
   // Check for explicit topic/skill_tag first
@@ -385,8 +407,19 @@ function inferSkillFromQuestion(question: any): string {
     return formatSkillName(question.skill_tag);
   }
   
-  // Infer from question content
-  for (const [pattern, skill] of skillPatterns) {
+  const isELA = testType?.toLowerCase().includes('ela') || testType?.toLowerCase().includes('english') || testType?.toLowerCase().includes('reading');
+  const patterns = isELA ? elaSkillPatterns : mathSkillPatterns;
+  
+  // Infer from question content using primary patterns
+  for (const [pattern, skill] of patterns) {
+    if (pattern.test(text)) {
+      return skill;
+    }
+  }
+  
+  // Also check fallback patterns
+  const fallbackPatterns = isELA ? mathSkillPatterns : elaSkillPatterns;
+  for (const [pattern, skill] of fallbackPatterns) {
     if (pattern.test(text)) {
       return skill;
     }
@@ -397,9 +430,10 @@ function inferSkillFromQuestion(question: any): string {
     if (question.section.includes('Word Problem')) {
       return 'Word Problems';
     }
+    return formatSkillName(question.section);
   }
   
-  return 'General Math';
+  return isELA ? 'General ELA' : 'General Math';
 }
 
 // Format skill name for display (capitalize and clean up)
@@ -411,37 +445,32 @@ function formatSkillName(skill: string): string {
 }
 
 // Normalize questions to a flat array
-function normalizeQuestions(rawQuestions: any): any[] {
+function normalizeQuestions(rawQuestions: any, testType: string): any[] {
   if (!rawQuestions) return [];
   
-  // Handle array of questions
+  const normalize = (q: any) => normalizeQuestion(q, testType);
+  
   if (Array.isArray(rawQuestions)) {
-    // Check if it's a flat array of questions
     if (rawQuestions[0]?.question || rawQuestions[0]?.question_text || rawQuestions[0]?.id) {
-      return rawQuestions.map(normalizeQuestion);
+      return rawQuestions.map(normalize);
     }
-    
-    // Check if it's sections with questions
     if (rawQuestions[0]?.questions) {
       return rawQuestions.flatMap((section: any) => 
-        (section.questions || []).map(normalizeQuestion)
+        (section.questions || []).map(normalize)
       );
     }
-    
-    // Check for nested structure like diagnostic-tests.json
     if (rawQuestions[0]?.sections) {
       return rawQuestions.flatMap((item: any) =>
         (item.sections || []).flatMap((section: any) =>
-          (section.questions || []).map(normalizeQuestion)
+          (section.questions || []).map(normalize)
         )
       );
     }
   }
   
-  // Handle object with sections
   if (rawQuestions.sections) {
     return rawQuestions.sections.flatMap((section: any) =>
-      (section.questions || []).map(normalizeQuestion)
+      (section.questions || []).map(normalize)
     );
   }
   
@@ -449,7 +478,7 @@ function normalizeQuestions(rawQuestions: any): any[] {
 }
 
 // Normalize a single question
-function normalizeQuestion(q: any): any {
+function normalizeQuestion(q: any, testType: string): any {
   const normalized = {
     id: q.id || `q-${Math.random().toString(36).substr(2, 9)}`,
     question: q.question || q.question_text || '',
@@ -460,8 +489,8 @@ function normalizeQuestion(q: any): any {
     topic: q.topic || q.skill_tag || '',
     explanation: q.explanation || ''
   };
-  // Infer skill after normalization
-  normalized.topic = inferSkillFromQuestion({ ...q, ...normalized });
+  // Infer skill after normalization using test type
+  normalized.topic = inferSkillFromQuestion({ ...q, ...normalized }, testType);
   return normalized;
 }
 
