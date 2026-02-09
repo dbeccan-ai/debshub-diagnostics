@@ -268,11 +268,21 @@ serve(async (req) => {
       );
     }
 
+    // Allow access for the test owner or admins
     if (attempt.user_id !== user.id) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized access' }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      const { data: adminRole } = await supabaseAdmin
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .maybeSingle();
+      
+      if (!adminRole) {
+        return new Response(
+          JSON.stringify({ error: 'Unauthorized access' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     }
 
     // Fetch stored responses
