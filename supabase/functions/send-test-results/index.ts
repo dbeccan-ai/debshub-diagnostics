@@ -212,7 +212,7 @@ serve(async (req) => {
     const resend = new Resend(resendApiKey);
 
     const { error: emailError } = await resend.emails.send({
-      from: "D.E.Bs Learning Academy <onboarding@resend.dev>",
+      from: "D.E.Bs Learning Academy <noreply@debslearnacademy.com>",
       to: [parentEmail],
       subject: `Test Results: ${attempt.tests?.name} - ${attempt.profiles?.full_name}`,
       html: emailHTML,
