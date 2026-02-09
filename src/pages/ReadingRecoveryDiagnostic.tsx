@@ -306,7 +306,7 @@ const ReadingRecoveryDiagnostic = () => {
             assessment_started_at: assessmentStartedAt?.toISOString() || null,
             assessment_completed_at: assessmentCompletedAt.toISOString(),
             assessment_duration_seconds: durationSeconds,
-            completion_status: completionStatus.isComplete ? 'complete' : 'incomplete',
+            completion_status: completionStatus.isComplete ? 'completed' : 'incomplete',
             all_questions_answered: completionStatus.isComplete,
           })
           .select("id")

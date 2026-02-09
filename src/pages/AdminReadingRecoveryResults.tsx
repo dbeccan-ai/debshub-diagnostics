@@ -134,8 +134,8 @@ const AdminReadingRecoveryResults = () => {
         {/* Stats */}
         <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
           <Card><CardContent className="pt-4"><div className="text-2xl font-bold text-slate-900">{transcripts.length}</div><div className="text-xs text-slate-500">Total Assessments</div></CardContent></Card>
-          <Card><CardContent className="pt-4"><div className="text-2xl font-bold text-emerald-600">{transcripts.filter(t => t.completion_status === "completed").length}</div><div className="text-xs text-slate-500">Completed</div></CardContent></Card>
-          <Card><CardContent className="pt-4"><div className="text-2xl font-bold text-amber-600">{transcripts.filter(t => (t.completion_status || "incomplete") !== "completed").length}</div><div className="text-xs text-slate-500">Incomplete</div></CardContent></Card>
+          <Card><CardContent className="pt-4"><div className="text-2xl font-bold text-emerald-600">{transcripts.filter(t => t.completion_status === "completed" || t.completion_status === "complete").length}</div><div className="text-xs text-slate-500">Completed</div></CardContent></Card>
+          <Card><CardContent className="pt-4"><div className="text-2xl font-bold text-amber-600">{transcripts.filter(t => t.completion_status !== "completed" && t.completion_status !== "complete").length}</div><div className="text-xs text-slate-500">Incomplete</div></CardContent></Card>
           <Card><CardContent className="pt-4"><div className="text-2xl font-bold text-slate-600">{new Set(transcripts.map(t => t.user_id)).size}</div><div className="text-xs text-slate-500">Unique Students</div></CardContent></Card>
         </div>
 
@@ -203,13 +203,13 @@ const AdminReadingRecoveryResults = () => {
                         </td>
                         <td className="py-3 text-slate-700">{t.passage_title}</td>
                         <td className="py-3 text-slate-700">{t.grade_band}</td>
-                        <td className="py-3 text-slate-700">{t.version}</td>
+                        <td className="py-3 text-slate-700">{t.version === "A" ? "Pre-Test" : t.version === "B" ? "Mid-Test" : t.version === "C" ? "Post-Test" : t.version}</td>
                         <td className="py-3 font-medium text-slate-900">{t.final_error_count ?? "—"}</td>
                         <td className="py-3">{getTierBadge(t.final_error_count)}</td>
                         <td className="py-3 text-slate-600">{formatDuration(t.assessment_duration_seconds)}</td>
                         <td className="py-3">
-                          <Badge variant="outline" className={t.completion_status === "completed" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200"}>
-                            {t.completion_status === "completed" ? "Completed" : "Incomplete"}
+                          <Badge variant="outline" className={(t.completion_status === "completed" || t.completion_status === "complete") ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200"}>
+                            {(t.completion_status === "completed" || t.completion_status === "complete") ? "Completed" : "Incomplete"}
                           </Badge>
                         </td>
                         <td className="py-3 text-slate-600">{formatDate(t.created_at)}</td>
