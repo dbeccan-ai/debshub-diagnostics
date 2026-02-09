@@ -239,10 +239,9 @@ serve(async (req) => {
       throw uploadError;
     }
 
-    // Get public URL
-    const { data: urlData } = serviceClient.storage
-      .from("certificates")
-      .getPublicUrl(fileName);
+    // Build the view URL using the edge function
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+    const viewUrl = `${supabaseUrl}/functions/v1/view-certificate?attemptId=${attemptId}`;
 
     // Save certificate record
     const { error: certError } = await serviceClient.from("certificates").upsert({
@@ -252,7 +251,7 @@ serve(async (req) => {
       tier: attempt.tier || "Tier 3",
       strengths: attempt.strengths || [],
       weaknesses: attempt.weaknesses || [],
-      certificate_url: urlData.publicUrl,
+      certificate_url: viewUrl,
     });
 
     if (certError) {
@@ -262,7 +261,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
-        certificateUrl: urlData.publicUrl,
+        certificateUrl: viewUrl,
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
