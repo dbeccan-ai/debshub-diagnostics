@@ -17,6 +17,8 @@ import Curriculum from "./pages/Curriculum";
 import AdminPendingReviews from "./pages/AdminPendingReviews";
 import AdminInvitations from "./pages/AdminInvitations";
 import AdminAllResults from "./pages/AdminAllResults";
+import AdminReadingRecoveryResults from "./pages/AdminReadingRecoveryResults";
+import AdminUserLogins from "./pages/AdminUserLogins";
 import Register from "./pages/Register";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import ManualGrading from "./pages/ManualGrading";
@@ -61,6 +63,8 @@ const App = () => (
             <Route path="/admin/grade/:attemptId" element={<ManualGrading />} />
             <Route path="/admin/invitations" element={<AdminInvitations />} />
             <Route path="/admin/all-results" element={<AdminAllResults />} />
+            <Route path="/admin/reading-recovery-results" element={<AdminReadingRecoveryResults />} />
+            <Route path="/admin/user-logins" element={<AdminUserLogins />} />
             <Route path="/register" element={<Register />} />
             <Route path="/school-setup" element={<SchoolSetup />} />
             <Route path="/teacher" element={<TeacherDashboard />} />
