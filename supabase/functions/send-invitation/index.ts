@@ -130,7 +130,7 @@ serve(async (req) => {
         const roleName = role === "admin" ? "Administrator" : "Teacher";
         
         await resend.emails.send({
-          from: "D.E.Bs LEARNING ACADEMY <onboarding@resend.dev>",
+          from: "D.E.Bs LEARNING ACADEMY <noreply@debslearnacademy.com>",
           to: [email],
           subject: `You've been invited to join DEBs Diagnostic Hub as a ${roleName}`,
           html: `
