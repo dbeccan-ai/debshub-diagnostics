@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, BookOpen, Trophy, BarChart3, CheckCircle2, XCircle, Calendar, User, Download, Mail, Loader2 } from "lucide-react";
+import { ArrowLeft, BookOpen, Trophy, BarChart3, CheckCircle2, XCircle, Calendar, User, Download, Mail, Loader2, Target } from "lucide-react";
 import { toast } from "sonner";
 import { 
   getPassage, 
@@ -271,6 +271,62 @@ body { margin: 0; padding: 40px; font-family: Georgia, serif; background: linear
 
   const { tier, color } = calculateTier(result.final_error_count);
 
+  const getVersionLabel = (version: string) => {
+    if (version === "A") return "Pre-Test";
+    if (version === "B") return "Mid-Test";
+    if (version === "C") return "Post-Test";
+    return version;
+  };
+
+  const getNextStepsForVersion = (version: string, tierLabel: string) => {
+    if (version === "A") {
+      return {
+        title: "What Happens Next? — Pre-Test Complete",
+        description: "This Pre-Test establishes a baseline for the student's reading ability. Based on these results, a personalized 21-day Reading Recovery curriculum will be generated.",
+        steps: [
+          "A personalized 21-day Reading Recovery curriculum has been created based on these results",
+          "The student should complete the daily roadmap activities on the Reading Recovery Dashboard",
+          "After 10 days of practice, the Mid-Test (Version B) will unlock automatically",
+          "The Mid-Test will measure progress and adjust the curriculum as needed",
+        ],
+        highlight: tierLabel === "Tier 3" 
+          ? "⚠️ This student needs intensive support. Please ensure daily one-on-one reading sessions are scheduled."
+          : tierLabel === "Tier 2"
+          ? "📚 This student is progressing but needs targeted practice in specific areas before the Mid-Test."
+          : "🌟 Great start! Continue with enrichment activities to maintain this level.",
+      };
+    }
+    if (version === "B") {
+      return {
+        title: "What Happens Next? — Mid-Test Complete",
+        description: "This Mid-Test measures the student's progress after the first phase of the Reading Recovery programme. Results are compared against the Pre-Test baseline.",
+        steps: [
+          "Compare these results with the Pre-Test to identify areas of improvement",
+          "Continue with the remaining roadmap activities on the Reading Recovery Dashboard",
+          "After 10 more days of practice, the Post-Test (Version C) will unlock",
+          "The Post-Test will provide the final assessment of the recovery programme",
+        ],
+        highlight: "📊 Compare with Pre-Test results to track the student's reading growth over the first 10 days.",
+      };
+    }
+    return {
+      title: "Programme Complete — Post-Test Results",
+      description: "This Post-Test is the final assessment of the Reading Recovery programme. It measures the student's overall growth from the Pre-Test baseline through the full 21-day programme.",
+      steps: [
+        "Compare these results with both the Pre-Test and Mid-Test to see the full growth trajectory",
+        "If the student is now Tier 1, the recovery programme is considered successful",
+        "If additional support is needed, consider re-enrolling the student for another cycle",
+        "Download and share this final report with parents and school administration",
+      ],
+      highlight: tierLabel === "Tier 1"
+        ? "🎉 Congratulations! The student has achieved mastery. The Reading Recovery programme was successful!"
+        : "📋 The programme is complete. Review the growth trajectory to determine if another cycle is recommended.",
+    };
+  };
+
+  const versionLabel = getVersionLabel(result.version);
+  const nextSteps = getNextStepsForVersion(result.version, tier);
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky-50 via-white to-amber-50">
       {/* Header */}
@@ -285,27 +341,10 @@ body { margin: 0; padding: 40px; font-family: Georgia, serif; background: linear
                 DEB
               </div>
               <div>
-                <span className="font-bold text-foreground">Reading Recovery Results</span>
+                <span className="font-bold text-foreground">{versionLabel} Results</span>
                 <p className="text-xs text-muted-foreground">{result.student_name}</p>
               </div>
             </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={handleDownload} disabled={downloading}>
-              {downloading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
-              Download
-            </Button>
-            {isAdmin && (
-              <Button variant="outline" size="sm" onClick={handleSendEmail} disabled={emailing}
-                className="border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100">
-                {emailing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Mail className="mr-2 h-4 w-4" />}
-                Email to Parent
-              </Button>
-            )}
-            <Button variant="outline" onClick={() => navigate("/reading-recovery/diagnostic")}>
-              <BookOpen className="mr-2 h-4 w-4" />
-              New Assessment
-            </Button>
           </div>
         </div>
       </header>
@@ -323,6 +362,7 @@ body { margin: 0; padding: 40px; font-family: Georgia, serif; background: linear
                   </div>
                 </div>
                 <div>
+                  <Badge variant="outline" className="mb-2 text-xs">{versionLabel}</Badge>
                   <h2 className="text-2xl font-bold text-foreground">{result.student_name}</h2>
                   <Badge className={`${color} text-white text-lg px-4 py-1 mt-2`}>
                     {tier}
@@ -363,6 +403,78 @@ body { margin: 0; padding: 40px; font-family: Georgia, serif; background: linear
           </CardContent>
         </Card>
 
+        {/* Download & Email Actions — Prominent */}
+        <Card className="mb-6 border-primary/20 bg-primary/5">
+          <CardContent className="p-6">
+            <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
+              <Download className="w-5 h-5 text-primary" />
+              Share & Download Results
+            </h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Download this result as a PDF or send it directly to the parent's email address.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <Button onClick={handleDownload} disabled={downloading} className="bg-primary text-primary-foreground hover:bg-primary/90">
+                {downloading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
+                Download as PDF
+              </Button>
+              {isAdmin && (
+                <Button onClick={handleSendEmail} disabled={emailing} variant="outline"
+                  className="border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100">
+                  {emailing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Mail className="mr-2 h-4 w-4" />}
+                  Email Results to Parent
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Assessment Stage Info */}
+        <Card className="mb-6 border-blue-200 bg-blue-50/50">
+          <CardHeader>
+            <CardTitle className="text-blue-900 flex items-center gap-2">
+              <Target className="w-5 h-5" />
+              {nextSteps.title}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-blue-800">{nextSteps.description}</p>
+            
+            {/* Progress Timeline */}
+            <div className="flex items-center gap-2 py-3">
+              <div className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${result.version === "A" ? "bg-primary text-primary-foreground" : "bg-emerald-100 text-emerald-700"}`}>
+                <CheckCircle2 className="w-3 h-3" /> Pre-Test
+              </div>
+              <div className="h-0.5 w-8 bg-muted-foreground/30" />
+              <div className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${result.version === "B" ? "bg-primary text-primary-foreground" : result.version === "C" ? "bg-emerald-100 text-emerald-700" : "bg-muted text-muted-foreground"}`}>
+                {result.version === "B" || result.version === "C" ? <CheckCircle2 className="w-3 h-3" /> : null} Mid-Test
+              </div>
+              <div className="h-0.5 w-8 bg-muted-foreground/30" />
+              <div className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${result.version === "C" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
+                {result.version === "C" ? <CheckCircle2 className="w-3 h-3" /> : null} Post-Test
+              </div>
+            </div>
+
+            {/* Highlight message */}
+            <div className="bg-white border border-blue-200 rounded-lg p-4 text-sm font-medium text-blue-900">
+              {nextSteps.highlight}
+            </div>
+
+            {/* Steps */}
+            <div>
+              <h4 className="font-semibold text-sm text-blue-900 mb-2">Next Steps:</h4>
+              <ol className="space-y-2">
+                {nextSteps.steps.map((s, i) => (
+                  <li key={i} className="flex items-start gap-3 text-sm text-blue-800">
+                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-200 text-blue-900 flex items-center justify-center text-xs font-bold">{i + 1}</span>
+                    {s}
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Passage Info */}
         <Card className="mb-6">
           <CardHeader>
@@ -374,13 +486,39 @@ body { margin: 0; padding: 40px; font-family: Georgia, serif; background: linear
           <CardContent>
             <div className="flex flex-wrap gap-4 text-sm">
               <Badge variant="outline">Grade Band: {result.grade_band}</Badge>
-              <Badge variant="outline">Version: {result.version === "A" ? "Pre-Test" : result.version === "B" ? "Mid-Test" : result.version === "C" ? "Post-Test" : result.version}</Badge>
+              <Badge variant="outline">Assessment: {versionLabel}</Badge>
               {passage && (
                 <>
                   <Badge variant="outline">Word Count: {passage.metadata.wordCount}</Badge>
                   <Badge variant="outline">Lexile: {passage.metadata.lexile}</Badge>
                 </>
               )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Why This Tier? */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 text-primary" />
+              Why This Tier?
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="border rounded-lg p-3 text-center">
+                <div className="text-xs text-muted-foreground mb-1">Errors Found</div>
+                <div className="text-2xl font-bold text-foreground">{result.final_error_count ?? 0}</div>
+              </div>
+              <div className="text-center flex flex-col justify-center">
+                <div className="text-xs text-muted-foreground mb-1">Scoring Rule</div>
+                <div className="text-sm font-medium">≤3 errors = Tier 1<br/>4–7 errors = Tier 2<br/>&gt;7 errors = Tier 3</div>
+              </div>
+              <div className={`border-2 rounded-lg p-3 text-center ${tier === "Tier 1" ? "border-emerald-300 bg-emerald-50" : tier === "Tier 2" ? "border-amber-300 bg-amber-50" : "border-red-300 bg-red-50"}`}>
+                <div className="text-xs text-muted-foreground mb-1">Placement</div>
+                <div className="text-2xl font-bold">{tier}</div>
+              </div>
             </div>
           </CardContent>
         </Card>
