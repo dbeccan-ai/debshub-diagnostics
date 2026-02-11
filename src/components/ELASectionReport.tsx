@@ -316,45 +316,81 @@ export default function ELASectionReport({
             </div>
           </div>
 
-          {/* Skills Mastered / Requiring Support summary */}
-          <div className="mt-6 space-y-4">
+          {/* Skills Assessed Block (matching math diagnostic style) */}
+          <div className="mt-6 border-t border-slate-200 pt-5 space-y-4">
             <div>
-              <h3 className="text-sm font-bold text-[#1C2D5A] mb-2">🌟 Skills Mastered</h3>
-              {overallMastered.length > 0 ? (
-                <ul className="space-y-1">
-                  {overallMastered.map((skill, i) => (
-                    <li key={i} className="text-sm text-emerald-700 flex items-center gap-2">
-                      <CheckCircle2 className="h-3.5 w-3.5 flex-shrink-0" /> {skill}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-xs text-slate-500 italic">No skills fully mastered yet — keep practicing!</p>
-              )}
+              <h3 className="text-base font-bold text-slate-900 mb-1">Skills Assessed in This Diagnostic</h3>
+              <p className="text-sm text-slate-600 mb-3">
+                This diagnostic test assessed your student's understanding of {allSkillEntries.length} skills:
+              </p>
+              <div className="flex flex-wrap gap-2 mb-4">
+                {allSkillEntries.map(([skill]) => (
+                  <Badge key={skill} variant="outline" className="text-xs bg-slate-50 text-slate-700 border-slate-300">
+                    {skill}
+                  </Badge>
+                ))}
+              </div>
             </div>
 
+            {/* Needs academic support */}
             {overallNeedsSupport.length > 0 && (
-              <div>
-                <h3 className="text-sm font-bold text-[#1C2D5A] mb-2">Skills Requiring Support</h3>
-                <ul className="space-y-1">
-                  {overallNeedsSupport.map((skill, i) => (
-                    <li key={i} className="text-sm text-red-700 flex items-center gap-2">
-                      <XCircle className="h-3.5 w-3.5 flex-shrink-0" /> {skill}
-                    </li>
-                  ))}
+              <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                <p className="font-semibold text-red-800 mb-2">Your student needs academic support with:</p>
+                <ul className="space-y-1.5">
+                  {overallNeedsSupport.map((skill, i) => {
+                    const stats = skillStats[skill];
+                    return (
+                      <li key={i} className="text-red-700 flex items-start gap-2">
+                        <XCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                        <span>
+                          <strong>{skill}</strong>
+                          {stats && <span className="text-red-600 text-xs ml-1">({stats.correct}/{stats.total} correct, {stats.percentage}%)</span>}
+                        </span>
+                      </li>
+                    );
+                  })}
                 </ul>
               </div>
             )}
 
-            {otherSkills.length > 0 && (
-              <div>
-                <h3 className="text-sm font-bold text-[#1C2D5A] mb-2">Other Skills</h3>
-                <ul className="space-y-1">
-                  {otherSkills.map((skill, i) => (
-                    <li key={i} className="text-sm text-slate-600 flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 bg-slate-400 rounded-full" /> {skill}
-                    </li>
-                  ))}
+            {/* Developing understanding */}
+            {overallDeveloping.length > 0 && (
+              <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                <p className="font-semibold text-amber-800 mb-2">Your student is developing understanding of:</p>
+                <ul className="space-y-1.5">
+                  {overallDeveloping.map((skill, i) => {
+                    const stats = skillStats[skill];
+                    return (
+                      <li key={i} className="text-amber-700 flex items-start gap-2">
+                        <TrendingUp className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                        <span>
+                          <strong>{skill}</strong>
+                          {stats && <span className="text-amber-600 text-xs ml-1">({stats.correct}/{stats.total} correct, {stats.percentage}%)</span>}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+
+            {/* Demonstrated mastery */}
+            {overallMastered.length > 0 && (
+              <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
+                <p className="font-semibold text-emerald-800 mb-2">Your student has demonstrated mastery of:</p>
+                <ul className="space-y-1.5">
+                  {overallMastered.map((skill, i) => {
+                    const stats = skillStats[skill];
+                    return (
+                      <li key={i} className="text-emerald-700 flex items-start gap-2">
+                        <CheckCircle2 className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                        <span>
+                          <strong>{skill}</strong>
+                          {stats && <span className="text-emerald-600 text-xs ml-1">({stats.correct}/{stats.total} correct, {stats.percentage}%)</span>}
+                        </span>
+                      </li>
+                    );
+                  })}
                 </ul>
               </div>
             )}
