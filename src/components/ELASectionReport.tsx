@@ -316,81 +316,72 @@ export default function ELASectionReport({
             </div>
           </div>
 
-          {/* Skills Assessed Block (matching math diagnostic style) */}
+          {/* Skills Assessed Block — uses ELA section groupings */}
           <div className="mt-6 border-t border-slate-200 pt-5 space-y-4">
             <div>
               <h3 className="text-base font-bold text-slate-900 mb-1">Skills Assessed in This Diagnostic</h3>
               <p className="text-sm text-slate-600 mb-3">
-                This diagnostic test assessed your student's understanding of {allSkillEntries.length} skills:
+                This diagnostic test assessed your student's understanding of {sections.length} skills:
               </p>
               <div className="flex flex-wrap gap-2 mb-4">
-                {allSkillEntries.map(([skill]) => (
-                  <Badge key={skill} variant="outline" className="text-xs bg-slate-50 text-slate-700 border-slate-300">
-                    {skill}
+                {sections.map((s) => (
+                  <Badge key={s.section} variant="outline" className="text-xs bg-slate-50 text-slate-700 border-slate-300">
+                    {s.section}
                   </Badge>
                 ))}
               </div>
             </div>
 
-            {/* Needs academic support */}
-            {overallNeedsSupport.length > 0 && (
+            {/* Needs academic support — ELA sections */}
+            {sections.filter((s) => s.status === "Support Needed").length > 0 && (
               <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
                 <p className="font-semibold text-red-800 mb-2">Your student needs academic support with:</p>
                 <ul className="space-y-1.5">
-                  {overallNeedsSupport.map((skill, i) => {
-                    const stats = skillStats[skill];
-                    return (
-                      <li key={i} className="text-red-700 flex items-start gap-2">
-                        <XCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                        <span>
-                          <strong>{skill}</strong>
-                          {stats && <span className="text-red-600 text-xs ml-1">({stats.correct}/{stats.total} correct, {stats.percentage}%)</span>}
-                        </span>
-                      </li>
-                    );
-                  })}
+                  {sections.filter((s) => s.status === "Support Needed").map((s, i) => (
+                    <li key={i} className="text-red-700 flex items-start gap-2">
+                      <XCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                      <span>
+                        <strong>{s.section}</strong>
+                        <span className="text-red-600 text-xs ml-1">({s.correct}/{s.total} correct, {s.percent}%)</span>
+                      </span>
+                    </li>
+                  ))}
                 </ul>
               </div>
             )}
 
-            {/* Developing understanding */}
-            {overallDeveloping.length > 0 && (
+            {/* Developing understanding — ELA sections */}
+            {sections.filter((s) => s.status === "Developing").length > 0 && (
               <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
                 <p className="font-semibold text-amber-800 mb-2">Your student is developing understanding of:</p>
                 <ul className="space-y-1.5">
-                  {overallDeveloping.map((skill, i) => {
-                    const stats = skillStats[skill];
-                    return (
-                      <li key={i} className="text-amber-700 flex items-start gap-2">
-                        <TrendingUp className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                        <span>
-                          <strong>{skill}</strong>
-                          {stats && <span className="text-amber-600 text-xs ml-1">({stats.correct}/{stats.total} correct, {stats.percentage}%)</span>}
-                        </span>
-                      </li>
-                    );
-                  })}
+                  {sections.filter((s) => s.status === "Developing").map((s, i) => (
+                    <li key={i} className="text-amber-700 flex items-start gap-2">
+                      <TrendingUp className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                      <span>
+                        <strong>{s.section}</strong>
+                        <span className="text-amber-600 text-xs ml-1">({s.correct}/{s.total} correct, {s.percent}%)</span>
+                      </span>
+                    </li>
+                  ))}
                 </ul>
               </div>
             )}
 
-            {/* Demonstrated mastery */}
-            {overallMastered.length > 0 && (
+            {/* Demonstrated mastery — ELA sections */}
+            {sections.filter((s) => s.status === "Mastered").length > 0 && (
               <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
                 <p className="font-semibold text-emerald-800 mb-2">Your student has demonstrated mastery of:</p>
                 <ul className="space-y-1.5">
-                  {overallMastered.map((skill, i) => {
-                    const stats = skillStats[skill];
-                    return (
-                      <li key={i} className="text-emerald-700 flex items-start gap-2">
-                        <CheckCircle2 className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                        <span>
-                          <strong>{skill}</strong>
-                          {stats && <span className="text-emerald-600 text-xs ml-1">({stats.correct}/{stats.total} correct, {stats.percentage}%)</span>}
-                        </span>
-                      </li>
-                    );
-                  })}
+                  {sections.filter((s) => s.status === "Mastered").map((s, i) => (
+                    <li key={i} className="text-emerald-700 flex items-start gap-2">
+                      <CheckCircle2 className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                      <span>
+                        <strong>{s.section}</strong>
+                        <span className="text-emerald-600 text-xs ml-1">({s.correct}/{s.total} correct, {s.percent}%)</span>
+                      </span>
+                    </li>
+                  ))}
                 </ul>
               </div>
             )}
@@ -427,17 +418,17 @@ export default function ELASectionReport({
             <span className="text-red-700 font-semibold">Incorrect: {incorrectAnswers} ({totalQuestions ? Math.round((incorrectAnswers / totalQuestions) * 100 * 10) / 10 : 0}%)</span>
           </div>
 
-          {/* Overall skill classification */}
+          {/* Overall ELA section classification */}
           <div className="grid gap-4 md:grid-cols-2">
             <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-5">
               <h3 className="text-sm font-bold text-emerald-800 flex items-center gap-2 mb-3">
-                <CheckCircle2 className="h-4 w-4" /> Skills Mastered (70%+)
+                <CheckCircle2 className="h-4 w-4" /> Skills Mastered (85%+)
               </h3>
-              {overallMastered.length > 0 ? (
+              {sections.filter((s) => s.status === "Mastered").length > 0 ? (
                 <ul className="space-y-1.5">
-                  {overallMastered.map((skill, i) => (
+                  {sections.filter((s) => s.status === "Mastered").map((s, i) => (
                     <li key={i} className="text-sm text-emerald-700 flex items-center gap-2">
-                      <span className="font-medium">✓</span> {skill}
+                      <span className="font-medium">✓</span> {s.section}
                     </li>
                   ))}
                 </ul>
@@ -448,65 +439,62 @@ export default function ELASectionReport({
 
             <div className="bg-red-50 border border-red-200 rounded-xl p-5">
               <h3 className="text-sm font-bold text-red-800 flex items-center gap-2 mb-3">
-                <XCircle className="h-4 w-4" /> Needs Additional Support (&lt;50%)
+                <XCircle className="h-4 w-4" /> Needs Additional Support (&lt;70%)
               </h3>
-              {overallNeedsSupport.length > 0 ? (
+              {sections.filter((s) => s.status === "Support Needed").length > 0 ? (
                 <ul className="space-y-1.5">
-                  {overallNeedsSupport.map((skill, i) => (
+                  {sections.filter((s) => s.status === "Support Needed").map((s, i) => (
                     <li key={i} className="text-sm text-red-700 flex items-center gap-2">
-                      <span className="font-medium">✗</span> {skill}
+                      <span className="font-medium">✗</span> {s.section}
                     </li>
                   ))}
                 </ul>
               ) : (
-                <p className="text-xs text-slate-500 italic">No skills below 50% — great effort!</p>
+                <p className="text-xs text-slate-500 italic">No sections below 70% — great effort!</p>
               )}
             </div>
           </div>
 
-          {overallDeveloping.length > 0 && (
+          {sections.filter((s) => s.status === "Developing").length > 0 && (
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-5">
               <h3 className="text-sm font-bold text-amber-800 flex items-center gap-2 mb-3">
-                <TrendingUp className="h-4 w-4" /> Skills In Progress (50-69%)
+                <TrendingUp className="h-4 w-4" /> Skills In Progress (70-84%)
               </h3>
               <ul className="space-y-1.5">
-                {overallDeveloping.map((skill, i) => (
+                {sections.filter((s) => s.status === "Developing").map((s, i) => (
                   <li key={i} className="text-sm text-amber-700 flex items-center gap-2">
-                    <span className="font-medium">→</span> {skill}
+                    <span className="font-medium">→</span> {s.section}
                   </li>
                 ))}
               </ul>
             </div>
           )}
 
-          {/* Skill-by-Skill Performance Table */}
+          {/* Section-by-Section Performance Table */}
           <div>
-            <h3 className="text-sm font-bold text-[#1C2D5A] mb-3">📊 Skill-by-Skill Performance</h3>
+            <h3 className="text-sm font-bold text-[#1C2D5A] mb-3">📊 Section-by-Section Performance</h3>
             <div className="border border-slate-200 rounded-xl overflow-hidden">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-slate-100">
-                    <th className="text-left px-4 py-2.5 font-semibold text-slate-700">Topic</th>
+                    <th className="text-left px-4 py-2.5 font-semibold text-slate-700">ELA Section</th>
                     <th className="text-right px-4 py-2.5 font-semibold text-slate-700">Score</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {Object.entries(skillStats)
-                    .sort((a, b) => a[0].localeCompare(b[0]))
-                    .map(([skill, stats], i) => {
-                      const pct = stats.percentage;
-                      const rowColor = pct >= 70 ? "" : pct >= 50 ? "bg-amber-50" : "bg-red-50";
-                      return (
-                        <tr key={skill} className={`border-t border-slate-100 ${rowColor}`}>
-                          <td className="px-4 py-2.5 font-medium text-slate-800">{skill}</td>
-                          <td className="px-4 py-2.5 text-right">
-                            <span className={`font-semibold ${pct >= 70 ? "text-emerald-700" : pct >= 50 ? "text-amber-700" : "text-red-700"}`}>
-                              {stats.correct}/{stats.total} ({pct}%)
-                            </span>
-                          </td>
-                        </tr>
-                      );
-                    })}
+                  {sections.map((s) => {
+                    const rowColor = s.percent >= 85 ? "" : s.percent >= 70 ? "bg-amber-50" : "bg-red-50";
+                    return (
+                      <tr key={s.section} className={`border-t border-slate-100 ${rowColor}`}>
+                        <td className="px-4 py-2.5 font-medium text-slate-800">{s.section}</td>
+                        <td className="px-4 py-2.5 text-right">
+                          <span className={`font-semibold ${s.percent >= 85 ? "text-emerald-700" : s.percent >= 70 ? "text-amber-700" : "text-red-700"}`}>
+                            {s.correct}/{s.total} ({s.percent}%)
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
