@@ -548,10 +548,10 @@ export default function ELASectionReport({
             )}
           </div>
 
-          {focusAreas.length > 0 && (
+          {sections.filter((s) => s.status !== "Mastered").length > 0 && (
             <div>
               <h3 className="font-bold text-[#1C2D5A] mb-2">Focus Areas:</h3>
-              <p>We recommend prioritizing these skills for additional practice: <strong>{focusAreas.join(", ")}</strong>.</p>
+              <p>We recommend prioritizing these ELA sections for additional practice: <strong>{sections.filter((s) => s.status !== "Mastered").sort((a, b) => a.percent - b.percent).map((s) => s.section).join(", ")}</strong>.</p>
             </div>
           )}
 
@@ -630,14 +630,23 @@ export default function ELASectionReport({
                 <p className="text-xs font-semibold text-emerald-700 uppercase tracking-wide mb-2 flex items-center gap-1">
                   <CheckCircle2 className="h-3.5 w-3.5" /> Skills Mastered
                 </p>
-                {section.masteredSkills.length > 0 ? (
+                {section.status === "Mastered" ? (
+                  <p className="text-sm text-emerald-800 flex items-start gap-2">
+                    <span className="mt-1.5 w-1.5 h-1.5 bg-emerald-500 rounded-full flex-shrink-0" />
+                    {section.section} ({section.correct}/{section.total} correct, {section.percent}%)
+                  </p>
+                ) : section.masteredSkills.length > 0 ? (
                   <ul className="space-y-1.5">
-                    {section.masteredSkills.map((skill, i) => (
-                      <li key={i} className="text-sm text-emerald-800 flex items-start gap-2">
-                        <span className="mt-1.5 w-1.5 h-1.5 bg-emerald-500 rounded-full flex-shrink-0" />
-                        {skill}
-                      </li>
-                    ))}
+                    {section.masteredSkills.map((skill, i) => {
+                      const mapped = mapSkillToSection(skill);
+                      const label = mapped !== sectionName ? skill : skill;
+                      return (
+                        <li key={i} className="text-sm text-emerald-800 flex items-start gap-2">
+                          <span className="mt-1.5 w-1.5 h-1.5 bg-emerald-500 rounded-full flex-shrink-0" />
+                          {label}
+                        </li>
+                      );
+                    })}
                   </ul>
                 ) : (
                   <p className="text-xs text-emerald-600 italic">Continue building these skills</p>
@@ -648,7 +657,12 @@ export default function ELASectionReport({
                 <p className="text-xs font-semibold text-red-700 uppercase tracking-wide mb-2 flex items-center gap-1">
                   <XCircle className="h-3.5 w-3.5" /> Skills Requiring Support
                 </p>
-                {section.supportSkills.length > 0 ? (
+                {section.status === "Support Needed" ? (
+                  <p className="text-sm text-red-800 flex items-start gap-2">
+                    <span className="mt-1.5 w-1.5 h-1.5 bg-red-500 rounded-full flex-shrink-0" />
+                    {section.section} ({section.correct}/{section.total} correct, {section.percent}%)
+                  </p>
+                ) : section.supportSkills.length > 0 ? (
                   <ul className="space-y-1.5">
                     {section.supportSkills.map((skill, i) => (
                       <li key={i} className="text-sm text-red-800 flex items-start gap-2">
