@@ -75,30 +75,121 @@ export default function TakeELATest() {
     setAnswers(prev => ({ ...prev, [questionId]: answer }));
   };
 
+  // Map question topics to ELA sections
+  const mapTopicToSection = (topic: string, qType: string): string => {
+    const t = (topic || "").toLowerCase();
+    if (qType === "writing") return "Writing";
+    if (t.includes("reading") || t.includes("comprehension") || t.includes("main idea") || t.includes("inference") || t.includes("summary") || t.includes("author") || t.includes("passage") || t.includes("text structure") || t.includes("central idea") || t.includes("literary") || t.includes("rhetoric") || t.includes("theme") || t.includes("character") || t.includes("plot") || t.includes("setting") || t.includes("point of view") || t.includes("compare")) return "Reading Comprehension";
+    if (t.includes("vocab") || t.includes("synonym") || t.includes("antonym") || t.includes("context clue") || t.includes("word meaning") || t.includes("word structure") || t.includes("prefix") || t.includes("suffix") || t.includes("root") || t.includes("figurative") || t.includes("idiom") || t.includes("connotation") || t.includes("denotation")) return "Vocabulary";
+    if (t.includes("spell") || t.includes("homophone") || t.includes("homograph")) return "Spelling";
+    if (t.includes("grammar") || t.includes("punctuation") || t.includes("verb") || t.includes("subject") || t.includes("pronoun") || t.includes("adjective") || t.includes("adverb") || t.includes("sentence") || t.includes("clause") || t.includes("conjunction") || t.includes("tense") || t.includes("agreement") || t.includes("capitalization") || t.includes("comma") || t.includes("apostrophe") || t.includes("possessive") || t.includes("parts of speech") || t.includes("modifier")) return "Grammar & Language Conventions";
+    if (t.includes("writ") || t.includes("essay") || t.includes("narrative") || t.includes("opinion") || t.includes("persuasive") || t.includes("argument") || t.includes("composition")) return "Writing";
+    return "Grammar & Language Conventions"; // default fallback
+  };
+
   const handleSubmit = () => {
     setSubmitted(true);
-    // Calculate score for multiple choice
-    let correct = 0;
-    let total = 0;
+
+    // Build section-level scoring
+    const sectionData: Record<string, { correct: number; total: number; skills: Record<string, { correct: number; total: number }> }> = {};
+    const sectionOrder = ["Reading Comprehension", "Vocabulary", "Spelling", "Grammar & Language Conventions", "Writing"];
+    sectionOrder.forEach(s => { sectionData[s] = { correct: 0, total: 0, skills: {} }; });
+
     allQuestions.forEach(q => {
       if (q.type === "multiple_choice" && q.correct_answer) {
-        total++;
+        const section = mapTopicToSection(q.topic || "", q.type);
+        const skillName = q.topic || "General";
+        if (!sectionData[section]) sectionData[section] = { correct: 0, total: 0, skills: {} };
+        if (!sectionData[section].skills[skillName]) sectionData[section].skills[skillName] = { correct: 0, total: 0 };
+
+        sectionData[section].total++;
+        sectionData[section].skills[skillName].total++;
+
         const userAnswer = answers[q.id];
         if (userAnswer) {
           const answerLetter = userAnswer.charAt(0).toUpperCase();
           if (answerLetter === q.correct_answer) {
-            correct++;
+            sectionData[section].correct++;
+            sectionData[section].skills[skillName].correct++;
           }
         }
       }
     });
+
+    let overallCorrect = 0;
+    let overallTotal = 0;
+
+    const sectionBreakdown = sectionOrder.map(sectionName => {
+      const data = sectionData[sectionName];
+      const percent = data.total > 0 ? Math.round((data.correct / data.total) * 100) : 0;
+      overallCorrect += data.correct;
+      overallTotal += data.total;
+
+      const status: "Mastered" | "Developing" | "Support Needed" =
+        percent >= 85 ? "Mastered" : percent >= 70 ? "Developing" : "Support Needed";
+
+      const masteredSkills: string[] = [];
+      const supportSkills: string[] = [];
+
+      Object.entries(data.skills).forEach(([skill, stats]) => {
+        const skillPct = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0;
+        if (skillPct >= 85) masteredSkills.push(skill);
+        else if (skillPct < 70) supportSkills.push(skill);
+      });
+
+      const recommendation =
+        status === "Mastered"
+          ? "Maintain with weekly reinforcement."
+          : status === "Developing"
+          ? "Targeted practice 2–3 times per week."
+          : "Immediate focused intervention recommended.";
+
+      return {
+        section: sectionName,
+        sectionKey: sectionName.toLowerCase().replace(/ & /g, "_").replace(/ /g, "_"),
+        correct: data.correct,
+        total: data.total,
+        percent,
+        status,
+        masteredSkills,
+        supportSkills,
+        recommendation,
+      };
+    }).filter(s => s.total > 0);
+
+    const overallPercent = overallTotal > 0 ? Math.round((overallCorrect / overallTotal) * 100) : 0;
+    const tier = overallPercent >= 85 ? "Tier 1" : overallPercent >= 70 ? "Tier 2" : "Tier 3";
+
+    const priorities = [...sectionBreakdown]
+      .sort((a, b) => a.percent - b.percent)
+      .filter(s => s.status !== "Mastered")
+      .slice(0, 3)
+      .map(s => s.section);
+
+    const resultData = {
+      studentName: "Student",
+      gradeLevel: gradeNum || "",
+      completedAt: new Date().toISOString(),
+      overallPercent,
+      overallCorrect,
+      overallTotal,
+      tier,
+      sectionBreakdown,
+      priorities,
+      answers,
+    };
+
+    localStorage.setItem(`ela-results-grade-${gradeNum}`, JSON.stringify(resultData));
     localStorage.setItem(`ela-test-grade-${gradeNum}`, JSON.stringify({
       answers,
-      correct,
-      total,
-      percentage: total > 0 ? Math.round((correct / total) * 100) : 0,
-      completedAt: new Date().toISOString()
+      correct: overallCorrect,
+      total: overallTotal,
+      percentage: overallPercent,
+      completedAt: new Date().toISOString(),
     }));
+
+    // Navigate to ELA results page
+    navigate(`/ela-results/grade-${gradeNum}`);
   };
 
   // Get ELA description based on grade
@@ -152,39 +243,9 @@ export default function TakeELATest() {
   const currentQ = allQuestions[currentQuestion];
   const progress = ((currentQuestion + 1) / allQuestions.length) * 100;
 
+  // submitted state is now handled by navigate in handleSubmit, but keep as safety
   if (submitted) {
-    const result = JSON.parse(localStorage.getItem(`ela-test-grade-${gradeNum}`) || "{}");
-    const tier = result.percentage >= 80 ? "Tier 1" : result.percentage >= 50 ? "Tier 2" : "Tier 3";
-    const tierColor = tier === "Tier 1" ? "bg-emerald-500" : tier === "Tier 2" ? "bg-amber-500" : "bg-red-500";
-
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
-        <DEBsHeader subtitle={`Grade ${gradeNum} ELA - Results`} />
-        <div className="container max-w-2xl mx-auto px-4 py-8">
-          <Card>
-            <CardHeader className="text-center">
-              <div className={`mx-auto w-20 h-20 rounded-full ${tierColor} flex items-center justify-center mb-4`}>
-                <Check className="h-10 w-10 text-white" />
-              </div>
-              <CardTitle className="text-2xl">Test Completed!</CardTitle>
-              <p className="text-muted-foreground">Grade {gradeNum} ELA Diagnostic</p>
-            </CardHeader>
-            <CardContent className="text-center space-y-4">
-              <div className="text-5xl font-bold text-primary">{result.percentage}%</div>
-              <p className="text-lg">{result.correct} of {result.total} correct</p>
-              <div className={`inline-block px-4 py-2 rounded-full text-white ${tierColor}`}>
-                {tier}
-              </div>
-              <div className="pt-6">
-                <Button onClick={() => navigate("/diagnostics/ela")}>
-                  Back to ELA Hub
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
+    return null; // Navigation already happened in handleSubmit
   }
 
   return (
