@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 
 import { toast } from "sonner";
 import { ArrowLeft, Download, CheckCircle, XCircle, TrendingUp, RefreshCw, FileText, GraduationCap } from "lucide-react";
+import ELASectionReport from "@/components/ELASectionReport";
 
 interface SkillStat {
   total: number;
@@ -237,6 +238,7 @@ const Results = () => {
   
   const needsSkillRefresh = !hasSkillData || hasOnlyGenericSkills;
   const isTier1 = attempt.tier === "Tier 1";
+  const isELA = attempt.tests?.test_type === "ela" || attempt.tests?.name?.toLowerCase().includes("ela");
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -466,7 +468,26 @@ const Results = () => {
           </Card>
         )}
 
-        {/* Skills Covered Summary */}
+        {/* ELA Section-by-Section Report */}
+        {isELA && hasSkillData && (
+          <div className="mb-6">
+            <ELASectionReport
+              skillStats={skillAnalysis.skillStats}
+              mastered={skillAnalysis.mastered}
+              needsSupport={skillAnalysis.needsSupport}
+              developing={skillAnalysis.developing}
+              tier={attempt.tier}
+              studentName={attempt.profiles?.full_name || "Student"}
+              gradLevel={attempt.grade_level}
+              completedAt={attempt.completed_at}
+              score={attempt.score}
+              totalQuestions={attempt.total_questions}
+              correctAnswers={attempt.correct_answers}
+              testName={attempt.tests?.name || "ELA Diagnostic"}
+            />
+          </div>
+        )}
+
         <Card className="border-slate-200 mb-6">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-semibold text-slate-800 flex items-center justify-between">
