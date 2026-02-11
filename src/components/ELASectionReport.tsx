@@ -630,24 +630,11 @@ export default function ELASectionReport({
                 <p className="text-xs font-semibold text-emerald-700 uppercase tracking-wide mb-2 flex items-center gap-1">
                   <CheckCircle2 className="h-3.5 w-3.5" /> Skills Mastered
                 </p>
-                {section.status === "Mastered" ? (
+                {section.status === "Mastered" || section.status === "Developing" ? (
                   <p className="text-sm text-emerald-800 flex items-start gap-2">
                     <span className="mt-1.5 w-1.5 h-1.5 bg-emerald-500 rounded-full flex-shrink-0" />
-                    {section.section} ({section.correct}/{section.total} correct, {section.percent}%)
+                    {section.section}
                   </p>
-                ) : section.masteredSkills.length > 0 ? (
-                  <ul className="space-y-1.5">
-                    {section.masteredSkills.map((skill, i) => {
-                      const mapped = mapSkillToSection(skill);
-                      const label = mapped !== sectionName ? skill : skill;
-                      return (
-                        <li key={i} className="text-sm text-emerald-800 flex items-start gap-2">
-                          <span className="mt-1.5 w-1.5 h-1.5 bg-emerald-500 rounded-full flex-shrink-0" />
-                          {label}
-                        </li>
-                      );
-                    })}
-                  </ul>
                 ) : (
                   <p className="text-xs text-emerald-600 italic">Continue building these skills</p>
                 )}
@@ -660,17 +647,8 @@ export default function ELASectionReport({
                 {section.status === "Support Needed" ? (
                   <p className="text-sm text-red-800 flex items-start gap-2">
                     <span className="mt-1.5 w-1.5 h-1.5 bg-red-500 rounded-full flex-shrink-0" />
-                    {section.section} ({section.correct}/{section.total} correct, {section.percent}%)
+                    {section.section}
                   </p>
-                ) : section.supportSkills.length > 0 ? (
-                  <ul className="space-y-1.5">
-                    {section.supportSkills.map((skill, i) => (
-                      <li key={i} className="text-sm text-red-800 flex items-start gap-2">
-                        <span className="mt-1.5 w-1.5 h-1.5 bg-red-500 rounded-full flex-shrink-0" />
-                        {skill}
-                      </li>
-                    ))}
-                  </ul>
                 ) : (
                   <p className="text-xs text-slate-500 italic">No additional support needed</p>
                 )}
