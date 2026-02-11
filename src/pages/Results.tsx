@@ -343,284 +343,266 @@ const Results = () => {
           </Card>
         </div>
 
-        {/* Skills Analysis */}
-        <div className="grid gap-6 md:grid-cols-2 mb-6">
-          {/* Skills Mastered */}
-          <Card className="border-emerald-200">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold text-emerald-700 flex items-center gap-2">
-                <CheckCircle className="h-4 w-4" />
-                Skills Mastered (70%+)
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {skillAnalysis.mastered.length > 0 ? (
-                <ul className="space-y-1">
-                  {skillAnalysis.mastered.map((skill, idx) => (
-                    <li key={idx} className="text-sm text-emerald-800 flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
-                      {skill}
-                    </li>
-                  ))}
-                </ul>
-              ) : isTier1 ? (
-                <p className="text-xs text-emerald-600 italic">
-                  Excellent! Student demonstrated strong understanding across all tested skills.
-                </p>
-              ) : (
-                <p className="text-xs text-slate-400 italic">No skills in this category</p>
-              )}
-            </CardContent>
-          </Card>
+        {/* ELA: show only the ELA section report; non-ELA: show generic skill blocks */}
+        {isELA ? (
+          hasSkillData ? (
+            <div className="mb-6">
+              <ELASectionReport
+                skillStats={skillAnalysis.skillStats}
+                mastered={skillAnalysis.mastered}
+                needsSupport={skillAnalysis.needsSupport}
+                developing={skillAnalysis.developing}
+                tier={attempt.tier}
+                studentName={attempt.profiles?.full_name || "Student"}
+                gradLevel={attempt.grade_level}
+                completedAt={attempt.completed_at}
+                score={attempt.score}
+                totalQuestions={attempt.total_questions}
+                correctAnswers={attempt.correct_answers}
+                testName={attempt.tests?.name || "ELA Diagnostic"}
+              />
+            </div>
+          ) : (
+            <Card className="border-slate-200 mb-6">
+              <CardContent className="pt-6 text-center text-sm text-slate-500">
+                <p>ELA skill breakdown is not yet available for this result.</p>
+                <Button size="sm" variant="outline" onClick={handleRegrade} disabled={regrading} className="mt-3 text-xs">
+                  <RefreshCw className={`mr-2 h-3 w-3 ${regrading ? 'animate-spin' : ''}`} />
+                  {regrading ? 'Refreshing...' : 'Generate ELA Breakdown'}
+                </Button>
+              </CardContent>
+            </Card>
+          )
+        ) : (
+          <>
+            <div className="grid gap-6 md:grid-cols-2 mb-6">
+              <Card className="border-emerald-200">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-semibold text-emerald-700 flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4" />
+                    Skills Mastered (70%+)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {skillAnalysis.mastered.length > 0 ? (
+                    <ul className="space-y-1">
+                      {skillAnalysis.mastered.map((skill, idx) => (
+                        <li key={idx} className="text-sm text-emerald-800 flex items-center gap-2">
+                          <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
+                          {skill}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : isTier1 ? (
+                    <p className="text-xs text-emerald-600 italic">Excellent! Student demonstrated strong understanding across all tested skills.</p>
+                  ) : (
+                    <p className="text-xs text-slate-400 italic">No skills in this category</p>
+                  )}
+                </CardContent>
+              </Card>
 
-          {/* Skills Needing Support - Only show if NOT Tier 1 or has actual weak skills */}
-          {(!isTier1 || skillAnalysis.needsSupport.length > 0) && (
-            <Card className="border-red-200">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-semibold text-red-700 flex items-center gap-2">
-                  <XCircle className="h-4 w-4" />
-                  Needs Additional Support (&lt;50%)
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {skillAnalysis.needsSupport.length > 0 ? (
+              {(!isTier1 || skillAnalysis.needsSupport.length > 0) && (
+                <Card className="border-red-200">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-semibold text-red-700 flex items-center gap-2">
+                      <XCircle className="h-4 w-4" />
+                      Needs Additional Support (&lt;50%)
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {skillAnalysis.needsSupport.length > 0 ? (
+                      <ul className="space-y-1">
+                        {skillAnalysis.needsSupport.map((skill, idx) => (
+                          <li key={idx} className="text-sm text-red-800 flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 bg-red-500 rounded-full" />
+                            {skill}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-xs text-slate-400 italic">No skills in this category</p>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+
+              {isTier1 && skillAnalysis.needsSupport.length === 0 && (
+                <Card className="border-emerald-200 bg-emerald-50">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-semibold text-emerald-700 flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4" />
+                      Ready for Advanced Topics
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-xs text-emerald-700">Great news! Your student has no skills requiring additional support and is ready for enrichment activities.</p>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+
+            {skillAnalysis.developing.length > 0 && (
+              <Card className="border-amber-200 mb-6">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-semibold text-amber-700 flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4" />
+                    Skills In Progress (50-69%)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
                   <ul className="space-y-1">
-                    {skillAnalysis.needsSupport.map((skill, idx) => (
-                      <li key={idx} className="text-sm text-red-800 flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 bg-red-500 rounded-full" />
+                    {skillAnalysis.developing.map((skill, idx) => (
+                      <li key={idx} className="text-sm text-amber-800 flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 bg-amber-500 rounded-full" />
                         {skill}
                       </li>
                     ))}
                   </ul>
-                ) : (
-                  <p className="text-xs text-slate-400 italic">No skills in this category</p>
-                )}
-              </CardContent>
-            </Card>
-          )}
+                </CardContent>
+              </Card>
+            )}
 
-          {/* For Tier 1 without weak skills, show a positive card instead */}
-          {isTier1 && skillAnalysis.needsSupport.length === 0 && (
-            <Card className="border-emerald-200 bg-emerald-50">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-semibold text-emerald-700 flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4" />
-                  Ready for Advanced Topics
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-xs text-emerald-700">
-                  Great news! Your student has no skills requiring additional support and is ready for enrichment activities.
-                </p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-
-        {/* Skills In Progress */}
-        {skillAnalysis.developing.length > 0 && (
-          <Card className="border-amber-200 mb-6">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold text-amber-700 flex items-center gap-2">
-                <TrendingUp className="h-4 w-4" />
-                Skills In Progress (50-69%)
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-1">
-                {skillAnalysis.developing.map((skill, idx) => (
-                  <li key={idx} className="text-sm text-amber-800 flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 bg-amber-500 rounded-full" />
-                    {skill}
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
+            {Object.keys(skillAnalysis.skillStats).length > 0 && (
+              <Card className="border-slate-200 mb-6">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-semibold text-slate-800">Skill-by-Skill Performance</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {Object.entries(skillAnalysis.skillStats).map(([skill, stats]) => (
+                    <div key={skill} className="space-y-1">
+                      <div className="flex justify-between text-xs">
+                        <span className="font-medium text-slate-700">{skill}</span>
+                        <span className="text-slate-500">{stats.correct}/{stats.total} ({stats.percentage}%)</span>
+                      </div>
+                      <div className="h-2 w-full bg-slate-200 rounded-full overflow-hidden">
+                        <div className={`h-full rounded-full ${getSkillColor(stats.percentage)}`} style={{ width: `${stats.percentage}%` }} />
+                      </div>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+          </>
         )}
 
-        {/* Detailed Skill Breakdown */}
-        {Object.keys(skillAnalysis.skillStats).length > 0 && (
+        {/* Skills Assessed card - only for non-ELA tests */}
+        {!isELA && (
           <Card className="border-slate-200 mb-6">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold text-slate-800">
-                Skill-by-Skill Performance
+              <CardTitle className="text-sm font-semibold text-slate-800 flex items-center justify-between">
+                <span>Skills Assessed in This Diagnostic</span>
+                {needsSkillRefresh && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleRegrade}
+                    disabled={regrading}
+                    className="text-xs"
+                  >
+                    <RefreshCw className={`mr-2 h-3 w-3 ${regrading ? 'animate-spin' : ''}`} />
+                    {regrading ? 'Refreshing...' : 'Refresh Skills'}
+                  </Button>
+                )}
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              {Object.entries(skillAnalysis.skillStats).map(([skill, stats]) => (
-                <div key={skill} className="space-y-1">
-                  <div className="flex justify-between text-xs">
-                    <span className="font-medium text-slate-700">{skill}</span>
-                    <span className="text-slate-500">
-                      {stats.correct}/{stats.total} ({stats.percentage}%)
-                    </span>
+            <CardContent className="space-y-4 text-sm text-slate-600">
+              {hasSkillData ? (
+                <>
+                  <p>
+                    This diagnostic test assessed your student's understanding of the following {Object.keys(skillAnalysis.skillStats).length || (skillAnalysis.mastered.length + skillAnalysis.needsSupport.length + skillAnalysis.developing.length)} skills:
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {Object.keys(skillAnalysis.skillStats).length > 0 ? (
+                      Object.keys(skillAnalysis.skillStats).map((skill) => (
+                        <Badge 
+                          key={skill} 
+                          variant="outline" 
+                          className="text-xs bg-slate-50 text-slate-700 border-slate-300"
+                        >
+                          {skill}
+                        </Badge>
+                      ))
+                    ) : (
+                      [...skillAnalysis.mastered, ...skillAnalysis.developing, ...skillAnalysis.needsSupport].map((skill, idx) => (
+                        <Badge 
+                          key={idx} 
+                          variant="outline" 
+                          className="text-xs bg-slate-50 text-slate-700 border-slate-300"
+                        >
+                          {skill}
+                        </Badge>
+                      ))
+                    )}
                   </div>
-                  <div className="h-2 w-full bg-slate-200 rounded-full overflow-hidden">
-                    <div 
-                      className={`h-full rounded-full ${getSkillColor(stats.percentage)}`}
-                      style={{ width: `${stats.percentage}%` }}
-                    />
-                  </div>
+                </>
+              ) : (
+                <p className="text-slate-500 italic">
+                  Click "Refresh Skills" to generate detailed skill analysis for this test attempt.
+                </p>
+              )}
+              
+              {hasSkillData && skillAnalysis.needsSupport.length > 0 && (
+                <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="font-semibold text-red-800 mb-2">Your student needs academic support with:</p>
+                  <ul className="space-y-1">
+                    {skillAnalysis.needsSupport.map((skill, idx) => {
+                      const stats = skillAnalysis.skillStats[skill];
+                      return (
+                        <li key={idx} className="text-red-700 flex items-start gap-2">
+                          <XCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                          <span>
+                            <strong>{skill}</strong>
+                            {stats && <span className="text-red-600 text-xs ml-1">({stats.correct}/{stats.total} correct, {stats.percentage}%)</span>}
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
                 </div>
-              ))}
+              )}
+
+              {skillAnalysis.developing.length > 0 && (
+                <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                  <p className="font-semibold text-amber-800 mb-2">Your student is developing understanding of:</p>
+                  <ul className="space-y-1">
+                    {skillAnalysis.developing.map((skill, idx) => {
+                      const stats = skillAnalysis.skillStats[skill];
+                      return (
+                        <li key={idx} className="text-amber-700 flex items-start gap-2">
+                          <TrendingUp className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                          <span>
+                            <strong>{skill}</strong>
+                            {stats && <span className="text-amber-600 text-xs ml-1">({stats.correct}/{stats.total} correct, {stats.percentage}%)</span>}
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              )}
+
+              {skillAnalysis.mastered.length > 0 && (
+                <div className="mt-4 p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
+                  <p className="font-semibold text-emerald-800 mb-2">Your student has demonstrated mastery of:</p>
+                  <ul className="space-y-1">
+                    {skillAnalysis.mastered.map((skill, idx) => {
+                      const stats = skillAnalysis.skillStats[skill];
+                      return (
+                        <li key={idx} className="text-emerald-700 flex items-start gap-2">
+                          <CheckCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                          <span>
+                            <strong>{skill}</strong>
+                            {stats && <span className="text-emerald-600 text-xs ml-1">({stats.correct}/{stats.total} correct, {stats.percentage}%)</span>}
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
-
-        {/* ELA Section-by-Section Report */}
-        {isELA && hasSkillData && (
-          <div className="mb-6">
-            <ELASectionReport
-              skillStats={skillAnalysis.skillStats}
-              mastered={skillAnalysis.mastered}
-              needsSupport={skillAnalysis.needsSupport}
-              developing={skillAnalysis.developing}
-              tier={attempt.tier}
-              studentName={attempt.profiles?.full_name || "Student"}
-              gradLevel={attempt.grade_level}
-              completedAt={attempt.completed_at}
-              score={attempt.score}
-              totalQuestions={attempt.total_questions}
-              correctAnswers={attempt.correct_answers}
-              testName={attempt.tests?.name || "ELA Diagnostic"}
-            />
-          </div>
-        )}
-
-        <Card className="border-slate-200 mb-6">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold text-slate-800 flex items-center justify-between">
-              <span>Skills Assessed in This Diagnostic</span>
-              {needsSkillRefresh && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={handleRegrade}
-                  disabled={regrading}
-                  className="text-xs"
-                >
-                  <RefreshCw className={`mr-2 h-3 w-3 ${regrading ? 'animate-spin' : ''}`} />
-                  {regrading ? 'Refreshing...' : 'Refresh Skills'}
-                </Button>
-              )}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 text-sm text-slate-600">
-            {hasSkillData ? (
-              <>
-                <p>
-                  This diagnostic test assessed your student's understanding of the following {Object.keys(skillAnalysis.skillStats).length || (skillAnalysis.mastered.length + skillAnalysis.needsSupport.length + skillAnalysis.developing.length)} skills:
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {Object.keys(skillAnalysis.skillStats).length > 0 ? (
-                    Object.keys(skillAnalysis.skillStats).map((skill) => (
-                      <Badge 
-                        key={skill} 
-                        variant="outline" 
-                        className="text-xs bg-slate-50 text-slate-700 border-slate-300"
-                      >
-                        {skill}
-                      </Badge>
-                    ))
-                  ) : (
-                    [...skillAnalysis.mastered, ...skillAnalysis.developing, ...skillAnalysis.needsSupport].map((skill, idx) => (
-                      <Badge 
-                        key={idx} 
-                        variant="outline" 
-                        className="text-xs bg-slate-50 text-slate-700 border-slate-300"
-                      >
-                        {skill}
-                      </Badge>
-                    ))
-                  )}
-                </div>
-              </>
-            ) : (
-              <p className="text-slate-500 italic">
-                Click "Refresh Skills" to generate detailed skill analysis for this test attempt.
-              </p>
-            )}
-            
-            {hasSkillData && skillAnalysis.needsSupport.length > 0 && (
-              <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                <p className="font-semibold text-red-800 mb-2">
-                  Your student needs academic support with:
-                </p>
-                <ul className="space-y-1">
-                  {skillAnalysis.needsSupport.map((skill, idx) => {
-                    const stats = skillAnalysis.skillStats[skill];
-                    return (
-                      <li key={idx} className="text-red-700 flex items-start gap-2">
-                        <XCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                        <span>
-                          <strong>{skill}</strong>
-                          {stats && (
-                            <span className="text-red-600 text-xs ml-1">
-                              ({stats.correct}/{stats.total} correct, {stats.percentage}%)
-                            </span>
-                          )}
-                        </span>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            )}
-
-            {skillAnalysis.developing.length > 0 && (
-              <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                <p className="font-semibold text-amber-800 mb-2">
-                  Your student is developing understanding of:
-                </p>
-                <ul className="space-y-1">
-                  {skillAnalysis.developing.map((skill, idx) => {
-                    const stats = skillAnalysis.skillStats[skill];
-                    return (
-                      <li key={idx} className="text-amber-700 flex items-start gap-2">
-                        <TrendingUp className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                        <span>
-                          <strong>{skill}</strong>
-                          {stats && (
-                            <span className="text-amber-600 text-xs ml-1">
-                              ({stats.correct}/{stats.total} correct, {stats.percentage}%)
-                            </span>
-                          )}
-                        </span>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            )}
-
-            {skillAnalysis.mastered.length > 0 && (
-              <div className="mt-4 p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
-                <p className="font-semibold text-emerald-800 mb-2">
-                  Your student has demonstrated mastery of:
-                </p>
-                <ul className="space-y-1">
-                  {skillAnalysis.mastered.map((skill, idx) => {
-                    const stats = skillAnalysis.skillStats[skill];
-                    return (
-                      <li key={idx} className="text-emerald-700 flex items-start gap-2">
-                        <CheckCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                        <span>
-                          <strong>{skill}</strong>
-                          {stats && (
-                            <span className="text-emerald-600 text-xs ml-1">
-                              ({stats.correct}/{stats.total} correct, {stats.percentage}%)
-                            </span>
-                          )}
-                        </span>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            )}
-          </CardContent>
-        </Card>
 
         {/* Tier Explanation & Next Steps */}
         <Card className="border-slate-200">
