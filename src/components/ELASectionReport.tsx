@@ -31,6 +31,7 @@ interface SectionResult {
   status: "Mastered" | "Developing" | "Support Needed";
   masteredSkills: string[];
   supportSkills: string[];
+  developingSkills: string[];
   recommendation: string;
 }
 
@@ -94,10 +95,12 @@ function buildSectionResults(skillStats: Record<string, SkillStat>): SectionResu
 
     const masteredSkills: string[] = [];
     const supportSkills: string[] = [];
+    const developingSkills: string[] = [];
     Object.entries(data.skills).forEach(([skill, st]) => {
       const pct = st.total > 0 ? Math.round((st.correct / st.total) * 100) : 0;
-      if (pct >= 85) masteredSkills.push(skill);
-      else if (pct < 70) supportSkills.push(skill);
+      if (pct >= 70) masteredSkills.push(skill);
+      else if (pct >= 50) developingSkills.push(skill);
+      else supportSkills.push(skill);
     });
 
     return {
@@ -108,6 +111,7 @@ function buildSectionResults(skillStats: Record<string, SkillStat>): SectionResu
       status,
       masteredSkills,
       supportSkills,
+      developingSkills,
       recommendation:
         status === "Mastered"
           ? "Maintain with weekly reinforcement."
@@ -158,6 +162,15 @@ function getStatusBadge(status: string) {
       );
     default:
       return null;
+  }
+}
+
+function getTierColor(tier: string | null) {
+  switch (tier) {
+    case "Tier 1": return "bg-emerald-100 text-emerald-800 border-emerald-300";
+    case "Tier 2": return "bg-amber-100 text-amber-800 border-amber-300";
+    case "Tier 3": return "bg-red-100 text-red-800 border-red-300";
+    default: return "bg-slate-100 text-slate-800 border-slate-300";
   }
 }
 
@@ -220,9 +233,23 @@ function getSchoolStrategies(section: string): string[] {
 
 /* ──────────────────────── Component ──────────────────────── */
 
-export default function ELASectionReport({ skillStats, tier }: Props) {
+export default function ELASectionReport({
+  skillStats,
+  mastered,
+  needsSupport,
+  developing,
+  tier,
+  studentName,
+  gradLevel,
+  completedAt,
+  score,
+  totalQuestions,
+  correctAnswers,
+  testName,
+}: Props) {
   const [commitments, setCommitments] = useState<Record<string, boolean>>({});
   const sections = buildSectionResults(skillStats);
+  const incorrectAnswers = (totalQuestions || 0) - (correctAnswers || 0);
 
   const toggleCommitment = (key: string) => {
     setCommitments((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -235,14 +262,317 @@ export default function ELASectionReport({ skillStats, tier }: Props) {
     .filter((s) => s.status !== "Mastered")
     .slice(0, 3);
 
+  // Build overall individual skill lists
+  const allSkillEntries = Object.entries(skillStats);
+  const overallMastered = allSkillEntries.filter(([, s]) => s.percentage >= 70).map(([k]) => k);
+  const overallDeveloping = allSkillEntries.filter(([, s]) => s.percentage >= 50 && s.percentage < 70).map(([k]) => k);
+  const overallNeedsSupport = allSkillEntries.filter(([, s]) => s.percentage < 50).map(([k]) => k);
+  const otherSkills = allSkillEntries
+    .filter(([, s]) => s.percentage >= 70 && s.percentage < 85)
+    .map(([k]) => k);
+
+  // Focus areas from weakest skills
+  const focusAreas = allSkillEntries
+    .filter(([, s]) => s.percentage < 70)
+    .sort((a, b) => a[1].percentage - b[1].percentage)
+    .map(([k]) => k);
+
   return (
-    <div className="space-y-6">
-      {/* ── Section Header ── */}
+    <div className="space-y-6 print:space-y-4">
+      {/* ══════════════════ CERTIFICATE HEADER ══════════════════ */}
+      <Card className="border-2 border-[#1C2D5A] overflow-hidden">
+        <div className="bg-[#1C2D5A] text-white text-center py-6 px-4">
+          <p className="text-sm font-medium tracking-widest uppercase opacity-80">D.E.Bs LEARNING ACADEMY</p>
+          <p className="text-xs italic opacity-60 mt-1">Unlocking Brilliance Through Learning</p>
+          <h1 className="text-2xl font-black mt-4 tracking-wide">TEST RESULT CERTIFICATE</h1>
+        </div>
+        <CardContent className="p-6">
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <p className="text-slate-500 text-xs">Student Name</p>
+              <p className="font-bold text-[#1C2D5A] text-lg">{studentName}</p>
+            </div>
+            <div>
+              <p className="text-slate-500 text-xs">Grade Level</p>
+              <p className="font-bold text-[#1C2D5A] text-lg">Grade {gradLevel}</p>
+            </div>
+            <div>
+              <p className="text-slate-500 text-xs">Test Type</p>
+              <p className="font-bold text-[#1C2D5A]">{testName}</p>
+            </div>
+            <div>
+              <p className="text-slate-500 text-xs">Date Completed</p>
+              <p className="font-bold text-[#1C2D5A]">
+                {completedAt ? new Date(completedAt).toLocaleDateString() : "—"}
+              </p>
+            </div>
+            <div>
+              <p className="text-slate-500 text-xs">Score</p>
+              <p className="font-black text-3xl text-[#1C2D5A]">{score}%</p>
+            </div>
+            <div>
+              <p className="text-slate-500 text-xs">Tier</p>
+              <Badge className={`text-base px-4 py-1 ${getTierColor(tier)}`}>{tier}</Badge>
+            </div>
+          </div>
+
+          {/* Skills Mastered / Requiring Support summary */}
+          <div className="mt-6 space-y-4">
+            <div>
+              <h3 className="text-sm font-bold text-[#1C2D5A] mb-2">🌟 Skills Mastered</h3>
+              {overallMastered.length > 0 ? (
+                <ul className="space-y-1">
+                  {overallMastered.map((skill, i) => (
+                    <li key={i} className="text-sm text-emerald-700 flex items-center gap-2">
+                      <CheckCircle2 className="h-3.5 w-3.5 flex-shrink-0" /> {skill}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-xs text-slate-500 italic">No skills fully mastered yet — keep practicing!</p>
+              )}
+            </div>
+
+            {overallNeedsSupport.length > 0 && (
+              <div>
+                <h3 className="text-sm font-bold text-[#1C2D5A] mb-2">Skills Requiring Support</h3>
+                <ul className="space-y-1">
+                  {overallNeedsSupport.map((skill, i) => (
+                    <li key={i} className="text-sm text-red-700 flex items-center gap-2">
+                      <XCircle className="h-3.5 w-3.5 flex-shrink-0" /> {skill}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {otherSkills.length > 0 && (
+              <div>
+                <h3 className="text-sm font-bold text-[#1C2D5A] mb-2">Other Skills</h3>
+                <ul className="space-y-1">
+                  {otherSkills.map((skill, i) => (
+                    <li key={i} className="text-sm text-slate-600 flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 bg-slate-400 rounded-full" /> {skill}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ══════════════════ DETAILED SKILLS ANALYSIS ══════════════════ */}
+      <Card className="border-slate-200">
+        <div className="bg-[#1C2D5A] text-white px-6 py-4">
+          <p className="text-sm font-medium tracking-widest uppercase opacity-80">D.E.Bs LEARNING ACADEMY</p>
+          <p className="text-xs italic opacity-60 mt-0.5">Unlocking Brilliance Through Learning</p>
+          <h2 className="text-xl font-black mt-3">DETAILED SKILLS ANALYSIS REPORT</h2>
+        </div>
+        <CardContent className="p-6 space-y-6">
+          {/* Correct / Incorrect / Total summary */}
+          <div className="grid grid-cols-3 gap-4 text-center">
+            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+              <p className="text-3xl font-black text-emerald-700">{correctAnswers}</p>
+              <p className="text-xs text-emerald-600 font-medium mt-1">Correct Answers</p>
+            </div>
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+              <p className="text-3xl font-black text-red-700">{incorrectAnswers}</p>
+              <p className="text-xs text-red-600 font-medium mt-1">Incorrect Answers</p>
+            </div>
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+              <p className="text-3xl font-black text-slate-700">{totalQuestions}</p>
+              <p className="text-xs text-slate-600 font-medium mt-1">Total Questions</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-6 text-sm">
+            <span className="text-emerald-700 font-semibold">Correct: {correctAnswers} ({score}%)</span>
+            <span className="text-red-700 font-semibold">Incorrect: {incorrectAnswers} ({totalQuestions ? Math.round((incorrectAnswers / totalQuestions) * 100 * 10) / 10 : 0}%)</span>
+          </div>
+
+          {/* Overall skill classification */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-5">
+              <h3 className="text-sm font-bold text-emerald-800 flex items-center gap-2 mb-3">
+                <CheckCircle2 className="h-4 w-4" /> Skills Mastered (70%+)
+              </h3>
+              {overallMastered.length > 0 ? (
+                <ul className="space-y-1.5">
+                  {overallMastered.map((skill, i) => (
+                    <li key={i} className="text-sm text-emerald-700 flex items-center gap-2">
+                      <span className="font-medium">✓</span> {skill}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-xs text-emerald-600 italic">Keep practicing — mastery is within reach!</p>
+              )}
+            </div>
+
+            <div className="bg-red-50 border border-red-200 rounded-xl p-5">
+              <h3 className="text-sm font-bold text-red-800 flex items-center gap-2 mb-3">
+                <XCircle className="h-4 w-4" /> Needs Additional Support (&lt;50%)
+              </h3>
+              {overallNeedsSupport.length > 0 ? (
+                <ul className="space-y-1.5">
+                  {overallNeedsSupport.map((skill, i) => (
+                    <li key={i} className="text-sm text-red-700 flex items-center gap-2">
+                      <span className="font-medium">✗</span> {skill}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-xs text-slate-500 italic">No skills below 50% — great effort!</p>
+              )}
+            </div>
+          </div>
+
+          {overallDeveloping.length > 0 && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-5">
+              <h3 className="text-sm font-bold text-amber-800 flex items-center gap-2 mb-3">
+                <TrendingUp className="h-4 w-4" /> Skills In Progress (50-69%)
+              </h3>
+              <ul className="space-y-1.5">
+                {overallDeveloping.map((skill, i) => (
+                  <li key={i} className="text-sm text-amber-700 flex items-center gap-2">
+                    <span className="font-medium">→</span> {skill}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Skill-by-Skill Performance Table */}
+          <div>
+            <h3 className="text-sm font-bold text-[#1C2D5A] mb-3">📊 Skill-by-Skill Performance</h3>
+            <div className="border border-slate-200 rounded-xl overflow-hidden">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-slate-100">
+                    <th className="text-left px-4 py-2.5 font-semibold text-slate-700">Topic</th>
+                    <th className="text-right px-4 py-2.5 font-semibold text-slate-700">Score</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Object.entries(skillStats)
+                    .sort((a, b) => a[0].localeCompare(b[0]))
+                    .map(([skill, stats], i) => {
+                      const pct = stats.percentage;
+                      const rowColor = pct >= 70 ? "" : pct >= 50 ? "bg-amber-50" : "bg-red-50";
+                      return (
+                        <tr key={skill} className={`border-t border-slate-100 ${rowColor}`}>
+                          <td className="px-4 py-2.5 font-medium text-slate-800">{skill}</td>
+                          <td className="px-4 py-2.5 text-right">
+                            <span className={`font-semibold ${pct >= 70 ? "text-emerald-700" : pct >= 50 ? "text-amber-700" : "text-red-700"}`}>
+                              {stats.correct}/{stats.total} ({pct}%)
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ══════════════════ TIER EXPLANATION & NEXT STEPS ══════════════════ */}
+      <Card className="border-slate-200">
+        <div className="bg-slate-50 px-6 py-4 border-b border-slate-200">
+          <p className="text-xs text-slate-500 font-medium">D.E.Bs LEARNING ACADEMY – Unlocking Brilliance Through Learning</p>
+          <h2 className="text-lg font-bold text-[#1C2D5A] mt-1">Understanding Your {tier} Placement</h2>
+        </div>
+        <CardContent className="p-6 space-y-4 text-sm text-slate-700">
+          {tier === "Tier 1" && (
+            <>
+              <p><strong className="text-emerald-700">Congratulations!</strong> Your student has mastered the topics covered in this ELA diagnostic test and is ready for advanced reading and writing activities.</p>
+              <div>
+                <p className="font-bold text-[#1C2D5A]">What This Means:</p>
+                <p>Your student has demonstrated mastery of grade-level ELA skills.</p>
+              </div>
+            </>
+          )}
+          {tier === "Tier 2" && (
+            <>
+              <p>Your student is performing at or near grade level in ELA. Focus on the specific skills listed above that need additional practice.</p>
+              <div>
+                <p className="font-bold text-[#1C2D5A]">What This Means:</p>
+                <p>With targeted practice, your student can quickly reach mastery. Consistent daily reading and writing practice is recommended.</p>
+              </div>
+            </>
+          )}
+          {tier === "Tier 3" && (
+            <>
+              <p>Your student needs focused support in the ELA skills listed above. Consistent practice will help build foundational understanding.</p>
+              <div>
+                <p className="font-bold text-[#1C2D5A]">What This Means:</p>
+                <p>Immediate intervention and daily practice are recommended. Consider enrolling in our tutoring programme for structured support.</p>
+              </div>
+            </>
+          )}
+
+          <div>
+            <h3 className="font-bold text-[#1C2D5A] flex items-center gap-2 mb-2">📋 Recommended Next Steps</h3>
+            {tier === "Tier 1" ? (
+              <p>Your child is performing above grade level in ELA. Continue challenging them with advanced reading materials and creative writing opportunities.</p>
+            ) : tier === "Tier 2" ? (
+              <p>Your child is close to mastery. Register for our 10-session tutoring programme for targeted ELA support. Diagnostic retests at sessions 5 and 10 to track progress.</p>
+            ) : (
+              <p>Your child needs focused support. Register for our 15-session tutoring programme for comprehensive ELA intervention. Diagnostic retests at sessions 7, 10, and 15 to monitor growth.</p>
+            )}
+          </div>
+
+          {focusAreas.length > 0 && (
+            <div>
+              <h3 className="font-bold text-[#1C2D5A] mb-2">Focus Areas:</h3>
+              <p>We recommend prioritizing these skills for additional practice: <strong>{focusAreas.join(", ")}</strong>.</p>
+            </div>
+          )}
+
+          {/* Per-section score table */}
+          <div>
+            <div className="border border-slate-200 rounded-xl overflow-hidden mt-4">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-slate-100">
+                    <th className="text-left px-4 py-2.5 font-semibold text-slate-700">ELA Section</th>
+                    <th className="text-right px-4 py-2.5 font-semibold text-slate-700">Score</th>
+                    <th className="text-right px-4 py-2.5 font-semibold text-slate-700">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sections.map((s) => (
+                    <tr key={s.section} className="border-t border-slate-100">
+                      <td className="px-4 py-2.5 font-medium text-slate-800">{s.section}</td>
+                      <td className="px-4 py-2.5 text-right font-semibold">
+                        <span className={s.percent >= 85 ? "text-emerald-700" : s.percent >= 70 ? "text-amber-700" : "text-red-700"}>
+                          {s.correct}/{s.total} ({s.percent}%)
+                        </span>
+                      </td>
+                      <td className="px-4 py-2.5 text-right">{getStatusBadge(s.status)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Contact */}
+          <div className="border-t border-slate-200 pt-4 mt-4">
+            <p className="font-bold text-[#1C2D5A] mb-1">Contact D.E.Bs LEARNING ACADEMY</p>
+            <p className="text-xs text-slate-500">📧 Email: info@debslearnacademy.com | 📞 Phone: 347-364-1906</p>
+            <p className="text-xs text-slate-500">🌐 Website: www.debslearnacademy.com</p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ══════════════════ SECTION-BY-SECTION BREAKDOWN ══════════════════ */}
       <h2 className="text-xl font-bold text-[#1C2D5A] flex items-center gap-2">
         <BookOpen className="h-5 w-5" /> ELA Section-by-Section Breakdown
       </h2>
 
-      {/* ── Section Cards ── */}
       {ELA_SECTIONS.map((sectionName) => {
         const section = sections.find((s) => s.section === sectionName);
         if (!section) return null;
@@ -319,7 +649,7 @@ export default function ELASectionReport({ skillStats, tier }: Props) {
         );
       })}
 
-      {/* ── Parent Priority Focus ── */}
+      {/* ══════════════════ PARENT PRIORITY FOCUS ══════════════════ */}
       {weakSections.length > 0 && (
         <Card className="border-2 border-[#FFDE59] overflow-hidden">
           <div className="bg-[#FFDE59] px-6 py-4">
@@ -410,6 +740,12 @@ export default function ELASectionReport({ skillStats, tier }: Props) {
           </CardContent>
         </Card>
       )}
+
+      {/* Footer */}
+      <div className="text-center text-xs text-slate-400 py-2">
+        <p>D.E.Bs LEARNING ACADEMY – Unlocking Brilliance Through Learning</p>
+        <p>Report Generated: {new Date().toLocaleDateString()}</p>
+      </div>
     </div>
   );
 }
