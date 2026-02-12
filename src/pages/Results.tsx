@@ -6,8 +6,17 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 import { toast } from "sonner";
-import { ArrowLeft, Download, CheckCircle, XCircle, TrendingUp, RefreshCw, FileText, GraduationCap } from "lucide-react";
+import { ArrowLeft, Download, CheckCircle, XCircle, TrendingUp, RefreshCw, FileText, GraduationCap, Share2 } from "lucide-react";
 import ELASectionReport from "@/components/ELASectionReport";
+import { getTierFromScore, TIER_LABELS, TIER_THRESHOLDS } from "@/lib/tierConfig";
+import {
+  TierStatusBadge,
+  SkillRow,
+  RecommendedNextStepPanel,
+  PlacementPathwayCard,
+  TierClassificationBlocks,
+  InsightBox,
+} from "@/components/TierComponents";
 
 interface SkillStat {
   total: number;
@@ -59,7 +68,6 @@ const Results = () => {
         return;
       }
 
-      // Check if user is admin
       const { data: roleData } = await supabase
         .from("user_roles")
         .select("role")
@@ -72,28 +80,18 @@ const Results = () => {
       let query = supabase
         .from("test_attempts")
         .select(`
-          id,
-          score,
-          tier,
-          total_questions,
-          correct_answers,
-          completed_at,
-          grade_level,
-          strengths,
-          weaknesses,
-          skill_analysis,
+          id, score, tier, total_questions, correct_answers, completed_at,
+          grade_level, strengths, weaknesses, skill_analysis,
           tests:test_id (name, test_type),
           profiles:user_id (full_name)
         `)
         .eq("id", attemptId);
       
-      // Only filter by user_id for non-admin users
       if (!isAdmin) {
         query = query.eq("user_id", user.id);
       }
       
       const { data, error } = await query.single();
-
       if (error) throw error;
       setAttempt(data as unknown as TestAttempt);
     } catch (err) {
@@ -111,17 +109,13 @@ const Results = () => {
 
   const handleRegrade = async () => {
     if (!attemptId) return;
-    
     setRegrading(true);
     try {
       const { data, error } = await supabase.functions.invoke("regrade-test", {
         body: { attemptId },
       });
-
       if (error) throw new Error(error.message);
-      
       toast.success("Skill analysis updated!");
-      // Refresh the results
       await fetchResults();
     } catch (err) {
       console.error("Regrade error:", err);
@@ -134,23 +128,18 @@ const Results = () => {
   const handleDownload = async () => {
     try {
       toast.loading("Generating PDF...", { id: "pdf-download" });
-
       const { data, error } = await supabase.functions.invoke("generate-result-download", {
         body: { attemptId, format: "pdf" },
       });
-
       if (error) throw new Error(error.message);
-
       const htmlContent = data?.html;
       if (!htmlContent) throw new Error("Could not generate result");
-
       const printWindow = window.open("", "_blank");
       if (printWindow) {
         printWindow.document.write(htmlContent);
         printWindow.document.close();
         setTimeout(() => printWindow.print(), 500);
       }
-
       toast.success("Result opened! Use Print > Save as PDF to download.", { id: "pdf-download" });
     } catch (err) {
       console.error("Download error:", err);
@@ -161,43 +150,28 @@ const Results = () => {
   const handleTeacherCopy = async () => {
     try {
       toast.loading("Generating teacher copy...", { id: "teacher-copy" });
-
       const { data, error } = await supabase.functions.invoke("generate-teacher-copy", {
         body: { attemptId },
       });
-
       if (error) throw new Error(error.message);
-
       const htmlContent = data?.html;
       if (!htmlContent) throw new Error("Could not generate teacher copy");
-
       const printWindow = window.open("", "_blank");
       if (printWindow) {
         printWindow.document.write(htmlContent);
         printWindow.document.close();
         setTimeout(() => printWindow.print(), 500);
       }
-
-      toast.success("Teacher copy opened! Print to accompany results.", { id: "teacher-copy" });
+      toast.success("Teacher copy opened!", { id: "teacher-copy" });
     } catch (err) {
       console.error("Teacher copy error:", err);
       toast.error("Failed to generate teacher copy.", { id: "teacher-copy" });
     }
   };
 
-  const getTierColor = (tier: string | null) => {
-    switch (tier) {
-      case "Tier 1": return "bg-emerald-100 text-emerald-800 border-emerald-200";
-      case "Tier 2": return "bg-amber-100 text-amber-800 border-amber-200";
-      case "Tier 3": return "bg-red-100 text-red-800 border-red-200";
-      default: return "bg-slate-100 text-slate-800 border-slate-200";
-    }
-  };
-
-  const getSkillColor = (percentage: number) => {
-    if (percentage >= 70) return "bg-emerald-500";
-    if (percentage >= 50) return "bg-amber-500";
-    return "bg-red-500";
+  const handleShare = () => {
+    navigator.clipboard.writeText(window.location.href);
+    toast.success("Link copied! Share with a parent or guardian.");
   };
 
   if (loading) {
@@ -225,8 +199,10 @@ const Results = () => {
   };
 
   const incorrectAnswers = (attempt.total_questions || 0) - (attempt.correct_answers || 0);
+  const overallScore = attempt.score || 0;
+  const overallTier = getTierFromScore(overallScore);
+  const tierCfg = TIER_LABELS[overallTier];
   
-  // Check if we have meaningful skill data (not just "General" or "General Math")
   const skillKeys = Object.keys(skillAnalysis.skillStats);
   const hasOnlyGenericSkills = skillKeys.length > 0 && 
     skillKeys.every(key => key.toLowerCase().includes('general'));
@@ -237,7 +213,6 @@ const Results = () => {
                        skillAnalysis.developing.length > 0;
   
   const needsSkillRefresh = !hasSkillData || hasOnlyGenericSkills;
-  const isTier1 = attempt.tier === "Tier 1";
   const isELA = attempt.tests?.test_type === "ela" || attempt.tests?.name?.toLowerCase().includes("ela");
 
   return (
@@ -245,32 +220,18 @@ const Results = () => {
       {/* Header */}
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-4 sm:px-6">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate("/dashboard")}
-            className="text-slate-600"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Dashboard
+          <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard")} className="text-slate-600">
+            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard
           </Button>
           <div className="flex gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={handleTeacherCopy}
-              className="border-amber-300 text-amber-700 hover:bg-amber-50"
-            >
-              <FileText className="mr-2 h-4 w-4" />
-              Teacher Copy
+            <Button size="sm" variant="outline" onClick={handleShare} className="text-xs">
+              <Share2 className="mr-2 h-4 w-4" /> Share
             </Button>
-            <Button
-              size="sm"
-              onClick={handleDownload}
-              className="bg-slate-900 text-white hover:bg-slate-800"
-            >
-              <Download className="mr-2 h-4 w-4" />
-              Download PDF
+            <Button size="sm" variant="outline" onClick={handleTeacherCopy} className="border-amber-300 text-amber-700 hover:bg-amber-50">
+              <FileText className="mr-2 h-4 w-4" /> Teacher Copy
+            </Button>
+            <Button size="sm" onClick={handleDownload} className="bg-slate-900 text-white hover:bg-slate-800">
+              <Download className="mr-2 h-4 w-4" /> Download PDF
             </Button>
           </div>
         </div>
@@ -280,10 +241,11 @@ const Results = () => {
         {/* Score Overview */}
         <Card className="mb-6 border-slate-200">
           <CardHeader className="text-center pb-2">
-            <div className="mb-2">
-              <Badge className={`text-lg px-4 py-1 ${getTierColor(attempt.tier)}`}>
+            <div className="mb-2 flex flex-col items-center gap-2">
+              <Badge className={`text-lg px-4 py-1 ${tierCfg.badgeClass}`}>
                 {attempt.tier}
               </Badge>
+              <p className="text-xs font-medium">{tierCfg.label}</p>
             </div>
             <CardTitle className="text-3xl font-bold text-slate-900">
               {attempt.score}%
@@ -314,6 +276,14 @@ const Results = () => {
                 </p>
                 <p className="text-xs text-slate-500">Completed</p>
               </div>
+            </div>
+
+            {/* Insight box for overall score */}
+            <InsightBox score={overallScore} />
+
+            {/* Desktop CTA after score summary */}
+            <div className="mt-4 print:hidden">
+              <RecommendedNextStepPanel overallScore={overallScore} attemptId={attemptId} onNavigate={navigate} />
             </div>
           </CardContent>
         </Card>
@@ -375,109 +345,78 @@ const Results = () => {
           )
         ) : (
           <>
-            <div className="grid gap-6 md:grid-cols-2 mb-6">
-              <Card className="border-emerald-200">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-semibold text-emerald-700 flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4" />
-                    Skills Mastered (70%+)
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {skillAnalysis.mastered.length > 0 ? (
-                    <ul className="space-y-1">
-                      {skillAnalysis.mastered.map((skill, idx) => (
-                        <li key={idx} className="text-sm text-emerald-800 flex items-center gap-2">
-                          <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
-                          {skill}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : isTier1 ? (
-                    <p className="text-xs text-emerald-600 italic">Excellent! Student demonstrated strong understanding across all tested skills.</p>
-                  ) : (
-                    <p className="text-xs text-slate-400 italic">No skills in this category</p>
-                  )}
-                </CardContent>
-              </Card>
+            {/* Math / Generic: Classification blocks with new tier labels */}
+            <div className="mb-6 space-y-4">
+              {hasSkillData && (
+                <>
+                  {/* Build section-like data from individual skills for classification */}
+                  {(() => {
+                    const skillSections = Object.entries(skillAnalysis.skillStats).map(([skill, stats]) => ({
+                      section: skill,
+                      correct: stats.correct,
+                      total: stats.total,
+                      percent: stats.percentage,
+                    }));
+                    return skillSections.length > 0 ? <TierClassificationBlocks sections={skillSections} /> : null;
+                  })()}
+                </>
+              )}
 
-              {(!isTier1 || skillAnalysis.needsSupport.length > 0) && (
-                <Card className="border-red-200">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-semibold text-red-700 flex items-center gap-2">
-                      <XCircle className="h-4 w-4" />
-                      Needs Additional Support (&lt;50%)
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {skillAnalysis.needsSupport.length > 0 ? (
+              {!hasSkillData && (
+                <>
+                  {/* Fallback to old mastered/needsSupport arrays with new labels */}
+                  {skillAnalysis.needsSupport.length > 0 && (
+                    <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                      <p className="font-semibold text-red-800 mb-1 text-sm">🔴 Priority Intervention Required</p>
+                      <p className="text-xs text-red-600 mb-3">These skills are below foundational mastery and require targeted support to prevent academic delay.</p>
                       <ul className="space-y-1">
                         {skillAnalysis.needsSupport.map((skill, idx) => (
                           <li key={idx} className="text-sm text-red-800 flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 bg-red-500 rounded-full" />
-                            {skill}
+                            <span className="w-1.5 h-1.5 bg-red-500 rounded-full" /> {skill}
                           </li>
                         ))}
                       </ul>
-                    ) : (
-                      <p className="text-xs text-slate-400 italic">No skills in this category</p>
-                    )}
-                  </CardContent>
-                </Card>
-              )}
-
-              {isTier1 && skillAnalysis.needsSupport.length === 0 && (
-                <Card className="border-emerald-200 bg-emerald-50">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-semibold text-emerald-700 flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4" />
-                      Ready for Advanced Topics
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-xs text-emerald-700">Great news! Your student has no skills requiring additional support and is ready for enrichment activities.</p>
-                  </CardContent>
-                </Card>
+                    </div>
+                  )}
+                  {skillAnalysis.developing.length > 0 && (
+                    <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                      <p className="font-semibold text-amber-800 mb-1 text-sm">🟡 Strengthening Zone</p>
+                      <p className="text-xs text-amber-600 mb-3">These skills are developing but need reinforcement to reach mastery.</p>
+                      <ul className="space-y-1">
+                        {skillAnalysis.developing.map((skill, idx) => (
+                          <li key={idx} className="text-sm text-amber-800 flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 bg-amber-500 rounded-full" /> {skill}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {skillAnalysis.mastered.length > 0 && (
+                    <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
+                      <p className="font-semibold text-emerald-800 mb-1 text-sm">🟢 Demonstrated Mastery</p>
+                      <p className="text-xs text-emerald-600 mb-3">These skills meet or exceed grade-level expectations.</p>
+                      <ul className="space-y-1">
+                        {skillAnalysis.mastered.map((skill, idx) => (
+                          <li key={idx} className="text-sm text-emerald-800 flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full" /> {skill}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </>
               )}
             </div>
 
-            {skillAnalysis.developing.length > 0 && (
-              <Card className="border-amber-200 mb-6">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-semibold text-amber-700 flex items-center gap-2">
-                    <TrendingUp className="h-4 w-4" />
-                    Skills In Progress (50-69%)
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-1">
-                    {skillAnalysis.developing.map((skill, idx) => (
-                      <li key={idx} className="text-sm text-amber-800 flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 bg-amber-500 rounded-full" />
-                        {skill}
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            )}
-
+            {/* Skill-by-skill with status pills and action recommendations */}
             {Object.keys(skillAnalysis.skillStats).length > 0 && (
               <Card className="border-slate-200 mb-6">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-semibold text-slate-800">Skill-by-Skill Performance</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent>
                   {Object.entries(skillAnalysis.skillStats).map(([skill, stats]) => (
-                    <div key={skill} className="space-y-1">
-                      <div className="flex justify-between text-xs">
-                        <span className="font-medium text-slate-700">{skill}</span>
-                        <span className="text-slate-500">{stats.correct}/{stats.total} ({stats.percentage}%)</span>
-                      </div>
-                      <div className="h-2 w-full bg-slate-200 rounded-full overflow-hidden">
-                        <div className={`h-full rounded-full ${getSkillColor(stats.percentage)}`} style={{ width: `${stats.percentage}%` }} />
-                      </div>
-                    </div>
+                    <SkillRow key={skill} skill={skill} correct={stats.correct} total={stats.total} percentage={stats.percentage} />
                   ))}
                 </CardContent>
               </Card>
@@ -492,13 +431,7 @@ const Results = () => {
               <CardTitle className="text-sm font-semibold text-slate-800 flex items-center justify-between">
                 <span>Skills Assessed in This Diagnostic</span>
                 {needsSkillRefresh && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={handleRegrade}
-                    disabled={regrading}
-                    className="text-xs"
-                  >
+                  <Button size="sm" variant="outline" onClick={handleRegrade} disabled={regrading} className="text-xs">
                     <RefreshCw className={`mr-2 h-3 w-3 ${regrading ? 'animate-spin' : ''}`} />
                     {regrading ? 'Refreshing...' : 'Refresh Skills'}
                   </Button>
@@ -514,21 +447,13 @@ const Results = () => {
                   <div className="flex flex-wrap gap-2">
                     {Object.keys(skillAnalysis.skillStats).length > 0 ? (
                       Object.keys(skillAnalysis.skillStats).map((skill) => (
-                        <Badge 
-                          key={skill} 
-                          variant="outline" 
-                          className="text-xs bg-slate-50 text-slate-700 border-slate-300"
-                        >
+                        <Badge key={skill} variant="outline" className="text-xs bg-slate-50 text-slate-700 border-slate-300">
                           {skill}
                         </Badge>
                       ))
                     ) : (
                       [...skillAnalysis.mastered, ...skillAnalysis.developing, ...skillAnalysis.needsSupport].map((skill, idx) => (
-                        <Badge 
-                          key={idx} 
-                          variant="outline" 
-                          className="text-xs bg-slate-50 text-slate-700 border-slate-300"
-                        >
+                        <Badge key={idx} variant="outline" className="text-xs bg-slate-50 text-slate-700 border-slate-300">
                           {skill}
                         </Badge>
                       ))
@@ -540,131 +465,27 @@ const Results = () => {
                   Click "Refresh Skills" to generate detailed skill analysis for this test attempt.
                 </p>
               )}
-              
-              {hasSkillData && skillAnalysis.needsSupport.length > 0 && (
-                <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="font-semibold text-red-800 mb-2">Your student needs academic support with:</p>
-                  <ul className="space-y-1">
-                    {skillAnalysis.needsSupport.map((skill, idx) => {
-                      const stats = skillAnalysis.skillStats[skill];
-                      return (
-                        <li key={idx} className="text-red-700 flex items-start gap-2">
-                          <XCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                          <span>
-                            <strong>{skill}</strong>
-                            {stats && <span className="text-red-600 text-xs ml-1">({stats.correct}/{stats.total} correct, {stats.percentage}%)</span>}
-                          </span>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              )}
-
-              {skillAnalysis.developing.length > 0 && (
-                <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                  <p className="font-semibold text-amber-800 mb-2">Your student is developing understanding of:</p>
-                  <ul className="space-y-1">
-                    {skillAnalysis.developing.map((skill, idx) => {
-                      const stats = skillAnalysis.skillStats[skill];
-                      return (
-                        <li key={idx} className="text-amber-700 flex items-start gap-2">
-                          <TrendingUp className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                          <span>
-                            <strong>{skill}</strong>
-                            {stats && <span className="text-amber-600 text-xs ml-1">({stats.correct}/{stats.total} correct, {stats.percentage}%)</span>}
-                          </span>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              )}
-
-              {skillAnalysis.mastered.length > 0 && (
-                <div className="mt-4 p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
-                  <p className="font-semibold text-emerald-800 mb-2">Your student has demonstrated mastery of:</p>
-                  <ul className="space-y-1">
-                    {skillAnalysis.mastered.map((skill, idx) => {
-                      const stats = skillAnalysis.skillStats[skill];
-                      return (
-                        <li key={idx} className="text-emerald-700 flex items-start gap-2">
-                          <CheckCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                          <span>
-                            <strong>{skill}</strong>
-                            {stats && <span className="text-emerald-600 text-xs ml-1">({stats.correct}/{stats.total} correct, {stats.percentage}%)</span>}
-                          </span>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              )}
             </CardContent>
           </Card>
         )}
 
+        {/* Placement Pathway */}
+        <div className="mb-6">
+          <PlacementPathwayCard overallScore={overallScore} />
+        </div>
+
         {/* Tier Explanation & Next Steps */}
-        <Card className="border-slate-200">
+        <Card className="border-slate-200 mb-6">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-semibold text-slate-800">
-              Next Steps Based on {attempt.tier} Placement
+              Understanding Your {attempt.tier} Placement
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-sm text-slate-600">
-            {attempt.tier === "Tier 1" && (
-              <>
-                <p>
-                  <strong className="text-emerald-700">Excellent performance!</strong> Your student scored 
-                  80% or above and is ready for advanced topics and enrichment activities.
-                </p>
-                <Button
-                  onClick={() => navigate(`/curriculum/${attemptId}`)}
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
-                >
-                  <GraduationCap className="mr-2 h-4 w-4" />
-                  View Enrichment Curriculum & Practice
-                </Button>
-              </>
-            )}
-            {attempt.tier === "Tier 2" && (
-              <>
-                <p>
-                  Your student is performing at or near grade level. Focus on the specific skills listed 
-                  above that need additional practice.
-                </p>
-                <p>
-                  <strong className="text-amber-700">Recommended:</strong> Register for our 10-session 
-                  tutoring program. Automatic diagnostic retries at sessions 5 and 10 to track progress.
-                </p>
-                <Button
-                  onClick={() => navigate(`/curriculum/${attemptId}`)}
-                  className="w-full bg-amber-600 hover:bg-amber-700 text-white"
-                >
-                  <GraduationCap className="mr-2 h-4 w-4" />
-                  Register for Pods - Get Personalized Curriculum
-                </Button>
-              </>
-            )}
-            {attempt.tier === "Tier 3" && (
-              <>
-                <p>
-                  Your student needs focused support in the skills listed above. Consistent practice 
-                  will help build foundational understanding.
-                </p>
-                <p>
-                  <strong className="text-red-700">Recommended:</strong> Register for our 15-session 
-                  tutoring program. Automatic diagnostic retries at sessions 7, 10, and 15 to monitor growth.
-                </p>
-                <Button
-                  onClick={() => navigate(`/curriculum/${attemptId}`)}
-                  className="w-full bg-red-600 hover:bg-red-700 text-white"
-                >
-                  <GraduationCap className="mr-2 h-4 w-4" />
-                  Register for Pods - Get Personalized Curriculum
-                </Button>
-              </>
-            )}
+            <div className={`p-4 rounded-lg border ${tierCfg.borderClass} ${tierCfg.bgClass}`}>
+              <p className={`font-bold text-base ${tierCfg.textClass} mb-1`}>{tierCfg.label}</p>
+              <p className={`text-sm ${tierCfg.textClass}`}>{tierCfg.helper}</p>
+            </div>
             
             <div className="border-t border-slate-100 pt-4 mt-4">
               <p className="text-xs text-slate-500">
@@ -674,6 +495,11 @@ const Results = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Bottom CTA (mobile repeat) */}
+        <div className="print:hidden sm:hidden mb-6">
+          <RecommendedNextStepPanel overallScore={overallScore} attemptId={attemptId} onNavigate={navigate} />
+        </div>
       </main>
     </div>
   );
