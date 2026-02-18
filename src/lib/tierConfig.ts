@@ -91,24 +91,36 @@ export const SKILL_ACTION = {
 
 /* ── CTA System ── */
 export interface TierCTA {
-  primary: { label: string; variant: "red" | "yellow" | "green" };
+  primary: { label: string; variant: "red" | "yellow" | "green"; paymentUrl: string };
   secondary: { label: string };
   tertiary: { label: string };
 }
 
 export const TIER_CTAS: Record<"red" | "yellow" | "green", TierCTA> = {
   red: {
-    primary: { label: "Book Tier 3 Intensive Intervention Plan", variant: "red" },
+    primary: {
+      label: "Book Tier 3 Intensive Intervention Plan",
+      variant: "red",
+      paymentUrl: "https://buy.stripe.com/cNicMXfTqd5C2LVfUO4wM00",
+    },
     secondary: { label: "Schedule a Strategy Call" },
     tertiary: { label: "Download Home Support Plan" },
   },
   yellow: {
-    primary: { label: "Enroll in the Skill Builder Program", variant: "yellow" },
+    primary: {
+      label: "Enroll in the Skill Builder Program",
+      variant: "yellow",
+      paymentUrl: "https://buy.stripe.com/14AbITePm3v286f3824wM01",
+    },
     secondary: { label: "Schedule a Strategy Call" },
     tertiary: { label: "Download Home Support Plan" },
   },
   green: {
-    primary: { label: "Join the Enrichment Pod", variant: "green" },
+    primary: {
+      label: "Join the Enrichment Pod",
+      variant: "green",
+      paymentUrl: "https://buy.stripe.com/eVq8wH4aI2qYfyHaAu4wM02",
+    },
     secondary: { label: "Download Home Support Plan" },
     tertiary: { label: "Schedule a Strategy Call" },
   },
@@ -116,9 +128,9 @@ export const TIER_CTAS: Record<"red" | "yellow" | "green", TierCTA> = {
 
 /* ── Placement Pathway ── */
 export const PLACEMENT_PATHWAY = [
-  { tier: "Tier 1 (85%+)", label: "Enrichment Pod", price: "$", color: "green" as const },
-  { tier: "Tier 2 (66–84%)", label: "Skill Builder Program", price: "$$", color: "yellow" as const },
-  { tier: "Tier 3 (≤65%)", label: "Intensive Intervention Plan", price: "$$$", color: "red" as const },
+  { tier: "Tier 1 (85%+)", label: "Enrichment Pod", price: "$597", color: "green" as const, paymentUrl: "https://buy.stripe.com/eVq8wH4aI2qYfyHaAu4wM02" },
+  { tier: "Tier 2 (66–84%)", label: "Skill Builder Program", price: "$1,097", color: "yellow" as const, paymentUrl: "https://buy.stripe.com/14AbITePm3v286f3824wM01" },
+  { tier: "Tier 3 (≤65%)", label: "Intensive Intervention Plan", price: "$1,997", color: "red" as const, paymentUrl: "https://buy.stripe.com/cNicMXfTqd5C2LVfUO4wM00" },
 ];
 
 /* ── CTA Button Styles ── */
