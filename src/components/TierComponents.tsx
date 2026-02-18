@@ -93,7 +93,10 @@ export function RecommendedNextStepPanel({ overallScore, attemptId, onNavigate }
         <p className={`text-xs ${cfg.textClass} opacity-70 mt-1`}>{cfg.helper}</p>
       </div>
       <CardContent className="p-6 space-y-3">
-        <Button className={`w-full ${style} font-semibold text-base py-6`} onClick={() => onNavigate?.(attemptId ? `/curriculum/${attemptId}` : "/dashboard")}>
+        <Button
+          className={`w-full ${style} font-semibold text-base py-6`}
+          onClick={() => window.open(ctas.primary.paymentUrl, "_blank")}
+        >
           {ctas.primary.label}
         </Button>
         <Button variant="outline" className="w-full" onClick={() => window.open("mailto:info@debslearnacademy.com?subject=Strategy Call Request", "_blank")}>
@@ -125,6 +128,7 @@ export function PlacementPathwayCard({ overallScore }: { overallScore: number })
               <th className="text-left px-5 py-3 font-semibold text-slate-700">Tier</th>
               <th className="text-left px-5 py-3 font-semibold text-slate-700">Programme</th>
               <th className="text-right px-5 py-3 font-semibold text-slate-700">Investment</th>
+              <th className="px-3 py-3"></th>
             </tr>
           </thead>
           <tbody>
@@ -140,6 +144,14 @@ export function PlacementPathwayCard({ overallScore }: { overallScore: number })
                   </td>
                   <td className={`px-5 py-3 text-right font-bold ${isActive ? TIER_LABELS[row.color].textClass : "text-slate-500"}`}>
                     {row.price}
+                  </td>
+                  <td className="px-3 py-3 text-right">
+                    <button
+                      onClick={() => window.open(row.paymentUrl, "_blank")}
+                      className={`text-xs px-3 py-1 rounded-full font-semibold transition-opacity ${isActive ? `${CTA_STYLES[row.color]} opacity-100` : "opacity-40 bg-slate-200 text-slate-600"} ${!isActive ? "cursor-pointer hover:opacity-70" : ""}`}
+                    >
+                      Enroll
+                    </button>
                   </td>
                 </tr>
               );
