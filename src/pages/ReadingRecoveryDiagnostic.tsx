@@ -281,10 +281,20 @@ const ReadingRecoveryDiagnostic = () => {
         : null;
       
       try {
-        // Save the transcript with full metadata
+        // Build full question results with question text for admin review
+        const questionResultsWithDetails = passage.questions.map((q) => ({
+          id: q.id,
+          number: q.number,
+          level: q.level,
+          text: q.text,
+          correct: scores.questionResults[q.id] === true,
+          transcript: scores.questionTranscripts?.[q.id] || null,
+        }));
+
+        // Save the transcript with full metadata including comprehension Q&A
         const { data, error } = await supabase
           .from("reading_diagnostic_transcripts")
-          .insert({
+          .insert([{
             user_id: userId,
             student_name: adminInfo.studentName,
             passage_title: passage.title,
@@ -297,6 +307,16 @@ const ReadingRecoveryDiagnostic = () => {
               substitutions: scores.detectedErrors.substitutions,
               insertions: scores.detectedErrors.insertions,
             } : null,
+            // Store full comprehension Q&A in confirmed_errors field (jsonb)
+            confirmed_errors: JSON.parse(JSON.stringify({
+              questionResults: questionResultsWithDetails,
+              comprehensionSummary: {
+                literal: { correct: sc.literal, total: passage.scoringThresholds.literal.total },
+                inferential: { correct: sc.inferential, total: passage.scoringThresholds.inferential.total },
+                analytical: { correct: sc.analytical, total: passage.scoringThresholds.analytical.total },
+                total: { correct: sc.total, total: passage.scoringThresholds.totalQuestions },
+              },
+            })),
             final_error_count: scores.oralReadingErrors,
             consent_given: oralConsentGiven,
             auto_delete_enabled: deleteAudioAfter24h,
@@ -308,7 +328,7 @@ const ReadingRecoveryDiagnostic = () => {
             assessment_duration_seconds: durationSeconds,
             completion_status: completionStatus.isComplete ? 'completed' : 'incomplete',
             all_questions_answered: completionStatus.isComplete,
-          })
+          }])
           .select("id")
           .single();
         

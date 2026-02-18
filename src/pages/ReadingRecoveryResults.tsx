@@ -5,13 +5,29 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, BookOpen, Trophy, BarChart3, CheckCircle2, XCircle, Calendar, User, Download, Mail, Loader2, Target } from "lucide-react";
+import { ArrowLeft, BookOpen, Trophy, BarChart3, CheckCircle2, XCircle, Calendar, User, Download, Mail, Loader2, Target, MessageSquare, Brain } from "lucide-react";
 import { toast } from "sonner";
 import { 
   getPassage, 
   interpretationGuide, 
   type Passage 
 } from "@/data/reading-recovery-content";
+
+interface QuestionResult {
+  id: string;
+  number: number;
+  level: 'literal' | 'inferential' | 'analytical';
+  text: string;
+  correct: boolean;
+  transcript?: { text?: string } | null;
+}
+
+interface ComprehensionSummary {
+  literal: { correct: number; total: number };
+  inferential: { correct: number; total: number };
+  analytical: { correct: number; total: number };
+  total: { correct: number; total: number };
+}
 
 interface DiagnosticResult {
   id: string;
@@ -113,10 +129,28 @@ const ReadingRecoveryResults = () => {
     };
   }, [transcriptId, navigate]);
 
-  const calculateTier = (errorCount: number | null) => {
+  const calculateTier = (errorCount: number | null, confirmedErrors?: any) => {
     if (errorCount === null) return { tier: "Unknown", color: "bg-muted" };
-    if (errorCount <= 3) return { tier: "Tier 1", color: "bg-emerald-500" };
-    if (errorCount <= 7) return { tier: "Tier 2", color: "bg-amber-500" };
+
+    // Extract comprehension data if available
+    const summary: ComprehensionSummary | null = confirmedErrors?.comprehensionSummary || null;
+    const totalQ = summary?.total?.total ?? 0;
+    const correctQ = summary?.total?.correct ?? 0;
+    const comprehensionPct = totalQ > 0 ? (correctQ / totalQ) * 100 : null;
+
+    // Tier based on BOTH fluency (errors) AND comprehension
+    // A student must pass BOTH dimensions to reach Tier 1
+    const fluencyTier = errorCount <= 3 ? 1 : errorCount <= 7 ? 2 : 3;
+    const comprehensionTier = comprehensionPct === null ? 1
+      : comprehensionPct >= 70 ? 1
+      : comprehensionPct >= 50 ? 2
+      : 3;
+
+    // Use the WORSE of the two tiers (most support needed)
+    const effectiveTier = Math.max(fluencyTier, comprehensionTier);
+
+    if (effectiveTier === 1) return { tier: "Tier 1", color: "bg-emerald-500" };
+    if (effectiveTier === 2) return { tier: "Tier 2", color: "bg-amber-500" };
     return { tier: "Tier 3", color: "bg-red-500" };
   };
 
@@ -192,7 +226,7 @@ body { margin: 0; padding: 40px; font-family: Georgia, serif; background: linear
     if (!result) return;
     setDownloading(true);
     try {
-      const { tier } = calculateTier(result.final_error_count);
+      const { tier } = calculateTier(result.final_error_count, result.confirmed_errors);
       const html = generateResultHTML(result, { tier, color: "" });
       const printWindow = window.open("", "_blank");
       if (printWindow) {
@@ -227,7 +261,7 @@ body { margin: 0; padding: 40px; font-family: Georgia, serif; background: linear
         return;
       }
 
-      const { tier } = calculateTier(result.final_error_count);
+      const { tier } = calculateTier(result.final_error_count, result.confirmed_errors);
 
       const { error } = await supabase.functions.invoke("send-reading-recovery-results", {
         body: {
@@ -269,7 +303,7 @@ body { margin: 0; padding: 40px; font-family: Georgia, serif; background: linear
     );
   }
 
-  const { tier, color } = calculateTier(result.final_error_count);
+  const { tier, color } = calculateTier(result.final_error_count, result.confirmed_errors);
 
   const getVersionLabel = (version: string) => {
     if (version === "A") return "Pre-Test";
@@ -505,23 +539,123 @@ body { margin: 0; padding: 40px; font-family: Georgia, serif; background: linear
               Why This Tier?
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="border rounded-lg p-3 text-center">
-                <div className="text-xs text-muted-foreground mb-1">Errors Found</div>
-                <div className="text-2xl font-bold text-foreground">{result.final_error_count ?? 0}</div>
+          <CardContent className="space-y-4">
+            {/* Fluency row */}
+            <div>
+              <h4 className="text-sm font-semibold text-muted-foreground mb-2 uppercase tracking-wide">Oral Reading Fluency</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="border rounded-lg p-3 text-center">
+                  <div className="text-xs text-muted-foreground mb-1">Errors Found</div>
+                  <div className="text-2xl font-bold text-foreground">{result.final_error_count ?? 0}</div>
+                </div>
+                <div className="text-center flex flex-col justify-center">
+                  <div className="text-xs text-muted-foreground mb-1">Fluency Rule</div>
+                  <div className="text-sm font-medium">≤3 errors = Strong<br/>4–7 errors = Developing<br/>&gt;7 errors = Needs Support</div>
+                </div>
+                <div className={`border-2 rounded-lg p-3 text-center ${
+                  (result.final_error_count ?? 99) <= 3 ? "border-emerald-300 bg-emerald-50" 
+                  : (result.final_error_count ?? 99) <= 7 ? "border-amber-300 bg-amber-50" 
+                  : "border-red-300 bg-red-50"}`}>
+                  <div className="text-xs text-muted-foreground mb-1">Fluency Rating</div>
+                  <div className="text-lg font-bold">
+                    {(result.final_error_count ?? 99) <= 3 ? "✅ Strong" : (result.final_error_count ?? 99) <= 7 ? "⚠️ Developing" : "❌ Needs Support"}
+                  </div>
+                </div>
               </div>
-              <div className="text-center flex flex-col justify-center">
-                <div className="text-xs text-muted-foreground mb-1">Scoring Rule</div>
-                <div className="text-sm font-medium">≤3 errors = Tier 1<br/>4–7 errors = Tier 2<br/>&gt;7 errors = Tier 3</div>
-              </div>
-              <div className={`border-2 rounded-lg p-3 text-center ${tier === "Tier 1" ? "border-emerald-300 bg-emerald-50" : tier === "Tier 2" ? "border-amber-300 bg-amber-50" : "border-red-300 bg-red-50"}`}>
-                <div className="text-xs text-muted-foreground mb-1">Placement</div>
-                <div className="text-2xl font-bold">{tier}</div>
-              </div>
+            </div>
+
+            {/* Comprehension row */}
+            {result.confirmed_errors?.comprehensionSummary && (() => {
+              const summary = result.confirmed_errors.comprehensionSummary as ComprehensionSummary;
+              const pct = summary.total.total > 0 ? Math.round((summary.total.correct / summary.total.total) * 100) : 0;
+              return (
+                <div>
+                  <h4 className="text-sm font-semibold text-muted-foreground mb-2 uppercase tracking-wide">Reading Comprehension</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="border rounded-lg p-3 text-center">
+                      <div className="text-xs text-muted-foreground mb-1">Questions Correct</div>
+                      <div className="text-2xl font-bold text-foreground">{summary.total.correct}/{summary.total.total}</div>
+                    </div>
+                    <div className="text-center flex flex-col justify-center">
+                      <div className="text-xs text-muted-foreground mb-1">Comprehension Rule</div>
+                      <div className="text-sm font-medium">≥70% = Strong<br/>50–69% = Developing<br/>&lt;50% = Needs Support</div>
+                    </div>
+                    <div className={`border-2 rounded-lg p-3 text-center ${
+                      pct >= 70 ? "border-emerald-300 bg-emerald-50"
+                      : pct >= 50 ? "border-amber-300 bg-amber-50"
+                      : "border-red-300 bg-red-50"}`}>
+                      <div className="text-xs text-muted-foreground mb-1">Comprehension ({pct}%)</div>
+                      <div className="text-lg font-bold">
+                        {pct >= 70 ? "✅ Strong" : pct >= 50 ? "⚠️ Developing" : "❌ Needs Support"}
+                      </div>
+                    </div>
+                  </div>
+                  {/* Breakdown by level */}
+                  <div className="mt-3 grid grid-cols-3 gap-2 text-center text-sm">
+                    {(['literal','inferential','analytical'] as const).map((level) => {
+                      const lData = summary[level];
+                      const lPct = lData.total > 0 ? Math.round((lData.correct / lData.total) * 100) : 0;
+                      return (
+                        <div key={level} className="border rounded-lg p-2">
+                          <div className="text-xs text-muted-foreground capitalize mb-1">{level}</div>
+                          <div className="font-semibold">{lData.correct}/{lData.total}</div>
+                          <div className={`text-xs font-medium ${lPct >= 70 ? "text-emerald-600" : lPct >= 50 ? "text-amber-600" : "text-red-600"}`}>{lPct}%</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Final Placement */}
+            <div className={`border-2 rounded-lg p-4 text-center ${tier === "Tier 1" ? "border-emerald-300 bg-emerald-50" : tier === "Tier 2" ? "border-amber-300 bg-amber-50" : "border-red-300 bg-red-50"}`}>
+              <div className="text-sm text-muted-foreground mb-1">Overall Placement (worst of fluency + comprehension)</div>
+              <div className="text-3xl font-bold">{tier}</div>
             </div>
           </CardContent>
         </Card>
+
+        {/* Full Question & Answer Breakdown */}
+        {result.confirmed_errors?.questionResults && (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Brain className="w-5 h-5 text-primary" />
+                Comprehension Question Breakdown
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {(result.confirmed_errors.questionResults as QuestionResult[]).map((q) => (
+                  <div key={q.id} className={`border rounded-lg p-4 ${q.correct ? "border-emerald-200 bg-emerald-50/50" : "border-red-200 bg-red-50/50"}`}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs font-semibold uppercase text-muted-foreground bg-muted rounded px-2 py-0.5">{q.level}</span>
+                          <span className="text-xs text-muted-foreground">Q{q.number}</span>
+                        </div>
+                        <p className="text-sm font-medium text-foreground">{q.text}</p>
+                        {q.transcript?.text && (
+                          <div className="mt-2 flex items-start gap-2">
+                            <MessageSquare className="w-3.5 h-3.5 text-muted-foreground mt-0.5 flex-shrink-0" />
+                            <p className="text-sm text-muted-foreground italic">"{q.transcript.text}"</p>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-shrink-0">
+                        {q.correct
+                          ? <CheckCircle2 className="w-6 h-6 text-emerald-500" />
+                          : <XCircle className="w-6 h-6 text-red-500" />
+                        }
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Recommendations */}
         <Card className="mb-6">
