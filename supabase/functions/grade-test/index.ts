@@ -480,19 +480,45 @@ function formatSkillName(skill: string): string {
 function normalizeQuestions(questions: any, testType: string): any[] {
   if (!questions) return [];
   
-  // Already a flat array of question objects
+  // Format: { sections: [ { section_title, questions: [...] }, ... ] }
+  // This is the primary format used by Grade 4+ diagnostics stored in the DB
+  if (typeof questions === 'object' && !Array.isArray(questions) && Array.isArray(questions.sections)) {
+    return questions.sections.flatMap((section: any) =>
+      (section.questions || []).map((q: any) => normalizeQuestion({
+        ...q,
+        section: section.section_title || section.name || section.title || q.section || ''
+      }, testType))
+    );
+  }
+
+  // Format: { all_diagnostics: [...] } — JSON file structure, grab matching grade
+  if (typeof questions === 'object' && !Array.isArray(questions) && Array.isArray(questions.all_diagnostics)) {
+    return questions.all_diagnostics.flatMap((diagnostic: any) =>
+      (diagnostic.sections || []).flatMap((section: any) =>
+        (section.questions || []).map((q: any) => normalizeQuestion({
+          ...q,
+          section: section.section_title || section.name || q.section || ''
+        }, testType))
+      )
+    );
+  }
+
+  // Format: flat array of question objects or array of section objects
   if (Array.isArray(questions)) {
-    // Check if it's an array of section objects (each with a questions sub-array)
+    // Array of section objects (each with a questions sub-array)
     if (questions.length > 0 && questions[0]?.questions && Array.isArray(questions[0].questions)) {
       return questions.flatMap((section: any) =>
-        (section.questions || []).map((q: any) => normalizeQuestion({ ...q, section: section.name || section.title || q.section || '' }, testType))
+        (section.questions || []).map((q: any) => normalizeQuestion({
+          ...q,
+          section: section.section_title || section.name || section.title || q.section || ''
+        }, testType))
       );
     }
     // Flat array of question objects
     return questions.map((q: any) => normalizeQuestion(q, testType));
   }
   
-  // Object with sections as keys: { "Section 1": [...], "Section 2": [...] }
+  // Format: object with sections as keys: { "Section 1": [...], "Section 2": [...] }
   if (typeof questions === 'object') {
     return Object.entries(questions).flatMap(([sectionName, sectionQuestions]: [string, any]) => {
       if (Array.isArray(sectionQuestions)) {
