@@ -16,6 +16,7 @@ interface ReadingTranscript {
   passage_title: string;
   version: string;
   final_error_count: number | null;
+  confirmed_errors: any;
   completion_status: string | null;
   assessment_duration_seconds: number | null;
   admin_name: string | null;
@@ -58,7 +59,7 @@ const AdminReadingRecoveryResults = () => {
   const fetchTranscripts = async () => {
     const { data, error } = await supabase
       .from("reading_diagnostic_transcripts")
-      .select("id, student_name, grade_band, passage_title, version, final_error_count, completion_status, assessment_duration_seconds, admin_name, admin_email, created_at, assessment_completed_at, user_id")
+      .select("id, student_name, grade_band, passage_title, version, final_error_count, confirmed_errors, completion_status, assessment_duration_seconds, admin_name, admin_email, created_at, assessment_completed_at, user_id")
       .order("created_at", { ascending: false });
 
     if (error) { console.error(error); toast.error("Could not load results."); return; }
@@ -77,15 +78,23 @@ const AdminReadingRecoveryResults = () => {
     setFiltered(f);
   }, [searchTerm, gradeBandFilter, statusFilter, transcripts]);
 
-  const getTierFromErrors = (errors: number | null) => {
+  const getTierFromErrors = (errors: number | null, confirmedErrors?: any) => {
     if (errors === null) return null;
-    if (errors <= 3) return "Tier 1";
-    if (errors <= 7) return "Tier 2";
-    return "Tier 3";
+    const fluencyTier = errors <= 3 ? 1 : errors <= 7 ? 2 : 3;
+
+    const summary = confirmedErrors?.comprehensionSummary;
+    if (!summary) return fluencyTier === 1 ? "Tier 1" : fluencyTier === 2 ? "Tier 2" : "Tier 3";
+
+    const totalQ = summary.total?.total ?? 0;
+    const correctQ = summary.total?.correct ?? 0;
+    const pct = totalQ > 0 ? (correctQ / totalQ) * 100 : 100;
+    const comprehensionTier = pct >= 70 ? 1 : pct >= 50 ? 2 : 3;
+    const effectiveTier = Math.max(fluencyTier, comprehensionTier);
+    return effectiveTier === 1 ? "Tier 1" : effectiveTier === 2 ? "Tier 2" : "Tier 3";
   };
 
-  const getTierBadge = (errors: number | null) => {
-    const tier = getTierFromErrors(errors);
+  const getTierBadge = (errors: number | null, confirmedErrors?: any) => {
+    const tier = getTierFromErrors(errors, confirmedErrors);
     const colors: Record<string, string> = {
       "Tier 1": "bg-emerald-100 text-emerald-800 border-emerald-200",
       "Tier 2": "bg-amber-100 text-amber-800 border-amber-200",
@@ -190,6 +199,7 @@ const AdminReadingRecoveryResults = () => {
                       <th className="pb-3 text-left font-medium text-slate-600">Grade Band</th>
                       <th className="pb-3 text-left font-medium text-slate-600">Version</th>
                       <th className="pb-3 text-left font-medium text-slate-600">Errors</th>
+                      <th className="pb-3 text-left font-medium text-slate-600">Comprehension</th>
                       <th className="pb-3 text-left font-medium text-slate-600">Tier</th>
                       <th className="pb-3 text-left font-medium text-slate-600">Duration</th>
                       <th className="pb-3 text-left font-medium text-slate-600">Status</th>
@@ -198,33 +208,48 @@ const AdminReadingRecoveryResults = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {filtered.map(t => (
-                      <tr key={t.id} className="border-b border-slate-100 last:border-0">
-                        <td className="py-3">
-                          <div className="font-medium text-slate-900">{t.student_name}</div>
-                          {t.admin_name && <div className="text-xs text-slate-500">Admin: {t.admin_name}</div>}
-                        </td>
-                        <td className="py-3 text-slate-700">{t.passage_title}</td>
-                        <td className="py-3 text-slate-700">{t.grade_band}</td>
-                        <td className="py-3 text-slate-700">{t.version === "A" ? "Pre-Test" : t.version === "B" ? "Mid-Test" : t.version === "C" ? "Post-Test" : t.version}</td>
-                        <td className="py-3 font-medium text-slate-900">{t.final_error_count ?? "—"}</td>
-                        <td className="py-3">{getTierBadge(t.final_error_count)}</td>
-                        <td className="py-3 text-slate-600">{formatDuration(t.assessment_duration_seconds)}</td>
-                        <td className="py-3">
-                          <Badge variant="outline" className={(t.completion_status === "completed" || t.completion_status === "complete") ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200"}>
-                            {(t.completion_status === "completed" || t.completion_status === "complete") ? "Completed" : "Incomplete"}
-                          </Badge>
-                        </td>
-                        <td className="py-3 text-slate-600">{formatDate(t.created_at)}</td>
-                        <td className="py-3">
-                          <div className="flex justify-end">
-                            <Button variant="ghost" size="sm" onClick={() => navigate(`/reading-recovery/results/${t.id}`)} title="View Results">
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
+                    {filtered.map(t => {
+                      const summary = t.confirmed_errors?.comprehensionSummary;
+                      const totalQ = summary?.total?.total ?? 0;
+                      const correctQ = summary?.total?.correct ?? 0;
+                      const compPct = totalQ > 0 ? Math.round((correctQ / totalQ) * 100) : null;
+                      return (
+                        <tr key={t.id} className="border-b border-slate-100 last:border-0">
+                          <td className="py-3">
+                            <div className="font-medium text-slate-900">{t.student_name}</div>
+                            {t.admin_name && <div className="text-xs text-slate-500">Admin: {t.admin_name}</div>}
+                          </td>
+                          <td className="py-3 text-slate-700">{t.passage_title}</td>
+                          <td className="py-3 text-slate-700">{t.grade_band}</td>
+                          <td className="py-3 text-slate-700">{t.version === "A" ? "Pre-Test" : t.version === "B" ? "Mid-Test" : t.version === "C" ? "Post-Test" : t.version}</td>
+                          <td className="py-3 font-medium text-slate-900">{t.final_error_count ?? "—"}</td>
+                          <td className="py-3">
+                            {compPct !== null ? (
+                              <span className={`font-semibold text-sm ${compPct >= 70 ? "text-emerald-700" : compPct >= 50 ? "text-amber-700" : "text-red-700"}`}>
+                                {correctQ}/{totalQ} ({compPct}%)
+                              </span>
+                            ) : (
+                              <span className="text-slate-400 text-sm">—</span>
+                            )}
+                          </td>
+                          <td className="py-3">{getTierBadge(t.final_error_count, t.confirmed_errors)}</td>
+                          <td className="py-3 text-slate-600">{formatDuration(t.assessment_duration_seconds)}</td>
+                          <td className="py-3">
+                            <Badge variant="outline" className={(t.completion_status === "completed" || t.completion_status === "complete") ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200"}>
+                              {(t.completion_status === "completed" || t.completion_status === "complete") ? "Completed" : "Incomplete"}
+                            </Badge>
+                          </td>
+                          <td className="py-3 text-slate-600">{formatDate(t.created_at)}</td>
+                          <td className="py-3">
+                            <div className="flex justify-end">
+                              <Button variant="ghost" size="sm" onClick={() => navigate(`/reading-recovery/results/${t.id}`)} title="View Full Results & Q&A">
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
