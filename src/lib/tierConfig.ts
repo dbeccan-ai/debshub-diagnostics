@@ -4,9 +4,9 @@
 
 /* ── Thresholds ── */
 export const TIER_THRESHOLDS = {
-  GREEN: 70,   // 70%+ = Mastery
-  YELLOW: 50,  // 50–69% = Developing
-  RED: 0,      // <50% = Immediate Support
+  GREEN: 85,   // 85%+ = Mastery (Tier 1)
+  YELLOW: 66,  // 66–84% = Developing (Tier 2)
+  RED: 0,      // ≤65% = Immediate Support (Tier 3)
 } as const;
 
 export function getTierFromScore(score: number): "green" | "yellow" | "red" {
@@ -24,7 +24,7 @@ export function getTierLabel(score: number): string {
 export const TIER_LABELS = {
   red: {
     label: "🔴 Priority Intervention Required",
-    helper: "These skills are below foundational mastery and require targeted support to prevent academic delay.",
+    helper: "Without targeted intervention now, these gaps will compound next grade — making recovery significantly harder.",
     badge: "Tier 3",
     badgeClass: "bg-red-600 text-white",
     borderClass: "border-red-300",
@@ -34,7 +34,7 @@ export const TIER_LABELS = {
   },
   yellow: {
     label: "🟡 Strengthening Zone",
-    helper: "These skills are developing but need reinforcement to reach mastery.",
+    helper: "This is the critical window for reinforcement — skills at this stage respond quickly to targeted practice before gaps widen.",
     badge: "Tier 2",
     badgeClass: "bg-amber-500 text-white",
     borderClass: "border-amber-300",
@@ -44,7 +44,7 @@ export const TIER_LABELS = {
   },
   green: {
     label: "🟢 Demonstrated Mastery",
-    helper: "These skills meet or exceed grade-level expectations.",
+    helper: "Excellent performance — now is the time to accelerate and ensure mastery remains stable as content becomes more complex.",
     badge: "Tier 1",
     badgeClass: "bg-emerald-600 text-white",
     borderClass: "border-emerald-300",
@@ -57,24 +57,24 @@ export const TIER_LABELS = {
 /* ── Emotional Insight Boxes ── */
 export const INSIGHT_BOXES = {
   red: {
-    title: "Why this matters now",
-    body: "Without targeted intervention, these gaps can compound in the next grade and reduce confidence in core subjects.",
+    title: "⚠️ Act Now — This Is Time-Sensitive",
+    body: "Foundational skill gaps at this level don't resolve on their own. Without structured intervention, they compound each year — affecting reading, writing, and math confidence well into secondary school. Early action is the highest-ROI move a parent can make.",
     borderClass: "border-red-300",
     bgClass: "bg-red-50",
     titleClass: "text-red-800",
     bodyClass: "text-red-700",
   },
   yellow: {
-    title: "Reinforcement opportunity",
-    body: "This is the ideal range for strategic reinforcement before the skill gap widens.",
+    title: "🎯 The Reinforcement Window Is Open",
+    body: "Skills at this level are within reach of mastery — but only with consistent, targeted practice. This is the ideal moment to intervene before gaps solidify. Students who receive support now consistently outperform peers by next term.",
     borderClass: "border-amber-300",
     bgClass: "bg-amber-50",
     titleClass: "text-amber-800",
     bodyClass: "text-amber-700",
   },
   green: {
-    title: "Keep momentum",
-    body: "Maintain consistency so mastery remains stable as standards become more complex.",
+    title: "🏆 Strong Foundation — Keep the Momentum",
+    body: "Mastery at this level is a real achievement. To maintain and extend it, enrichment challenges and acceleration activities are the smartest next step. Don't let strong results plateau — build on them.",
     borderClass: "border-emerald-300",
     bgClass: "bg-emerald-50",
     titleClass: "text-emerald-800",
@@ -84,9 +84,9 @@ export const INSIGHT_BOXES = {
 
 /* ── Skill-Row Action Recommendations ── */
 export const SKILL_ACTION = {
-  red: "Immediate reteach + guided practice required.",
-  yellow: "Reinforce 2–3 times weekly until stable.",
-  green: "Spiral review weekly to retain mastery.",
+  red: "Immediate reteach + guided practice required. Do not wait.",
+  yellow: "Reinforce 2–3 times weekly with targeted practice until stable.",
+  green: "Spiral review weekly to retain mastery as content advances.",
 } as const;
 
 /* ── CTA System ── */
@@ -98,27 +98,27 @@ export interface TierCTA {
 
 export const TIER_CTAS: Record<"red" | "yellow" | "green", TierCTA> = {
   red: {
-    primary: { label: "Book Tier 3 Intensive Plan", variant: "red" },
-    secondary: { label: "Schedule Strategy Call" },
+    primary: { label: "Book Tier 3 Intensive Intervention Plan", variant: "red" },
+    secondary: { label: "Schedule a Strategy Call" },
     tertiary: { label: "Download Home Support Plan" },
   },
   yellow: {
-    primary: { label: "Enroll in Skill Builder Program", variant: "yellow" },
-    secondary: { label: "Schedule Strategy Call" },
+    primary: { label: "Enroll in the Skill Builder Program", variant: "yellow" },
+    secondary: { label: "Schedule a Strategy Call" },
     tertiary: { label: "Download Home Support Plan" },
   },
   green: {
-    primary: { label: "Join Enrichment Pod", variant: "green" },
+    primary: { label: "Join the Enrichment Pod", variant: "green" },
     secondary: { label: "Download Home Support Plan" },
-    tertiary: { label: "Schedule Strategy Call" },
+    tertiary: { label: "Schedule a Strategy Call" },
   },
 };
 
 /* ── Placement Pathway ── */
 export const PLACEMENT_PATHWAY = [
-  { tier: "Tier 1 (70%+)", label: "Enrichment Pod", price: "$", color: "green" as const },
-  { tier: "Tier 2 (50–69%)", label: "Skill Builder Program", price: "$$", color: "yellow" as const },
-  { tier: "Tier 3 (<50%)", label: "Intensive Intervention Plan", price: "$$$", color: "red" as const },
+  { tier: "Tier 1 (85%+)", label: "Enrichment Pod", price: "$", color: "green" as const },
+  { tier: "Tier 2 (66–84%)", label: "Skill Builder Program", price: "$$", color: "yellow" as const },
+  { tier: "Tier 3 (≤65%)", label: "Intensive Intervention Plan", price: "$$$", color: "red" as const },
 ];
 
 /* ── CTA Button Styles ── */

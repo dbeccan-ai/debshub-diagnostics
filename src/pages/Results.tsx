@@ -362,50 +362,50 @@ const Results = () => {
                 </>
               )}
 
-              {!hasSkillData && (
-                <>
-                  {/* Fallback to old mastered/needsSupport arrays with new labels */}
-                  {skillAnalysis.needsSupport.length > 0 && (
-                    <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                      <p className="font-semibold text-red-800 mb-1 text-sm">🔴 Priority Intervention Required</p>
-                      <p className="text-xs text-red-600 mb-3">These skills are below foundational mastery and require targeted support to prevent academic delay.</p>
-                      <ul className="space-y-1">
-                        {skillAnalysis.needsSupport.map((skill, idx) => (
-                          <li key={idx} className="text-sm text-red-800 flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 bg-red-500 rounded-full" /> {skill}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  {skillAnalysis.developing.length > 0 && (
-                    <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                      <p className="font-semibold text-amber-800 mb-1 text-sm">🟡 Strengthening Zone</p>
-                      <p className="text-xs text-amber-600 mb-3">These skills are developing but need reinforcement to reach mastery.</p>
-                      <ul className="space-y-1">
-                        {skillAnalysis.developing.map((skill, idx) => (
-                          <li key={idx} className="text-sm text-amber-800 flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 bg-amber-500 rounded-full" /> {skill}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  {skillAnalysis.mastered.length > 0 && (
-                    <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
-                      <p className="font-semibold text-emerald-800 mb-1 text-sm">🟢 Demonstrated Mastery</p>
-                      <p className="text-xs text-emerald-600 mb-3">These skills meet or exceed grade-level expectations.</p>
-                      <ul className="space-y-1">
-                        {skillAnalysis.mastered.map((skill, idx) => (
-                          <li key={idx} className="text-sm text-emerald-800 flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full" /> {skill}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </>
-              )}
+                {!hasSkillData && (
+                  <>
+                    {/* Fallback to old mastered/needsSupport arrays with new labels */}
+                    {skillAnalysis.needsSupport.length > 0 && (
+                      <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                        <p className="font-semibold text-red-800 mb-1 text-sm">🔴 Priority Intervention Required</p>
+                        <p className="text-xs text-red-600 mb-3">Without structured intervention now, these gaps compound each year — affecting confidence and performance well into secondary school.</p>
+                        <ul className="space-y-1">
+                          {skillAnalysis.needsSupport.map((skill, idx) => (
+                            <li key={idx} className="text-sm text-red-800 flex items-center gap-2">
+                              <span className="w-1.5 h-1.5 bg-red-500 rounded-full" /> {skill}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {skillAnalysis.developing.length > 0 && (
+                      <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                        <p className="font-semibold text-amber-800 mb-1 text-sm">🟡 Strengthening Zone</p>
+                        <p className="text-xs text-amber-600 mb-3">This is the critical window — skills here respond quickly to targeted practice before gaps solidify.</p>
+                        <ul className="space-y-1">
+                          {skillAnalysis.developing.map((skill, idx) => (
+                            <li key={idx} className="text-sm text-amber-800 flex items-center gap-2">
+                              <span className="w-1.5 h-1.5 bg-amber-500 rounded-full" /> {skill}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {skillAnalysis.mastered.length > 0 && (
+                      <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
+                        <p className="font-semibold text-emerald-800 mb-1 text-sm">🟢 Demonstrated Mastery</p>
+                        <p className="text-xs text-emerald-600 mb-3">Strong foundation — maintain with enrichment challenges so mastery stays ahead as content advances.</p>
+                        <ul className="space-y-1">
+                          {skillAnalysis.mastered.map((skill, idx) => (
+                            <li key={idx} className="text-sm text-emerald-800 flex items-center gap-2">
+                              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full" /> {skill}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </>
+                )}
             </div>
 
             {/* Skill-by-skill with status pills and action recommendations */}

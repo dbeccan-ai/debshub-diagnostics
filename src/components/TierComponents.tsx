@@ -153,9 +153,9 @@ export function PlacementPathwayCard({ overallScore }: { overallScore: number })
 
 /* ─── Tier Classification Blocks (replaces old "Skills Mastered / Needs Support" blocks) ─── */
 export function TierClassificationBlocks({ sections }: { sections: Array<{ section: string; correct: number; total: number; percent: number }> }) {
-  const green = sections.filter((s) => s.percent >= 70);
-  const yellow = sections.filter((s) => s.percent >= 50 && s.percent < 70);
-  const red = sections.filter((s) => s.percent < 50);
+  const green = sections.filter((s) => s.percent >= 85);
+  const yellow = sections.filter((s) => s.percent >= 66 && s.percent < 85);
+  const red = sections.filter((s) => s.percent < 66);
 
   return (
     <div className="space-y-4">
