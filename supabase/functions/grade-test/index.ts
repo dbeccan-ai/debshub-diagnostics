@@ -476,6 +476,35 @@ function formatSkillName(skill: string): string {
     .trim();
 }
 
+// Normalize all questions from any test format into a flat array
+function normalizeQuestions(questions: any, testType: string): any[] {
+  if (!questions) return [];
+  
+  // Already a flat array of question objects
+  if (Array.isArray(questions)) {
+    // Check if it's an array of section objects (each with a questions sub-array)
+    if (questions.length > 0 && questions[0]?.questions && Array.isArray(questions[0].questions)) {
+      return questions.flatMap((section: any) =>
+        (section.questions || []).map((q: any) => normalizeQuestion({ ...q, section: section.name || section.title || q.section || '' }, testType))
+      );
+    }
+    // Flat array of question objects
+    return questions.map((q: any) => normalizeQuestion(q, testType));
+  }
+  
+  // Object with sections as keys: { "Section 1": [...], "Section 2": [...] }
+  if (typeof questions === 'object') {
+    return Object.entries(questions).flatMap(([sectionName, sectionQuestions]: [string, any]) => {
+      if (Array.isArray(sectionQuestions)) {
+        return sectionQuestions.map((q: any) => normalizeQuestion({ ...q, section: q.section || sectionName }, testType));
+      }
+      return [];
+    });
+  }
+  
+  return [];
+}
+
 // Normalize a single question
 function normalizeQuestion(q: any, testType: string): any {
   const normalized = {
