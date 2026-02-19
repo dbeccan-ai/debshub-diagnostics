@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { ArrowLeft, Download, Mail, Eye, Search, Filter, RefreshCw } from "lucide-react";
+import { getTierFromScore, TIER_LABELS } from "@/lib/tierConfig";
 
 interface TestAttempt {
   id: string;
@@ -132,25 +133,33 @@ const AdminAllResults = () => {
       filtered = filtered.filter((a) => a.tests?.test_type === testTypeFilter);
     }
 
-    // Filter by tier
+    // Filter by tier (derive from score)
     if (tierFilter !== "all") {
-      filtered = filtered.filter((a) => a.tier === tierFilter);
+      const tierMap: Record<string, string> = { "Tier 1": "green", "Tier 2": "yellow", "Tier 3": "red" };
+      filtered = filtered.filter((a) => a.score !== null && getTierFromScore(a.score) === tierMap[tierFilter]);
     }
 
     setFilteredAttempts(filtered);
   }, [searchTerm, gradeFilter, testTypeFilter, tierFilter, attempts]);
 
-  const getTierBadgeColor = (tier: string | null) => {
-    switch (tier) {
-      case "Tier 1":
-        return "bg-emerald-100 text-emerald-800 border-emerald-200";
-      case "Tier 2":
-        return "bg-amber-100 text-amber-800 border-amber-200";
-      case "Tier 3":
-        return "bg-red-100 text-red-800 border-red-200";
-      default:
-        return "bg-slate-100 text-slate-700 border-slate-200";
+  const getTierFromAttempt = (score: number | null) => {
+    if (score === null) return null;
+    return getTierFromScore(score);
+  };
+
+  const getTierBadgeColor = (score: number | null) => {
+    const t = getTierFromAttempt(score);
+    switch (t) {
+      case "green": return "bg-emerald-100 text-emerald-800 border-emerald-200";
+      case "yellow": return "bg-amber-100 text-amber-800 border-amber-200";
+      case "red": return "bg-red-100 text-red-800 border-red-200";
+      default: return "bg-slate-100 text-slate-700 border-slate-200";
     }
+  };
+
+  const getTierLabel = (score: number | null) => {
+    if (score === null) return "N/A";
+    return TIER_LABELS[getTierFromScore(score)].badge;
   };
 
   const getEmailStatusBadge = (status: string | null) => {
@@ -306,7 +315,7 @@ const AdminAllResults = () => {
           <Card>
             <CardContent className="pt-4">
               <div className="text-2xl font-bold text-emerald-600">
-                {attempts.filter((a) => a.tier === "Tier 1").length}
+                {attempts.filter((a) => a.score !== null && getTierFromScore(a.score) === "green").length}
               </div>
               <div className="text-xs text-slate-500">Tier 1</div>
             </CardContent>
@@ -314,7 +323,7 @@ const AdminAllResults = () => {
           <Card>
             <CardContent className="pt-4">
               <div className="text-2xl font-bold text-amber-600">
-                {attempts.filter((a) => a.tier === "Tier 2").length}
+                {attempts.filter((a) => a.score !== null && getTierFromScore(a.score) === "yellow").length}
               </div>
               <div className="text-xs text-slate-500">Tier 2</div>
             </CardContent>
@@ -322,7 +331,7 @@ const AdminAllResults = () => {
           <Card>
             <CardContent className="pt-4">
               <div className="text-2xl font-bold text-red-600">
-                {attempts.filter((a) => a.tier === "Tier 3").length}
+                {attempts.filter((a) => a.score !== null && getTierFromScore(a.score) === "red").length}
               </div>
               <div className="text-xs text-slate-500">Tier 3</div>
             </CardContent>
@@ -445,8 +454,8 @@ const AdminAllResults = () => {
                           </span>
                         </td>
                         <td className="py-3">
-                          <Badge variant="outline" className={getTierBadgeColor(attempt.tier)}>
-                            {attempt.tier || "N/A"}
+                          <Badge variant="outline" className={getTierBadgeColor(attempt.score)}>
+                            {getTierLabel(attempt.score)}
                           </Badge>
                         </td>
                         <td className="py-3 text-slate-600">
