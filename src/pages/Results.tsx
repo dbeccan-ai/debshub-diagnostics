@@ -488,10 +488,12 @@ const Results = () => {
             </div>
             
             <div className="border-t border-slate-100 pt-4 mt-4">
-              <p className="text-xs text-slate-500">
-                <strong>Contact D.E.Bs LEARNING ACADEMY</strong><br />
-                📧 Email: info@debslearnacademy.com | 📞 Phone: 347-364-1906
+              <p className="font-bold text-[#1C2D5A] mb-1 text-sm">Contact D.E.Bs LEARNING ACADEMY</p>
+              <p className="text-xs text-slate-600">
+                📧 <a href="mailto:info@debslearnacademy.com" className="text-blue-600 underline hover:text-blue-800">info@debslearnacademy.com</a>{" "}
+                | 📞 <a href="tel:+13473641906" className="text-blue-600 underline hover:text-blue-800">347-364-1906</a>
               </p>
+              <p className="text-xs text-slate-500 mt-0.5">🌐 <a href="https://www.debslearnacademy.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline hover:text-blue-800">www.debslearnacademy.com</a></p>
             </div>
           </CardContent>
         </Card>
