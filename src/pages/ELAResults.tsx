@@ -182,25 +182,15 @@ export default function ELAResults() {
   useEffect(() => {
     const stored = localStorage.getItem(`ela-results-grade-${gradeNum}`);
     if (stored) {
-      setResult(JSON.parse(stored));
-    } else {
-      const old = localStorage.getItem(`ela-test-grade-${gradeNum}`);
-      if (old) {
-        const parsed = JSON.parse(old);
-        setResult({
-          studentName: "Student",
-          gradeLevel: gradeNum,
-          completedAt: parsed.completedAt || new Date().toISOString(),
-          overallPercent: parsed.percentage || 0,
-          overallCorrect: parsed.correct || 0,
-          overallTotal: parsed.total || 0,
-          tier: parsed.percentage >= 85 ? "Tier 1" : parsed.percentage >= 66 ? "Tier 2" : "Tier 3",
-          sectionBreakdown: [],
-          priorities: [],
-          answers: parsed.answers || {},
-        });
+      const parsed: ELAResultData = JSON.parse(stored);
+      // Filter out any sections with 0 total (shouldn't happen but guard anyway)
+      if (parsed.sectionBreakdown) {
+        parsed.sectionBreakdown = parsed.sectionBreakdown.filter(s => s.total > 0);
       }
+      setResult(parsed);
     }
+    // Note: old `ela-test-grade-X` format is no longer used — it didn't contain section data.
+    // Users with old data will see the "retake test" prompt.
   }, [gradeNum]);
 
   const handlePrint = () => window.print();
@@ -481,8 +471,17 @@ ${result.sectionBreakdown.length > 0 ? `
           </>
         ) : (
           <Card className="border-amber-200 bg-amber-50 p-6 text-center">
-            <p className="text-amber-800 font-medium">Section breakdown not available for this result.</p>
-            <p className="text-sm text-amber-600 mt-1">This may be from an older test format. Retake the test for a full sectioned report.</p>
+            <p className="text-amber-900 font-bold text-base mb-1">📋 Section Breakdown Not Available</p>
+            <p className="text-sm text-amber-700 mt-1 mb-4">
+              Your result was saved in an older format that doesn't include section-by-section data.
+              Retake the test to see your full ELA breakdown — including section scores, skill tags, and priority focus areas.
+            </p>
+            <Button
+              onClick={() => navigate(`/diagnostics/ela/grade-${gradeNum}`)}
+              className="bg-amber-600 hover:bg-amber-700 text-white"
+            >
+              <RefreshCw className="mr-2 h-4 w-4" /> Retake Test for Full Report
+            </Button>
           </Card>
         )}
 

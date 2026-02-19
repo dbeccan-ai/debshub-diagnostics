@@ -96,12 +96,12 @@ export default function TakeELATest() {
     sectionOrder.forEach(s => { sectionData[s] = { correct: 0, total: 0, skills: {} }; });
 
     allQuestions.forEach(q => {
-      if (q.type === "multiple_choice" && q.correct_answer) {
-        const section = mapTopicToSection(q.topic || "", q.type);
-        const skillName = q.topic || "General";
-        if (!sectionData[section]) sectionData[section] = { correct: 0, total: 0, skills: {} };
-        if (!sectionData[section].skills[skillName]) sectionData[section].skills[skillName] = { correct: 0, total: 0 };
+      const section = mapTopicToSection(q.topic || "", q.type);
+      const skillName = q.topic || "General";
+      if (!sectionData[section]) sectionData[section] = { correct: 0, total: 0, skills: {} };
+      if (!sectionData[section].skills[skillName]) sectionData[section].skills[skillName] = { correct: 0, total: 0 };
 
+      if (q.type === "multiple_choice" && q.correct_answer) {
         sectionData[section].total++;
         sectionData[section].skills[skillName].total++;
 
@@ -112,6 +112,16 @@ export default function TakeELATest() {
             sectionData[section].correct++;
             sectionData[section].skills[skillName].correct++;
           }
+        }
+      } else if (q.type !== "multiple_choice") {
+        // Count open-ended / writing questions as attempted if the user typed an answer
+        sectionData[section].total++;
+        sectionData[section].skills[skillName].total++;
+        const userAnswer = answers[q.id];
+        if (userAnswer && userAnswer.trim().length > 0) {
+          // Give partial credit: count as correct (will be reviewed manually)
+          sectionData[section].correct++;
+          sectionData[section].skills[skillName].correct++;
         }
       }
     });
