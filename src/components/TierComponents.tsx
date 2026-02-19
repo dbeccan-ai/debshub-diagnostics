@@ -84,6 +84,60 @@ export function RecommendedNextStepPanel({ overallScore, attemptId, onNavigate }
   const style = CTA_STYLES[tier];
   const cfg = TIER_LABELS[tier];
 
+  const handleStrategyCall = () => {
+    window.open(
+      "mailto:info@debslearnacademy.com?subject=Strategy%20Call%20Request&body=Hi%2C%20I%20would%20like%20to%20schedule%20a%20strategy%20call%20regarding%20my%20child%27s%20diagnostic%20results.%20Please%20let%20me%20know%20your%20availability.",
+      "_blank"
+    );
+  };
+
+  const handleDownloadHomePlan = () => {
+    const tierName = tier === "green" ? "Tier 1 – Enrichment" : tier === "yellow" ? "Tier 2 – Skill Builder" : "Tier 3 – Intensive Intervention";
+    const tips =
+      tier === "green"
+        ? ["Introduce enrichment challenges above grade level", "Read chapter books and discuss themes in depth", "Encourage creative writing and project-based learning", "Explore math puzzles, science experiments, and coding activities", "Join enrichment clubs or competitions to stretch skills further"]
+        : tier === "yellow"
+        ? ["Set aside 20–30 minutes of targeted practice daily", "Use flashcards and games to reinforce developing skills", "Review homework together and discuss errors without frustration", "Celebrate small wins — progress at this stage accelerates quickly", "Coordinate with the teacher on specific skill gaps to address"]
+        : ["Establish a structured 45-minute daily practice routine", "Focus on one foundational skill per week until solid", "Read aloud together every day — comprehension and fluency are key", "Use multisensory approaches: tracing, speaking, and writing together", "Schedule a call with D.E.Bs Academy for a personalized intervention plan"];
+
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Home Support Plan – D.E.Bs Learning Academy</title>
+<style>body{font-family:Georgia,serif;max-width:700px;margin:40px auto;padding:20px;color:#1C2D5A;}
+h1{color:#1C2D5A;border-bottom:3px solid #FFDE59;padding-bottom:10px;}
+h2{color:#1C2D5A;margin-top:24px;}
+li{margin:8px 0;line-height:1.6;}
+.badge{background:${tier === "green" ? "#059669" : tier === "yellow" ? "#d97706" : "#dc2626"};color:white;padding:4px 12px;border-radius:20px;font-size:14px;font-weight:bold;}
+.footer{margin-top:40px;padding-top:20px;border-top:2px solid #e2e8f0;font-size:13px;color:#64748b;}
+a{color:#1C2D5A;}
+@media print{body{margin:20px;}}
+</style></head>
+<body>
+<p style="text-align:center;font-size:13px;letter-spacing:2px;color:#64748b;text-transform:uppercase;">D.E.Bs LEARNING ACADEMY — Unlocking Brilliance Through Learning</p>
+<h1>🏠 Home Support Plan</h1>
+<p><span class="badge">${tierName}</span></p>
+<p style="margin-top:16px;">This plan is designed to help you support your child's academic progress at home over the next <strong>6–8 weeks</strong>.</p>
+<h2>📋 Weekly Home Strategies</h2>
+<ol>${tips.map((t) => `<li>${t}</li>`).join("")}</ol>
+<h2>📞 Next Step</h2>
+<p>For a personalized intervention plan tailored to your child's specific diagnostic results:</p>
+<ul>
+  <li>📧 Email: <a href="mailto:info@debslearnacademy.com">info@debslearnacademy.com</a></li>
+  <li>📞 Call: <a href="tel:+13473641906">347-364-1906</a></li>
+  <li>🌐 Website: <a href="https://www.debslearnacademy.com">www.debslearnacademy.com</a></li>
+</ul>
+<div class="footer">
+  <p><strong>D.E.Bs Learning Academy</strong> — Supporting every learner from foundational skills to academic excellence.</p>
+  <p>Generated: ${new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</p>
+</div>
+<script>window.onload=()=>{setTimeout(()=>window.print(),400);}</script>
+</body></html>`;
+
+    const win = window.open("", "_blank");
+    if (win) {
+      win.document.write(html);
+      win.document.close();
+    }
+  };
+
   return (
     <Card className={`border-2 ${cfg.borderClass} overflow-hidden`}>
       <div className={`${cfg.bgClass} px-6 py-4 border-b ${cfg.borderClass}`}>
@@ -99,11 +153,11 @@ export function RecommendedNextStepPanel({ overallScore, attemptId, onNavigate }
         >
           {ctas.primary.label}
         </Button>
-        <Button variant="outline" className="w-full" onClick={() => window.open("mailto:info@debslearnacademy.com?subject=Strategy%20Call%20Request&body=Hi%2C%20I%20would%20like%20to%20schedule%20a%20strategy%20call%20regarding%20my%20child%27s%20diagnostic%20results.", "_blank")}>
+        <Button variant="outline" className="w-full" onClick={handleStrategyCall}>
           <Phone className="mr-2 h-4 w-4" />
           {ctas.secondary.label}
         </Button>
-        <Button variant="ghost" className="w-full text-slate-600" onClick={() => window.print()}>
+        <Button variant="ghost" className="w-full text-slate-600" onClick={handleDownloadHomePlan}>
           <Download className="mr-2 h-4 w-4" />
           {ctas.tertiary.label}
         </Button>

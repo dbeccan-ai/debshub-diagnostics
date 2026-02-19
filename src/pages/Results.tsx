@@ -243,7 +243,7 @@ const Results = () => {
           <CardHeader className="text-center pb-2">
             <div className="mb-2 flex flex-col items-center gap-2">
               <Badge className={`text-lg px-4 py-1 ${tierCfg.badgeClass}`}>
-                {attempt.tier}
+                {tierCfg.badge}
               </Badge>
               <p className="text-xs font-medium">{tierCfg.label}</p>
             </div>
@@ -477,8 +477,8 @@ const Results = () => {
         {/* Tier Explanation & Next Steps */}
         <Card className="border-slate-200 mb-6">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold text-slate-800">
-              Understanding Your {attempt.tier} Placement
+          <CardTitle className="text-sm font-semibold text-slate-800">
+              Understanding Your {tierCfg.badge} Placement
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-sm text-slate-600">
