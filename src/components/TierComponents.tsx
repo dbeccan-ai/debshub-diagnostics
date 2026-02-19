@@ -99,7 +99,7 @@ export function RecommendedNextStepPanel({ overallScore, attemptId, onNavigate }
         >
           {ctas.primary.label}
         </Button>
-        <Button variant="outline" className="w-full" onClick={() => window.open("mailto:info@debslearnacademy.com?subject=Strategy Call Request", "_blank")}>
+        <Button variant="outline" className="w-full" onClick={() => window.open("mailto:info@debslearnacademy.com?subject=Strategy%20Call%20Request&body=Hi%2C%20I%20would%20like%20to%20schedule%20a%20strategy%20call%20regarding%20my%20child%27s%20diagnostic%20results.", "_blank")}>
           <Phone className="mr-2 h-4 w-4" />
           {ctas.secondary.label}
         </Button>

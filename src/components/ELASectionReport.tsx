@@ -72,13 +72,23 @@ const ELA_SECTIONS = [
   "Writing",
 ];
 
+const ELA_SKILL_KEYWORDS = ["reading", "comprehension", "main idea", "inference", "summary", "author", "passage", "text structure", "central idea", "literary", "rhetoric", "theme", "character", "plot", "setting", "point of view", "compare", "story", "detail", "vocab", "synonym", "antonym", "context clue", "word meaning", "word structure", "prefix", "suffix", "root", "figurative", "idiom", "connotation", "denotation", "word", "definition", "meaning", "spell", "homophone", "homograph", "grammar", "punctuation", "verb", "subject", "pronoun", "adjective", "adverb", "sentence", "clause", "conjunction", "tense", "agreement", "capitalization", "comma", "apostrophe", "possessive", "parts of speech", "modifier", "contraction", "writ", "essay", "narrative", "opinion", "persuasive", "argument", "composition", "paragraph", "draft", "ela", "english", "language arts", "phonics", "fluency", "decoding", "blending"];
+
+function isELASkill(skill: string): boolean {
+  const s = skill.toLowerCase();
+  // Explicitly exclude math/generic skills
+  if (s.includes("math") || s.includes("general math") || s.includes("number") || s.includes("arithmetic") || s.includes("algebra") || s.includes("geometry") || s.includes("fraction") || s.includes("decimal") || s.includes("multiply") || s.includes("division") || s.includes("addition") || s.includes("subtraction") || s.includes("measurement") || s.includes("place value") || s.includes("rounding") || s.includes("equation"))
+    return false;
+  return ELA_SKILL_KEYWORDS.some((kw) => s.includes(kw));
+}
+
 function mapSkillToSection(skill: string): string {
   const s = skill.toLowerCase();
   if (s.includes("reading") || s.includes("comprehension") || s.includes("main idea") || s.includes("inference") || s.includes("summary") || s.includes("author") || s.includes("passage") || s.includes("text structure") || s.includes("central idea") || s.includes("literary") || s.includes("rhetoric") || s.includes("theme") || s.includes("character") || s.includes("plot") || s.includes("setting") || s.includes("point of view") || s.includes("compare") || s.includes("story") || s.includes("detail"))
     return "Reading Comprehension";
   if (s.includes("vocab") || s.includes("synonym") || s.includes("antonym") || s.includes("context clue") || s.includes("word meaning") || s.includes("word structure") || s.includes("prefix") || s.includes("suffix") || s.includes("root") || s.includes("figurative") || s.includes("idiom") || s.includes("connotation") || s.includes("denotation") || s.includes("word") || s.includes("definition") || s.includes("meaning"))
     return "Vocabulary";
-  if (s.includes("spell") || s.includes("homophone") || s.includes("homograph"))
+  if (s.includes("spell") || s.includes("homophone") || s.includes("homograph") || s.includes("phonics") || s.includes("decoding") || s.includes("blending") || s.includes("fluency"))
     return "Spelling";
   if (s.includes("grammar") || s.includes("punctuation") || s.includes("verb") || s.includes("subject") || s.includes("pronoun") || s.includes("adjective") || s.includes("adverb") || s.includes("sentence") || s.includes("clause") || s.includes("conjunction") || s.includes("tense") || s.includes("agreement") || s.includes("capitalization") || s.includes("comma") || s.includes("apostrophe") || s.includes("possessive") || s.includes("parts of speech") || s.includes("modifier") || s.includes("contraction"))
     return "Grammar & Language Conventions";
@@ -92,6 +102,8 @@ function buildSectionResults(skillStats: Record<string, SkillStat>): SectionResu
   ELA_SECTIONS.forEach((s) => { sectionMap[s] = { correct: 0, total: 0, skills: {} }; });
 
   Object.entries(skillStats).forEach(([skill, stats]) => {
+    // Skip non-ELA skills (e.g., "General Math")
+    if (!isELASkill(skill)) return;
     const section = mapSkillToSection(skill);
     if (!sectionMap[section]) sectionMap[section] = { correct: 0, total: 0, skills: {} };
     sectionMap[section].correct += stats.correct;
@@ -218,7 +230,61 @@ function getSchoolStrategies(section: string): string[] {
   return strategies[section] || ["Coordinate with teacher for targeted support."];
 }
 
+function getCurriculumWeeks(section: string, failedSkills: string[]): string[] {
+  const base: Record<string, string[]> = {
+    "Reading Comprehension": [
+      "Main idea & supporting details — identify in short passages daily",
+      "Making inferences — practice with leveled texts and discussion prompts",
+      "Text structure — identify cause/effect, compare/contrast, problem/solution",
+      "Author's purpose & point of view — read 2 texts on same topic",
+      "Summarizing & retelling — 5-sentence written summary of passages",
+      "Independent practice passage — full comprehension check & review",
+    ],
+    Vocabulary: [
+      "Context clues — use surrounding words to determine meaning",
+      "Prefixes & suffixes — build 10 new words per week",
+      "Synonyms & antonyms — word sorts and matching exercises",
+      "Figurative language — idioms, similes, metaphors in real texts",
+      "Academic vocabulary — tier 2 words used across subjects",
+      "Review & application — use vocabulary in written sentences",
+    ],
+    Spelling: [
+      "Word families & phonics patterns — short/long vowel review",
+      "Blends & digraphs — read and spell 20 target words",
+      "Homophones & commonly confused words — daily practice",
+      "Multi-syllabic words — chunk and decode unfamiliar words",
+      "Spelling rules — silent letters, doubling, drop-e rules",
+      "Spelling test & word journal — review all 6-week words",
+    ],
+    "Grammar & Language Conventions": [
+      "Sentence types — simple, compound, complex; identify & write each",
+      "Punctuation — commas, apostrophes, quotation marks in context",
+      "Verb tenses — past, present, future with consistent usage",
+      "Subject–verb agreement — correct errors in sentences daily",
+      "Pronouns & antecedents — clarity and correct form",
+      "Review & editing — proofread a paragraph applying all conventions",
+    ],
+    Writing: [
+      "Paragraph structure — topic sentence, supporting details, conclusion",
+      "Descriptive writing — use sensory details and vivid language",
+      "Opinion writing — state a claim, give 3 reasons with evidence",
+      "Narrative writing — beginning, middle, end with character & plot",
+      "Informational writing — organize and cite factual content",
+      "Revision & editing — peer-review and final draft polish",
+    ],
+  };
+  return base[section] || [
+    "Identify specific skill gaps and target with daily short practice",
+    "Use workbooks and guided activities aligned to grade level",
+    "Review progress weekly and adjust focus based on results",
+    "Practice with real-world texts and hands-on activities",
+    "Complete a formative check and reteach missed concepts",
+    "Final review — celebrate growth and plan next steps",
+  ];
+}
+
 /* ──────────────────────── Component ──────────────────────── */
+
 
 export default function ELASectionReport({
   skillStats,
@@ -310,14 +376,31 @@ export default function ELASectionReport({
             <div>
               <h3 className="text-base font-bold text-slate-900 mb-1">Skills Assessed in This Diagnostic</h3>
               <p className="text-sm text-slate-600 mb-3">
-                This diagnostic test assessed your student's understanding of {sections.length} ELA skill areas:
+                This diagnostic test assessed your student's understanding of {sections.length} ELA skill area{sections.length !== 1 ? "s" : ""}:
               </p>
-              <div className="flex flex-wrap gap-2 mb-4">
-                {sections.map((s) => (
-                  <Badge key={s.section} variant="outline" className="text-xs bg-slate-50 text-slate-700 border-slate-300">
-                    {s.section}
-                  </Badge>
-                ))}
+              {/* Show individual skills per section */}
+              <div className="space-y-3 mb-4">
+                {sections.map((s) => {
+                  const sectionSkills = Object.entries(skillStats)
+                    .filter(([skill]) => isELASkill(skill) && mapSkillToSection(skill) === s.section)
+                    .map(([skill]) => skill);
+                  return (
+                    <div key={s.section}>
+                      <p className="text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1">{s.section}</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {sectionSkills.length > 0 ? sectionSkills.map((skill) => (
+                          <Badge key={skill} variant="outline" className="text-xs bg-slate-50 text-slate-700 border-slate-300">
+                            {skill}
+                          </Badge>
+                        )) : (
+                          <Badge variant="outline" className="text-xs bg-slate-50 text-slate-500 border-slate-200">
+                            {s.correct}/{s.total} questions
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
@@ -422,8 +505,13 @@ export default function ELASectionReport({
           {/* Contact */}
           <div className="border-t border-slate-200 pt-4 mt-4">
             <p className="font-bold text-[#1C2D5A] mb-1">Contact D.E.Bs LEARNING ACADEMY</p>
-            <p className="text-xs text-slate-500">📧 Email: info@debslearnacademy.com | 📞 Phone: 347-364-1906</p>
-            <p className="text-xs text-slate-500">🌐 Website: www.debslearnacademy.com</p>
+            <p className="text-xs text-slate-600">
+              📧 <a href="mailto:info@debslearnacademy.com" className="text-blue-600 underline hover:text-blue-800">info@debslearnacademy.com</a>{" "}
+              | 📞 <a href="tel:+13473641906" className="text-blue-600 underline hover:text-blue-800">347-364-1906</a>
+            </p>
+            <p className="text-xs text-slate-500 mt-0.5">
+              🌐 <a href="https://www.debslearnacademy.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline hover:text-blue-800">www.debslearnacademy.com</a>
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -471,18 +559,20 @@ export default function ELASectionReport({
             </div>
 
             <CardContent className="p-5 space-y-4">
-              {/* Skill-by-skill rows for this section */}
-              {Object.entries(buildSectionResults(skillStats).find(s => s.section === sectionName)?.masteredSkills || {}).length > 0 || true ? (
-                <div className="bg-slate-50 rounded-lg p-4">
-                  <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-2">Individual Skills</p>
-                  {Object.entries(skillStats)
-                    .filter(([skill]) => mapSkillToSection(skill) === sectionName)
-                    .map(([skill, stats]) => (
+              {/* Skill-by-skill rows for this section — filtered to ELA skills only */}
+              {(() => {
+                const sectionSkillEntries = Object.entries(skillStats)
+                  .filter(([skill]) => isELASkill(skill) && mapSkillToSection(skill) === sectionName);
+                if (sectionSkillEntries.length === 0) return null;
+                return (
+                  <div className="bg-slate-50 rounded-lg p-4">
+                    <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-2">Individual Skills</p>
+                    {sectionSkillEntries.map(([skill, stats]) => (
                       <SkillRow key={skill} skill={skill} correct={stats.correct} total={stats.total} percentage={stats.percentage} />
-                    ))
-                  }
-                </div>
-              ) : null}
+                    ))}
+                  </div>
+                );
+              })()}
 
               <div className="bg-slate-50 rounded-lg p-4">
                 <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1">
@@ -512,6 +602,12 @@ export default function ELASectionReport({
               const homeStrats = getHomeStrategies(section.section);
               const schoolStrats = getSchoolStrategies(section.section);
 
+              const failedSkills = Object.entries(skillStats)
+                .filter(([skill, stats]) => isELASkill(skill) && mapSkillToSection(skill) === section.section && stats.percentage < 70)
+                .map(([skill, stats]) => ({ skill, ...stats }));
+
+              const curriculumWeeks = getCurriculumWeeks(section.section, failedSkills.map(s => s.skill));
+
               return (
                 <div key={section.section} className="border border-slate-200 rounded-xl p-5">
                   <div className="flex items-center justify-between mb-3">
@@ -520,9 +616,42 @@ export default function ELASectionReport({
                     </h3>
                     <TierStatusBadge score={section.percent} />
                   </div>
-                  <p className="text-sm text-slate-600 mb-4">
+                  <p className="text-sm text-slate-600 mb-3">
                     Current score: <strong>{section.percent}%</strong> — {section.recommendation}
                   </p>
+
+                  {/* Specific skills that need support */}
+                  {failedSkills.length > 0 && (
+                    <div className="bg-red-50 border border-red-100 rounded-lg p-3 mb-4">
+                      <p className="text-xs font-semibold text-red-700 uppercase mb-2">⚠️ Specific Skills Needing Support</p>
+                      <ul className="space-y-1">
+                        {failedSkills.map(({ skill, correct, total, percentage }) => (
+                          <li key={skill} className="text-sm text-red-800 flex items-center justify-between gap-2">
+                            <span className="flex items-center gap-1.5">
+                              <span className="w-1.5 h-1.5 bg-red-500 rounded-full flex-shrink-0" />
+                              {skill}
+                            </span>
+                            <span className="text-xs text-red-600 flex-shrink-0">{correct}/{total} ({percentage}%)</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Curriculum Outline */}
+                  {curriculumWeeks.length > 0 && (
+                    <div className="bg-[#1C2D5A]/5 border border-[#1C2D5A]/15 rounded-lg p-4 mb-4">
+                      <p className="text-xs font-bold text-[#1C2D5A] uppercase tracking-wide mb-3">📚 6-Week Curriculum Outline</p>
+                      <div className="space-y-2">
+                        {curriculumWeeks.map((week, wi) => (
+                          <div key={wi} className="flex gap-3 text-sm">
+                            <span className="font-semibold text-[#1C2D5A] flex-shrink-0 w-14">Wk {wi + 1}–{wi + 1}:</span>
+                            <span className="text-slate-700">{week}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="bg-blue-50 rounded-lg p-4">
