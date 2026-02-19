@@ -74,12 +74,20 @@ const ELA_SECTIONS = [
 
 const ELA_SKILL_KEYWORDS = ["reading", "comprehension", "main idea", "inference", "summary", "author", "passage", "text structure", "central idea", "literary", "rhetoric", "theme", "character", "plot", "setting", "point of view", "compare", "story", "detail", "vocab", "synonym", "antonym", "context clue", "word meaning", "word structure", "prefix", "suffix", "root", "figurative", "idiom", "connotation", "denotation", "word", "definition", "meaning", "spell", "homophone", "homograph", "grammar", "punctuation", "verb", "subject", "pronoun", "adjective", "adverb", "sentence", "clause", "conjunction", "tense", "agreement", "capitalization", "comma", "apostrophe", "possessive", "parts of speech", "modifier", "contraction", "writ", "essay", "narrative", "opinion", "persuasive", "argument", "composition", "paragraph", "draft", "ela", "english", "language arts", "phonics", "fluency", "decoding", "blending"];
 
-function isELASkill(skill: string): boolean {
+// Strict math exclusion — any skill with these keywords is NOT an ELA skill
+const MATH_EXCLUDE_KEYWORDS = ["general math", "number", "arithmetic", "algebra", "geometry", "fraction", "decimal", "multiply", "division", "addition", "subtraction", "measurement", "place value", "rounding", "equation", "calculus", "statistics", "probability", "integer", "ratio", "percent", "data analysis"];
+
+function isMathSkill(skill: string): boolean {
   const s = skill.toLowerCase();
-  // Explicitly exclude math/generic skills
-  if (s.includes("math") || s.includes("general math") || s.includes("number") || s.includes("arithmetic") || s.includes("algebra") || s.includes("geometry") || s.includes("fraction") || s.includes("decimal") || s.includes("multiply") || s.includes("division") || s.includes("addition") || s.includes("subtraction") || s.includes("measurement") || s.includes("place value") || s.includes("rounding") || s.includes("equation"))
-    return false;
-  return ELA_SKILL_KEYWORDS.some((kw) => s.includes(kw));
+  return MATH_EXCLUDE_KEYWORDS.some((kw) => s.includes(kw));
+}
+
+function isELASkill(skill: string): boolean {
+  // Explicitly exclude math skills
+  if (isMathSkill(skill)) return false;
+  const s = skill.toLowerCase();
+  // Accept if matches any ELA keyword OR has no strong math signal (benefit of the doubt for ELA tests)
+  return ELA_SKILL_KEYWORDS.some((kw) => s.includes(kw)) || true;
 }
 
 function mapSkillToSection(skill: string): string {
@@ -94,6 +102,7 @@ function mapSkillToSection(skill: string): string {
     return "Grammar & Language Conventions";
   if (s.includes("writ") || s.includes("essay") || s.includes("narrative") || s.includes("opinion") || s.includes("persuasive") || s.includes("argument") || s.includes("composition") || s.includes("paragraph") || s.includes("draft"))
     return "Writing";
+  // Default to Grammar for any unmatched ELA skill (rather than silently dropping it)
   return "Grammar & Language Conventions";
 }
 
