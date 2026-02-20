@@ -167,7 +167,27 @@ export function RecommendedNextStepPanel({
     };
 
     const tips = getSubjectTips();
-    const allWeakSkills = [...prioritySkills, ...developingSkills];
+
+    // Filter skills to match the subject — exclude cross-subject contamination
+    const mathKeywords = ["math", "number", "arithmetic", "algebra", "geometry", "fraction", "multiplication", "division", "calculus", "statistics"];
+    const elaKeywords = ["reading", "writing", "grammar", "vocabulary", "comprehension", "spelling", "phonics", "fluency", "punctuation", "language", "ela", "english", "literacy"];
+
+    const isSubjectMatch = (skill: string) => {
+      const lower = skill.toLowerCase();
+      if (isELA) {
+        // For ELA, exclude skills that are purely math-labeled
+        const isMathOnly = mathKeywords.some(k => lower.includes(k)) && !elaKeywords.some(k => lower.includes(k));
+        return !isMathOnly;
+      } else {
+        // For Math, exclude skills that are purely ELA-labeled
+        const isELAOnly = elaKeywords.some(k => lower.includes(k)) && !mathKeywords.some(k => lower.includes(k));
+        return !isELAOnly;
+      }
+    };
+
+    const filteredPrioritySkills = prioritySkills.filter(isSubjectMatch);
+    const filteredDevelopingSkills = developingSkills.filter(isSubjectMatch);
+    const allWeakSkills = [...filteredPrioritySkills, ...filteredDevelopingSkills];
     const hasSkills = allWeakSkills.length > 0;
 
     const skillFocusHtml = hasSkills ? `
@@ -180,8 +200,8 @@ export function RecommendedNextStepPanel({
     <th style="text-align:left;padding:8px 12px;font-size:13px;color:#475569;border:1px solid #e2e8f0;">Recommended Action</th>
   </tr></thead>
   <tbody>
-    ${prioritySkills.map(s => `<tr><td style="padding:8px 12px;border:1px solid #e2e8f0;font-weight:600;">${s}</td><td style="padding:8px 12px;border:1px solid #e2e8f0;"><span style="background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:10px;font-size:12px;font-weight:bold;">🔴 Immediate Focus</span></td><td style="padding:8px 12px;border:1px solid #e2e8f0;font-size:13px;">Daily structured practice — do not skip weeks</td></tr>`).join("")}
-    ${developingSkills.map(s => `<tr><td style="padding:8px 12px;border:1px solid #e2e8f0;font-weight:600;">${s}</td><td style="padding:8px 12px;border:1px solid #e2e8f0;"><span style="background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:10px;font-size:12px;font-weight:bold;">🟡 Reinforce</span></td><td style="padding:8px 12px;border:1px solid #e2e8f0;font-size:13px;">Practice 2–3× per week until solid</td></tr>`).join("")}
+    ${filteredPrioritySkills.map(s => `<tr><td style="padding:8px 12px;border:1px solid #e2e8f0;font-weight:600;">${s}</td><td style="padding:8px 12px;border:1px solid #e2e8f0;"><span style="background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:10px;font-size:12px;font-weight:bold;">🔴 Immediate Focus</span></td><td style="padding:8px 12px;border:1px solid #e2e8f0;font-size:13px;">Daily structured practice — do not skip weeks</td></tr>`).join("")}
+    ${filteredDevelopingSkills.map(s => `<tr><td style="padding:8px 12px;border:1px solid #e2e8f0;font-weight:600;">${s}</td><td style="padding:8px 12px;border:1px solid #e2e8f0;"><span style="background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:10px;font-size:12px;font-weight:bold;">🟡 Reinforce</span></td><td style="padding:8px 12px;border:1px solid #e2e8f0;font-size:13px;">Practice 2–3× per week until solid</td></tr>`).join("")}
   </tbody>
 </table>` : "";
 
@@ -194,7 +214,7 @@ export function RecommendedNextStepPanel({
     <th style="text-align:left;padding:8px 12px;font-size:13px;color:#475569;border:1px solid #e2e8f0;">Home Activity</th>
   </tr></thead>
   <tbody>
-    ${(prioritySkills.length > 0 ? prioritySkills : ["Reading Comprehension", "Vocabulary", "Writing"]).slice(0, 6).map((skill, i) => `
+    ${(filteredPrioritySkills.length > 0 ? filteredPrioritySkills : ["Reading Comprehension", "Vocabulary", "Writing"]).slice(0, 6).map((skill, i) => `
     <tr style="background:${i % 2 === 0 ? "#fff" : "#f8fafc"};">
       <td style="padding:8px 12px;border:1px solid #e2e8f0;font-weight:bold;color:#1C2D5A;">Week ${i + 1}</td>
       <td style="padding:8px 12px;border:1px solid #e2e8f0;font-weight:600;">${skill}</td>
@@ -217,7 +237,7 @@ export function RecommendedNextStepPanel({
     <th style="text-align:left;padding:8px 12px;font-size:13px;color:#475569;border:1px solid #e2e8f0;">Home Activity</th>
   </tr></thead>
   <tbody>
-    ${(prioritySkills.length > 0 ? prioritySkills : ["Number Sense", "Operations", "Problem Solving"]).slice(0, 6).map((skill, i) => `
+    ${(filteredPrioritySkills.length > 0 ? filteredPrioritySkills : ["Number Sense", "Operations", "Problem Solving"]).slice(0, 6).map((skill, i) => `
     <tr style="background:${i % 2 === 0 ? "#fff" : "#f8fafc"};">
       <td style="padding:8px 12px;border:1px solid #e2e8f0;font-weight:bold;color:#1C2D5A;">Week ${i + 1}</td>
       <td style="padding:8px 12px;border:1px solid #e2e8f0;font-weight:600;">${skill}</td>
