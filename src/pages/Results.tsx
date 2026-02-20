@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 import { toast } from "sonner";
-import { ArrowLeft, Download, CheckCircle, XCircle, TrendingUp, RefreshCw, FileText, GraduationCap, Share2 } from "lucide-react";
+import { ArrowLeft, Download, CheckCircle, XCircle, TrendingUp, RefreshCw, FileText, BookOpen, Share2 } from "lucide-react";
 import ELASectionReport from "@/components/ELASectionReport";
 import { getTierFromScore, TIER_LABELS, TIER_THRESHOLDS } from "@/lib/tierConfig";
 import {
@@ -283,7 +283,14 @@ const Results = () => {
 
             {/* Desktop CTA after score summary */}
             <div className="mt-4 print:hidden">
-              <RecommendedNextStepPanel overallScore={overallScore} attemptId={attemptId} onNavigate={navigate} />
+              <RecommendedNextStepPanel
+                overallScore={overallScore}
+                attemptId={attemptId}
+                onNavigate={navigate}
+                subject={attempt.tests?.test_type === "ela" ? "ELA" : "Math"}
+                prioritySkills={skillAnalysis.needsSupport}
+                developingSkills={skillAnalysis.developing}
+              />
             </div>
           </CardContent>
         </Card>
@@ -474,6 +481,43 @@ const Results = () => {
           <PlacementPathwayCard overallScore={overallScore} />
         </div>
 
+        {/* Generate Curriculum CTA */}
+        {attemptId && (
+          <Card className="border-sky-200 bg-gradient-to-r from-sky-50 to-indigo-50 mb-6 print:hidden">
+            <CardContent className="pt-6 pb-5">
+              <div className="flex items-start gap-4">
+                <div className="bg-sky-100 rounded-full p-3 flex-shrink-0">
+                  <BookOpen className="h-6 w-6 text-sky-700" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-sky-900 text-base mb-1">
+                    📚 AI-Generated {isELA ? "ELA" : "Math"} Curriculum
+                  </h3>
+                  <p className="text-sm text-sky-700 mb-3">
+                    Get a personalized 4-week learning plan and practice questions built around your child's specific{" "}
+                    {skillAnalysis.needsSupport.length > 0 ? (
+                      <span>
+                        priority areas:{" "}
+                        <strong>{skillAnalysis.needsSupport.slice(0, 3).join(", ")}{skillAnalysis.needsSupport.length > 3 ? ` +${skillAnalysis.needsSupport.length - 3} more` : ""}</strong>
+                      </span>
+                    ) : (
+                      "performance data"
+                    )}
+                    .
+                  </p>
+                  <Button
+                    className="bg-sky-700 hover:bg-sky-800 text-white"
+                    onClick={() => navigate(`/curriculum/${attemptId}`)}
+                  >
+                    <BookOpen className="mr-2 h-4 w-4" />
+                    Generate Personalized Curriculum
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Tier Explanation & Next Steps */}
         <Card className="border-slate-200 mb-6">
           <CardHeader className="pb-2">
@@ -500,7 +544,14 @@ const Results = () => {
 
         {/* Bottom CTA (mobile repeat) */}
         <div className="print:hidden sm:hidden mb-6">
-          <RecommendedNextStepPanel overallScore={overallScore} attemptId={attemptId} onNavigate={navigate} />
+          <RecommendedNextStepPanel
+            overallScore={overallScore}
+            attemptId={attemptId}
+            onNavigate={navigate}
+            subject={isELA ? "ELA" : "Math"}
+            prioritySkills={skillAnalysis.needsSupport}
+            developingSkills={skillAnalysis.developing}
+          />
         </div>
       </main>
     </div>
