@@ -288,6 +288,7 @@ const Results = () => {
                 attemptId={attemptId}
                 onNavigate={navigate}
                 subject={attempt.tests?.test_type === "ela" ? "ELA" : "Math"}
+                studentName={attempt.profiles?.full_name || undefined}
                 prioritySkills={skillAnalysis.needsSupport}
                 developingSkills={skillAnalysis.developing}
               />

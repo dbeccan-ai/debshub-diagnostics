@@ -83,13 +83,15 @@ export function RecommendedNextStepPanel({
   attemptId,
   onNavigate,
   subject,
+  studentName,
   prioritySkills = [],
   developingSkills = [],
 }: {
   overallScore: number;
   attemptId?: string;
   onNavigate?: (path: string) => void;
-  subject?: string;  // "Math", "ELA", etc.
+  subject?: string;
+  studentName?: string;
   prioritySkills?: string[];
   developingSkills?: string[];
 }) {
@@ -231,6 +233,8 @@ export function RecommendedNextStepPanel({
   </tbody>
 </table>`;
 
+    const studentDisplay = studentName ? studentName : "Your Child";
+
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${subjectLabel} Home Support Plan – D.E.Bs Learning Academy</title>
 <style>
 body{font-family:Georgia,serif;max-width:750px;margin:40px auto;padding:20px;color:#1C2D5A;}
@@ -240,6 +244,9 @@ li{margin:8px 0;line-height:1.6;}
 ol{padding-left:20px;}
 .badge{background:${badgeColor};color:white;padding:4px 14px;border-radius:20px;font-size:14px;font-weight:bold;display:inline-block;}
 .subject-pill{background:#1C2D5A;color:white;padding:3px 10px;border-radius:12px;font-size:13px;font-weight:bold;display:inline-block;margin-left:8px;}
+.student-banner{background:#f0f4ff;border-left:5px solid #1C2D5A;padding:14px 20px;border-radius:6px;margin-bottom:20px;}
+.student-banner h2{margin:0 0 4px 0;font-size:20px;color:#1C2D5A;}
+.student-banner p{margin:0;color:#475569;font-size:14px;}
 .footer{margin-top:40px;padding-top:20px;border-top:2px solid #e2e8f0;font-size:13px;color:#64748b;}
 a{color:#1C2D5A;}
 @media print{body{margin:20px;}}
@@ -247,8 +254,12 @@ a{color:#1C2D5A;}
 <body>
 <p style="text-align:center;font-size:13px;letter-spacing:2px;color:#64748b;text-transform:uppercase;">D.E.Bs LEARNING ACADEMY — Unlocking Brilliance Through Learning</p>
 <h1>🏠 ${subjectLabel} Home Support Plan</h1>
+<div class="student-banner">
+  <h2>👤 ${studentDisplay}</h2>
+  <p>Personalised ${subjectLabel} support plan based on diagnostic results</p>
+</div>
 <p><span class="badge">${tierName}</span> <span class="subject-pill">${subjectLabel} Diagnostic</span></p>
-<p style="margin-top:16px;">This plan is tailored to the results of your child's <strong>${subjectLabel} diagnostic</strong> and is designed to guide focused home support over the next <strong>6–8 weeks</strong>.</p>
+<p style="margin-top:16px;">This plan is tailored to the results of <strong>${studentDisplay}'s ${subjectLabel} diagnostic</strong> and is designed to guide focused home support over the next <strong>6–8 weeks</strong>.</p>
 
 ${skillFocusHtml}
 
