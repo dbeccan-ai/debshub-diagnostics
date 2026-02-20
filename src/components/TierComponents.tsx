@@ -78,11 +78,28 @@ export function SkillRow({ skill, correct, total, percentage }: { skill: string;
 }
 
 /* ─── Recommended Next Step CTA Panel ─── */
-export function RecommendedNextStepPanel({ overallScore, attemptId, onNavigate }: { overallScore: number; attemptId?: string; onNavigate?: (path: string) => void }) {
+export function RecommendedNextStepPanel({
+  overallScore,
+  attemptId,
+  onNavigate,
+  subject,
+  prioritySkills = [],
+  developingSkills = [],
+}: {
+  overallScore: number;
+  attemptId?: string;
+  onNavigate?: (path: string) => void;
+  subject?: string;  // "Math", "ELA", etc.
+  prioritySkills?: string[];
+  developingSkills?: string[];
+}) {
   const tier = getTierFromScore(overallScore);
   const ctas = TIER_CTAS[tier];
   const style = CTA_STYLES[tier];
   const cfg = TIER_LABELS[tier];
+
+  const isELA = subject?.toLowerCase().includes("ela") || subject?.toLowerCase().includes("english");
+  const subjectLabel = subject || "Academic";
 
   const handleStrategyCall = () => {
     window.open(
@@ -93,32 +110,155 @@ export function RecommendedNextStepPanel({ overallScore, attemptId, onNavigate }
 
   const handleDownloadHomePlan = () => {
     const tierName = tier === "green" ? "Tier 1 – Enrichment" : tier === "yellow" ? "Tier 2 – Skill Builder" : "Tier 3 – Intensive Intervention";
-    const tips =
-      tier === "green"
-        ? ["Introduce enrichment challenges above grade level", "Read chapter books and discuss themes in depth", "Encourage creative writing and project-based learning", "Explore math puzzles, science experiments, and coding activities", "Join enrichment clubs or competitions to stretch skills further"]
-        : tier === "yellow"
-        ? ["Set aside 20–30 minutes of targeted practice daily", "Use flashcards and games to reinforce developing skills", "Review homework together and discuss errors without frustration", "Celebrate small wins — progress at this stage accelerates quickly", "Coordinate with the teacher on specific skill gaps to address"]
-        : ["Establish a structured 45-minute daily practice routine", "Focus on one foundational skill per week until solid", "Read aloud together every day — comprehension and fluency are key", "Use multisensory approaches: tracing, speaking, and writing together", "Schedule a call with D.E.Bs Academy for a personalized intervention plan"];
+    const badgeColor = tier === "green" ? "#059669" : tier === "yellow" ? "#d97706" : "#dc2626";
 
-    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Home Support Plan – D.E.Bs Learning Academy</title>
-<style>body{font-family:Georgia,serif;max-width:700px;margin:40px auto;padding:20px;color:#1C2D5A;}
+    // Subject-specific & skill-specific strategies
+    const getSubjectTips = () => {
+      if (isELA) {
+        if (tier === "red") return [
+          "Read aloud together for at least 20 minutes every day — fluency and comprehension build simultaneously",
+          "After reading, ask 2–3 open-ended questions: 'Why did the character do that?' 'What do you think happens next?'",
+          "Focus on one weak ELA skill per week (e.g., vocabulary, punctuation, inference) with short daily activities",
+          "Use spelling practice apps or word journals — write new words in sentences to build contextual understanding",
+          "Practice writing 3–5 sentences daily on any topic to build grammar and writing confidence",
+          "Schedule a call with D.E.Bs Academy for a structured ELA intervention plan",
+        ];
+        if (tier === "yellow") return [
+          "Read a mix of fiction and non-fiction together — discuss the author's purpose and main idea",
+          "Build vocabulary daily: pick 5 new words, define them, and use in conversation",
+          "Practice identifying text structures: cause/effect, compare/contrast, problem/solution",
+          "Review grammar rules through short daily exercises (15 minutes is enough to build habits)",
+          "Encourage journaling 3× per week — writing regularly strengthens all ELA skills simultaneously",
+        ];
+        return [
+          "Challenge with above-grade-level books and complex texts to stretch comprehension",
+          "Introduce literary analysis: theme, tone, author's craft, symbolism",
+          "Encourage creative writing projects — short stories, poetry, essays on topics of interest",
+          "Explore debate and persuasive writing to strengthen argumentation skills",
+          "Join a reading club or writing enrichment program to maintain momentum",
+        ];
+      } else {
+        // Math
+        if (tier === "red") return [
+          "Set aside 30–45 minutes of structured math practice daily — consistency is the key",
+          "Focus on one foundational math skill per week until fully solid before moving on",
+          "Use manipulatives (blocks, counters, number lines) for hands-on understanding of abstract concepts",
+          "Practice times tables and number facts daily — fluency unlocks every other math skill",
+          "After every homework problem, ask your child to explain their thinking aloud",
+          "Schedule a call with D.E.Bs Academy for a targeted math intervention plan",
+        ];
+        if (tier === "yellow") return [
+          "Set aside 20–30 minutes of targeted math practice daily",
+          "Use flashcards and math games to reinforce developing skills (fractions, word problems, etc.)",
+          "Review homework together and discuss errors — mistakes are learning opportunities",
+          "Celebrate small wins — progress at this stage accelerates quickly with consistent effort",
+          "Coordinate with the teacher on specific skill gaps to align home and school practice",
+        ];
+        return [
+          "Introduce math enrichment challenges above grade level (competition problems, puzzles)",
+          "Explore coding and logic games that build mathematical thinking",
+          "Encourage project-based math: budgeting, measuring, cooking with fractions",
+          "Work through advanced topics in your grade's next level to stay ahead",
+          "Join math enrichment clubs or competitions to stretch skills further",
+        ];
+      }
+    };
+
+    const tips = getSubjectTips();
+    const allWeakSkills = [...prioritySkills, ...developingSkills];
+    const hasSkills = allWeakSkills.length > 0;
+
+    const skillFocusHtml = hasSkills ? `
+<h2>🎯 Priority Focus Skills</h2>
+<p>Based on this diagnostic, your child needs targeted support in the following ${subjectLabel} areas:</p>
+<table style="width:100%;border-collapse:collapse;margin:12px 0;">
+  <thead><tr style="background:#f1f5f9;">
+    <th style="text-align:left;padding:8px 12px;font-size:13px;color:#475569;border:1px solid #e2e8f0;">Skill / Section</th>
+    <th style="text-align:left;padding:8px 12px;font-size:13px;color:#475569;border:1px solid #e2e8f0;">Priority Level</th>
+    <th style="text-align:left;padding:8px 12px;font-size:13px;color:#475569;border:1px solid #e2e8f0;">Recommended Action</th>
+  </tr></thead>
+  <tbody>
+    ${prioritySkills.map(s => `<tr><td style="padding:8px 12px;border:1px solid #e2e8f0;font-weight:600;">${s}</td><td style="padding:8px 12px;border:1px solid #e2e8f0;"><span style="background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:10px;font-size:12px;font-weight:bold;">🔴 Immediate Focus</span></td><td style="padding:8px 12px;border:1px solid #e2e8f0;font-size:13px;">Daily structured practice — do not skip weeks</td></tr>`).join("")}
+    ${developingSkills.map(s => `<tr><td style="padding:8px 12px;border:1px solid #e2e8f0;font-weight:600;">${s}</td><td style="padding:8px 12px;border:1px solid #e2e8f0;"><span style="background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:10px;font-size:12px;font-weight:bold;">🟡 Reinforce</span></td><td style="padding:8px 12px;border:1px solid #e2e8f0;font-size:13px;">Practice 2–3× per week until solid</td></tr>`).join("")}
+  </tbody>
+</table>` : "";
+
+    const weeklyPlanHtml = isELA
+      ? `<h2>📅 6-Week ${subjectLabel} Home Plan</h2>
+<table style="width:100%;border-collapse:collapse;margin:12px 0;">
+  <thead><tr style="background:#f1f5f9;">
+    <th style="text-align:left;padding:8px 12px;font-size:13px;color:#475569;border:1px solid #e2e8f0;">Week</th>
+    <th style="text-align:left;padding:8px 12px;font-size:13px;color:#475569;border:1px solid #e2e8f0;">Focus Area</th>
+    <th style="text-align:left;padding:8px 12px;font-size:13px;color:#475569;border:1px solid #e2e8f0;">Home Activity</th>
+  </tr></thead>
+  <tbody>
+    ${(prioritySkills.length > 0 ? prioritySkills : ["Reading Comprehension", "Vocabulary", "Writing"]).slice(0, 6).map((skill, i) => `
+    <tr style="background:${i % 2 === 0 ? "#fff" : "#f8fafc"};">
+      <td style="padding:8px 12px;border:1px solid #e2e8f0;font-weight:bold;color:#1C2D5A;">Week ${i + 1}</td>
+      <td style="padding:8px 12px;border:1px solid #e2e8f0;font-weight:600;">${skill}</td>
+      <td style="padding:8px 12px;border:1px solid #e2e8f0;font-size:13px;">${
+        i === 0 ? "Daily 15-min reading + comprehension questions" :
+        i === 1 ? "Vocabulary journal: 5 new words/day in sentences" :
+        i === 2 ? "Grammar drill sheets + punctuation practice" :
+        i === 3 ? "Short writing prompts (3–5 sentences, 3×/week)" :
+        i === 4 ? "Mixed ELA review: reading passage + 5 questions" :
+        "Progress check + celebrate growth, identify next focus"
+      }</td>
+    </tr>`).join("")}
+  </tbody>
+</table>`
+      : `<h2>📅 6-Week Math Home Plan</h2>
+<table style="width:100%;border-collapse:collapse;margin:12px 0;">
+  <thead><tr style="background:#f1f5f9;">
+    <th style="text-align:left;padding:8px 12px;font-size:13px;color:#475569;border:1px solid #e2e8f0;">Week</th>
+    <th style="text-align:left;padding:8px 12px;font-size:13px;color:#475569;border:1px solid #e2e8f0;">Focus Skill</th>
+    <th style="text-align:left;padding:8px 12px;font-size:13px;color:#475569;border:1px solid #e2e8f0;">Home Activity</th>
+  </tr></thead>
+  <tbody>
+    ${(prioritySkills.length > 0 ? prioritySkills : ["Number Sense", "Operations", "Problem Solving"]).slice(0, 6).map((skill, i) => `
+    <tr style="background:${i % 2 === 0 ? "#fff" : "#f8fafc"};">
+      <td style="padding:8px 12px;border:1px solid #e2e8f0;font-weight:bold;color:#1C2D5A;">Week ${i + 1}</td>
+      <td style="padding:8px 12px;border:1px solid #e2e8f0;font-weight:600;">${skill}</td>
+      <td style="padding:8px 12px;border:1px solid #e2e8f0;font-size:13px;">${
+        i === 0 ? "Daily 10-min drill + 3 practice problems on this skill" :
+        i === 1 ? "Flashcard review + real-world application activity" :
+        i === 2 ? "Worksheet practice + verbal explanation of steps" :
+        i === 3 ? "Word problem focus: 5 problems per session, 3×/week" :
+        i === 4 ? "Mixed skill review: combine skills from weeks 1–4" :
+        "Progress check + celebrate growth, identify next focus"
+      }</td>
+    </tr>`).join("")}
+  </tbody>
+</table>`;
+
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${subjectLabel} Home Support Plan – D.E.Bs Learning Academy</title>
+<style>
+body{font-family:Georgia,serif;max-width:750px;margin:40px auto;padding:20px;color:#1C2D5A;}
 h1{color:#1C2D5A;border-bottom:3px solid #FFDE59;padding-bottom:10px;}
-h2{color:#1C2D5A;margin-top:24px;}
+h2{color:#1C2D5A;margin-top:28px;font-size:18px;}
 li{margin:8px 0;line-height:1.6;}
-.badge{background:${tier === "green" ? "#059669" : tier === "yellow" ? "#d97706" : "#dc2626"};color:white;padding:4px 12px;border-radius:20px;font-size:14px;font-weight:bold;}
+ol{padding-left:20px;}
+.badge{background:${badgeColor};color:white;padding:4px 14px;border-radius:20px;font-size:14px;font-weight:bold;display:inline-block;}
+.subject-pill{background:#1C2D5A;color:white;padding:3px 10px;border-radius:12px;font-size:13px;font-weight:bold;display:inline-block;margin-left:8px;}
 .footer{margin-top:40px;padding-top:20px;border-top:2px solid #e2e8f0;font-size:13px;color:#64748b;}
 a{color:#1C2D5A;}
 @media print{body{margin:20px;}}
 </style></head>
 <body>
 <p style="text-align:center;font-size:13px;letter-spacing:2px;color:#64748b;text-transform:uppercase;">D.E.Bs LEARNING ACADEMY — Unlocking Brilliance Through Learning</p>
-<h1>🏠 Home Support Plan</h1>
-<p><span class="badge">${tierName}</span></p>
-<p style="margin-top:16px;">This plan is designed to help you support your child's academic progress at home over the next <strong>6–8 weeks</strong>.</p>
+<h1>🏠 ${subjectLabel} Home Support Plan</h1>
+<p><span class="badge">${tierName}</span> <span class="subject-pill">${subjectLabel} Diagnostic</span></p>
+<p style="margin-top:16px;">This plan is tailored to the results of your child's <strong>${subjectLabel} diagnostic</strong> and is designed to guide focused home support over the next <strong>6–8 weeks</strong>.</p>
+
+${skillFocusHtml}
+
 <h2>📋 Weekly Home Strategies</h2>
 <ol>${tips.map((t) => `<li>${t}</li>`).join("")}</ol>
+
+${weeklyPlanHtml}
+
 <h2>📞 Next Step</h2>
-<p>For a personalized intervention plan tailored to your child's specific diagnostic results:</p>
+<p>For a personalized ${subjectLabel} intervention plan tailored to your child's specific diagnostic results:</p>
 <ul>
   <li>📧 Email: <a href="mailto:info@debslearnacademy.com">info@debslearnacademy.com</a></li>
   <li>📞 Call: <a href="tel:+13473641906">347-364-1906</a></li>
