@@ -331,7 +331,7 @@ serve(async (req) => {
       height: 140px;
       border-radius: 50%;
       background: conic-gradient(
-        ${tierColor.primary} 0% ${correctPercentage}%,
+        #22c55e 0% ${correctPercentage}%,
         #ef4444 ${correctPercentage}% 100%
       );
       box-shadow: 0 4px 20px rgba(0,0,0,0.15);
@@ -353,7 +353,7 @@ serve(async (req) => {
       border-radius: 4px;
     }
     .legend-color.correct {
-      background: ${tierColor.primary};
+      background: #22c55e;
     }
     .legend-color.incorrect {
       background: #ef4444;
