@@ -77,9 +77,13 @@ serve(async (req) => {
 
     // Determine price based on grade level
     const gradeLevel = attempt.grade_level || 5;
-    const amount = gradeLevel <= 6 ? 9900 : 12000; // cents
+    const netAmount = gradeLevel <= 6 ? 99 : 120; // dollars you want to receive
     const testName = testData?.name || "Diagnostic Test";
-    logStep("Price determined", { gradeLevel, amount, testName });
+
+    // Gross up price so you net the full amount after Stripe's fee (2.9% + $0.30)
+    // Formula: grossAmount = (netAmount + 0.30) / (1 - 0.029)
+    const grossAmount = Math.ceil(((netAmount + 0.30) / (1 - 0.029)) * 100); // convert to cents, round up
+    logStep("Price determined", { gradeLevel, netAmount, grossAmount, testName });
 
     // Initialize Stripe
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
@@ -107,7 +111,7 @@ serve(async (req) => {
               name: testName,
               description: `Grade ${gradeLevel} diagnostic test`,
             },
-            unit_amount: amount,
+            unit_amount: grossAmount,
           },
           quantity: 1,
         },
