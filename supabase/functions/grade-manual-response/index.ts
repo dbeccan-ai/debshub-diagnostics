@@ -98,7 +98,8 @@ serve(async (req) => {
     const pendingCount = allResponses.length - totalGraded;
 
     const score = totalGraded > 0 ? (correctCount / totalGraded) * 100 : 0;
-    const tier = score >= 80 ? 'Tier 1' : score >= 50 ? 'Tier 2' : 'Tier 3';
+    // Correct thresholds: Tier 1 = 85%+, Tier 2 = 66–84%, Tier 3 = ≤65%
+    const tier = score >= 85 ? 'Tier 1' : score >= 66 ? 'Tier 2' : 'Tier 3';
 
     // Update attempt with new scores
     const { error: attemptUpdateError } = await supabaseAdmin

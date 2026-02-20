@@ -205,7 +205,8 @@ serve(async (req) => {
 
     const skillAnalysis = { mastered: mastered.sort(), needsSupport: needsSupport.sort(), developing: developing.sort(), skillStats };
     const score = totalCount > 0 ? (correctCount / totalCount) * 100 : 0;
-    const tier = score >= 80 ? 'Tier 1' : score >= 50 ? 'Tier 2' : 'Tier 3';
+    // Correct thresholds: Tier 1 = 85%+, Tier 2 = 66–84%, Tier 3 = ≤65%
+    const tier = score >= 85 ? 'Tier 1' : score >= 66 ? 'Tier 2' : 'Tier 3';
 
     console.log(`Finalized: ${correctCount}/${totalCount} = ${score.toFixed(1)}% (${tier})`);
 
@@ -301,9 +302,22 @@ serve(async (req) => {
         <ul class="list">${needsSupport.slice(0, 5).map(w => `<li>${w}</li>`).join('')}</ul>
       </div>` : ''}
       ${tier === 'Tier 3' ? `
-      <div class="tier3-message">
-        <strong>Recommendation:</strong> Based on the results, we strongly recommend additional support. 
-        Consider booking a tutor with D.E.Bs LEARNING ACADEMY.
+      <div style="background: #fee2e2; border-left: 4px solid #dc2626; padding: 20px; margin: 20px 0; border-radius: 5px;">
+        <h3 style="color: #991b1b; margin-top: 0;">⚠️ Immediate Action Required</h3>
+        <p style="color: #7f1d1d; margin: 0 0 12px;">Your child's results indicate foundational skill gaps that require <strong>targeted intervention now</strong>. Without structured support, these gaps compound each year — making recovery significantly harder in later grades.</p>
+        <p style="color: #7f1d1d; margin: 0 0 16px;">Early action is the highest-ROI move a parent can make. Students who receive support at this stage consistently close the gap within one term.</p>
+        <p style="text-align: center;">
+          <a href="https://buy.stripe.com/cNicMXfTqd5C2LVfUO4wM00" style="display: inline-block; background: #dc2626; color: white; padding: 14px 28px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px;">📞 Book the Intensive Intervention Plan Now</a>
+        </p>
+        <p style="color: #991b1b; font-size: 13px; text-align: center; margin: 12px 0 0;">Or call us directly: <strong>347-364-1906</strong> | <a href="mailto:info@debslearnacademy.com" style="color: #991b1b;">info@debslearnacademy.com</a></p>
+      </div>` : tier === 'Tier 2' ? `
+      <div style="background: #fef3c7; border-left: 4px solid #d97706; padding: 20px; margin: 20px 0; border-radius: 5px;">
+        <h3 style="color: #92400e; margin-top: 0;">🎯 The Reinforcement Window Is Open</h3>
+        <p style="color: #78350f; margin: 0 0 16px;">Skills at this level are within reach of mastery — but only with consistent, targeted practice. This is the ideal moment to intervene before gaps solidify. Students who receive support now consistently outperform peers by next term.</p>
+        <p style="text-align: center;">
+          <a href="https://buy.stripe.com/14AbITePm3v286f3824wM01" style="display: inline-block; background: #d97706; color: white; padding: 14px 28px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px;">Enroll in the Skill Builder Program</a>
+        </p>
+        <p style="color: #92400e; font-size: 13px; text-align: center; margin: 12px 0 0;">Questions? Call: <strong>347-364-1906</strong> | <a href="mailto:info@debslearnacademy.com" style="color: #92400e;">info@debslearnacademy.com</a></p>
       </div>` : ''}
       ${certificate?.certificate_url ? `
       <p style="text-align: center;">
