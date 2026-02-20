@@ -57,15 +57,35 @@ export function normalizeQuestions(rawQuestions: any): any[] {
   let questions: any[] = [];
   
   if (Array.isArray(rawQuestions)) {
-    // Flat array of questions
-    questions = rawQuestions.map((q: any) => ({
-      ...q,
-      question: q.question_text || q.question || q.text,
-      options: q.choices || q.options || [],
-      type: normalizeQuestionType(q.type),
-      topic: q.topic || q.skill_tag || q.skill,
-      visual: q.visual || null,
-    }));
+    // Check if array items are section objects (have a `questions` array inside)
+    const isSectionsArray = rawQuestions.length > 0 && Array.isArray(rawQuestions[0]?.questions);
+    if (isSectionsArray) {
+      // Flat array of section objects — same as the { sections: [...] } case
+      questions = rawQuestions.flatMap((section: any) =>
+        (section.questions || []).map((q: any) => ({
+          ...q,
+          question: q.question_text || q.question || q.text,
+          options: q.choices || q.options || [],
+          type: normalizeQuestionType(q.type),
+          topic: q.topic || q.skill_tag || q.skill,
+          section_title: section.section_title,
+          section_instructions: section.instructions,
+          student_completes: section.student_completes,
+          correct_answer: q.correct_answer || q.correctAnswer,
+          visual: q.visual || null,
+        }))
+      );
+    } else {
+      // Flat array of questions
+      questions = rawQuestions.map((q: any) => ({
+        ...q,
+        question: q.question_text || q.question || q.text,
+        options: q.choices || q.options || [],
+        type: normalizeQuestionType(q.type),
+        topic: q.topic || q.skill_tag || q.skill,
+        visual: q.visual || null,
+      }));
+    }
   } else if (rawQuestions?.sections && Array.isArray(rawQuestions.sections)) {
     // Sections structure (grades 1-12) - flatten all questions from all sections
     questions = rawQuestions.sections.flatMap((section: any) => 
