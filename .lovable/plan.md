@@ -1,54 +1,53 @@
 
+## Fix: ELA Results Missing Skills + Curriculum Generating Math Content
 
-## Fix: Home Plan Missing Weeks + Raw LaTeX in Practice Questions
+### Problems Identified
 
-### Issue 1: Home Plan Only Shows 3 Weeks Instead of 6
+1. **ELA Home Support Plan shows "Rounding" (a math skill)** — The `RecommendedNextStepPanel` in `ELAResults.tsx` is called without `subject`, `studentName`, `prioritySkills`, or `developingSkills` props. Without these, the component can't filter skills or label the plan as ELA.
 
-**Root Cause:** The 6-week plan table maps one skill per row using `.slice(0, 6)`. When only 3 priority skills exist (Decimals, Fractions, Money), only 3 rows are generated. The code needs to pad the list to always produce 6 rows, cycling through skills or adding review/consolidation weeks.
+2. **Curriculum page shows "Personalized Math Boost: Mastering Rounding" for an ELA test** — The `generate-curriculum` edge function already fetches `test_type` from the database but never passes it to the AI prompt. So the AI doesn't know the test is ELA and defaults to math-style content.
 
-**Fix in `src/components/TierComponents.tsx`:**
-- After slicing skills, pad the array to 6 entries by adding review/consolidation week labels if fewer than 6 skills exist
-- For Math: Weeks 4-6 could be "Word Problem Practice", "Mixed Skill Review", "Progress Check + Celebration"
-- For ELA: Similar padding with "Mixed ELA Review", "Writing Practice", "Progress Assessment"
-- The activity descriptions for weeks 4-6 already exist in the ternary logic (indices 3, 4, 5) -- the problem is the skill array is too short to reach them
-
-**Specific change:** Instead of only using `filteredPrioritySkills`, combine priority + developing skills, then pad with default review topics to guarantee 6 entries:
-```
-const allSkills = [...filteredPrioritySkills, ...filteredDevelopingSkills];
-const paddedSkills = [...allSkills];
-const defaultPadding = isELA 
-  ? ["Mixed Reading Review", "Writing Practice", "Progress Assessment"]
-  : ["Word Problem Practice", "Mixed Skill Review", "Progress Check"];
-while (paddedSkills.length < 6) {
-  paddedSkills.push(defaultPadding[paddedSkills.length - allSkills.length] || "Review");
-}
-```
+3. **ELA test attempts in the database have "General Math" as a skill** — The upstream grading function is tagging ELA tests with math skill labels. The curriculum function needs to use `test_type` to override this and force ELA-appropriate content.
 
 ---
 
-### Issue 2: Practice Questions Show Raw LaTeX Instead of Rendered Fractions
+### Fix 1: `src/pages/ELAResults.tsx` — Pass subject and skills to RecommendedNextStepPanel
 
-**Root Cause:** The AI model (Gemini) returns math expressions using LaTeX notation like `\(\frac{1}{3} + \frac{1}{6}\)`. The `Curriculum.tsx` page renders these as plain text via `{currentQ?.question}`, so the LaTeX is displayed raw.
+Both instances of `<RecommendedNextStepPanel>` (lines 349 and 629) currently only pass `overallScore`. They need to also pass:
+- `subject="ELA"`
+- `studentName={result.studentName}`
+- `prioritySkills` — derived from `sectionBreakdown` sections with `percent < 50`
+- `developingSkills` — derived from `sectionBreakdown` sections with `percent` between 50-69
 
-**Fix in `supabase/functions/generate-curriculum/index.ts`:**
-- Add an instruction to the system prompt telling the AI to use plain text Unicode fractions or simple notation (e.g., "1/3 + 1/6") instead of LaTeX, since the output is rendered in a web UI without a LaTeX renderer.
-- Add to the system prompt: "IMPORTANT: Do NOT use LaTeX notation. Write math expressions in plain text using / for fractions (e.g., '1/3 + 1/6' not '\\frac{1}{3}'). Use Unicode symbols where helpful (e.g., times, division sign)."
+This will ensure the Home Support Plan:
+- Labels itself as "ELA Home Support Plan" (not generic)
+- Shows the student's name
+- Lists ELA section names (Reading Comprehension, Vocabulary, etc.) instead of math skills like "Rounding"
 
-**Additionally in `src/pages/Curriculum.tsx`:**
-- Add a simple sanitizer that strips any remaining LaTeX wrappers (`\(`, `\)`, `\frac{a}{b}` to `a/b`) as a fallback in case the AI still returns LaTeX despite the instruction.
-- Apply this sanitizer to question text, options, hints, and explanations.
+### Fix 2: `supabase/functions/generate-curriculum/index.ts` — Add subject awareness
+
+The `test_type` is already fetched from the database (line 63) and extracted (line 101). Changes:
+- Extract `testType` from the joined data (similar to how `testName` is extracted)
+- Determine subject label: if `test_type` contains "ela", use "ELA/English Language Arts"; otherwise "Math"
+- Add the subject to both the system prompt and user prompt so the AI generates subject-appropriate curriculum
+- Add explicit instruction: "This is an ELA diagnostic — generate reading, writing, grammar, vocabulary, and spelling content only. Do NOT generate math content."
+
+### Fix 3: `src/pages/Curriculum.tsx` — Display subject-aware title
+
+Currently the curriculum title comes directly from the AI response. As an extra safeguard:
+- The `testName` is already displayed in the hero section subtitle. No code change needed here since the AI prompt fix will produce correct titles.
 
 ---
 
-### Technical Changes
+### Technical Details
 
-**File 1: `src/components/TierComponents.tsx`**
-- Combine `filteredPrioritySkills` and `filteredDevelopingSkills` and pad to 6 entries for the weekly plan table (both Math and ELA branches)
+**File 1: `src/pages/ELAResults.tsx`**
+- Compute `prioritySkills` and `developingSkills` from `result.sectionBreakdown` before the return statement
+- Update both `RecommendedNextStepPanel` calls (lines 349 and 629) to include all required props
 
 **File 2: `supabase/functions/generate-curriculum/index.ts`**
-- Add "no LaTeX" instruction to the system prompt so the AI generates plain-text math expressions
-
-**File 3: `src/pages/Curriculum.tsx`**
-- Add a `sanitizeMath()` helper function that converts `\frac{a}{b}` to `a/b` and strips `\(` / `\)` wrappers
-- Apply it to question, options, hint, and explanation text rendering
-
+- Extract `testType` from `testsData` (line ~104)
+- Determine `isELA` boolean and `subjectLabel`
+- Add subject context to system prompt: "You are generating curriculum for a [subject] diagnostic. Only generate [subject]-appropriate content."
+- Add subject context to user prompt: "This is a [subject] diagnostic test."
+- If ELA, explicitly tell the AI: "Focus on reading comprehension, vocabulary, spelling, grammar, and writing skills. Do NOT include any math content."
