@@ -104,13 +104,34 @@ serve(async (req) => {
       throw new Error("Test is not completed yet");
     }
 
+    // Recalculate tier from score instead of trusting stale database value
+    const correctedTier = (attempt.score || 0) >= 85 ? 'Tier 1' : (attempt.score || 0) >= 66 ? 'Tier 2' : 'Tier 3';
+
+    // Detect if this is an ELA test
+    const isELA = attempt.tests?.test_type?.includes('ela') || attempt.tests?.name?.toLowerCase().includes('ela');
+
+    // Math keywords to filter out of ELA results
+    const mathFilterKeywords = ["math", "rounding", "multiplication", "division", "fraction", "decimal", "geometry", "algebra", "place value", "perimeter", "area", "volume", "angle", "measurement", "general math", "word problem"];
+    const isMathSkill = (skill: string) => {
+      const lower = skill.toLowerCase();
+      return mathFilterKeywords.some(k => lower.includes(k));
+    };
+
     // Parse skill analysis with safe defaults
     const rawSkillAnalysis = attempt.skill_analysis || {};
+    const rawMastered = rawSkillAnalysis.mastered || attempt.strengths || [];
+    const rawNeedsSupport = rawSkillAnalysis.needsSupport || attempt.weaknesses || [];
+    const rawDeveloping = rawSkillAnalysis.developing || [];
+    const rawSkillStats = rawSkillAnalysis.skillStats || {};
+
+    // Filter out math skills for ELA tests
     const skillAnalysis: SkillAnalysis = {
-      mastered: rawSkillAnalysis.mastered || attempt.strengths || [],
-      needsSupport: rawSkillAnalysis.needsSupport || attempt.weaknesses || [],
-      developing: rawSkillAnalysis.developing || [],
-      skillStats: rawSkillAnalysis.skillStats || {}
+      mastered: isELA ? rawMastered.filter((s: string) => !isMathSkill(s)) : rawMastered,
+      needsSupport: isELA ? rawNeedsSupport.filter((s: string) => !isMathSkill(s)) : rawNeedsSupport,
+      developing: isELA ? rawDeveloping.filter((s: string) => !isMathSkill(s)) : rawDeveloping,
+      skillStats: isELA
+        ? Object.fromEntries(Object.entries(rawSkillStats).filter(([skill]) => !isMathSkill(skill)))
+        : rawSkillStats
     };
 
     // Determine tier colors
@@ -120,7 +141,7 @@ serve(async (req) => {
       "Tier 3": { primary: "#ef4444", border: "#ef4444", bg: "#fee2e2", light: "#fef2f2" },
     };
 
-    const tierColor = tierColors[attempt.tier || "Tier 3"];
+    const tierColor = tierColors[correctedTier];
 
     // Calculate pie chart percentages
     const correctPercentage = attempt.score || 0;
@@ -142,7 +163,7 @@ serve(async (req) => {
       }
     };
 
-    const tierMessage = tierMessages[attempt.tier || "Tier 3"];
+    const tierMessage = tierMessages[correctedTier];
 
     // Generate skill stats HTML
     const generateSkillStatsHtml = (stats: Record<string, SkillStat>) => {
@@ -546,7 +567,7 @@ serve(async (req) => {
         
         <div class="score-box">
           <div class="score">${attempt.score}%</div>
-          <div class="tier-badge">${attempt.tier}</div>
+          <div class="tier-badge">${correctedTier}</div>
         </div>
         
         ${
@@ -579,7 +600,7 @@ serve(async (req) => {
       <div class="footer">
         <div class="footer-text">
           This certificate is awarded to ${attempt.profiles?.full_name} for completing
-          the ${attempt.tests?.name} with a score of ${attempt.score}% (${attempt.tier}).
+          the ${attempt.tests?.name} with a score of ${attempt.score}% (${correctedTier}).
         </div>
         <div class="date">
           Issued on ${new Date().toLocaleDateString()}
@@ -656,12 +677,12 @@ serve(async (req) => {
     ` : ''}
 
     <div class="report-section">
-      <div class="report-title">Understanding Your ${attempt.tier} Placement</div>
+      <div class="report-title">Understanding Your ${correctedTier} Placement</div>
       <p class="report-text">
         ${tierMessage.explanation}
       </p>
       <p class="report-text">
-        <strong>What This Means:</strong> ${attempt.tier === "Tier 1" ? "Your student has demonstrated mastery" : attempt.tier === "Tier 2" ? "Your student shows solid understanding with room for growth" : "Your student needs focused support to build confidence and skills"}.
+        <strong>What This Means:</strong> ${correctedTier === "Tier 1" ? "Your student has demonstrated mastery" : correctedTier === "Tier 2" ? "Your student shows solid understanding with room for growth" : "Your student needs focused support to build confidence and skills"}.
       </p>
     </div>
 
@@ -715,7 +736,7 @@ serve(async (req) => {
       .getPublicUrl(fileName);
 
     // Also regenerate the certificate HTML and record to keep tier in sync
-    const certTierColor = tierColors[attempt.tier || "Tier 3"];
+    const certTierColor = tierColors[correctedTier];
     const certificateHTML = `
 <!DOCTYPE html>
 <html>
@@ -753,7 +774,7 @@ serve(async (req) => {
       <p style="text-align: center; font-size: 18px; margin: 30px 0;">
         has successfully completed the <strong>${attempt.tests?.name}</strong><br>
         and achieved a score of <strong>${attempt.score}%</strong><br>
-        earning placement in <span class="tier-badge">${attempt.tier}</span>
+        earning placement in <span class="tier-badge">${correctedTier}</span>
       </p>
       <div class="section">
         <div class="section-title">🌟 Areas of Strength</div>
@@ -792,13 +813,13 @@ serve(async (req) => {
       attempt_id: attemptId,
       student_name: attempt.profiles?.full_name || "Student",
       test_name: attempt.tests?.name || "Test",
-      tier: attempt.tier || "Tier 3",
+      tier: correctedTier,
       strengths: attempt.strengths || [],
       weaknesses: attempt.weaknesses || [],
       certificate_url: viewUrl,
     }, { onConflict: "attempt_id" });
 
-    console.log("Certificate synced with current tier:", attempt.tier);
+    console.log("Certificate synced with corrected tier:", correctedTier);
 
     return new Response(
       JSON.stringify({

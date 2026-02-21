@@ -191,7 +191,7 @@ function normalizeQuestions(rawQuestions: any, testType: string): any[] {
 function normalizeQuestion(q: any, testType: string): any {
   const normalized = {
     id: q.id || `q-${Math.random().toString(36).substr(2, 9)}`,
-    question: q.question || q.question_text || '',
+    question: q.question || q.question_text || q.text || '',
     type: q.type || 'multiple-choice',
     options: q.options || q.choices || [],
     correct_answer: q.correct_answer || q.correctAnswer || '',
@@ -353,9 +353,9 @@ serve(async (req) => {
     for (const [skill, stats] of Object.entries(skillStats)) {
       stats.percentage = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0;
       
-      if (stats.percentage >= 70) {
+      if (stats.percentage >= 85) {
         mastered.push(skill);
-      } else if (stats.percentage < 50) {
+      } else if (stats.percentage < 66) {
         needsSupport.push(skill);
       } else {
         developing.push(skill);
@@ -370,7 +370,7 @@ serve(async (req) => {
     };
 
     const score = totalMC > 0 ? (correctCount / totalMC) * 100 : 0;
-    const tier = score >= 80 ? 'Tier 1' : score >= 50 ? 'Tier 2' : 'Tier 3';
+    const tier = score >= 85 ? 'Tier 1' : score >= 66 ? 'Tier 2' : 'Tier 3';
 
     console.log(`Re-grade complete: ${correctCount}/${totalMC} = ${score.toFixed(1)}% (${tier})`);
     console.log(`Skills - mastered: ${mastered.length}, developing: ${developing.length}, needs support: ${needsSupport.length}`);

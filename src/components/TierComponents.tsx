@@ -169,7 +169,7 @@ export function RecommendedNextStepPanel({
     const tips = getSubjectTips();
 
     // Filter skills to match the subject — exclude cross-subject contamination
-    const mathKeywords = ["math", "number", "arithmetic", "algebra", "geometry", "fraction", "multiplication", "division", "calculus", "statistics"];
+    const mathKeywords = ["math", "number", "arithmetic", "algebra", "geometry", "fraction", "multiplication", "division", "calculus", "statistics", "rounding", "decimal", "place value", "perimeter", "area", "volume", "angle", "measurement", "pattern", "graph", "time", "money", "word problem", "general math"];
     const elaKeywords = ["reading", "writing", "grammar", "vocabulary", "comprehension", "spelling", "phonics", "fluency", "punctuation", "language", "ela", "english", "literacy"];
 
     const isSubjectMatch = (skill: string) => {
