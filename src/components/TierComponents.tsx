@@ -66,10 +66,10 @@ export function SkillRow({ skill, correct, total, percentage }: { skill: string;
           </Badge>
         </div>
       </div>
-      <div className="h-2 w-full bg-slate-200 rounded-full overflow-hidden">
+      <div className={`h-3 w-full rounded-full overflow-hidden ${tier === "red" ? "bg-red-200" : tier === "yellow" ? "bg-amber-100" : "bg-slate-200"}`}>
         <div
-          className={`h-full rounded-full transition-all ${tier === "green" ? "bg-emerald-500" : tier === "yellow" ? "bg-amber-500" : "bg-red-500"}`}
-          style={{ width: `${Math.min(percentage, 100)}%` }}
+          className={`h-full rounded-full transition-all ${tier === "green" ? "bg-emerald-500" : tier === "yellow" ? "bg-amber-400" : "bg-red-600"}`}
+          style={{ width: `${Math.max(Math.min(percentage, 100), percentage === 0 ? 3 : 0)}%` }}
         />
       </div>
       <p className="text-xs text-slate-500 italic">{action}</p>
