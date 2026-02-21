@@ -48,10 +48,12 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
+    // First try fetching by attemptId only (service role bypasses RLS)
     const { data: attempt, error: attemptError } = await adminClient
       .from("test_attempts")
       .select(`
         id,
+        user_id,
         score,
         tier,
         grade_level,
@@ -62,7 +64,6 @@ serve(async (req) => {
         profiles:user_id (full_name)
       `)
       .eq("id", attemptId)
-      .eq("user_id", user.id)
       .single();
 
     if (attemptError || !attempt) {
@@ -71,6 +72,23 @@ serve(async (req) => {
         status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // Verify ownership OR admin role
+    if (attempt.user_id !== user.id) {
+      const { data: adminRole } = await adminClient
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+
+      if (!adminRole) {
+        return new Response(JSON.stringify({ error: "You do not have permission to access this attempt" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     const skillAnalysis = attempt.skill_analysis as Record<string, unknown> || {};

@@ -61,13 +61,22 @@ serve(async (req) => {
       throw new Error("Test attempt not found");
     }
 
-    // Verify user ownership
+    // Verify user ownership or admin role
     if (attempt.user_id !== user.id) {
-      console.error("Ownership check failed:", { attemptUserId: attempt.user_id, authUserId: user.id });
-      return new Response(
-        JSON.stringify({ error: "You do not have permission to access this certificate" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 403 }
-      );
+      const { data: adminRole } = await serviceClient
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+
+      if (!adminRole) {
+        console.error("Ownership check failed:", { attemptUserId: attempt.user_id, authUserId: user.id });
+        return new Response(
+          JSON.stringify({ error: "You do not have permission to access this certificate" }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 403 }
+        );
+      }
     }
 
     // Determine tier badge color - Green for Tier 1, Yellow for Tier 2, Red for Tier 3
