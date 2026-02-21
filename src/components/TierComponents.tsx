@@ -214,7 +214,12 @@ export function RecommendedNextStepPanel({
     <th style="text-align:left;padding:8px 12px;font-size:13px;color:#475569;border:1px solid #e2e8f0;">Home Activity</th>
   </tr></thead>
   <tbody>
-    ${(filteredPrioritySkills.length > 0 ? filteredPrioritySkills : ["Reading Comprehension", "Vocabulary", "Writing"]).slice(0, 6).map((skill, i) => `
+    ${(() => {
+      const base = filteredPrioritySkills.length > 0 ? [...filteredPrioritySkills, ...filteredDevelopingSkills] : ["Reading Comprehension", "Vocabulary", "Writing"];
+      const elaPad = ["Mixed Reading Review", "Writing Practice", "Progress Assessment"];
+      while (base.length < 6) base.push(elaPad[base.length - (base.length - (base.length % 3))] || "Review");
+      return base.slice(0, 6);
+    })().map((skill, i) => `
     <tr style="background:${i % 2 === 0 ? "#fff" : "#f8fafc"};">
       <td style="padding:8px 12px;border:1px solid #e2e8f0;font-weight:bold;color:#1C2D5A;">Week ${i + 1}</td>
       <td style="padding:8px 12px;border:1px solid #e2e8f0;font-weight:600;">${skill}</td>
@@ -237,7 +242,12 @@ export function RecommendedNextStepPanel({
     <th style="text-align:left;padding:8px 12px;font-size:13px;color:#475569;border:1px solid #e2e8f0;">Home Activity</th>
   </tr></thead>
   <tbody>
-    ${(filteredPrioritySkills.length > 0 ? filteredPrioritySkills : ["Number Sense", "Operations", "Problem Solving"]).slice(0, 6).map((skill, i) => `
+    ${(() => {
+      const base = filteredPrioritySkills.length > 0 ? [...filteredPrioritySkills, ...filteredDevelopingSkills] : ["Number Sense", "Operations", "Problem Solving"];
+      const mathPad = ["Word Problem Practice", "Mixed Skill Review", "Progress Check"];
+      while (base.length < 6) base.push(mathPad[base.length - (base.length - (base.length % 3))] || "Review");
+      return base.slice(0, 6);
+    })().map((skill, i) => `
     <tr style="background:${i % 2 === 0 ? "#fff" : "#f8fafc"};">
       <td style="padding:8px 12px;border:1px solid #e2e8f0;font-weight:bold;color:#1C2D5A;">Week ${i + 1}</td>
       <td style="padding:8px 12px;border:1px solid #e2e8f0;font-weight:600;">${skill}</td>

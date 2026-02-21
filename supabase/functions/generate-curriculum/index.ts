@@ -150,6 +150,8 @@ Your response must be valid JSON with this exact structure:
   ]
 }
 
+IMPORTANT: Do NOT use LaTeX notation anywhere in your response. Write all math expressions in plain text using / for fractions (e.g., "1/3 + 1/6" not "\\frac{1}{3}"). Use × for multiplication, ÷ for division, and standard symbols. The output is rendered in a web UI without a LaTeX renderer.
+
 Generate 4 weeks of curriculum and 8-12 practice questions focused on the weak/developing skills.`;
 
     const userPrompt = `Create a personalized curriculum for a Grade ${attempt.grade_level} student based on their ${testName || "diagnostic test"} results.

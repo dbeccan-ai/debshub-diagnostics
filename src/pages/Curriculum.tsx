@@ -50,6 +50,22 @@ interface CurriculumData {
   practiceQuestions: PracticeQuestion[];
 }
 
+// Sanitize LaTeX from AI responses
+const sanitizeMath = (text: string): string => {
+  if (!text) return text;
+  return text
+    .replace(/\\\(|\\\)/g, "")                          // strip \( and \)
+    .replace(/\\\[|\\\]/g, "")                          // strip \[ and \]
+    .replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g, "$1/$2")  // \frac{a}{b} → a/b
+    .replace(/\\times/g, "×")
+    .replace(/\\div/g, "÷")
+    .replace(/\\cdot/g, "·")
+    .replace(/\\pm/g, "±")
+    .replace(/\\sqrt\{([^}]*)\}/g, "√($1)")
+    .replace(/\\(?:text|mathrm)\{([^}]*)\}/g, "$1")
+    .replace(/\{|\}/g, "");                              // strip remaining braces
+};
+
 const Curriculum = () => {
   const { attemptId } = useParams<{ attemptId: string }>();
   const navigate = useNavigate();
@@ -311,7 +327,7 @@ const Curriculum = () => {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                <p className="text-lg font-medium text-slate-800">{currentQ?.question}</p>
+                <p className="text-lg font-medium text-slate-800">{sanitizeMath(currentQ?.question || "")}</p>
                 
                 <div className="space-y-2">
                   {currentQ?.options.map((option, idx) => {
@@ -342,7 +358,7 @@ const Curriculum = () => {
                         className={className}
                         disabled={showResult}
                       >
-                        <span className="text-sm text-slate-700">{option}</span>
+                        <span className="text-sm text-slate-700">{sanitizeMath(option)}</span>
                       </button>
                     );
                   })}
@@ -363,7 +379,7 @@ const Curriculum = () => {
                 {showHint && !showResult && (
                   <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
                     <p className="text-sm text-amber-700">
-                      <strong>Hint:</strong> {currentQ?.hint}
+                      <strong>Hint:</strong> {sanitizeMath(currentQ?.hint || "")}
                     </p>
                   </div>
                 )}
@@ -387,7 +403,7 @@ const Curriculum = () => {
                         </>
                       )}
                     </div>
-                    <p className="text-sm text-slate-700">{currentQ?.explanation}</p>
+                    <p className="text-sm text-slate-700">{sanitizeMath(currentQ?.explanation || "")}</p>
                   </div>
                 )}
                 
