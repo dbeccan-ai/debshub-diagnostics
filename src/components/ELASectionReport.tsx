@@ -92,17 +92,22 @@ function isELASkill(skill: string): boolean {
 
 function mapSkillToSection(skill: string): string {
   const s = skill.toLowerCase();
-  if (s.includes("reading") || s.includes("comprehension") || s.includes("main idea") || s.includes("inference") || s.includes("summary") || s.includes("author") || s.includes("passage") || s.includes("text structure") || s.includes("central idea") || s.includes("literary") || s.includes("rhetoric") || s.includes("theme") || s.includes("character") || s.includes("plot") || s.includes("setting") || s.includes("point of view") || s.includes("compare") || s.includes("story") || s.includes("detail"))
-    return "Reading Comprehension";
-  if (s.includes("vocab") || s.includes("synonym") || s.includes("antonym") || s.includes("context clue") || s.includes("word meaning") || s.includes("word structure") || s.includes("prefix") || s.includes("suffix") || s.includes("root") || s.includes("figurative") || s.includes("idiom") || s.includes("connotation") || s.includes("denotation") || s.includes("word") || s.includes("definition") || s.includes("meaning"))
-    return "Vocabulary";
-  if (s.includes("spell") || s.includes("homophone") || s.includes("homograph") || s.includes("phonics") || s.includes("decoding") || s.includes("blending") || s.includes("fluency"))
+  // Spelling first (most specific)
+  if (s.includes("spell") || s.includes("homophone") || s.includes("homograph") || s.includes("phonics") || s.includes("phoneme") || s.includes("syllable") || s.includes("word pattern"))
     return "Spelling";
-  if (s.includes("grammar") || s.includes("punctuation") || s.includes("verb") || s.includes("subject") || s.includes("pronoun") || s.includes("adjective") || s.includes("adverb") || s.includes("sentence") || s.includes("clause") || s.includes("conjunction") || s.includes("tense") || s.includes("agreement") || s.includes("capitalization") || s.includes("comma") || s.includes("apostrophe") || s.includes("possessive") || s.includes("parts of speech") || s.includes("modifier") || s.includes("contraction"))
+  // Grammar & Language Conventions
+  if (s.includes("grammar") || s.includes("punctuation") || s.includes("verb") || s.includes("subject") || s.includes("pronoun") || s.includes("adjective") || s.includes("adverb") || s.includes("sentence") || s.includes("clause") || s.includes("conjunction") || s.includes("tense") || s.includes("agreement") || s.includes("capitalization") || s.includes("comma") || s.includes("apostrophe") || s.includes("possessive") || s.includes("parts of speech") || s.includes("modifier") || s.includes("contraction") || s.includes("preposition") || s.includes("noun") || s.includes("article") || s.includes("plural") || s.includes("singular"))
     return "Grammar & Language Conventions";
-  if (s.includes("writ") || s.includes("essay") || s.includes("narrative") || s.includes("opinion") || s.includes("persuasive") || s.includes("argument") || s.includes("composition") || s.includes("paragraph") || s.includes("draft"))
+  // Vocabulary
+  if (s.includes("vocab") || s.includes("synonym") || s.includes("antonym") || s.includes("context clue") || s.includes("word meaning") || s.includes("word structure") || s.includes("prefix") || s.includes("suffix") || s.includes("root") || s.includes("figurative") || s.includes("idiom") || s.includes("connotation") || s.includes("denotation") || s.includes("word") || s.includes("definition") || s.includes("meaning") || s.includes("compound") || s.includes("multiple meaning") || s.includes("word choice"))
+    return "Vocabulary";
+  // Writing
+  if (s.includes("writ") || s.includes("essay") || s.includes("narrative") || s.includes("opinion") || s.includes("persuasive") || s.includes("argument") || s.includes("composition") || s.includes("paragraph") || s.includes("draft") || s.includes("descriptive") || s.includes("procedural") || s.includes("prompt"))
     return "Writing";
-  // Default to Grammar for any unmatched ELA skill (rather than silently dropping it)
+  // Reading Comprehension (catch-all for ELA)
+  if (s.includes("reading") || s.includes("comprehension") || s.includes("main idea") || s.includes("inference") || s.includes("summary") || s.includes("author") || s.includes("passage") || s.includes("text structure") || s.includes("central idea") || s.includes("literary") || s.includes("rhetoric") || s.includes("theme") || s.includes("character") || s.includes("plot") || s.includes("setting") || s.includes("point of view") || s.includes("compare") || s.includes("story") || s.includes("detail") || s.includes("text evidence") || s.includes("cause") || s.includes("sequence") || s.includes("genre") || s.includes("predict") || s.includes("tone") || s.includes("mood"))
+    return "Reading Comprehension";
+  // Default to Grammar for any unmatched ELA skill
   return "Grammar & Language Conventions";
 }
 
