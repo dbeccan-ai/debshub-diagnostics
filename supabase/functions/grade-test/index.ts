@@ -538,7 +538,7 @@ function normalizeQuestions(questions: any, testType: string): any[] {
 function normalizeQuestion(q: any, testType: string): any {
   const normalized = {
     id: q.id || `q-${Math.random().toString(36).substr(2, 9)}`,
-    question: q.question || q.question_text || '',
+    question: q.question || q.question_text || q.text || '',
     type: q.type || 'multiple-choice',
     options: q.options || q.choices || [],
     correct_answer: q.correct_answer || q.correctAnswer || '',

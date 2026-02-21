@@ -141,7 +141,7 @@ export default function TakeELATest() {
       overallTotal += data.total;
 
       const status: "Mastered" | "Developing" | "Support Needed" =
-        percent >= 85 ? "Mastered" : percent >= 70 ? "Developing" : "Support Needed";
+        percent >= 85 ? "Mastered" : percent >= 66 ? "Developing" : "Support Needed";
 
       const masteredSkills: string[] = [];
       const supportSkills: string[] = [];
@@ -149,7 +149,7 @@ export default function TakeELATest() {
       Object.entries(data.skills).forEach(([skill, stats]) => {
         const skillPct = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0;
         if (skillPct >= 85) masteredSkills.push(skill);
-        else if (skillPct < 70) supportSkills.push(skill);
+        else if (skillPct < 66) supportSkills.push(skill);
       });
 
       const recommendation =
@@ -173,7 +173,7 @@ export default function TakeELATest() {
     }).filter(s => s.total > 0);
 
     const overallPercent = overallTotal > 0 ? Math.round((overallCorrect / overallTotal) * 100) : 0;
-    const tier = overallPercent >= 85 ? "Tier 1" : overallPercent >= 70 ? "Tier 2" : "Tier 3";
+    const tier = overallPercent >= 85 ? "Tier 1" : overallPercent >= 66 ? "Tier 2" : "Tier 3";
 
     const priorities = [...sectionBreakdown]
       .sort((a, b) => a.percent - b.percent)

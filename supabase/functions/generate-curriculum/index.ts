@@ -166,7 +166,7 @@ Generate 4 weeks of curriculum and 8-12 practice questions focused on the weak/d
 
 Test Performance:
 - Overall Score: ${attempt.score}%
-- Tier: ${attempt.tier}
+- Tier: ${(attempt.score || 0) >= 85 ? 'Tier 1' : (attempt.score || 0) >= 66 ? 'Tier 2' : 'Tier 3'}
 
 Skills Needing Support (below 50%):
 ${needsSupport.length > 0 ? needsSupport.map((s: string) => {
@@ -260,7 +260,7 @@ Focus the curriculum primarily on the skills needing support and in-progress ski
       studentName: studentName,
       testName: testName,
       gradeLevel: attempt.grade_level,
-      tier: attempt.tier,
+      tier: (attempt.score || 0) >= 85 ? 'Tier 1' : (attempt.score || 0) >= 66 ? 'Tier 2' : 'Tier 3',
       score: attempt.score,
       ...curriculumData,
     }), {
