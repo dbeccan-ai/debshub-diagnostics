@@ -1,73 +1,95 @@
 
 
-## Fix: ELA Results Still Showing Math Skills ("Rounding", "General Math")
+## Fix: Show Granular ELA Skills + Sync Mapping Logic
 
-### Root Cause
+### Problem
 
-The database stores stale skill data from when the test was graded before ELA skill mapping was deployed. Three functions read this stale data without filtering or recalculating:
+Two issues are causing incorrect ELA results:
 
-1. **`regrade-test`** -- Has wrong thresholds AND missing `q.text` fallback, so regrading doesn't fix the skills
-2. **`generate-result-download`** -- Certificate reads `attempt.tier` and `skillAnalysis` directly from database (stale "General Math")
-3. **`TierComponents.tsx`** -- The `isSubjectMatch` filter misses "Rounding" because it doesn't contain any `mathKeywords`
+1. **The `regrade-test` function collapses all skills into 4 broad categories** ("Vocabulary", "Grammar", "Spelling", "Reading Comprehension") instead of preserving granular skill names like "Compound Words", "Figurative Language", "Parts of Speech", etc.
+
+2. **The `regrade-test` version of `mapToElaCoreSkill` is outdated** compared to `grade-test` -- it maps "figurative" to Reading Comprehension instead of Vocabulary, and is missing keywords like "compound word", "homophone", "word pattern", "parts of speech", "contraction".
+
+The database questions for Grade 4 ELA have these `skill` tags: `vocabulary`, `grammar`, `reading_comprehension`, `writing`, `word_structure`, `spelling`, `figurative_language`. These are being collapsed into broad labels, losing the granularity the user needs.
+
+### Solution
+
+Instead of mapping every skill to a broad category for the skill analysis stats, **preserve the granular skill name** (e.g., "Figurative Language", "Word Structure", "Parts of Speech") in the skill stats. The section-level grouping (Vocabulary, Grammar, etc.) already happens in the UI via `ELASectionReport.tsx`'s `mapSkillToSection` -- so the edge functions should NOT flatten skill names.
+
+Additionally, enhance the `inferSkillFromQuestion` function to produce more specific skill names for comprehension (Literal Comprehension, Inferential Comprehension, Analytical Comprehension) based on question text patterns.
 
 ---
 
-### Fix 1: `supabase/functions/regrade-test/index.ts` -- Fix thresholds and question normalization
+### Changes
 
-**Problem**: Three bugs prevent regrading from producing correct ELA skills:
-- Line 194: `normalizeQuestion` uses `q.question || q.question_text || ''` -- missing `q.text` fallback (Grade 4+ ELA uses `text` field)
-- Line 356: Uses `>= 70` for mastered instead of `>= 85`, and `< 50` for needsSupport instead of `< 66`
-- Line 373: Uses `score >= 80` for Tier 1 and `>= 50` for Tier 2 instead of the standardized 85/66 thresholds
+#### File 1: `supabase/functions/regrade-test/index.ts`
 
-**Changes**:
-- Line 194: Add `q.text` fallback: `q.question || q.question_text || q.text || ''`
-- Line 356: Change `>= 70` to `>= 85` for mastered
-- Line 358: Change `< 50` to `< 66` for needsSupport  
-- Line 373: Change `score >= 80` to `score >= 85` and `score >= 50` to `score >= 66`
+**Update `mapToElaCoreSkill` to preserve granular names instead of collapsing:**
 
-### Fix 2: `supabase/functions/generate-result-download/index.ts` -- Recalculate tier and filter skills for ELA
+Replace the current function (lines 81-88) so it:
+- Returns `formatSkillName(skill)` directly (e.g., "Figurative Language", "Word Structure", "Compound Words") instead of collapsing to broad categories
+- Only falls back to a broad category if the skill name is truly generic (e.g., just "general" or empty)
+- Maps specific tags: "figurative_language" becomes "Figurative Language", "word_structure" becomes "Word Structure", "parts_of_speech" becomes "Parts of Speech"
 
-**Problem**: The certificate (line 549) displays `attempt.tier` directly from database (could be stale "Tier 2" for a score that should be Tier 3). Skills shown include "General Math" for ELA tests.
+**Update `inferSkillFromQuestion` (lines 101-150) for comprehension subtypes:**
+- Questions containing "infer", "conclude", "suggest", "imply" produce "Inferential Comprehension"
+- Questions containing "main idea", "detail", "stated", "according to" produce "Literal Comprehension"
+- Questions containing "author's purpose", "tone", "theme", "analyze", "evaluate" produce "Analytical Comprehension"
+- Default ELA fallback stays "Reading Comprehension"
 
-**Changes**:
-- Recalculate tier from score: `const correctedTier = score >= 85 ? 'Tier 1' : score >= 66 ? 'Tier 2' : 'Tier 3'`
-- Use `correctedTier` instead of `attempt.tier` throughout the HTML template
-- For ELA tests: filter out math-labeled skills ("General Math", "Rounding", etc.) from the mastered/needsSupport/developing arrays before rendering
-- Add math keyword detection: any skill containing "math", "rounding", "multiplication", "division", "fraction", "decimal", "geometry", "algebra" should be excluded from ELA certificates
+#### File 2: `supabase/functions/grade-test/index.ts`
 
-### Fix 3: `src/components/TierComponents.tsx` -- Expand math keyword filter
+**Same changes as regrade-test** to keep them in sync:
+- Update `mapToElaCoreSkill` (lines 396-409) to preserve granular skill names
+- Update `inferSkillFromQuestion` (lines 422-472) with comprehension subtypes
 
-**Problem**: The `isSubjectMatch` filter (line 172-186) doesn't catch "Rounding" because it's not in the `mathKeywords` list.
+#### File 3: `src/components/ELASectionReport.tsx`
 
-**Changes**:
-- Add specific math skill names to the filter: "rounding", "multiplication", "division", "fraction", "decimal", "place value", "perimeter", "area", "volume", "angle", "measurement", "pattern", "graph", "time", "money", "word problem", "general math"
-- This ensures any stale math skills that slip through from old database records are excluded from ELA reports
+**Update section threshold at line 132:**
+- Change `percent >= 70 ? "Mastered" : percent >= 50` to use standardized thresholds: `percent >= 85 ? "Mastered" : percent >= 66 ? "Developing" : "Support Needed"`
+- Line 139-140: Same threshold fix for individual skill categorization
 
-### Fix 4: Redeploy edge functions
+**Ensure `mapSkillToSection` handles new granular names:**
+- "Figurative Language" already maps to Vocabulary (line 102: `s.includes("figurative")`)
+- "Word Structure" already maps to Vocabulary (line 102: `s.includes("word structure")`)
+- "Parts of Speech" already maps to Grammar (line 99: `s.includes("parts of speech")`)
+- "Compound Words" already maps to Vocabulary (line 102: `s.includes("compound")`)
+- "Inferential Comprehension", "Literal Comprehension", "Analytical Comprehension" all map to Reading Comprehension (line 108: `s.includes("comprehension")`)
+- No changes needed here -- the existing mapping already handles these granular names
 
-Redeploy `regrade-test` and `generate-result-download` so the fixes take effect.
+#### File 4: Redeploy edge functions
+
+Redeploy `regrade-test` and `grade-test`.
 
 ---
 
 ### Technical Details
 
-**File 1: `supabase/functions/regrade-test/index.ts`**
-- Line 194: `question: q.question || q.question_text || q.text || ''`
-- Line 356: `stats.percentage >= 85` (was `>= 70`)
-- Line 358: `stats.percentage < 66` (was `< 50`)
-- Line 373: `score >= 85 ? 'Tier 1' : score >= 66 ? 'Tier 2' : 'Tier 3'` (was `80/50`)
+**`mapToElaCoreSkill` replacement logic (both files):**
+```
+function mapToElaCoreSkill(skill: string): string {
+  const s = skill.toLowerCase().replace(/[_-]/g, ' ');
+  // Return formatted granular name -- the UI groups into sections
+  if (!s || s === 'general' || s === 'general ela') return 'Reading Comprehension';
+  return formatSkillName(skill);
+}
+```
 
-**File 2: `supabase/functions/generate-result-download/index.ts`**
-- After line 126, add: `const correctedTier = (attempt.score || 0) >= 85 ? 'Tier 1' : (attempt.score || 0) >= 66 ? 'Tier 2' : 'Tier 3';`
-- Detect ELA: `const isELA = attempt.tests?.test_type?.includes('ela') || attempt.tests?.name?.toLowerCase().includes('ela');`
-- If ELA, filter math skills from `skillAnalysis.mastered`, `needsSupport`, `developing`, and `skillStats`
-- Replace all `attempt.tier` references with `correctedTier` in the HTML template
+**Comprehension subtype detection in `inferSkillFromQuestion`:**
+```
+// After ELA pattern matching, before default return:
+if (text.includes('infer') || text.includes('conclude') || text.includes('suggest') || text.includes('imply'))
+  return 'Inferential Comprehension';
+if (text.includes('main idea') || text.includes('detail') || text.includes('according to') || text.includes('stated'))
+  return 'Literal Comprehension';
+if (text.includes('author') || text.includes('purpose') || text.includes('tone') || text.includes('theme') || text.includes('analyze') || text.includes('evaluate'))
+  return 'Analytical Comprehension';
+```
 
-**File 3: `src/components/TierComponents.tsx`**
-- Line 172: Expand `mathKeywords` to include: "rounding", "multiplication", "division", "fraction", "decimal", "place value", "perimeter", "area", "volume", "angle", "measurement", "pattern", "word problem", "general math"
-
-**Redeploy**: `regrade-test` and `generate-result-download` edge functions
+**`ELASectionReport.tsx` threshold fixes:**
+- Line 132: `percent >= 85 ? "Mastered" : percent >= 66 ? "Developing" : "Support Needed"`
+- Lines 139-140: `pct >= 85` for mastered, `pct >= 66` for developing
 
 ### After Deployment
 
-The student should click "Refresh Skill Analysis" on the results page to regrade with the corrected ELA mapping. The certificate will then show proper ELA skills (Reading Comprehension, Vocabulary, Grammar, Spelling) instead of "General Math" and "Rounding".
+Click "Refresh Skill Analysis" on the ELA results page. The skill breakdown will now show granular skills like "Figurative Language", "Word Structure", "Spelling", "Vocabulary", "Grammar" instead of just "General Math". The section report will group these into the 5 ELA sections automatically. Comprehension questions will be subcategorized as Literal, Inferential, or Analytical.
