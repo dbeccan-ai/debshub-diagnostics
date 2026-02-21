@@ -129,15 +129,15 @@ function buildSectionResults(skillStats: Record<string, SkillStat>): SectionResu
     const data = sectionMap[sectionName];
     const percent = data.total > 0 ? Math.round((data.correct / data.total) * 100) : 0;
     const status: "Mastered" | "Developing" | "Support Needed" =
-      percent >= 70 ? "Mastered" : percent >= 50 ? "Developing" : "Support Needed";
+      percent >= 85 ? "Mastered" : percent >= 66 ? "Developing" : "Support Needed";
 
     const masteredSkills: string[] = [];
     const supportSkills: string[] = [];
     const developingSkills: string[] = [];
     Object.entries(data.skills).forEach(([skill, st]) => {
       const pct = st.total > 0 ? Math.round((st.correct / st.total) * 100) : 0;
-      if (pct >= 70) masteredSkills.push(skill);
-      else if (pct >= 50) developingSkills.push(skill);
+      if (pct >= 85) masteredSkills.push(skill);
+      else if (pct >= 66) developingSkills.push(skill);
       else supportSkills.push(skill);
     });
 
