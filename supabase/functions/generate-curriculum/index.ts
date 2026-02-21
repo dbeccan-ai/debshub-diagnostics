@@ -102,7 +102,10 @@ serve(async (req) => {
     const profilesData = attempt.profiles as unknown as { full_name: string } | { full_name: string }[] | null;
     
     const testName = Array.isArray(testsData) ? testsData[0]?.name : testsData?.name;
+    const testType = Array.isArray(testsData) ? testsData[0]?.test_type : testsData?.test_type;
     const studentName = Array.isArray(profilesData) ? profilesData[0]?.full_name : profilesData?.full_name;
+    const isELA = testType?.toLowerCase().includes("ela");
+    const subjectLabel = isELA ? "ELA/English Language Arts" : "Math";
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
@@ -112,7 +115,11 @@ serve(async (req) => {
       });
     }
 
-    const systemPrompt = `You are an expert educational curriculum designer for K-12 students. Create personalized learning curricula based on diagnostic test results.
+    const subjectInstruction = isELA
+      ? `\n\nCRITICAL: This is an ELA (English Language Arts) diagnostic. Generate ONLY reading, writing, grammar, vocabulary, and spelling content. Do NOT include any math content, math skills, or math terminology whatsoever. All practice questions must be ELA-focused.`
+      : `\n\nThis is a Math diagnostic. Generate only math-related content and practice questions.`;
+
+    const systemPrompt = `You are an expert educational curriculum designer for K-12 students specializing in ${subjectLabel}. Create personalized learning curricula based on diagnostic test results.
 
 Your response must be valid JSON with this exact structure:
 {
@@ -151,10 +158,11 @@ Your response must be valid JSON with this exact structure:
 }
 
 IMPORTANT: Do NOT use LaTeX notation anywhere in your response. Write all math expressions in plain text using / for fractions (e.g., "1/3 + 1/6" not "\\frac{1}{3}"). Use × for multiplication, ÷ for division, and standard symbols. The output is rendered in a web UI without a LaTeX renderer.
+${subjectInstruction}
 
 Generate 4 weeks of curriculum and 8-12 practice questions focused on the weak/developing skills.`;
 
-    const userPrompt = `Create a personalized curriculum for a Grade ${attempt.grade_level} student based on their ${testName || "diagnostic test"} results.
+    const userPrompt = `Create a personalized ${subjectLabel} curriculum for a Grade ${attempt.grade_level} student based on their ${testName || "diagnostic test"} results. This is a ${subjectLabel} diagnostic test.${isELA ? " Focus exclusively on reading comprehension, vocabulary, spelling, grammar, and writing skills. Do NOT include any math content." : ""}
 
 Test Performance:
 - Overall Score: ${attempt.score}%

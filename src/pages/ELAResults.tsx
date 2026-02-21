@@ -276,6 +276,14 @@ ${result.sectionBreakdown.length > 0 ? `
     .filter((s) => s.percent < 66)
     .slice(0, 3);
 
+  // Derive ELA priority and developing skills from section breakdown
+  const elaPrioritySkills = result.sectionBreakdown
+    .filter(s => s.percent < 50)
+    .map(s => s.section);
+  const elaDevelopingSkills = result.sectionBreakdown
+    .filter(s => s.percent >= 50 && s.percent < 70)
+    .map(s => s.section);
+
   return (
     <div className="min-h-screen bg-slate-50 print:bg-white">
       <DEBsHeader subtitle="ELA Diagnostic Results" />
@@ -346,7 +354,13 @@ ${result.sectionBreakdown.length > 0 ? `
             <InsightBox score={result.overallPercent} />
 
             <div className="mt-4 print:hidden">
-              <RecommendedNextStepPanel overallScore={result.overallPercent} />
+              <RecommendedNextStepPanel
+                overallScore={result.overallPercent}
+                subject="ELA"
+                studentName={result.studentName}
+                prioritySkills={elaPrioritySkills}
+                developingSkills={elaDevelopingSkills}
+              />
             </div>
           </CardContent>
         </Card>
@@ -626,7 +640,13 @@ ${result.sectionBreakdown.length > 0 ? `
 
         {/* ── Section 10: Bottom CTA (mobile) ── */}
         <div className="print:hidden sm:hidden mb-6">
-          <RecommendedNextStepPanel overallScore={result.overallPercent} />
+          <RecommendedNextStepPanel
+            overallScore={result.overallPercent}
+            subject="ELA"
+            studentName={result.studentName}
+            prioritySkills={elaPrioritySkills}
+            developingSkills={elaDevelopingSkills}
+          />
         </div>
 
       </main>
