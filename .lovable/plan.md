@@ -1,76 +1,46 @@
 
-# Rebuild ELAResults.tsx to Match the Math Results Page Structure
 
-## Problem Summary
+## Fix Plan: Certificate Tier Mismatch + Curriculum Generation Failure
 
-There are two separate ELA result systems in the codebase:
+### Issue 1: Downloaded Certificate Shows Wrong Tier (Tier 2 instead of Tier 3)
 
-1. **Math/DB path**: `/results/:attemptId` → `Results.tsx` — pulls data from the database, shows a polished structured layout with tier badges, classification blocks, placement pathway, and the `RecommendedNextStepPanel`
-2. **ELA path**: `/ela-results/grade-X` → `ELAResults.tsx` — pulls data from localStorage (saved by `TakeELATest.tsx`), has a different and inconsistent layout
+**Root Cause:** The `generate-certificate` edge function was run when the tier was still "Tier 2". It saved that stale tier into:
+- The `certificates` table (still shows `tier: "Tier 2"`)
+- The stored HTML file in storage (`certificate-{attemptId}.html`)
 
-The user wants `ELAResults.tsx` to look and function like `Results.tsx`. The good news is that `ELAResults.tsx` **already has the section breakdown data** (from localStorage), it just presents it in a different structure.
+The `view-certificate` function serves this cached HTML, so it still shows Tier 2 even though `test_attempts` now correctly says Tier 3.
 
-## Root Cause of Issues
+**Fix:** Update the `generate-result-download` edge function so it also regenerates the certificate record and stored HTML whenever it runs. This way, downloading the result always syncs the certificate to the latest tier. Specifically:
+- After generating `resultHTML`, also regenerate the certificate HTML and upsert it to storage and the `certificates` table (same logic as `generate-certificate` but inline).
+- Alternatively, have `generate-result-download` call the certificate regeneration at the end.
 
-- **Tier mismatch**: `ELAResults.tsx` uses its own inline tier logic (`overallPercent >= 85 ? "Tier 1" : ...`) instead of `getTierFromScore()` from `tierConfig.ts`
-- **Layout divergence**: The ELA page has a "certificate" header not present in the Math page; the ordering of sections differs
-- **Contact links not live**: Some contact info is plain text instead of `<a href>` tags
-- **Missing unified components**: ELAResults doesn't use `TierClassificationBlocks`, `SkillRow`, `PlacementPathwayCard` in the same consistent order as the Math page
+Additionally, update `certificates` table record for the specific attempt to "Tier 3" via a database fix.
 
-## What Will Be Changed
+---
 
-### `src/pages/ELAResults.tsx` — Full restructure to match Math results layout
+### Issue 2: Curriculum and Practice Questions Not Generating
 
-The page will be rebuilt to follow the **exact same visual and functional structure** as `Results.tsx`, adapted for ELA data:
+**Root Cause:** The `generate-curriculum` edge function (line 65) filters the query with `.eq("user_id", user.id)`. When an admin views a student's results and clicks "Generate Curriculum", the logged-in user is the admin, not the student. The query returns 0 rows, causing the "PGRST116" error.
 
-**Section 1 – Header Bar** (matches Math page)
-- Back to Dashboard button (left)
-- Share / Print / Download PDF / Retake Test buttons (right)
+**Fix:** Update `generate-curriculum` to:
+1. First try fetching with the user's ID (for students viewing their own results).
+2. If no result, check if the user has an admin role, and if so, fetch the attempt without the `user_id` filter (using service role client which is already available).
 
-**Section 2 – Score Overview Card** (matches Math page)
-- Tier badge (from `getTierFromScore()`) + tier label
-- Large score percentage
-- Student name / Test Type / Grade / Date grid
-- `InsightBox` component
-- `RecommendedNextStepPanel` (desktop)
+---
 
-**Section 3 – Quick Stats Row** (matches Math page)
-- 3-card grid: Correct answers (green), Incorrect (red), Sections Tested (amber)
+### Technical Changes
 
-**Section 4 – Tier Classification Blocks** (matches Math page)
-- `TierClassificationBlocks` using `sectionBreakdown` data, showing which ELA sections fall in 🔴/🟡/🟢
+**File 1: `supabase/functions/generate-curriculum/index.ts`**
+- Remove `.eq("user_id", user.id)` from the attempt query on the `adminClient` (service role client).
+- Instead, fetch the attempt by `attemptId` only, then verify ownership OR admin role before proceeding.
+- Add admin role check similar to `generate-result-download`.
 
-**Section 5 – Section-by-Section Performance Table** (matches Math page's SkillRow pattern)
-- For each ELA section: section name, score bar, tier badge, recommendation
-- Individual skill tags within each section (using `masteredSkills` + `supportSkills` already stored)
+**File 2: `supabase/functions/generate-certificate/index.ts`**
+- Add admin role check so admins can also regenerate certificates for any student.
 
-**Section 6 – Skills Assessed Tags** (matches Math page)
-- Badge pills for each ELA section assessed
+**File 3: `supabase/functions/generate-result-download/index.ts`**
+- After generating and uploading the result HTML, also regenerate and upsert the certificate HTML and `certificates` table record to keep them in sync with the current tier from `test_attempts`.
 
-**Section 7 – Placement Pathway Card** (matches Math page)
-- Reuse `PlacementPathwayCard` component
+**Database Fix:**
+- Update the stale `certificates` record for the specific attempt to `tier = 'Tier 3'`.
 
-**Section 8 – Tier Explanation** (matches Math page)
-- Tier label + helper text + live contact links
-
-**Section 9 – Priority Focus for Next 6–8 Weeks** (from existing ELAResults, kept)
-- Home strategies + school strategies per weak section
-- 6-week curriculum outline (from `getCurriculumWeeks` logic, moved here from `ELASectionReport`)
-- Parent commitment checklist
-
-**Section 10 – Bottom CTA** (mobile repeat, matches Math page)
-- `RecommendedNextStepPanel` on mobile
-
-## Key Technical Details
-
-- **Tier calculation**: Replace all inline `>= 85 ? "Tier 1"` with `getTierFromScore()` + `TIER_LABELS` from `tierConfig.ts`
-- **Section data**: The localStorage `sectionBreakdown` array already contains `{ section, correct, total, percent, status, masteredSkills, supportSkills, recommendation }` — this maps directly to the `TierClassificationBlocks` input format
-- **SkillRow reuse**: Individual skill tags within sections will use the existing `SkillRow` component from `TierComponents.tsx`, fed from `masteredSkills`/`supportSkills` arrays (note: no individual percentages stored per skill in localStorage — will show section-level scores for skill tags)
-- **Contact links**: All email/phone/website will be `<a href="mailto:">` / `<a href="tel:">` links
-- **No new dependencies** needed — all components already exist
-
-## Files to Edit
-
-1. **`src/pages/ELAResults.tsx`** — Complete restructure of the layout to mirror `Results.tsx`, while preserving all ELA-specific data (section breakdown, strategies, curriculum outline, parent checklist). The `getCurriculumWeeks` and strategy helpers will be kept inline in this file since they are ELA-specific.
-
-No other files need to change — all the shared components (`TierComponents.tsx`, `tierConfig.ts`) are already correct and will be reused.
