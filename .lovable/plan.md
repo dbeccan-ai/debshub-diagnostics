@@ -1,46 +1,54 @@
 
 
-## Fix Plan: Certificate Tier Mismatch + Curriculum Generation Failure
+## Fix: Home Plan Missing Weeks + Raw LaTeX in Practice Questions
 
-### Issue 1: Downloaded Certificate Shows Wrong Tier (Tier 2 instead of Tier 3)
+### Issue 1: Home Plan Only Shows 3 Weeks Instead of 6
 
-**Root Cause:** The `generate-certificate` edge function was run when the tier was still "Tier 2". It saved that stale tier into:
-- The `certificates` table (still shows `tier: "Tier 2"`)
-- The stored HTML file in storage (`certificate-{attemptId}.html`)
+**Root Cause:** The 6-week plan table maps one skill per row using `.slice(0, 6)`. When only 3 priority skills exist (Decimals, Fractions, Money), only 3 rows are generated. The code needs to pad the list to always produce 6 rows, cycling through skills or adding review/consolidation weeks.
 
-The `view-certificate` function serves this cached HTML, so it still shows Tier 2 even though `test_attempts` now correctly says Tier 3.
+**Fix in `src/components/TierComponents.tsx`:**
+- After slicing skills, pad the array to 6 entries by adding review/consolidation week labels if fewer than 6 skills exist
+- For Math: Weeks 4-6 could be "Word Problem Practice", "Mixed Skill Review", "Progress Check + Celebration"
+- For ELA: Similar padding with "Mixed ELA Review", "Writing Practice", "Progress Assessment"
+- The activity descriptions for weeks 4-6 already exist in the ternary logic (indices 3, 4, 5) -- the problem is the skill array is too short to reach them
 
-**Fix:** Update the `generate-result-download` edge function so it also regenerates the certificate record and stored HTML whenever it runs. This way, downloading the result always syncs the certificate to the latest tier. Specifically:
-- After generating `resultHTML`, also regenerate the certificate HTML and upsert it to storage and the `certificates` table (same logic as `generate-certificate` but inline).
-- Alternatively, have `generate-result-download` call the certificate regeneration at the end.
-
-Additionally, update `certificates` table record for the specific attempt to "Tier 3" via a database fix.
+**Specific change:** Instead of only using `filteredPrioritySkills`, combine priority + developing skills, then pad with default review topics to guarantee 6 entries:
+```
+const allSkills = [...filteredPrioritySkills, ...filteredDevelopingSkills];
+const paddedSkills = [...allSkills];
+const defaultPadding = isELA 
+  ? ["Mixed Reading Review", "Writing Practice", "Progress Assessment"]
+  : ["Word Problem Practice", "Mixed Skill Review", "Progress Check"];
+while (paddedSkills.length < 6) {
+  paddedSkills.push(defaultPadding[paddedSkills.length - allSkills.length] || "Review");
+}
+```
 
 ---
 
-### Issue 2: Curriculum and Practice Questions Not Generating
+### Issue 2: Practice Questions Show Raw LaTeX Instead of Rendered Fractions
 
-**Root Cause:** The `generate-curriculum` edge function (line 65) filters the query with `.eq("user_id", user.id)`. When an admin views a student's results and clicks "Generate Curriculum", the logged-in user is the admin, not the student. The query returns 0 rows, causing the "PGRST116" error.
+**Root Cause:** The AI model (Gemini) returns math expressions using LaTeX notation like `\(\frac{1}{3} + \frac{1}{6}\)`. The `Curriculum.tsx` page renders these as plain text via `{currentQ?.question}`, so the LaTeX is displayed raw.
 
-**Fix:** Update `generate-curriculum` to:
-1. First try fetching with the user's ID (for students viewing their own results).
-2. If no result, check if the user has an admin role, and if so, fetch the attempt without the `user_id` filter (using service role client which is already available).
+**Fix in `supabase/functions/generate-curriculum/index.ts`:**
+- Add an instruction to the system prompt telling the AI to use plain text Unicode fractions or simple notation (e.g., "1/3 + 1/6") instead of LaTeX, since the output is rendered in a web UI without a LaTeX renderer.
+- Add to the system prompt: "IMPORTANT: Do NOT use LaTeX notation. Write math expressions in plain text using / for fractions (e.g., '1/3 + 1/6' not '\\frac{1}{3}'). Use Unicode symbols where helpful (e.g., times, division sign)."
+
+**Additionally in `src/pages/Curriculum.tsx`:**
+- Add a simple sanitizer that strips any remaining LaTeX wrappers (`\(`, `\)`, `\frac{a}{b}` to `a/b`) as a fallback in case the AI still returns LaTeX despite the instruction.
+- Apply this sanitizer to question text, options, hints, and explanations.
 
 ---
 
 ### Technical Changes
 
-**File 1: `supabase/functions/generate-curriculum/index.ts`**
-- Remove `.eq("user_id", user.id)` from the attempt query on the `adminClient` (service role client).
-- Instead, fetch the attempt by `attemptId` only, then verify ownership OR admin role before proceeding.
-- Add admin role check similar to `generate-result-download`.
+**File 1: `src/components/TierComponents.tsx`**
+- Combine `filteredPrioritySkills` and `filteredDevelopingSkills` and pad to 6 entries for the weekly plan table (both Math and ELA branches)
 
-**File 2: `supabase/functions/generate-certificate/index.ts`**
-- Add admin role check so admins can also regenerate certificates for any student.
+**File 2: `supabase/functions/generate-curriculum/index.ts`**
+- Add "no LaTeX" instruction to the system prompt so the AI generates plain-text math expressions
 
-**File 3: `supabase/functions/generate-result-download/index.ts`**
-- After generating and uploading the result HTML, also regenerate and upsert the certificate HTML and `certificates` table record to keep them in sync with the current tier from `test_attempts`.
-
-**Database Fix:**
-- Update the stale `certificates` record for the specific attempt to `tier = 'Tier 3'`.
+**File 3: `src/pages/Curriculum.tsx`**
+- Add a `sanitizeMath()` helper function that converts `\frac{a}{b}` to `a/b` and strips `\(` / `\)` wrappers
+- Apply it to question, options, hint, and explanation text rendering
 
