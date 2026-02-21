@@ -1,53 +1,65 @@
 
-## Fix: ELA Results Missing Skills + Curriculum Generating Math Content
 
-### Problems Identified
+## Fix: ELA Priority Skills Not Showing + Wrong Tier in Curriculum
 
-1. **ELA Home Support Plan shows "Rounding" (a math skill)** — The `RecommendedNextStepPanel` in `ELAResults.tsx` is called without `subject`, `studentName`, `prioritySkills`, or `developingSkills` props. Without these, the component can't filter skills or label the plan as ELA.
+### Issues Found
 
-2. **Curriculum page shows "Personalized Math Boost: Mastering Rounding" for an ELA test** — The `generate-curriculum` edge function already fetches `test_type` from the database but never passes it to the AI prompt. So the AI doesn't know the test is ELA and defaults to math-style content.
+**Issue 1: Tier thresholds inconsistent in TakeELATest.tsx**
+Line 176 uses `overallPercent >= 70 ? "Tier 2"` instead of the standardized 66% threshold. Line 144 also uses 70% for section-level "Developing" status. A score of 61.54% should be Tier 3 but the client-side code calculates Tier 2 because it uses 70% as the cutoff.
 
-3. **ELA test attempts in the database have "General Math" as a skill** — The upstream grading function is tagging ELA tests with math skill labels. The curriculum function needs to use `test_type` to override this and force ELA-appropriate content.
+**Issue 2: Curriculum page displays stale tier from database**
+The `generate-curriculum` edge function reads `attempt.tier` from the database (which was set when the test was originally graded with the wrong thresholds). It needs to recalculate tier from the score using the correct thresholds (85/66/65).
+
+**Issue 3: Grade 4 ELA questions use `text` field instead of `question`**
+The database questions have `{ text: "What does...", skill: "vocabulary" }` but the `normalizeQuestion` function in grade-test only checks `q.question || q.question_text`, missing the `text` field entirely. This causes the question text to be empty, reducing the effectiveness of pattern-based skill inference.
+
+**Issue 4: ELA skill data missing from previously graded attempts**
+The Grade 4 ELA attempt in the database has `"General Math"` as its only skill because it was graded before the ELA mapping fixes were deployed. The grade-test function needs redeployment, and the curriculum function should recalculate tier from score rather than trusting the stored tier.
 
 ---
 
-### Fix 1: `src/pages/ELAResults.tsx` — Pass subject and skills to RecommendedNextStepPanel
+### Fix 1: `src/pages/TakeELATest.tsx` -- Correct tier thresholds
 
-Both instances of `<RecommendedNextStepPanel>` (lines 349 and 629) currently only pass `overallScore`. They need to also pass:
-- `subject="ELA"`
-- `studentName={result.studentName}`
-- `prioritySkills` — derived from `sectionBreakdown` sections with `percent < 50`
-- `developingSkills` — derived from `sectionBreakdown` sections with `percent` between 50-69
+- Line 176: Change `overallPercent >= 70` to `overallPercent >= 66` for Tier 2 threshold
+- Line 144: Change `percent >= 70 ? "Developing"` to `percent >= 66 ? "Developing"` for section status
+- Line 152: Change `skillPct < 70` to `skillPct < 66` for support skill classification
 
-This will ensure the Home Support Plan:
-- Labels itself as "ELA Home Support Plan" (not generic)
-- Shows the student's name
-- Lists ELA section names (Reading Comprehension, Vocabulary, etc.) instead of math skills like "Rounding"
+### Fix 2: `supabase/functions/generate-curriculum/index.ts` -- Recalculate tier from score
 
-### Fix 2: `supabase/functions/generate-curriculum/index.ts` — Add subject awareness
+Instead of trusting `attempt.tier` from the database, recalculate the tier:
+```
+const score = attempt.score || 0;
+const correctedTier = score >= 85 ? 'Tier 1' : score >= 66 ? 'Tier 2' : 'Tier 3';
+```
+Use `correctedTier` in the response instead of `attempt.tier`.
 
-The `test_type` is already fetched from the database (line 63) and extracted (line 101). Changes:
-- Extract `testType` from the joined data (similar to how `testName` is extracted)
-- Determine subject label: if `test_type` contains "ela", use "ELA/English Language Arts"; otherwise "Math"
-- Add the subject to both the system prompt and user prompt so the AI generates subject-appropriate curriculum
-- Add explicit instruction: "This is an ELA diagnostic — generate reading, writing, grammar, vocabulary, and spelling content only. Do NOT generate math content."
+### Fix 3: `supabase/functions/grade-test/index.ts` -- Handle `text` field
 
-### Fix 3: `src/pages/Curriculum.tsx` — Display subject-aware title
+In the `normalizeQuestion` function (line 541), add `q.text` as a fallback:
+```
+question: q.question || q.question_text || q.text || '',
+```
 
-Currently the curriculum title comes directly from the AI response. As an extra safeguard:
-- The `testName` is already displayed in the hero section subtitle. No code change needed here since the AI prompt fix will produce correct titles.
+### Fix 4: Redeploy edge functions
+
+Redeploy both `grade-test` and `generate-curriculum` so the fixes take effect. Previously graded ELA tests will need to be retaken to get correct skill breakdowns, but the curriculum function will at least show the correct tier going forward.
 
 ---
 
 ### Technical Details
 
-**File 1: `src/pages/ELAResults.tsx`**
-- Compute `prioritySkills` and `developingSkills` from `result.sectionBreakdown` before the return statement
-- Update both `RecommendedNextStepPanel` calls (lines 349 and 629) to include all required props
+**File 1: `src/pages/TakeELATest.tsx`**
+- Line 144: `percent >= 70` to `percent >= 66`
+- Line 152: `skillPct < 70` to `skillPct < 66`
+- Line 176: `overallPercent >= 70` to `overallPercent >= 66`
 
 **File 2: `supabase/functions/generate-curriculum/index.ts`**
-- Extract `testType` from `testsData` (line ~104)
-- Determine `isELA` boolean and `subjectLabel`
-- Add subject context to system prompt: "You are generating curriculum for a [subject] diagnostic. Only generate [subject]-appropriate content."
-- Add subject context to user prompt: "This is a [subject] diagnostic test."
-- If ELA, explicitly tell the AI: "Focus on reading comprehension, vocabulary, spelling, grammar, and writing skills. Do NOT include any math content."
+- After line 168 (where `attempt.tier` is used), recalculate: `const correctedTier = score >= 85 ? 'Tier 1' : score >= 66 ? 'Tier 2' : 'Tier 3';`
+- Line 263: Replace `tier: attempt.tier` with `tier: correctedTier`
+- Also pass `correctedTier` in the user prompt instead of `attempt.tier`
+
+**File 3: `supabase/functions/grade-test/index.ts`**
+- Line 541: Add `q.text` fallback for question text normalization
+
+**Redeploy**: `grade-test` and `generate-curriculum` edge functions
+
