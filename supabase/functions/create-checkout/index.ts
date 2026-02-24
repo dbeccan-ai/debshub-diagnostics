@@ -12,19 +12,20 @@ const logStep = (step: string, details?: any) => {
   console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
 };
 
+// Bundle price ID from Stripe
+const BUNDLE_PRICE_ID = "price_1T4PAs1qBeNCFEYAElvrmXgp";
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // Use service role for database operations (bypasses RLS)
   const supabaseAdmin = createClient(
     Deno.env.get("SUPABASE_URL") ?? "",
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
     { auth: { persistSession: false } }
   );
 
-  // Use anon key for user authentication
   const supabaseClient = createClient(
     Deno.env.get("SUPABASE_URL") ?? "",
     Deno.env.get("SUPABASE_ANON_KEY") ?? ""
@@ -33,7 +34,6 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    // Authenticate user
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) throw new Error("No authorization header provided");
 
@@ -44,12 +44,10 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    // Get request body
-    const { attemptId } = await req.json();
+    const { attemptId, bundle } = await req.json();
     if (!attemptId) throw new Error("Attempt ID is required");
-    logStep("Request body", { attemptId });
+    logStep("Request body", { attemptId, bundle });
 
-    // Fetch attempt details using service role
     const { data: attempt, error: attemptError } = await supabaseAdmin
       .from("test_attempts")
       .select("*")
@@ -58,71 +56,67 @@ serve(async (req) => {
       .single();
 
     if (attemptError || !attempt) {
-      logStep("Attempt fetch error", { error: attemptError?.message });
       throw new Error("Test attempt not found or access denied");
     }
     logStep("Attempt found", { attemptId: attempt.id, gradeLevel: attempt.grade_level });
 
-    // Fetch test details from public view
     const { data: testData } = await supabaseAdmin
       .from("tests")
       .select("name, test_type")
       .eq("id", attempt.test_id)
       .single();
 
-    // Check if already paid
     if (attempt.payment_status === "completed") {
       throw new Error("This test has already been paid for");
     }
 
-    // Determine price based on grade level
-    const gradeLevel = attempt.grade_level || 5;
-    const netAmount = gradeLevel <= 6 ? 99 : 120; // dollars you want to receive
-    const testName = testData?.name || "Diagnostic Test";
-
-    // Gross up price so you net the full amount after Stripe's fee (2.9% + $0.30)
-    // Formula: grossAmount = (netAmount + 0.30) / (1 - 0.029)
-    const grossAmount = Math.ceil(((netAmount + 0.30) / (1 - 0.029)) * 100); // convert to cents, round up
-    logStep("Price determined", { gradeLevel, netAmount, grossAmount, testName });
-
-    // Initialize Stripe
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2025-08-27.basil",
     });
 
-    // Check if customer exists
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     let customerId: string | undefined;
     if (customers.data.length > 0) {
       customerId = customers.data[0].id;
-      logStep("Existing customer found", { customerId });
     }
 
-    // Create checkout session
     const origin = req.headers.get("origin") || "http://localhost:5173";
+    const testName = testData?.name || "Diagnostic Test";
+    const isBundle = bundle === true;
+
+    let lineItems;
+    if (isBundle) {
+      // Use the fixed Stripe price for the $199 bundle
+      lineItems = [{ price: BUNDLE_PRICE_ID, quantity: 1 }];
+      logStep("Bundle checkout", { priceId: BUNDLE_PRICE_ID });
+    } else {
+      // Individual test pricing with fee gross-up
+      const gradeLevel = attempt.grade_level || 5;
+      const netAmount = gradeLevel <= 6 ? 99 : 120;
+      const grossAmount = Math.ceil(((netAmount + 0.30) / (1 - 0.029)) * 100);
+      lineItems = [{
+        price_data: {
+          currency: "usd",
+          product_data: { name: testName, description: `Grade ${gradeLevel} diagnostic test` },
+          unit_amount: grossAmount,
+        },
+        quantity: 1,
+      }];
+      logStep("Individual checkout", { gradeLevel, netAmount, grossAmount });
+    }
+
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
-      line_items: [
-        {
-          price_data: {
-            currency: "usd",
-            product_data: {
-              name: testName,
-              description: `Grade ${gradeLevel} diagnostic test`,
-            },
-            unit_amount: grossAmount,
-          },
-          quantity: 1,
-        },
-      ],
+      line_items: lineItems,
       mode: "payment",
       success_url: `${origin}/verify-payment?session_id={CHECKOUT_SESSION_ID}&attempt_id=${attemptId}`,
-      cancel_url: `${origin}/checkout/${attemptId}`,
+      cancel_url: `${origin}/checkout/${attemptId}${isBundle ? "?bundle=true" : ""}`,
       metadata: {
         attempt_id: attemptId,
         user_id: user.id,
-        grade_level: gradeLevel.toString(),
+        grade_level: (attempt.grade_level || 5).toString(),
+        bundle: isBundle ? "true" : "false",
       },
     });
 

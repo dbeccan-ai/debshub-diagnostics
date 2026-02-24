@@ -99,9 +99,9 @@ export interface TierCTA {
 export const TIER_CTAS: Record<"red" | "yellow" | "green", TierCTA> = {
   red: {
     primary: {
-      label: "Book Tier 3 Intensive Intervention Plan",
+      label: "Book a Consultation",
       variant: "red",
-      paymentUrl: "https://buy.stripe.com/cNicMXfTqd5C2LVfUO4wM00",
+      paymentUrl: "https://calendar.app.google/dHKRRWnqASeUpp4cA",
     },
     secondary: { label: "Schedule a Strategy Call" },
     tertiary: { label: "Download Home Support Plan" },
@@ -130,7 +130,7 @@ export const TIER_CTAS: Record<"red" | "yellow" | "green", TierCTA> = {
 export const PLACEMENT_PATHWAY = [
   { tier: "Tier 1 (85%+)", label: "Enrichment Pod", price: "$597", color: "green" as const, paymentUrl: "https://buy.stripe.com/eVq8wH4aI2qYfyHaAu4wM02" },
   { tier: "Tier 2 (66–84%)", label: "Skill Builder Program", price: "$1,097", color: "yellow" as const, paymentUrl: "https://buy.stripe.com/14AbITePm3v286f3824wM01" },
-  { tier: "Tier 3 (≤65%)", label: "Intensive Intervention Plan", price: "$1,997", color: "red" as const, paymentUrl: "https://buy.stripe.com/cNicMXfTqd5C2LVfUO4wM00" },
+  { tier: "Tier 3 (≤65%)", label: "Intensive Intervention Plan", price: "By Invitation", color: "red" as const, paymentUrl: "https://calendar.app.google/dHKRRWnqASeUpp4cA" },
 ];
 
 /* ── CTA Button Styles ── */

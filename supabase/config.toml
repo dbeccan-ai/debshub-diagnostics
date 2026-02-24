@@ -59,3 +59,6 @@ verify_jwt = false
 
 [functions.send-reading-recovery-results]
 verify_jwt = false
+
+[functions.send-bundle-coupon]
+verify_jwt = false
