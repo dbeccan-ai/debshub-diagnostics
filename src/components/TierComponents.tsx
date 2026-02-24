@@ -334,6 +334,11 @@ ${weeklyPlanHtml}
         >
           {ctas.primary.label}
         </Button>
+        {tier === "red" && (
+          <p className="text-xs text-red-600 text-center font-medium italic">
+            Tier 3 Intensive Intervention is by invitation only following a consultation.
+          </p>
+        )}
         <Button variant="outline" className="w-full" onClick={handleStrategyCall}>
           <Phone className="mr-2 h-4 w-4" />
           {ctas.secondary.label}
@@ -385,7 +390,7 @@ export function PlacementPathwayCard({ overallScore }: { overallScore: number })
                       onClick={() => window.open(row.paymentUrl, "_blank")}
                       className={`text-xs px-3 py-1 rounded-full font-semibold transition-opacity ${isActive ? `${CTA_STYLES[row.color]} opacity-100` : "opacity-40 bg-slate-200 text-slate-600"} ${!isActive ? "cursor-pointer hover:opacity-70" : ""}`}
                     >
-                      Enroll
+                      {row.color === "red" ? "Book Consultation" : "Enroll"}
                     </button>
                   </td>
                 </tr>

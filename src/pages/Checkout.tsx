@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +10,8 @@ import { Loader2, CreditCard, ArrowLeft, Tag, CheckCircle } from "lucide-react";
 const Checkout = () => {
   const navigate = useNavigate();
   const { attemptId } = useParams();
+  const [searchParams] = useSearchParams();
+  const isBundle = searchParams.get("bundle") === "true";
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [attempt, setAttempt] = useState<any>(null);
@@ -32,7 +34,6 @@ const Checkout = () => {
         return;
       }
 
-      // Check if user is admin
       const { data: userRole } = await supabase
         .from("user_roles")
         .select("role")
@@ -42,7 +43,6 @@ const Checkout = () => {
 
       const isAdmin = !!userRole;
 
-      // If admin, redirect directly to test immediately
       if (isAdmin) {
         toast.success("Admin access granted - starting test");
         navigate(`/test/${attemptId}`, { replace: true });
@@ -93,7 +93,6 @@ const Checkout = () => {
       if (data?.success) {
         setCouponApplied(true);
         toast.success(data.message);
-        // Redirect to test after short delay
         setTimeout(() => {
           navigate(`/test/${attemptId}`, { replace: true });
         }, 1500);
@@ -110,15 +109,13 @@ const Checkout = () => {
   const handlePayment = async () => {
     setProcessing(true);
     try {
-      // Create Stripe checkout session via edge function
       const { data, error } = await supabase.functions.invoke("create-checkout", {
-        body: { attemptId },
+        body: { attemptId, bundle: isBundle },
       });
 
       if (error) throw new Error(error.message);
       if (!data?.url) throw new Error("Failed to create checkout session");
 
-      // Redirect to Stripe checkout
       window.location.href = data.url;
     } catch (error: any) {
       toast.error(error.message || "Payment failed. Please try again.");
@@ -138,7 +135,8 @@ const Checkout = () => {
     return null;
   }
 
-  const amount = attempt.grade_level <= 6 ? 99 : 120;
+  const amount = isBundle ? 199 : (attempt.grade_level <= 6 ? 99 : 120);
+  const displayName = isBundle ? "Diagnostic Bundle (ELA + Math)" : test.name;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
@@ -157,14 +155,14 @@ const Checkout = () => {
             <CardHeader className="bg-gradient-to-r from-blue-100 to-purple-100">
               <CardTitle className="text-2xl">Complete Your Purchase</CardTitle>
               <CardDescription>
-                Secure payment for {test.name}
+                Secure payment for {displayName}
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-6 space-y-6">
               <div className="space-y-4">
                 <div className="flex justify-between items-center p-4 bg-muted/50 rounded-lg">
                   <span className="font-medium">Test Name:</span>
-                  <span className="text-muted-foreground">{test.name}</span>
+                  <span className="text-muted-foreground">{displayName}</span>
                 </div>
                 <div className="flex justify-between items-center p-4 bg-muted/50 rounded-lg">
                   <span className="font-medium">Grade Level:</span>
@@ -213,50 +211,60 @@ const Checkout = () => {
                     </div>
                     <span>Certificate emailed to parent</span>
                   </li>
+                  {isBundle && (
+                    <li className="flex items-start gap-2 text-sm">
+                      <div className="h-5 w-5 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span className="text-amber-600 text-xs">✓</span>
+                      </div>
+                      <span className="font-semibold">Coupon code for second subject test (included free)</span>
+                    </li>
+                  )}
                 </ul>
               </div>
 
               {/* Coupon Code Section */}
-              <div className="border-t pt-4">
-                <h3 className="font-semibold mb-3 flex items-center gap-2">
-                  <Tag className="h-4 w-4" />
-                  Have a Coupon Code?
-                </h3>
-                {couponApplied ? (
-                  <div className="flex items-center gap-2 p-4 bg-green-50 border border-green-200 rounded-lg">
-                    <CheckCircle className="h-5 w-5 text-green-600" />
-                    <span className="text-green-700 font-medium">Coupon applied! Redirecting to test...</span>
-                  </div>
-                ) : (
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="Enter coupon code"
-                      value={couponCode}
-                      onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                      className="flex-1"
-                      disabled={applyingCoupon}
-                    />
-                    <Button
-                      onClick={handleApplyCoupon}
-                      disabled={applyingCoupon || !couponCode.trim()}
-                      variant="outline"
-                    >
-                      {applyingCoupon ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        "Apply"
-                      )}
-                    </Button>
-                  </div>
-                )}
-              </div>
+              {!isBundle && (
+                <div className="border-t pt-4">
+                  <h3 className="font-semibold mb-3 flex items-center gap-2">
+                    <Tag className="h-4 w-4" />
+                    Have a Coupon Code?
+                  </h3>
+                  {couponApplied ? (
+                    <div className="flex items-center gap-2 p-4 bg-green-50 border border-green-200 rounded-lg">
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                      <span className="text-green-700 font-medium">Coupon applied! Redirecting to test...</span>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Enter coupon code"
+                        value={couponCode}
+                        onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                        className="flex-1"
+                        disabled={applyingCoupon}
+                      />
+                      <Button
+                        onClick={handleApplyCoupon}
+                        disabled={applyingCoupon || !couponCode.trim()}
+                        variant="outline"
+                      >
+                        {applyingCoupon ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          "Apply"
+                        )}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
                   <span className="w-full border-t" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-white px-2 text-muted-foreground">Or pay with card</span>
+                  <span className="bg-white px-2 text-muted-foreground">{isBundle ? "Secure payment" : "Or pay with card"}</span>
                 </div>
               </div>
 
