@@ -1,95 +1,110 @@
 
 
-## Fix: Show Granular ELA Skills + Sync Mapping Logic
+## Bundle Pricing ($199 ELA + Math) + Tier 3 Invitation-Only Changes
 
-### Problem
+### Overview
 
-Two issues are causing incorrect ELA results:
-
-1. **The `regrade-test` function collapses all skills into 4 broad categories** ("Vocabulary", "Grammar", "Spelling", "Reading Comprehension") instead of preserving granular skill names like "Compound Words", "Figurative Language", "Parts of Speech", etc.
-
-2. **The `regrade-test` version of `mapToElaCoreSkill` is outdated** compared to `grade-test` -- it maps "figurative" to Reading Comprehension instead of Vocabulary, and is missing keywords like "compound word", "homophone", "word pattern", "parts of speech", "contraction".
-
-The database questions for Grade 4 ELA have these `skill` tags: `vocabulary`, `grammar`, `reading_comprehension`, `writing`, `word_structure`, `spelling`, `figurative_language`. These are being collapsed into broad labels, losing the granularity the user needs.
-
-### Solution
-
-Instead of mapping every skill to a broad category for the skill analysis stats, **preserve the granular skill name** (e.g., "Figurative Language", "Word Structure", "Parts of Speech") in the skill stats. The section-level grouping (Vocabulary, Grammar, etc.) already happens in the UI via `ELASectionReport.tsx`'s `mapSkillToSection` -- so the edge functions should NOT flatten skill names.
-
-Additionally, enhance the `inferSkillFromQuestion` function to produce more specific skill names for comprehension (Literal Comprehension, Inferential Comprehension, Analytical Comprehension) based on question text patterns.
+Three major changes:
+1. A **$199 Diagnostic Bundle** (ELA + Math) that auto-generates a coupon for the second test after payment
+2. **Tier 3 becomes invitation-only** -- the CTA links to a consultation booking page instead of direct payment
+3. **Stripe products** created for Tier 3 pricing (Single Subject $2,497 / Dual Subject $3,997) with payment links provided for manual use in parent decision letters
 
 ---
 
-### Changes
+### Part 1: $199 Diagnostic Bundle
 
-#### File 1: `supabase/functions/regrade-test/index.ts`
+**New Stripe Product**: Create a "Diagnostic Bundle (ELA + Math)" product at $199 in Stripe.
 
-**Update `mapToElaCoreSkill` to preserve granular names instead of collapsing:**
+**New "Bundle" option on the Tests page** (`src/pages/Tests.tsx`):
+- Add a third card alongside Math and ELA: "Diagnostic Bundle -- ELA + Math" for $199 (saves vs. buying separately)
+- When clicked, the flow creates a test attempt for the first subject (user picks Math or ELA first) and routes to checkout
 
-Replace the current function (lines 81-88) so it:
-- Returns `formatSkillName(skill)` directly (e.g., "Figurative Language", "Word Structure", "Compound Words") instead of collapsing to broad categories
-- Only falls back to a broad category if the skill name is truly generic (e.g., just "general" or empty)
-- Maps specific tags: "figurative_language" becomes "Figurative Language", "word_structure" becomes "Word Structure", "parts_of_speech" becomes "Parts of Speech"
+**Updated Checkout page** (`src/pages/Checkout.tsx`):
+- Detect bundle purchases (passed via query param or stored in test attempt metadata)
+- Show "$199.00 -- Diagnostic Bundle (ELA + Math)" instead of individual pricing
 
-**Update `inferSkillFromQuestion` (lines 101-150) for comprehension subtypes:**
-- Questions containing "infer", "conclude", "suggest", "imply" produce "Inferential Comprehension"
-- Questions containing "main idea", "detail", "stated", "according to" produce "Literal Comprehension"
-- Questions containing "author's purpose", "tone", "theme", "analyze", "evaluate" produce "Analytical Comprehension"
-- Default ELA fallback stays "Reading Comprehension"
+**Updated `create-checkout` edge function**:
+- Accept a `bundle: true` flag in the request body
+- When bundle is true, use the $199 Stripe price ID and set `metadata.bundle = "true"` on the checkout session
 
-#### File 2: `supabase/functions/grade-test/index.ts`
+**New edge function: `generate-bundle-coupon`**:
+- Called after successful bundle payment verification
+- Generates a unique 8-character coupon code (e.g., `BNDL-XXXX`)
+- Inserts into the `coupons` table with `max_uses: 1`, linked to the user
+- Returns the coupon code
 
-**Same changes as regrade-test** to keep them in sync:
-- Update `mapToElaCoreSkill` (lines 396-409) to preserve granular skill names
-- Update `inferSkillFromQuestion` (lines 422-472) with comprehension subtypes
+**Updated `verify-payment` edge function**:
+- After confirming bundle payment, call the coupon generation logic inline
+- Store the generated coupon code in the response
 
-#### File 3: `src/components/ELASectionReport.tsx`
+**Updated Verify Payment page** (`src/pages/VerifyPayment.tsx`):
+- For bundle payments: display the coupon code prominently on the success screen
+- Show instructions: "Use this code to take your second diagnostic test for free"
+- Include a "Copy Code" button
 
-**Update section threshold at line 132:**
-- Change `percent >= 70 ? "Mastered" : percent >= 50` to use standardized thresholds: `percent >= 85 ? "Mastered" : percent >= 66 ? "Developing" : "Support Needed"`
-- Line 139-140: Same threshold fix for individual skill categorization
+**Email the coupon** via the existing `send-test-results` edge function pattern:
+- After bundle payment, send an email to the parent with the coupon code using Resend
 
-**Ensure `mapSkillToSection` handles new granular names:**
-- "Figurative Language" already maps to Vocabulary (line 102: `s.includes("figurative")`)
-- "Word Structure" already maps to Vocabulary (line 102: `s.includes("word structure")`)
-- "Parts of Speech" already maps to Grammar (line 99: `s.includes("parts of speech")`)
-- "Compound Words" already maps to Vocabulary (line 102: `s.includes("compound")`)
-- "Inferential Comprehension", "Literal Comprehension", "Analytical Comprehension" all map to Reading Comprehension (line 108: `s.includes("comprehension")`)
-- No changes needed here -- the existing mapping already handles these granular names
+**Database**: Add a `bundle_coupon_code` column to `coupons` table metadata or use the existing coupon system as-is (the auto-generated coupon is a standard coupon with max_uses=1).
 
-#### File 4: Redeploy edge functions
+---
 
-Redeploy `regrade-test` and `grade-test`.
+### Part 2: Tier 3 -- Invitation Only
+
+**Update `src/lib/tierConfig.ts`**:
+- Change the Tier 3 (red) CTA:
+  - Primary label: "Book a Consultation" (instead of "Book Tier 3 Intensive Intervention Plan")
+  - Primary URL: `https://calendar.app.google/dHKRRWnqASeUpp4cA` (Google Calendar link)
+  - Add subtitle text: "Tier 3 support is by invitation only. Book a consultation to discuss your child's needs."
+
+- Update `PLACEMENT_PATHWAY` for Tier 3:
+  - Change price display to "By Invitation" or "$2,497+" 
+  - Change the Enroll button to "Book Consultation" linking to the Google Calendar
+
+**Update `src/components/TierComponents.tsx`**:
+- In `RecommendedNextStepPanel`: for Tier 3, the primary button opens the consultation link instead of a Stripe payment link
+- Add a note below: "Tier 3 Intensive Intervention is by invitation only following a consultation."
+
+---
+
+### Part 3: Stripe Products for Tier 3
+
+**Create two Stripe products** using the Stripe tools:
+1. **Single Subject Tier 3 Intensive Intervention** -- $2,497
+2. **Dual Subject Tier 3 Intensive Intervention** -- $3,997
+
+**Create Stripe Payment Links** for each product so you can include them in parent decision letters manually.
+
+These links will NOT be shown in the app (Tier 3 is invitation-only). They are for your use in communications with parents after consultation.
 
 ---
 
 ### Technical Details
 
-**`mapToElaCoreSkill` replacement logic (both files):**
-```
-function mapToElaCoreSkill(skill: string): string {
-  const s = skill.toLowerCase().replace(/[_-]/g, ' ');
-  // Return formatted granular name -- the UI groups into sections
-  if (!s || s === 'general' || s === 'general ela') return 'Reading Comprehension';
-  return formatSkillName(skill);
-}
-```
+**Files to modify:**
 
-**Comprehension subtype detection in `inferSkillFromQuestion`:**
-```
-// After ELA pattern matching, before default return:
-if (text.includes('infer') || text.includes('conclude') || text.includes('suggest') || text.includes('imply'))
-  return 'Inferential Comprehension';
-if (text.includes('main idea') || text.includes('detail') || text.includes('according to') || text.includes('stated'))
-  return 'Literal Comprehension';
-if (text.includes('author') || text.includes('purpose') || text.includes('tone') || text.includes('theme') || text.includes('analyze') || text.includes('evaluate'))
-  return 'Analytical Comprehension';
-```
+| File | Change |
+|------|--------|
+| `src/pages/Tests.tsx` | Add Bundle card option with $199 pricing |
+| `src/pages/Checkout.tsx` | Handle bundle flag, show $199 bundle price |
+| `supabase/functions/create-checkout/index.ts` | Accept `bundle` flag, use bundle Stripe price, set bundle metadata |
+| `supabase/functions/verify-payment/index.ts` | Generate coupon code for bundle payments, return it in response |
+| `src/pages/VerifyPayment.tsx` | Display coupon code for bundle payments with copy button |
+| `src/lib/tierConfig.ts` | Update Tier 3 CTA to consultation link, update placement pathway |
+| `src/components/TierComponents.tsx` | Tier 3 button opens consultation link, add "invitation only" note |
 
-**`ELASectionReport.tsx` threshold fixes:**
-- Line 132: `percent >= 85 ? "Mastered" : percent >= 66 ? "Developing" : "Support Needed"`
-- Lines 139-140: `pct >= 85` for mastered, `pct >= 66` for developing
+**New files:**
+| File | Purpose |
+|------|---------|
+| `supabase/functions/send-bundle-coupon/index.ts` | Email the auto-generated coupon to parent via Resend |
 
-### After Deployment
+**Database migration:**
+- No new tables needed -- the existing `coupons` and `coupon_redemptions` tables handle auto-generated bundle coupons
 
-Click "Refresh Skill Analysis" on the ELA results page. The skill breakdown will now show granular skills like "Figurative Language", "Word Structure", "Spelling", "Vocabulary", "Grammar" instead of just "General Math". The section report will group these into the 5 ELA sections automatically. Comprehension questions will be subcategorized as Literal, Inferential, or Analytical.
+**Stripe products to create:**
+1. Diagnostic Bundle (ELA + Math) -- $199 one-time
+2. Single Subject Tier 3 Intensive Intervention -- $2,497 one-time  
+3. Dual Subject Tier 3 Intensive Intervention -- $3,997 one-time
+
+**Edge functions to deploy:** `create-checkout`, `verify-payment`, `send-bundle-coupon`
+
