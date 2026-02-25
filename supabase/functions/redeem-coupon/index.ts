@@ -65,6 +65,18 @@ serve(async (req) => {
       });
     }
 
+    // Check if coupon has expired
+    if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) {
+      logStep("Coupon expired", { expires_at: coupon.expires_at });
+      return new Response(JSON.stringify({ 
+        success: false, 
+        message: "This coupon has expired" 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
     logStep("Coupon found", { couponId: coupon.id, currentUses: coupon.current_uses, maxUses: coupon.max_uses });
 
     // Check if max uses reached
