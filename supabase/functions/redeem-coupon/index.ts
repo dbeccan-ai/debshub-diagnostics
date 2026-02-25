@@ -157,12 +157,15 @@ serve(async (req) => {
       logStep("Update coupon error", { error: updateCouponError.message });
     }
 
-    // Mark test attempt as paid (with $0)
+    // Apply coupon: use discount_amount if set, otherwise make it free
+    const discountAmount = coupon.discount_amount ? Number(coupon.discount_amount) : 0;
+    const isFree = !coupon.discount_amount;
+    
     const { error: updateAttemptError } = await supabaseAdmin
       .from("test_attempts")
       .update({ 
         payment_status: "completed",
-        amount_paid: 0
+        amount_paid: isFree ? 0 : discountAmount
       })
       .eq("id", attemptId);
 
@@ -171,11 +174,16 @@ serve(async (req) => {
       throw new Error("Failed to update payment status");
     }
 
-    logStep("Coupon redeemed successfully");
+    logStep("Coupon redeemed successfully", { discountAmount, isFree });
+
+    const message = isFree 
+      ? "Coupon applied successfully! Your test is now free."
+      : `Coupon applied! $${discountAmount} credit applied toward your enrollment.`;
 
     return new Response(JSON.stringify({ 
       success: true, 
-      message: "Coupon applied successfully! Your test is now free." 
+      message,
+      discountAmount,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
