@@ -158,13 +158,31 @@ export const PAYMENT_PLANS = {
       { label: "Before Retest 2 (25%)", amount: 999, paymentUrl: "https://buy.stripe.com/aFa4grgXu7Li9ajgYS4wM0c" },
     ],
   },
+  red_single_upper: {
+    fullPrice: 2997,
+    fullPricePaymentUrl: "https://buy.stripe.com/8x228j5eM7Li86f5ga4wM0h",
+    installments: [
+      { label: "Deposit (50%)", amount: 1499, paymentUrl: "https://buy.stripe.com/3cIbITdLiaXufyHdMG4wM0d" },
+      { label: "Before Retest 1 (25%)", amount: 749, paymentUrl: "https://buy.stripe.com/7sY9AL5eM1mU9ajdMG4wM0e" },
+      { label: "Before Retest 2 (25%)", amount: 749, paymentUrl: "https://buy.stripe.com/7sY9AL5eM1mU9ajdMG4wM0e" },
+    ],
+  },
+  red_dual_upper: {
+    fullPrice: 4997,
+    fullPricePaymentUrl: "https://buy.stripe.com/14A00bfTq9TqfyH0ZU4wM0i",
+    installments: [
+      { label: "Deposit (50%)", amount: 2499, paymentUrl: "https://buy.stripe.com/dRmdR15eM4z62LVfUO4wM0f" },
+      { label: "Before Retest 1 (25%)", amount: 1249, paymentUrl: "https://buy.stripe.com/8x2aEPfTq7Li1HRdMG4wM0g" },
+      { label: "Before Retest 2 (25%)", amount: 1249, paymentUrl: "https://buy.stripe.com/8x2aEPfTq7Li1HRdMG4wM0g" },
+    ],
+  },
 } as const;
 
 /* ── Placement Pathway ── */
 export const PLACEMENT_PATHWAY = [
   { tier: "Tier 1 (85%+)", label: "Enrichment Pod", price: "$597", color: "green" as const, paymentUrl: "https://buy.stripe.com/eVq8wH4aI2qYfyHaAu4wM02", planAvailable: true },
   { tier: "Tier 2 (66–84%)", label: "Skill Builder Program", price: "$1,097", color: "yellow" as const, paymentUrl: "https://buy.stripe.com/14AbITePm3v286f3824wM01", planAvailable: true },
-  { tier: "Tier 3 (≤65%)", label: "Intensive Intervention Plan", price: "By Invitation", color: "red" as const, paymentUrl: "https://calendar.app.google/dHKRRWnqASeUpp4cA", planAvailable: false },
+  { tier: "Tier 3 (≤65%)", label: "Intensive Intervention Plan", price: "$2,497–$4,997", color: "red" as const, paymentUrl: "https://calendar.app.google/dHKRRWnqASeUpp4cA", planAvailable: false },
 ];
 
 /* ── CTA Button Styles ── */

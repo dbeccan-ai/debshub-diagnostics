@@ -12,9 +12,11 @@ const PROGRAM_NAMES: Record<TierKey, string> = {
   red: "Intensive Intervention Plan",
 };
 
-function getPaymentPlan(tier: TierKey, plan: string | null) {
+function getPaymentPlan(tier: TierKey, plan: string | null, band: string | null) {
   if (tier === "red") {
-    return plan === "dual" ? PAYMENT_PLANS.red_dual : PAYMENT_PLANS.red_single;
+    const isUpper = band === "7-12";
+    if (plan === "dual") return isUpper ? PAYMENT_PLANS.red_dual_upper : PAYMENT_PLANS.red_dual;
+    return isUpper ? PAYMENT_PLANS.red_single_upper : PAYMENT_PLANS.red_single;
   }
   return PAYMENT_PLANS[tier];
 }
@@ -29,6 +31,7 @@ const Enroll = () => {
   const [searchParams] = useSearchParams();
   const tierParam = searchParams.get("tier") as TierKey | null;
   const planParam = searchParams.get("plan");
+  const bandParam = searchParams.get("band");
 
   const validTiers: TierKey[] = ["green", "yellow", "red"];
   const tier = tierParam && validTiers.includes(tierParam) ? tierParam : null;
@@ -57,7 +60,7 @@ const Enroll = () => {
   }
 
   const tierInfo = TIER_LABELS[tier];
-  const paymentPlan = getPaymentPlan(tier, planParam);
+  const paymentPlan = getPaymentPlan(tier, planParam, bandParam);
   const cta = TIER_CTAS[tier];
   const subjectLabel = getPlanLabel(tier, planParam);
 
