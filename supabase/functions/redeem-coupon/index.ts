@@ -166,6 +166,9 @@ serve(async (req) => {
     } else if (coupon.code === 'ENROLL7') {
       discountAmount = (attempt.grade_level && attempt.grade_level >= 7) ? 120 : 99;
       logStep("ENROLL7 dynamic pricing", { grade_level: attempt.grade_level, discountAmount });
+    } else if (coupon.code === 'ENROLL7-DUAL') {
+      discountAmount = (attempt.grade_level && attempt.grade_level >= 7) ? 229 : 198;
+      logStep("ENROLL7-DUAL dynamic pricing", { grade_level: attempt.grade_level, discountAmount });
     } else {
       isFree = true;
     }

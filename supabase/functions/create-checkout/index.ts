@@ -110,6 +110,7 @@ serve(async (req) => {
       customer_email: customerId ? undefined : user.email,
       line_items: lineItems,
       mode: "payment",
+      allow_promotion_codes: true,
       success_url: `${origin}/verify-payment?session_id={CHECKOUT_SESSION_ID}&attempt_id=${attemptId}`,
       cancel_url: `${origin}/checkout/${attemptId}${isBundle ? "?bundle=true" : ""}`,
       metadata: {
