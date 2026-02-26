@@ -126,11 +126,45 @@ export const TIER_CTAS: Record<"red" | "yellow" | "green", TierCTA> = {
   },
 };
 
+/* ── Payment Plans ── */
+export const PAYMENT_PLANS = {
+  green: {
+    fullPrice: 597,
+    installments: [
+      { label: "Deposit (50%)", amount: 299, paymentUrl: "https://buy.stripe.com/bJe9AL0Yw7Li86f7oi4wM05" },
+      { label: "Final Payment (50%)", amount: 298, paymentUrl: "https://buy.stripe.com/aFaeV55eMe9Gaen6ke4wM06" },
+    ],
+  },
+  yellow: {
+    fullPrice: 1097,
+    installments: [
+      { label: "Deposit (50%)", amount: 549, paymentUrl: "https://buy.stripe.com/3cI7sD6iQ8Pm4U38sm4wM07" },
+      { label: "Final Payment (50%)", amount: 548, paymentUrl: "https://buy.stripe.com/5kQ14fcHe3v2fyH4c64wM08" },
+    ],
+  },
+  red_single: {
+    fullPrice: 2497,
+    installments: [
+      { label: "Deposit (50%)", amount: 1249, paymentUrl: "https://buy.stripe.com/fZu3cn5eM5DabirgYS4wM09" },
+      { label: "Before Retest 1 (25%)", amount: 624, paymentUrl: "https://buy.stripe.com/8x2fZ99v23v29aj0ZU4wM0a" },
+      { label: "Before Retest 2 (25%)", amount: 624, paymentUrl: "https://buy.stripe.com/8x2fZ99v23v29aj0ZU4wM0a" },
+    ],
+  },
+  red_dual: {
+    fullPrice: 3997,
+    installments: [
+      { label: "Deposit (50%)", amount: 1999, paymentUrl: "https://buy.stripe.com/28E5kvbDa2qYeuDaAu4wM0b" },
+      { label: "Before Retest 1 (25%)", amount: 999, paymentUrl: "https://buy.stripe.com/aFa4grgXu7Li9ajgYS4wM0c" },
+      { label: "Before Retest 2 (25%)", amount: 999, paymentUrl: "https://buy.stripe.com/aFa4grgXu7Li9ajgYS4wM0c" },
+    ],
+  },
+} as const;
+
 /* ── Placement Pathway ── */
 export const PLACEMENT_PATHWAY = [
-  { tier: "Tier 1 (85%+)", label: "Enrichment Pod", price: "$597", color: "green" as const, paymentUrl: "https://buy.stripe.com/eVq8wH4aI2qYfyHaAu4wM02" },
-  { tier: "Tier 2 (66–84%)", label: "Skill Builder Program", price: "$1,097", color: "yellow" as const, paymentUrl: "https://buy.stripe.com/14AbITePm3v286f3824wM01" },
-  { tier: "Tier 3 (≤65%)", label: "Intensive Intervention Plan", price: "By Invitation", color: "red" as const, paymentUrl: "https://calendar.app.google/dHKRRWnqASeUpp4cA" },
+  { tier: "Tier 1 (85%+)", label: "Enrichment Pod", price: "$597", color: "green" as const, paymentUrl: "https://buy.stripe.com/eVq8wH4aI2qYfyHaAu4wM02", planAvailable: true },
+  { tier: "Tier 2 (66–84%)", label: "Skill Builder Program", price: "$1,097", color: "yellow" as const, paymentUrl: "https://buy.stripe.com/14AbITePm3v286f3824wM01", planAvailable: true },
+  { tier: "Tier 3 (≤65%)", label: "Intensive Intervention Plan", price: "By Invitation", color: "red" as const, paymentUrl: "https://calendar.app.google/dHKRRWnqASeUpp4cA", planAvailable: false },
 ];
 
 /* ── CTA Button Styles ── */

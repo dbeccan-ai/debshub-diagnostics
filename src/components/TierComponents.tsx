@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,7 @@ import {
   PLACEMENT_PATHWAY,
   CTA_STYLES,
   SKILL_ACTION,
+  PAYMENT_PLANS,
   getTierFromScore,
   type TierCTA,
 } from "@/lib/tierConfig";
@@ -339,6 +341,9 @@ ${weeklyPlanHtml}
             Tier 3 Intensive Intervention is by invitation only following a consultation.
           </p>
         )}
+        {(tier === "green" || tier === "yellow") && (
+          <PaymentPlanToggle tier={tier} />
+        )}
         <Button variant="outline" className="w-full" onClick={handleStrategyCall}>
           <Phone className="mr-2 h-4 w-4" />
           {ctas.secondary.label}
@@ -349,6 +354,59 @@ ${weeklyPlanHtml}
         </Button>
       </CardContent>
     </Card>
+  );
+}
+
+/* ─── Payment Plan Toggle (Tier 1 & 2 only) ─── */
+function PaymentPlanToggle({ tier }: { tier: "green" | "yellow" }) {
+  const [showPlan, setShowPlan] = useState(false);
+  const plan = PAYMENT_PLANS[tier];
+  const cfg = TIER_LABELS[tier];
+
+  return (
+    <div className="mt-2">
+      <button
+        onClick={() => setShowPlan(!showPlan)}
+        className={`w-full text-xs font-medium ${cfg.textClass} hover:underline flex items-center justify-center gap-1 py-1`}
+      >
+        {showPlan ? "▾" : "▸"} Payment plan available — 2 easy payments
+      </button>
+      {showPlan && (
+        <div className={`mt-2 border ${cfg.borderClass} ${cfg.bgClass} rounded-lg p-4 space-y-3`}>
+          <p className={`text-xs font-semibold ${cfg.textClass}`}>
+            Option B — Structured Tuition Plan
+          </p>
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="border-b border-slate-200">
+                <th className="text-left py-1.5 text-slate-600">Payment</th>
+                <th className="text-right py-1.5 text-slate-600">Amount</th>
+                <th className="text-right py-1.5"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {plan.installments.map((inst, i) => (
+                <tr key={i} className="border-b border-slate-100 last:border-0">
+                  <td className="py-2 text-slate-700 font-medium">{inst.label}</td>
+                  <td className="py-2 text-right font-bold text-slate-800">${inst.amount}</td>
+                  <td className="py-2 text-right">
+                    <button
+                      onClick={() => window.open(inst.paymentUrl, "_blank")}
+                      className={`text-[11px] px-2.5 py-1 rounded-full font-semibold ${CTA_STYLES[tier]}`}
+                    >
+                      Pay Now
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p className="text-[10px] text-slate-500 italic">
+            Total: ${plan.fullPrice} (same as paying in full)
+          </p>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -382,8 +440,11 @@ export function PlacementPathwayCard({ overallScore }: { overallScore: number })
                   <td className={`px-5 py-3 ${isActive ? TIER_LABELS[row.color].textClass : "text-slate-700"}`}>
                     {row.label}
                   </td>
-                  <td className={`px-5 py-3 text-right font-bold ${isActive ? TIER_LABELS[row.color].textClass : "text-slate-500"}`}>
-                    {row.price}
+                  <td className={`px-5 py-3 text-right ${isActive ? TIER_LABELS[row.color].textClass : "text-slate-500"}`}>
+                    <span className="font-bold">{row.price}</span>
+                    {row.planAvailable && (
+                      <span className="block text-[10px] font-normal opacity-70">Payment plan available</span>
+                    )}
                   </td>
                   <td className="px-3 py-3 text-right">
                     <button
