@@ -113,7 +113,7 @@ serve(async (req) => {
     // Verify attempt belongs to user
     const { data: attempt, error: attemptError } = await supabaseAdmin
       .from("test_attempts")
-      .select("id, user_id, payment_status")
+      .select("id, user_id, payment_status, grade_level")
       .eq("id", attemptId)
       .eq("user_id", user.id)
       .single();
@@ -157,10 +157,19 @@ serve(async (req) => {
       logStep("Update coupon error", { error: updateCouponError.message });
     }
 
-    // Apply coupon: use discount_amount if set, otherwise make it free
-    const discountAmount = coupon.discount_amount ? Number(coupon.discount_amount) : 0;
-    const isFree = !coupon.discount_amount;
-    
+    // Apply coupon: determine discount dynamically for ENROLL7, fixed for others
+    let discountAmount = 0;
+    let isFree = false;
+
+    if (coupon.discount_amount) {
+      discountAmount = Number(coupon.discount_amount);
+    } else if (coupon.code === 'ENROLL7') {
+      discountAmount = (attempt.grade_level && attempt.grade_level >= 7) ? 120 : 99;
+      logStep("ENROLL7 dynamic pricing", { grade_level: attempt.grade_level, discountAmount });
+    } else {
+      isFree = true;
+    }
+
     const { error: updateAttemptError } = await supabaseAdmin
       .from("test_attempts")
       .update({ 
