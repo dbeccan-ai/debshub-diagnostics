@@ -1,73 +1,64 @@
 
+# Make ENROLL7 Cover Both Test Prices ($99 and $120)
 
-# Custom Enrollment Landing Page
+## The Problem
+The ENROLL7 coupon currently has a fixed `discount_amount` of $99 in the database. Parents who paid $120 for a Grades 7-12 test should get a $120 credit, not just $99.
 
-## What We're Building
+## The Solution
+Two small changes — no new pages, no UI changes, no Stripe changes needed:
 
-A standalone, shareable enrollment page at `/enroll` that presents both **"Pay in Full"** and **"Payment Plan"** options side-by-side for any tier. This page can be linked directly from emails, decision letters, or shared as a URL (e.g., `debshub-diagnostics.lovable.app/enroll?tier=red`).
+### 1. Update the Database Coupon
+Change `ENROLL7`'s `discount_amount` from a fixed $99 to `NULL`. The edge function will then determine the correct credit dynamically based on the student's grade level.
 
-No login required -- parents simply click the link, see both options, and choose how to pay.
+We also need to update the validation trigger to allow NULL discount amounts (since NULL means "dynamic pricing" not "free").
 
-## Page Design
+### 2. Update the Redeem-Coupon Edge Function
+Add logic so that when `ENROLL7` is redeemed (or any coupon with `discount_amount = NULL` and a special flag), the function looks up the `grade_level` from the test attempt and applies the correct amount:
+- Grades 1-6: $99 credit
+- Grades 7-12: $120 credit
 
-```text
-+----------------------------------------------------------+
-|  D.E.Bs LEARNING ACADEMY                                 |
-|  Enrollment & Payment Options                            |
-+----------------------------------------------------------+
-|                                                          |
-|  [Tier Badge: e.g. "Tier 3 - Intensive Intervention"]    |
-|  Program: Intensive Intervention Plan                    |
-|  Total Investment: $2,497                                |
-|                                                          |
-|  +------------------------+  +------------------------+  |
-|  | OPTION A               |  | OPTION B               |  |
-|  | Pay in Full            |  | Structured Tuition Plan |  |
-|  |                        |  |                        |  |
-|  | $2,497                 |  | 3 payments:            |  |
-|  |                        |  | 1. Deposit: $1,249     |  |
-|  | [Pay Now Button]       |  | 2. Before R1: $624     |  |
-|  |                        |  | 3. Before R2: $624     |  |
-|  |                        |  |                        |  |
-|  |                        |  | [Pay Deposit Button]   |  |
-|  +------------------------+  +------------------------+  |
-|                                                          |
-|  Questions? Contact info@debslearnacademy.com            |
-+----------------------------------------------------------+
+The updated logic in the edge function will be:
+
+```
+// If discount_amount is set, use it directly
+// If not set AND coupon code is ENROLL7, determine from grade_level
+if (coupon.discount_amount) {
+  discountAmount = coupon.discount_amount;
+} else if (coupon.code === 'ENROLL7') {
+  // Look up grade from the test attempt
+  discountAmount = attempt.grade_level >= 7 ? 120 : 99;
+} else {
+  // No discount_amount = free (existing behavior for DATA40 etc.)
+  isFree = true;
+}
 ```
 
-## URL Structure
+### 3. Update the Validation Trigger
+The existing trigger enforces that `discount_amount` must be between $99 and $198. We need to allow `NULL` values to pass through (they already should since the trigger checks `NEW.discount_amount IS NOT NULL`, but we'll verify).
 
-- `/enroll?tier=green` -- Enrichment Pod ($597, 2-payment plan)
-- `/enroll?tier=yellow` -- Skill Builder ($1,097, 2-payment plan)  
-- `/enroll?tier=red` -- Intensive Intervention Single Subject ($2,497, 3-payment plan)
-- `/enroll?tier=red&plan=dual` -- Intensive Intervention Dual Subject ($3,997, 3-payment plan)
+## What Changes
+
+| File/Resource | Change |
+|---|---|
+| Database migration | Set ENROLL7 `discount_amount` to NULL |
+| `supabase/functions/redeem-coupon/index.ts` | Add grade-based pricing logic for ENROLL7 |
+| Test attempt query | Expand SELECT to include `grade_level` (currently only selects `id, user_id, payment_status`) |
+
+## What Doesn't Change
+- No UI changes
+- No changes to the Enroll landing page
+- No Stripe configuration changes
+- No changes to `tierConfig.ts`
+- DATA40 and bundle coupons continue working as before
 
 ## Technical Details
 
-### 1. New Page: `src/pages/Enroll.tsx`
+### Database Migration SQL
+```sql
+UPDATE public.coupons SET discount_amount = NULL WHERE code = 'ENROLL7';
+```
 
-- Reads `tier` and optional `plan` from URL query parameters
-- Uses existing `PAYMENT_PLANS`, `TIER_LABELS`, `TIER_CTAS`, and `CTA_STYLES` from `tierConfig.ts`
-- Displays two cards side-by-side (stacked on mobile):
-  - **Option A**: Pay in Full with a single Stripe payment link button
-  - **Option B**: Structured Tuition Plan with installment breakdown table and individual payment links for each installment
-- Branded with D.E.Bs header and academy styling
-- No authentication required -- fully public page
-- Falls back to a "Contact Us" message if an invalid tier is provided
-
-### 2. New Route in `src/App.tsx`
-
-- Add `<Route path="/enroll" element={<Enroll />} />`
-
-### 3. No Changes to `tierConfig.ts`
-
-- All pricing, payment URLs, and installment data already exist in the config -- the new page simply reads from it
-
-### Key Behaviors
-
-- For **Tier 3 (red)**, the "Pay in Full" card links to the full consultation booking for context, while each installment row has its own "Pay Now" Stripe link
-- For **Tiers 1 and 2**, the "Pay in Full" card uses the existing CTA payment link, and Option B shows the 2-installment split
-- The `?plan=dual` parameter on Tier 3 switches between single-subject ($2,497) and dual-subject ($3,997) pricing
-- Responsive layout: side-by-side on desktop, stacked on mobile
-
+### Edge Function Update (redeem-coupon)
+- Expand the attempt query to also select `grade_level`
+- Replace the flat `discountAmount` logic with grade-aware branching for ENROLL7
+- Update the success message to show the correct credited amount
