@@ -5,7 +5,8 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Activity, Target, Users, Shield, BookOpen, UserPlus, ClipboardList, XCircle, PlayCircle, AlertTriangle, Trophy, Eye, Plus } from "lucide-react";
+import { Activity, Target, Users, Shield, BookOpen, UserPlus, ClipboardList, XCircle, PlayCircle, AlertTriangle, Trophy, Eye, Plus, PauseCircle } from "lucide-react";
+import { useAccountStatus } from "@/hooks/useAccountStatus";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -61,6 +62,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [isTeacher, setIsTeacher] = useState<boolean>(false);
+  const { isPaused, pauseReason } = useAccountStatus();
 
   useEffect(() => {
     const loadDashboard = async () => {
@@ -430,6 +432,21 @@ const Dashboard = () => {
       </header>
 
       <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
+        {/* Account Hold Banner */}
+        {isPaused && (
+          <div className="mb-6 flex items-start gap-3 rounded-lg border-2 border-red-300 bg-red-50 p-4">
+            <PauseCircle className="h-6 w-6 text-red-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <h3 className="text-sm font-bold text-red-800">Your account is currently on hold</h3>
+              <p className="text-sm text-red-700 mt-1">
+                {pauseReason || "Please contact us to resolve your outstanding balance before continuing."}
+              </p>
+              <p className="text-xs text-red-600 mt-2">
+                📧 <a href="mailto:info@debslearnacademy.com" className="underline">info@debslearnacademy.com</a> · 📞 <a href="tel:+13473641906" className="underline">347-364-1906</a>
+              </p>
+            </div>
+          </div>
+        )}
         {/* Greeting + quick actions */}
         <div className="mb-6 flex flex-col gap-3 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
           <div>

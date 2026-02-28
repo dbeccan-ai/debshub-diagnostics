@@ -19,6 +19,7 @@ import { useLanguage, languageOptions } from "@/contexts/LanguageContext";
 import QuestionVisual from "@/components/QuestionVisual";
 import DEBsHeader from "@/components/DEBsHeader";
 import DiagnosticLanding from "@/components/DiagnosticLanding";
+import { useAccountStatus } from "@/hooks/useAccountStatus";
 import { 
   getGrade2DiagramByVisual, 
   getPictureHelperForQuestion, 
@@ -40,6 +41,7 @@ const TakeTest = () => {
   const navigate = useNavigate();
   const { attemptId } = useParams();
   const { language, languageLabel } = useLanguage();
+  const { isPaused } = useAccountStatus();
   const [attempt, setAttempt] = useState<any>(null);
   const [test, setTest] = useState<any>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -65,8 +67,13 @@ const TakeTest = () => {
   const [adaptiveMessage, setAdaptiveMessage] = useState<string | null>(null);
 
   useEffect(() => {
+    if (isPaused) {
+      toast.error("Your account is on hold. Please resolve your outstanding balance to continue.");
+      navigate("/dashboard");
+      return;
+    }
     fetchTestAttempt();
-  }, [attemptId]);
+  }, [attemptId, isPaused]);
 
   useEffect(() => {
     // Only start timer if test has started and not disabled

@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { ArrowLeft, Search, RefreshCw, Users, Shield, BookOpen, GraduationCap } from "lucide-react";
+import { ArrowLeft, Search, RefreshCw, Users, Shield, BookOpen, GraduationCap, PauseCircle, PlayCircle } from "lucide-react";
 
 interface UserProfile {
   id: string;
@@ -16,6 +16,8 @@ interface UserProfile {
   parent_email: string | null;
   created_at: string;
   school_id: string | null;
+  account_status: string;
+  pause_reason: string | null;
   roles: string[];
   test_count: number;
   reading_count: number;
@@ -54,7 +56,7 @@ const AdminUserLogins = () => {
     // Fetch all profiles (admin can see all)
     const { data: profiles, error: profilesError } = await supabase
       .from("profiles")
-      .select("id, full_name, username, parent_email, created_at, school_id")
+      .select("id, full_name, username, parent_email, created_at, school_id, account_status, pause_reason")
       .order("created_at", { ascending: false });
 
     if (profilesError) { console.error(profilesError); toast.error("Could not load users."); return; }
@@ -93,6 +95,8 @@ const AdminUserLogins = () => {
 
     const enriched: UserProfile[] = (profiles || []).map(p => ({
       ...p,
+      account_status: (p as any).account_status || "active",
+      pause_reason: (p as any).pause_reason || null,
       roles: roleMap[p.id] || ["student"],
       test_count: testCountMap[p.id] || 0,
       reading_count: readingCountMap[p.id] || 0,
@@ -132,6 +136,25 @@ const AdminUserLogins = () => {
   };
 
   const formatDate = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+
+  const toggleAccountStatus = async (userId: string, currentStatus: string) => {
+    const newStatus = currentStatus === "paused" ? "active" : "paused";
+    const reason = newStatus === "paused" ? "Outstanding balance — installment payment overdue" : null;
+    
+    const { error } = await supabase
+      .from("profiles")
+      .update({ account_status: newStatus, pause_reason: reason } as any)
+      .eq("id", userId);
+
+    if (error) {
+      console.error(error);
+      toast.error("Failed to update account status.");
+      return;
+    }
+
+    toast.success(`Account ${newStatus === "paused" ? "paused" : "resumed"} successfully.`);
+    setUsers(prev => prev.map(u => u.id === userId ? { ...u, account_status: newStatus, pause_reason: reason } : u));
+  };
 
   if (loading) return <div className="flex min-h-screen items-center justify-center bg-slate-50"><p className="text-sm font-medium text-slate-600">Loading...</p></div>;
   if (isAdmin === false) return (
@@ -211,6 +234,7 @@ const AdminUserLogins = () => {
                       <th className="pb-3 text-left font-medium text-slate-600">Roles</th>
                       <th className="pb-3 text-left font-medium text-slate-600">Tests Done</th>
                       <th className="pb-3 text-left font-medium text-slate-600">Reading Assessments</th>
+                      <th className="pb-3 text-left font-medium text-slate-600">Status</th>
                       <th className="pb-3 text-left font-medium text-slate-600">Joined</th>
                     </tr>
                   </thead>
@@ -223,6 +247,22 @@ const AdminUserLogins = () => {
                         <td className="py-3"><div className="flex flex-wrap gap-1">{u.roles.map(r => getRoleBadge(r))}</div></td>
                         <td className="py-3 text-center text-slate-700">{u.test_count}</td>
                         <td className="py-3 text-center text-slate-700">{u.reading_count}</td>
+                        <td className="py-3">
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className={u.account_status === "paused" ? "border-red-200 bg-red-50 text-red-700" : "border-emerald-200 bg-emerald-50 text-emerald-700"}>
+                              {u.account_status === "paused" ? "Paused" : "Active"}
+                            </Badge>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 w-7 p-0"
+                              onClick={() => toggleAccountStatus(u.id, u.account_status)}
+                              title={u.account_status === "paused" ? "Resume account" : "Pause account"}
+                            >
+                              {u.account_status === "paused" ? <PlayCircle className="h-4 w-4 text-emerald-600" /> : <PauseCircle className="h-4 w-4 text-red-500" />}
+                            </Button>
+                          </div>
+                        </td>
                         <td className="py-3 text-slate-600">{formatDate(u.created_at)}</td>
                       </tr>
                     ))}
