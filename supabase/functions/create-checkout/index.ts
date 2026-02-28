@@ -12,8 +12,8 @@ const logStep = (step: string, details?: any) => {
   console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
 };
 
-// Bundle price ID from Stripe
-const BUNDLE_PRICE_ID = "price_1T4PAs1qBeNCFEYAElvrmXgp";
+// Gross-up formula: customer pays Stripe fees
+const grossUp = (net: number) => Math.ceil(((net + 0.30) / (1 - 0.029)) * 100);
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -86,14 +86,22 @@ serve(async (req) => {
 
     let lineItems;
     if (isBundle) {
-      // Use the fixed Stripe price for the $199 bundle
-      lineItems = [{ price: BUNDLE_PRICE_ID, quantity: 1 }];
-      logStep("Bundle checkout", { priceId: BUNDLE_PRICE_ID });
+      // Bundle net = $199 → gross up so Stripe fees are on customer
+      const bundleGross = grossUp(199);
+      lineItems = [{
+        price_data: {
+          currency: "usd",
+          product_data: { name: "Diagnostic Bundle (Math + ELA)", description: "Both Math and ELA diagnostic tests" },
+          unit_amount: bundleGross,
+        },
+        quantity: 1,
+      }];
+      logStep("Bundle checkout", { net: 199, gross: bundleGross });
     } else {
       // Individual test pricing with fee gross-up
       const gradeLevel = attempt.grade_level || 5;
       const netAmount = gradeLevel <= 6 ? 99 : 120;
-      const grossAmount = Math.ceil(((netAmount + 0.30) / (1 - 0.029)) * 100);
+      const grossAmount = grossUp(netAmount);
       lineItems = [{
         price_data: {
           currency: "usd",
