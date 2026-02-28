@@ -144,36 +144,38 @@ export const PAYMENT_PLANS = {
   },
   red_single: {
     fullPrice: 2497,
+    fullPricePaymentUrl: "https://buy.stripe.com/9B6cMXgXughOeuD8sm4wM0j",
     installments: [
-      { label: "Deposit (50%)", amount: 1249, paymentUrl: "https://buy.stripe.com/fZu3cn5eM5DabirgYS4wM09" },
-      { label: "Before Retest 1 (25%)", amount: 624, paymentUrl: "https://buy.stripe.com/8x2fZ99v23v29aj0ZU4wM0a" },
-      { label: "Before Retest 2 (25%)", amount: 624, paymentUrl: "https://buy.stripe.com/8x2fZ99v23v29aj0ZU4wM0a" },
+      { label: "Deposit (50%)", amount: 1249, paymentUrl: "https://buy.stripe.com/5kQ3cn7mU3v286f23Y4wM0k" },
+      { label: "Before Retest 1 (25%)", amount: 624, paymentUrl: "https://buy.stripe.com/dRm00b36Ee9G5Y75ga4wM0l" },
+      { label: "Before Retest 2 (25%)", amount: 624, paymentUrl: "https://buy.stripe.com/dRm00b36Ee9G5Y75ga4wM0l" },
     ],
   },
   red_dual: {
     fullPrice: 3997,
+    fullPricePaymentUrl: "https://buy.stripe.com/aFacMX5eM3v25Y7eQK4wM0m",
     installments: [
-      { label: "Deposit (50%)", amount: 1999, paymentUrl: "https://buy.stripe.com/28E5kvbDa2qYeuDaAu4wM0b" },
-      { label: "Before Retest 1 (25%)", amount: 999, paymentUrl: "https://buy.stripe.com/aFa4grgXu7Li9ajgYS4wM0c" },
-      { label: "Before Retest 2 (25%)", amount: 999, paymentUrl: "https://buy.stripe.com/aFa4grgXu7Li9ajgYS4wM0c" },
+      { label: "Deposit (50%)", amount: 1999, paymentUrl: "https://buy.stripe.com/28EbIT0Yw9Tq5Y76ke4wM0n" },
+      { label: "Before Retest 1 (25%)", amount: 999, paymentUrl: "https://buy.stripe.com/aFa8wH36E2qY3PZ6ke4wM0o" },
+      { label: "Before Retest 2 (25%)", amount: 999, paymentUrl: "https://buy.stripe.com/aFa8wH36E2qY3PZ6ke4wM0o" },
     ],
   },
   red_single_upper: {
     fullPrice: 2997,
-    fullPricePaymentUrl: "https://buy.stripe.com/8x228j5eM7Li86f5ga4wM0h",
+    fullPricePaymentUrl: "https://buy.stripe.com/eVq9AL6iQ8Pm9ajcIC4wM0p",
     installments: [
-      { label: "Deposit (50%)", amount: 1499, paymentUrl: "https://buy.stripe.com/3cIbITdLiaXufyHdMG4wM0d" },
-      { label: "Before Retest 1 (25%)", amount: 749, paymentUrl: "https://buy.stripe.com/7sY9AL5eM1mU9ajdMG4wM0e" },
-      { label: "Before Retest 2 (25%)", amount: 749, paymentUrl: "https://buy.stripe.com/7sY9AL5eM1mU9ajdMG4wM0e" },
+      { label: "Deposit (50%)", amount: 1499, paymentUrl: "https://buy.stripe.com/6oUbITdLi0iQbir0ZU4wM0q" },
+      { label: "Before Retest 1 (25%)", amount: 749, paymentUrl: "https://buy.stripe.com/eVqfZ9dLighOfyHdMG4wM0r" },
+      { label: "Before Retest 2 (25%)", amount: 749, paymentUrl: "https://buy.stripe.com/eVqfZ9dLighOfyHdMG4wM0r" },
     ],
   },
   red_dual_upper: {
     fullPrice: 4997,
-    fullPricePaymentUrl: "https://buy.stripe.com/14A00bfTq9TqfyH0ZU4wM0i",
+    fullPricePaymentUrl: "https://buy.stripe.com/4gM5kv9v27Li86f7oi4wM0s",
     installments: [
-      { label: "Deposit (50%)", amount: 2499, paymentUrl: "https://buy.stripe.com/dRmdR15eM4z62LVfUO4wM0f" },
-      { label: "Before Retest 1 (25%)", amount: 1249, paymentUrl: "https://buy.stripe.com/8x2aEPfTq7Li1HRdMG4wM0g" },
-      { label: "Before Retest 2 (25%)", amount: 1249, paymentUrl: "https://buy.stripe.com/8x2aEPfTq7Li1HRdMG4wM0g" },
+      { label: "Deposit (50%)", amount: 2499, paymentUrl: "https://buy.stripe.com/5kQ5kv22A0iQ4U3fUO4wM0t" },
+      { label: "Before Retest 1 (25%)", amount: 1249, paymentUrl: "https://buy.stripe.com/aFabITcHe9Tqdqz9wq4wM0u" },
+      { label: "Before Retest 2 (25%)", amount: 1249, paymentUrl: "https://buy.stripe.com/aFabITcHe9Tqdqz9wq4wM0u" },
     ],
   },
 } as const;
