@@ -314,28 +314,34 @@ export type Database = {
       }
       profiles: {
         Row: {
+          account_status: string
           created_at: string
           full_name: string
           id: string
           parent_email: string | null
+          pause_reason: string | null
           school_id: string | null
           updated_at: string
           username: string | null
         }
         Insert: {
+          account_status?: string
           created_at?: string
           full_name: string
           id: string
           parent_email?: string | null
+          pause_reason?: string | null
           school_id?: string | null
           updated_at?: string
           username?: string | null
         }
         Update: {
+          account_status?: string
           created_at?: string
           full_name?: string
           id?: string
           parent_email?: string | null
+          pause_reason?: string | null
           school_id?: string | null
           updated_at?: string
           username?: string | null

@@ -10,6 +10,8 @@ import { Clock, ArrowLeft, ArrowRight, Check } from "lucide-react";
 import elaTests from "@/data/ela-diagnostic-tests.json";
 import DEBsHeader from "@/components/DEBsHeader";
 import DiagnosticLanding from "@/components/DiagnosticLanding";
+import { useAccountStatus } from "@/hooks/useAccountStatus";
+import { toast } from "sonner";
 
 interface Question {
   id: string;
@@ -27,6 +29,14 @@ export default function TakeELATest() {
   const { grade } = useParams();
   const navigate = useNavigate();
   const gradeNum = grade?.replace("grade-", "");
+  const { isPaused } = useAccountStatus();
+  
+  useEffect(() => {
+    if (isPaused) {
+      toast.error("Your account is on hold. Please resolve your outstanding balance to continue.");
+      navigate("/dashboard");
+    }
+  }, [isPaused, navigate]);
   
   const test = elaTests.all_diagnostics.find(t => t.grade === gradeNum);
   

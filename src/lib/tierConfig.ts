@@ -184,7 +184,7 @@ export const PAYMENT_PLANS = {
 export const PLACEMENT_PATHWAY = [
   { tier: "Tier 1 (85%+)", label: "Enrichment Pod", price: "$597", color: "green" as const, paymentUrl: "https://buy.stripe.com/eVq8wH4aI2qYfyHaAu4wM02", planAvailable: true },
   { tier: "Tier 2 (66–84%)", label: "Skill Builder Program", price: "$1,097", color: "yellow" as const, paymentUrl: "https://buy.stripe.com/14AbITePm3v286f3824wM01", planAvailable: true },
-  { tier: "Tier 3 (≤65%)", label: "Intensive Intervention Plan", price: "$2,497–$4,997", color: "red" as const, paymentUrl: "https://calendar.app.google/dHKRRWnqASeUpp4cA", planAvailable: false },
+  { tier: "Tier 3 (≤65%)", label: "Intensive Intervention Plan", price: "By Consultation", color: "red" as const, paymentUrl: "https://calendar.app.google/dHKRRWnqASeUpp4cA", planAvailable: false },
 ];
 
 /* ── CTA Button Styles ── */
