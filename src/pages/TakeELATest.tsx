@@ -19,6 +19,8 @@ interface Question {
   question_text: string;
   choices?: string[];
   correct_answer?: string;
+  passage?: string;
+  passage_title?: string;
 }
 
 export default function TakeELATest() {
@@ -35,16 +37,28 @@ export default function TakeELATest() {
   const [submitted, setSubmitted] = useState(false);
   const [testStarted, setTestStarted] = useState(false);
 
-  // Flatten all questions from all sections
+  // Flatten all questions from all sections, preserving passage data
   const allQuestions: Question[] = [];
   test?.sections.forEach(section => {
+    const sectionPassage = (section as any).passage || null;
+    const sectionPassageTitle = (section as any).passage_title || null;
     if (section.questions) {
-      allQuestions.push(...(section.questions as Question[]));
+      allQuestions.push(...(section.questions as Question[]).map(q => ({
+        ...q,
+        passage: q.passage || sectionPassage,
+        passage_title: q.passage_title || sectionPassageTitle,
+      } as Question)));
     }
     if ((section as any).subsections) {
       (section as any).subsections.forEach((sub: any) => {
+        const subPassage = sub.passage || sectionPassage;
+        const subPassageTitle = sub.passage_title || sectionPassageTitle;
         if (sub.questions) {
-          allQuestions.push(...sub.questions);
+          allQuestions.push(...sub.questions.map((q: any) => ({
+            ...q,
+            passage: q.passage || subPassage,
+            passage_title: q.passage_title || subPassageTitle,
+          })));
         }
       });
     }
@@ -284,6 +298,22 @@ export default function TakeELATest() {
 
       {/* Question */}
       <div className="container max-w-3xl mx-auto px-4 py-8">
+        {/* Reading Passage Panel */}
+        {currentQ?.passage && (
+          <Card className="mb-4 border-blue-200 bg-blue-50/50">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base text-blue-900 flex items-center gap-2">
+                📖 {currentQ.passage_title || "Reading Passage"}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="max-h-[300px] overflow-y-auto pr-2 text-sm leading-relaxed text-blue-950 whitespace-pre-line">
+                {currentQ.passage}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <Card>
           <CardHeader>
             <div className="text-xs text-muted-foreground uppercase tracking-wide mb-2">
