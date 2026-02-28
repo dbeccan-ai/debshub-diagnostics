@@ -1,113 +1,58 @@
 
+# Fix Plan: ELA Reading Passages + Stripe Fee Pass-Through
 
-# Payment Pricing Updates: Tier 3 Upper Range, ENROLL7 on Stripe, and Dual Diagnostic Credit
+## Issue 1: Reading Passages Not Showing in Section 2
 
-## Overview
+**Root Cause:** The `TakeELATest.tsx` component flattens all questions from sections and subsections but **never renders the `passage` or `passage_title` fields** from the JSON data. Section II (Reading Comprehension) in the ELA test JSON stores the passage at the section level (e.g., `"passage_title": "The Forgotten Garden"`, `"passage": "In the heart of a bustling city..."`), but the test UI jumps straight to the questions without displaying the reading material students need to answer them.
 
-Three pricing issues to fix:
+**Fix:** Modify `TakeELATest.tsx` to:
+1. Track which section/subsection each question belongs to during the flattening step, preserving any `passage` and `passage_title` associated with it.
+2. When rendering a question that has an associated passage, display the passage title and full text above the question in a styled, scrollable card.
+3. The passage should remain visible while the student answers all questions tied to that passage.
 
-1. **Tier 3 Grades 7-12 pricing** -- currently shows $2,497 (single) / $3,997 (dual) for all grades. Grades 7-12 should be $2,997 / $4,997.
-2. **ENROLL7 not showing on Stripe checkout** -- it only exists as an in-app coupon. Need to create Stripe promotion codes so parents see the promo field on Stripe payment pages.
-3. **New dual-diagnostic credit code** -- parents who took both Math and ELA tests get $198 credit (grades 1-6) or $229 credit (grades 7-12) toward enrollment.
-
----
-
-## Part 1: Tier 3 Grade-Based Pricing
-
-### What changes
-
-**`src/lib/tierConfig.ts`** -- Add grade-band variants for Tier 3:
-
-| Plan | Grades 1-6 | Grades 7-12 |
-|------|-----------|-------------|
-| Single Subject | $2,497 | $2,997 |
-| Dual Subject | $3,997 | $4,997 |
-
-- Add new payment plan entries: `red_single_upper`, `red_dual_upper` with correct installment amounts
-- Update `PLACEMENT_PATHWAY` to show price ranges
-
-**Stripe** -- Create 4 new products + prices for the upper-range installments:
-- Single Subject 7-12: Deposit $1,499 (50%), Installments $749 each (25%)
-- Dual Subject 7-12: Deposit $2,499 (50%), Installments $1,249 each (25%)
-- Create payment links with `allow_promotion_codes: true`
-
-**`src/pages/Enroll.tsx`** -- Parse a new `band` query parameter (`1-6` or `7-12`):
-- `/enroll?tier=red&plan=single&band=7-12` shows $2,997
-- `/enroll?tier=red&plan=dual&band=7-12` shows $4,997
-- Default to lower range (1-6) if no band specified
+This means updating the `Question` interface to include optional `passage` and `passage_title` fields, and attaching them during the flatten loop from the parent section/subsection data. Section 1's `Part B: Reading Comprehension` (e.g., Grade 5's "The Amazing Octopus") also has passages at the subsection level, so both structures will be handled.
 
 ---
 
-## Part 2: ENROLL7 on Stripe Payment Pages
+## Issue 2: Stripe Fees Charged to You Instead of the Customer
 
-### The problem
-ENROLL7 only exists in the app database. Parents cannot enter it on Stripe-hosted checkout pages because no Stripe promotion code exists.
+**Root Cause:** The `create-checkout/index.ts` function correctly grosses up the price for **individual test purchases** (lines 94-96: `grossAmount = Math.ceil(((netAmount + 0.30) / (1 - 0.029)) * 100)`), but the **Bundle price** (line 90) uses a fixed Stripe Price ID (`price_1T4PAs1qBeNCFEYAElvrmXgp`) which was likely created at the flat $199 amount without the gross-up. This means Stripe deducts its 2.9% + $0.30 fee from the $199, and you only receive ~$192.93.
 
-### Solution
-Create **two Stripe promotion codes** (since Stripe coupons are fixed-amount):
-- **ENROLL7** -- $99 off (for grades 1-6 enrollment payments)
-- **ENROLL7PLUS** -- $120 off (for grades 7-12 enrollment payments)
+Additionally, the Tier 3 enrollment payment links created in recent sessions were created at the exact dollar amounts ($1,499, $2,499, etc.) without fee gross-up applied.
 
-Alternatively, create a single $99 Stripe coupon with code ENROLL7 and a second $120 coupon with code ENROLL7-120. The results page and decision letter would provide the correct code based on the student's grade.
+**Fix:** Update `create-checkout/index.ts` to apply the same gross-up formula to the bundle price instead of using a fixed Stripe Price ID. Use `price_data` with a dynamically calculated `unit_amount`:
+- Bundle net = $199 --> Gross = ceil(((199 + 0.30) / (1 - 0.029)) * 100) = $20,524 cents ($205.24)
 
-Also add `allow_promotion_codes: true` to the `create-checkout` edge function so parents can enter promo codes during diagnostic test checkout as well.
+For Tier 3 payment links: these are Stripe-hosted payment links (not created via the edge function), so the fee pass-through must be handled by creating new Stripe prices with the grossed-up amounts. However, since those use `allow_promotion_codes` on Stripe-hosted pages, the simplest approach is to update the prices on those payment links to include the gross-up. I will create corrected Stripe products/prices for each Tier 3 amount.
 
 ---
 
-## Part 3: Dual Diagnostic Credit Code
+## Technical Steps
 
-### What it does
-Parents who completed both the Math and ELA diagnostics get a combined credit toward enrollment:
-- Grades 1-6: **$198** credit
-- Grades 7-12: **$229** credit
+### Step 1: Fix passage rendering in TakeELATest.tsx
+- Extend the `Question` interface with optional `passage?: string` and `passage_title?: string`
+- During the flatten loop (lines 39-51), attach `passage` and `passage_title` from the parent section or subsection to each question
+- In the render (around line 286), check if `currentQ.passage` exists and render it in a bordered, scrollable panel above the question card
 
-### Implementation
+### Step 2: Fix Stripe bundle fee pass-through
+- In `create-checkout/index.ts`, replace the fixed `BUNDLE_PRICE_ID` approach with dynamic `price_data` using the gross-up formula for the $199 bundle
+- Apply the same formula: `grossAmount = Math.ceil(((199 + 0.30) / (1 - 0.029)) * 100)` = 20524 cents ($205.24)
 
-**Database** -- Create a new coupon row:
-- Code: `ENROLL7-DUAL` (or similar name you prefer)
-- `discount_amount`: NULL (dynamic, like ENROLL7)
-- `max_uses`: 100
-- `expires_at`: 7 days from creation
+### Step 3: Create corrected Tier 3 Stripe prices (grossed-up)
+- For each Tier 3 amount ($1,499 deposit, $749 installment, $2,499 deposit, $1,249 installment, $2,997 full, $4,997 full), create new grossed-up prices
+- Update `tierConfig.ts` payment links to point to new payment links with corrected amounts
+- Gross-up amounts:
+  - $749 --> $772.07
+  - $999 --> $1,029.75
+  - $1,249 --> $1,286.40
+  - $1,499 --> $1,543.74
+  - $2,497 --> $2,571.55
+  - $2,499 --> $2,573.61
+  - $2,997 --> $3,086.29
+  - $3,997 --> $4,115.74
+  - $4,997 --> $5,145.19
 
-**`supabase/functions/redeem-coupon/index.ts`** -- Extend the dynamic pricing logic:
-```
-if (coupon.code === 'ENROLL7') {
-  discountAmount = grade >= 7 ? 120 : 99;
-} else if (coupon.code === 'ENROLL7-DUAL') {
-  discountAmount = grade >= 7 ? 229 : 198;
-}
-```
-
-**Stripe** -- Create two more promotion codes for the enrollment payment links:
-- **ENROLL7DUAL** -- $198 off
-- **ENROLL7DUAL-PLUS** -- $229 off
-
-**Validation trigger** -- Already allows NULL `discount_amount`, so no change needed. The $198 and $229 values also both fall within the existing $99-$198 range check (need to raise the upper bound to $229).
-
-**Database migration**: Update the validation trigger to allow up to $229:
-```sql
--- Raise upper bound from $198 to $229
-CREATE OR REPLACE FUNCTION public.validate_coupon_discount() ...
-  IF NEW.discount_amount IS NOT NULL AND (NEW.discount_amount < 99 OR NEW.discount_amount > 229) THEN
-```
-
----
-
-## Summary of All Changes
-
-| Area | Change |
-|------|--------|
-| `src/lib/tierConfig.ts` | Add `red_single_upper` and `red_dual_upper` payment plans with Grades 7-12 pricing |
-| `src/pages/Enroll.tsx` | Parse `band` query param to select correct payment plan |
-| `supabase/functions/create-checkout/index.ts` | Add `allow_promotion_codes: true` to Stripe session |
-| `supabase/functions/redeem-coupon/index.ts` | Add `ENROLL7-DUAL` dynamic pricing logic ($198/$229) |
-| Stripe | Create upper-range Tier 3 products/prices + payment links |
-| Stripe | Create promotion codes: ENROLL7 ($99), ENROLL7-120 ($120), ENROLL7DUAL ($198), ENROLL7DUAL-229 ($229) |
-| Database | Insert ENROLL7-DUAL coupon row |
-| Database | Update validation trigger upper bound to $229 |
-
-### What doesn't change
-- Tier 1 and Tier 2 pricing (unchanged)
-- DATA40 and bundle coupon logic (unchanged)
-- Results pages and certificate generation
-
+### Step 4: Deploy and test
+- Deploy updated `create-checkout` edge function
+- Verify passage rendering on a Grade 6+ ELA test (Section II has a standalone passage)
+- Verify passage rendering on Grade 5 Part B (subsection-level passage)
