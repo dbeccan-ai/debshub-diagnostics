@@ -1,65 +1,60 @@
 
 
-# Plan: Hide Tier 3 Price + Add Account Pause for Non-Payment
+# School Demo Page (`/demo`) with 3-Tier Institutional Pricing
 
-## Part 1: Hide Tier 3 Price in Placement Pathway
+## What We're Building
 
-The Placement Pathway table currently displays "$2,497--$4,997" for Tier 3. Since Tier 3 is consultation-only, the price should not be visible to parents.
+A public, shareable `/demo` page targeting principals and district supervisors. Combines a professional walkthrough of the platform with interactive sandbox features and the three pricing options you specified.
 
-**Changes:**
+## Page Sections
 
-1. **`src/lib/tierConfig.ts`** -- Change the Tier 3 entry in `PLACEMENT_PATHWAY` to replace the price with a consultation-oriented label:
-   - Change `price: "$2,497–$4,997"` to `price: "By Consultation"`
+### 1. Hero
+- Professional headline: "Data-Driven Diagnostic Testing for Your School"
+- Subheadline about tier placement, automated grading, parent-ready reports
+- Two CTAs: "Try a Sample Test" (scroll) and "Request a Quote" (scroll)
+- Trust stats: students tested, grade coverage, subjects
 
-2. **`src/components/TierComponents.tsx`** -- In the `PlacementPathwayCard`, update the Investment column rendering so that when the row is Tier 3 (red), it does not show a dollar figure or "Payment plan available" -- just the "By Consultation" text.
+### 2. How It Works (School Edition)
+- 4-step visual flow: Enroll students → Students take diagnostics → AI grades + tier placement → Class-wide reports + parent letters
 
----
+### 3. Interactive Sandbox
+- "Try a Sample Test" buttons linking to existing diagnostic routes with `?demo=true` query param (5 questions, no login)
+- Inline sample results preview (reuse `SampleResultsDialog` data) showing all 3 tiers
+- Sample certificate preview link
 
-## Part 2: Account Pause System for Non-Payment
+### 4. School Pricing — 3 Options Side by Side
 
-To handle clients who miss their second (or third) installment payment, we need an account status system.
+Three cards in a row:
 
-**Approach:**
-- Add an `account_status` column to the `profiles` table (values: `active`, `paused`, `suspended`).
-- Add a `pause_reason` column for admin notes.
-- Create an admin UI action to pause/unpause accounts.
-- When an account is paused, the student sees a "Your account is on hold" banner and cannot start new tests or access program content until payment is resolved.
+**Option A — Per Student Diagnostic License**
+- $25–$40 per student, minimum 25 students
+- Best for: Small Saturday Academy programs
+- Includes: Individual diagnostic, tier placement, parent report
 
-**Database migration:**
-```sql
-ALTER TABLE public.profiles
-  ADD COLUMN account_status text NOT NULL DEFAULT 'active',
-  ADD COLUMN pause_reason text;
-```
+**Option B — School Site License (Semester)**
+- $3,500–$7,500 per semester
+- Pricing depends on: grade bands, student count, reporting depth
+- Badge: "Most Popular"
+- Includes: Unlimited diagnostics, class-wide reports, admin dashboard access
 
-**Code changes:**
+**Option C — Diagnostic + Intervention Partnership**
+- $7,500–$15,000 per semester
+- Badge: "Premium"
+- Includes: Diagnostic Hub, grouping recommendations, tier strategy, optional staff training
+- Full consultation and implementation support
 
-1. **`src/pages/AdminAllResults.tsx` or `src/pages/AdminUserLogins.tsx`** -- Add a "Pause Account" / "Resume Account" toggle button next to each user row. This calls supabase to update `profiles.account_status`.
+### 5. Request a Quote Form
+- Fields: Name, Title/Role, School Name, District, Email, Phone, Estimated Students, Grade Levels (checkboxes), Interested Package (A/B/C dropdown), Message
+- Submits to `demo_requests` table
+- Success confirmation toast
 
-2. **Create a shared hook or utility** (`src/hooks/useAccountStatus.ts`) that fetches the current user's `account_status` from `profiles`. This is checked on the Dashboard and test-taking pages.
+## Technical Changes
 
-3. **`src/pages/Dashboard.tsx`** -- If `account_status === 'paused'`, show a prominent banner: "Your account is currently on hold. Please contact us to resolve your outstanding balance." Disable test-start buttons.
-
-4. **`src/pages/TakeTest.tsx` and `src/pages/TakeELATest.tsx`** -- If account is paused, redirect to Dashboard with a toast message instead of allowing test access.
-
-5. **RLS consideration** -- The existing profile UPDATE policy (`auth.uid() = id`) means only the user can update their own profile. We need an additional policy allowing admins to update any profile's `account_status`:
-```sql
-CREATE POLICY "Admins can update account status"
-  ON public.profiles FOR UPDATE
-  USING (has_role(auth.uid(), 'admin'::app_role))
-  WITH CHECK (has_role(auth.uid(), 'admin'::app_role));
-```
-
----
-
-## Summary
-
-| Change | Files |
-|--------|-------|
-| Hide Tier 3 price | `tierConfig.ts`, `TierComponents.tsx` |
-| Add account_status column | DB migration |
-| Admin pause/resume UI | `AdminUserLogins.tsx` |
-| Account status hook | New `useAccountStatus.ts` |
-| Block paused users | `Dashboard.tsx`, `TakeTest.tsx`, `TakeELATest.tsx` |
-| Admin RLS policy | DB migration |
+| Item | Detail |
+|------|--------|
+| New file | `src/pages/SchoolDemo.tsx` |
+| New route | `/demo` added to `App.tsx` |
+| DB migration | Create `demo_requests` table (id uuid, name text, title text, school_name text, district text, email text, phone text, student_count int, grade_levels text[], package_interest text, message text, created_at timestamptz default now()) |
+| RLS | Anonymous insert allowed (public form); admin-only select |
+| No auth required | Entire page is public |
 
