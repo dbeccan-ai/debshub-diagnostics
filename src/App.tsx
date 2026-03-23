@@ -36,6 +36,7 @@ import Grade4Diagnostic from "./pages/Grade4Diagnostic";
 import Grade6Diagnostic from "./pages/Grade6Diagnostic";
 import Grade1ELADiagnostic from "./pages/Grade1ELADiagnostic";
 import Enroll from "./pages/Enroll";
+import SchoolDemo from "./pages/SchoolDemo";
 import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
@@ -79,6 +80,7 @@ const App = () => (
             <Route path="/diagnostics/ela/:grade" element={<TakeELATest />} />
             <Route path="/ela-results/:grade" element={<ELAResults />} />
             <Route path="/enroll" element={<Enroll />} />
+            <Route path="/demo" element={<SchoolDemo />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

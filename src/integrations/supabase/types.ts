@@ -217,6 +217,51 @@ export type Database = {
         }
         Relationships: []
       }
+      demo_requests: {
+        Row: {
+          created_at: string
+          district: string | null
+          email: string
+          grade_levels: string[] | null
+          id: string
+          message: string | null
+          name: string
+          package_interest: string | null
+          phone: string | null
+          school_name: string
+          student_count: number | null
+          title: string | null
+        }
+        Insert: {
+          created_at?: string
+          district?: string | null
+          email: string
+          grade_levels?: string[] | null
+          id?: string
+          message?: string | null
+          name: string
+          package_interest?: string | null
+          phone?: string | null
+          school_name: string
+          student_count?: number | null
+          title?: string | null
+        }
+        Update: {
+          created_at?: string
+          district?: string | null
+          email?: string
+          grade_levels?: string[] | null
+          id?: string
+          message?: string | null
+          name?: string
+          package_interest?: string | null
+          phone?: string | null
+          school_name?: string
+          student_count?: number | null
+          title?: string | null
+        }
+        Relationships: []
+      }
       invitations: {
         Row: {
           accepted_at: string | null
