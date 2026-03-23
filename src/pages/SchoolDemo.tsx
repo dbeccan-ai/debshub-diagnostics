@@ -186,11 +186,19 @@ export default function SchoolDemo() {
                     <span className="text-lg font-bold text-blue-700">M</span>
                   </div>
                   <CardTitle className="text-lg">Math Diagnostic</CardTitle>
-                  <CardDescription>Grade 4 sample — 5 questions</CardDescription>
+                  <CardDescription>Choose a grade level — 5 sample questions</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <a href="/diagnostics/math/grade-4?demo=true">
-                    <Button variant="outline" className="w-full gap-2">
+                <CardContent className="space-y-3">
+                  <Select value={selectedMathGrade} onValueChange={setSelectedMathGrade}>
+                    <SelectTrigger><SelectValue placeholder="Select grade level" /></SelectTrigger>
+                    <SelectContent>
+                      {GRADE_OPTIONS.map((g) => (
+                        <SelectItem key={g.value} value={g.value}>{g.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <a href={selectedMathGrade ? `/demo/test?subject=math&grade=${selectedMathGrade}` : "#"}>
+                    <Button variant="outline" className="w-full gap-2" disabled={!selectedMathGrade}>
                       Take Sample Test <ArrowRight className="w-4 h-4" />
                     </Button>
                   </a>
@@ -204,11 +212,19 @@ export default function SchoolDemo() {
                     <span className="text-lg font-bold text-green-700">E</span>
                   </div>
                   <CardTitle className="text-lg">ELA Diagnostic</CardTitle>
-                  <CardDescription>Grade 1 sample — 5 questions</CardDescription>
+                  <CardDescription>Choose a grade level — 5 sample questions</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <a href="/diagnostics/ela/grade-1?demo=true">
-                    <Button variant="outline" className="w-full gap-2">
+                <CardContent className="space-y-3">
+                  <Select value={selectedElaGrade} onValueChange={setSelectedElaGrade}>
+                    <SelectTrigger><SelectValue placeholder="Select grade level" /></SelectTrigger>
+                    <SelectContent>
+                      {GRADE_OPTIONS.map((g) => (
+                        <SelectItem key={g.value} value={g.value}>{g.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <a href={selectedElaGrade ? `/demo/test?subject=ela&grade=${selectedElaGrade}` : "#"}>
+                    <Button variant="outline" className="w-full gap-2" disabled={!selectedElaGrade}>
                       Take Sample Test <ArrowRight className="w-4 h-4" />
                     </Button>
                   </a>
