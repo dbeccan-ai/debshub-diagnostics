@@ -37,6 +37,7 @@ import Grade6Diagnostic from "./pages/Grade6Diagnostic";
 import Grade1ELADiagnostic from "./pages/Grade1ELADiagnostic";
 import Enroll from "./pages/Enroll";
 import SchoolDemo from "./pages/SchoolDemo";
+import DemoTest from "./pages/DemoTest";
 import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
