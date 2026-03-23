@@ -30,6 +30,8 @@ export default function SchoolDemo() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [selectedGrades, setSelectedGrades] = useState<string[]>([]);
+  const [selectedMathGrade, setSelectedMathGrade] = useState("");
+  const [selectedElaGrade, setSelectedElaGrade] = useState("");
   const [form, setForm] = useState({
     name: "",
     title: "",
