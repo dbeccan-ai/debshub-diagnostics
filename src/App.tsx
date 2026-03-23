@@ -80,6 +80,7 @@ const App = () => (
             <Route path="/diagnostics/ela/:grade" element={<TakeELATest />} />
             <Route path="/ela-results/:grade" element={<ELAResults />} />
             <Route path="/enroll" element={<Enroll />} />
+            <Route path="/demo" element={<SchoolDemo />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
