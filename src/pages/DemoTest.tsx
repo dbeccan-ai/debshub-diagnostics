@@ -2,12 +2,22 @@ import { useState, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, ArrowRight, CheckCircle, XCircle, BookOpen, FileText, GraduationCap } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle, XCircle, BookOpen, TrendingUp, GraduationCap } from "lucide-react";
 import mathData from "@/data/diagnostic-tests.json";
 import elaData from "@/data/ela-diagnostic-tests.json";
+import { getTierFromScore, TIER_LABELS } from "@/lib/tierConfig";
+import {
+  TierStatusBadge,
+  SkillRow,
+  RecommendedNextStepPanel,
+  PlacementPathwayCard,
+  TierClassificationBlocks,
+  InsightBox,
+} from "@/components/TierComponents";
 
 interface DemoQuestion {
   id: string;
