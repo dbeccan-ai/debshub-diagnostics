@@ -1,52 +1,29 @@
 
 
-# Add Grade-Level Selection to Demo Sandbox + Fix Demo Mode
+# Upgrade Demo Test Results to Full Report
 
-## The Problem
+## Problem
+The current demo test results view is a bare-bones score card + simple skill list. The actual Results page (`Results.tsx`) is the key differentiator — it includes tier badges, insight boxes, skill-by-skill performance bars, placement pathway, recommended next steps with CTAs, and curriculum preview. Principals need to see this full report to understand the product's value.
 
-Right now the demo page hardcodes "Grade 4 Math" and "Grade 1 ELA" sample tests. More critically, the `?demo=true` parameter is **not actually handled** by any test page — so navigating to these links either hits auth walls or goes to pages that don't exist for most grades.
+## Solution
+Replace the simplified results section in `DemoTest.tsx` with the full report layout that mirrors `Results.tsx`, reusing the existing `TierComponents` (InsightBox, TierStatusBadge, SkillRow, TierClassificationBlocks, PlacementPathwayCard, RecommendedNextStepPanel).
 
-For a principal demoing Grade 10, they need to select that grade, take a real sample of the Algebra 1 content, see scored results with tier placement, and view the homework/curriculum output — all without logging in.
+## Changes — `src/pages/DemoTest.tsx` only
 
-## What We'll Build
+Rewrite the `if (submitted)` results block to include:
 
-### 1. Grade-Level Selectors on the Demo Page
+1. **Score Overview Card** — Tier badge, percentage, correct/total, student name placeholder ("Demo Student"), test name, grade level, date — matching Results.tsx layout
+2. **InsightBox** — Emotional urgency box driven by score tier
+3. **RecommendedNextStepPanel** — Tier-specific CTA panel (consultation / skill builder / enrichment)
+4. **Quick Stats Row** — 3 colored cards: Correct, Incorrect, Skills Tested
+5. **TierClassificationBlocks** — Grouped skill sections by tier color
+6. **SkillRow breakdown** — Per-skill performance bars with status pills and action text
+7. **PlacementPathwayCard** — Shows all 3 tiers with the student's tier highlighted
+8. **Curriculum Preview Card** — Static preview showing what a personalized curriculum looks like (with a "This is a demo preview" note)
+9. **Tier Explanation Card** — Understanding your placement + contact info
+10. **"Back to Demo" and "Retake" buttons** remain at bottom
 
-In `src/pages/SchoolDemo.tsx`, replace the two hardcoded Math/ELA cards with cards that each include a grade dropdown (Grades 1-12). The principal selects a grade, then clicks "Take Sample Test."
+All data is computed locally from the 5-question answers — no database or auth calls. Imports are added for `TierStatusBadge`, `SkillRow`, `RecommendedNextStepPanel`, `PlacementPathwayCard`, `TierClassificationBlocks`, `InsightBox` from `TierComponents`, and `getTierFromScore`, `TIER_LABELS` from `tierConfig`.
 
-### 2. A Dedicated Demo Test Page (`/demo/test`)
-
-Create a new `src/pages/DemoTest.tsx` that:
-- Reads grade and subject from query params (`/demo/test?subject=math&grade=10`)
-- Pulls 5 questions from the existing JSON data files (`diagnostic-tests.json` for Math, `ela-diagnostic-tests.json` for ELA) for the selected grade
-- Renders a lightweight test UI (no auth, no timer, no security checks, no database writes)
-- On submit, auto-grades multiple-choice answers, calculates score/tier, and shows inline results with:
-  - Score and tier badge (green/yellow/red)
-  - Skill breakdown by topic
-  - Sample homework recommendations
-  - "Back to Demo" button
-
-This keeps the demo self-contained — no database, no auth, no edge functions — while showcasing the real question content and tier placement system.
-
-### 3. Inline Demo Results
-
-After submission, the demo test page renders results directly (not navigating to `/results/:id`), showing:
-- Overall score percentage and tier placement
-- Per-skill breakdown (which topics were correct/incorrect)
-- A sample "Recommended Next Steps" panel matching the tier
-- A sample curriculum/homework preview relevant to the grade and subject
-
-### 4. Route Addition
-
-Add `/demo/test` route in `App.tsx` pointing to `DemoTest.tsx`.
-
-## Files Changed
-
-| File | Change |
-|------|--------|
-| `src/pages/SchoolDemo.tsx` | Add grade `Select` dropdowns to Math and ELA cards; update links to `/demo/test?subject=math&grade={X}` |
-| `src/pages/DemoTest.tsx` | **New** — self-contained 5-question demo test with inline grading and results |
-| `src/App.tsx` | Add `/demo/test` route |
-
-No database changes needed. All data comes from existing JSON files.
+No new files. No database changes. Single file edit.
 
