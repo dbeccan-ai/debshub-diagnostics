@@ -2,12 +2,22 @@ import { useState, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, ArrowRight, CheckCircle, XCircle, BookOpen, FileText, GraduationCap } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle, XCircle, BookOpen, TrendingUp, GraduationCap } from "lucide-react";
 import mathData from "@/data/diagnostic-tests.json";
 import elaData from "@/data/ela-diagnostic-tests.json";
+import { getTierFromScore, TIER_LABELS } from "@/lib/tierConfig";
+import {
+  TierStatusBadge,
+  SkillRow,
+  RecommendedNextStepPanel,
+  PlacementPathwayCard,
+  TierClassificationBlocks,
+  InsightBox,
+} from "@/components/TierComponents";
 
 interface DemoQuestion {
   id: string;
@@ -154,8 +164,11 @@ export default function DemoTest() {
     });
     const correct = results.filter((r) => r.isCorrect).length;
     const pct = Math.round((correct / questions.length) * 100);
-    const tier = getTier(pct);
-    const recs = getRecommendations(tier.label, subject, grade);
+    const overallTier = getTierFromScore(pct);
+    const tierCfg = TIER_LABELS[overallTier];
+    const incorrectCount = questions.length - correct;
+    const isELA = subject === "ela";
+    const subjectLabel = isELA ? "ELA" : "Math";
 
     // Skill breakdown
     const topicMap: Record<string, { correct: number; total: number }> = {};
@@ -165,96 +178,188 @@ export default function DemoTest() {
       if (r.isCorrect) topicMap[r.topic].correct++;
     });
 
+    const skillSections = Object.entries(topicMap).map(([topic, data]) => ({
+      section: topic,
+      correct: data.correct,
+      total: data.total,
+      percent: Math.round((data.correct / data.total) * 100),
+    }));
+
+    const prioritySkills = skillSections.filter(s => s.percent < 66).map(s => s.section);
+    const developingSkills = skillSections.filter(s => s.percent >= 66 && s.percent < 85).map(s => s.section);
+
     return (
-      <div className="min-h-screen bg-gradient-to-br from-sky-100 via-white to-amber-50 py-8 px-4">
-        <div className="max-w-3xl mx-auto space-y-6">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <GraduationCap className="w-4 h-4" />
-            <span>Demo Sample Results — {testLabel}</span>
+      <div className="min-h-screen bg-slate-50">
+        {/* Header */}
+        <header className="border-b border-slate-200 bg-white">
+          <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-4 sm:px-6">
+            <Button variant="ghost" size="sm" onClick={() => navigate("/demo")} className="text-slate-600">
+              <ArrowLeft className="mr-2 h-4 w-4" /> Back to Demo
+            </Button>
+            <Badge variant="outline" className="text-xs border-sky-300 text-sky-700 bg-sky-50">
+              <GraduationCap className="mr-1 h-3 w-3" /> Demo Preview
+            </Badge>
+          </div>
+        </header>
+
+        <main className="mx-auto max-w-4xl px-4 py-6 sm:px-6">
+          {/* Score Overview — mirrors Results.tsx */}
+          <Card className="mb-6 border-slate-200">
+            <CardHeader className="text-center pb-2">
+              <div className="mb-2 flex flex-col items-center gap-2">
+                <Badge className={`text-lg px-4 py-1 ${tierCfg.badgeClass}`}>
+                  {tierCfg.badge}
+                </Badge>
+                <TierStatusBadge score={pct} />
+              </div>
+              <CardTitle className="text-3xl font-bold text-slate-900">
+                {pct}%
+              </CardTitle>
+              <p className="text-sm text-slate-500 mt-1">
+                {correct} of {questions.length} questions correct
+              </p>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-4 text-center border-t border-slate-100 pt-4">
+                <div>
+                  <p className="text-2xl font-bold text-slate-900">Demo Student</p>
+                  <p className="text-xs text-slate-500">Student Name</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-slate-900">{testLabel}</p>
+                  <p className="text-xs text-slate-500">Test Type</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4 text-center mt-4">
+                <div>
+                  <p className="text-lg font-semibold text-slate-700">Grade {grade}</p>
+                  <p className="text-xs text-slate-500">Grade Level</p>
+                </div>
+                <div>
+                  <p className="text-lg font-semibold text-slate-700">
+                    {new Date().toLocaleDateString()}
+                  </p>
+                  <p className="text-xs text-slate-500">Completed</p>
+                </div>
+              </div>
+
+              {/* Insight Box */}
+              <InsightBox score={pct} />
+
+              {/* Recommended Next Step CTA */}
+              <div className="mt-4">
+                <RecommendedNextStepPanel
+                  overallScore={pct}
+                  subject={subjectLabel}
+                  studentName="Demo Student"
+                  prioritySkills={prioritySkills}
+                  developingSkills={developingSkills}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Quick Stats */}
+          <div className="grid grid-cols-3 gap-4 mb-6">
+            <Card className="border-emerald-200 bg-emerald-50">
+              <CardContent className="pt-4 text-center">
+                <CheckCircle className="h-8 w-8 text-emerald-600 mx-auto mb-2" />
+                <p className="text-2xl font-bold text-emerald-700">{correct}</p>
+                <p className="text-xs text-emerald-600">Correct</p>
+              </CardContent>
+            </Card>
+            <Card className="border-red-200 bg-red-50">
+              <CardContent className="pt-4 text-center">
+                <XCircle className="h-8 w-8 text-red-600 mx-auto mb-2" />
+                <p className="text-2xl font-bold text-red-700">{incorrectCount}</p>
+                <p className="text-xs text-red-600">Incorrect</p>
+              </CardContent>
+            </Card>
+            <Card className="border-amber-200 bg-amber-50">
+              <CardContent className="pt-4 text-center">
+                <TrendingUp className="h-8 w-8 text-amber-600 mx-auto mb-2" />
+                <p className="text-2xl font-bold text-amber-700">{skillSections.length}</p>
+                <p className="text-xs text-amber-600">Skills Tested</p>
+              </CardContent>
+            </Card>
           </div>
 
-          {/* Score Card */}
-          <Card>
-            <CardContent className="pt-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-2xl font-bold">{pct}% Score</h2>
-                  <p className="text-sm text-muted-foreground">{correct} of {questions.length} correct</p>
-                </div>
-                <span className={`px-4 py-2 rounded-full text-sm font-semibold ${tier.color}`}>
-                  {tier.label}
-                </span>
-              </div>
-              <Progress value={pct} className="h-3" />
-            </CardContent>
-          </Card>
+          {/* Tier Classification Blocks */}
+          {skillSections.length > 0 && (
+            <div className="mb-6">
+              <TierClassificationBlocks sections={skillSections} />
+            </div>
+          )}
 
-          {/* Skill Breakdown */}
-          <Card>
-            <CardHeader><CardTitle className="text-lg">Skill Breakdown</CardTitle></CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {Object.entries(topicMap).map(([topic, data]) => (
-                  <div key={topic} className="flex items-center justify-between">
-                    <span className="text-sm font-medium">{topic}</span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-muted-foreground">{data.correct}/{data.total}</span>
-                      {data.correct === data.total ? (
-                        <CheckCircle className="w-4 h-4 text-green-600" />
-                      ) : data.correct === 0 ? (
-                        <XCircle className="w-4 h-4 text-red-500" />
-                      ) : (
-                        <div className="w-4 h-4 rounded-full bg-yellow-400" />
-                      )}
-                    </div>
-                  </div>
+          {/* Skill-by-Skill Performance */}
+          {skillSections.length > 0 && (
+            <Card className="border-slate-200 mb-6">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-semibold text-slate-800">Skill-by-Skill Performance</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {skillSections.map((s) => (
+                  <SkillRow key={s.section} skill={s.section} correct={s.correct} total={s.total} percentage={s.percent} />
                 ))}
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
 
-          {/* Question Review */}
-          <Card>
-            <CardHeader><CardTitle className="text-lg">Question Review</CardTitle></CardHeader>
-            <CardContent className="space-y-4">
-              {results.map((r, i) => (
-                <div key={r.id} className={`p-3 rounded-lg border ${r.isCorrect ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"}`}>
-                  <div className="flex items-start gap-2">
-                    {r.isCorrect ? <CheckCircle className="w-4 h-4 text-green-600 mt-0.5" /> : <XCircle className="w-4 h-4 text-red-500 mt-0.5" />}
-                    <div className="text-sm">
-                      <p className="font-medium">Q{i + 1}: {r.question_text}</p>
-                      <p className="text-muted-foreground mt-1">
-                        Your answer: {r.userAns || "No answer"} {!r.isCorrect && `• Correct: ${r.correct_answer}`}
-                      </p>
-                    </div>
-                  </div>
+          {/* Placement Pathway */}
+          <div className="mb-6">
+            <PlacementPathwayCard overallScore={pct} />
+          </div>
+
+          {/* Curriculum Preview */}
+          <Card className="border-sky-200 bg-gradient-to-r from-sky-50 to-indigo-50 mb-6">
+            <CardContent className="pt-6 pb-5">
+              <div className="flex items-start gap-4">
+                <div className="bg-sky-100 rounded-full p-3 flex-shrink-0">
+                  <BookOpen className="h-6 w-6 text-sky-700" />
                 </div>
-              ))}
-            </CardContent>
-          </Card>
-
-          {/* Recommendations */}
-          <Card>
-            <CardHeader><CardTitle className="text-lg flex items-center gap-2"><FileText className="w-5 h-5" /> Recommended Next Steps</CardTitle></CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm">{recs.next}</p>
-              <div>
-                <h4 className="text-sm font-semibold mb-2">Suggested Homework</h4>
-                <ul className="space-y-1">
-                  {recs.homework.map((h, i) => (
-                    <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
-                      <span className="text-primary">•</span> {h}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div>
-                <h4 className="text-sm font-semibold mb-2">Curriculum Placement</h4>
-                <p className="text-sm text-muted-foreground">{recs.curriculum}</p>
+                <div className="flex-1">
+                  <h3 className="font-bold text-sky-900 text-base mb-1">
+                    📚 AI-Generated {subjectLabel} Curriculum
+                  </h3>
+                  <p className="text-sm text-sky-700 mb-3">
+                    In the full version, students receive a personalized 4-week learning plan with practice questions
+                    built around their specific performance data.
+                    {prioritySkills.length > 0 && (
+                      <span> Priority areas for this demo: <strong>{prioritySkills.join(", ")}</strong></span>
+                    )}
+                  </p>
+                  <Badge variant="outline" className="text-xs border-sky-300 text-sky-600">
+                    Demo Preview — Full curriculum available after enrollment
+                  </Badge>
+                </div>
               </div>
             </CardContent>
           </Card>
 
+          {/* Tier Explanation */}
+          <Card className="border-slate-200 mb-6">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-semibold text-slate-800">
+                Understanding Your {tierCfg.badge} Placement
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 text-sm text-slate-600">
+              <div className={`p-4 rounded-lg border ${tierCfg.borderClass} ${tierCfg.bgClass}`}>
+                <p className={`font-bold text-base ${tierCfg.textClass} mb-1`}>{tierCfg.label}</p>
+                <p className={`text-sm ${tierCfg.textClass}`}>{tierCfg.helper}</p>
+              </div>
+              <div className="border-t border-slate-100 pt-4 mt-4">
+                <p className="font-bold text-[#1C2D5A] mb-1 text-sm">Contact D.E.Bs LEARNING ACADEMY</p>
+                <p className="text-xs text-slate-600">
+                  📧 <a href="mailto:info@debslearnacademy.com" className="text-blue-600 underline hover:text-blue-800">info@debslearnacademy.com</a>{" "}
+                  | 📞 <a href="tel:+13473641906" className="text-blue-600 underline hover:text-blue-800">347-364-1906</a>
+                </p>
+                <p className="text-xs text-slate-500 mt-0.5">🌐 <a href="https://www.debslearnacademy.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline hover:text-blue-800">www.debslearnacademy.com</a></p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Action Buttons */}
           <div className="flex gap-3 justify-center pb-8">
             <Button variant="outline" onClick={() => navigate("/demo")} className="gap-2">
               <ArrowLeft className="w-4 h-4" /> Back to Demo
@@ -263,7 +368,7 @@ export default function DemoTest() {
               Retake Sample
             </Button>
           </div>
-        </div>
+        </main>
       </div>
     );
   }
