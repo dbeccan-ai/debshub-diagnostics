@@ -342,9 +342,7 @@ const Dashboard = () => {
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-amber-300 to-yellow-400 text-xs font-bold text-slate-900">
-              DEB
-            </div>
+            <img src="/icon-512.png" alt="DEBs Learning Academy" className="h-9 w-9 rounded-full object-cover" />
             <div className="leading-tight">
               <div className="text-sm font-bold text-slate-900">D.E.Bs LEARNING ACADEMY</div>
               <div className="text-[11px] text-slate-500">DEBs Diagnostic Hub</div>
