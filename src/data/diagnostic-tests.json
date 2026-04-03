@@ -17,7 +17,12 @@
               "type": "multiple_choice",
               "topic": "Place Value",
               "question_text": "What is the value of the digit 3 in the number 35?",
-              "choices": ["A. 3", "B. 30", "C. 5", "D. 35"],
+              "choices": [
+                "A. 3",
+                "B. 30",
+                "C. 5",
+                "D. 35"
+              ],
               "correct_answer": "B"
             },
             {
@@ -25,8 +30,13 @@
               "number": 2,
               "type": "multiple_choice",
               "topic": "Number Patterns",
-              "question_text": "Which number comes next? 10, 20, 30, …",
-              "choices": ["A. 35", "B. 31", "C. 40", "D. 50"],
+              "question_text": "Which number comes next? 10, 20, 30, \u2026",
+              "choices": [
+                "A. 35",
+                "B. 31",
+                "C. 40",
+                "D. 50"
+              ],
               "correct_answer": "C"
             },
             {
@@ -38,9 +48,18 @@
               "visual": {
                 "type": "shapes",
                 "description": "Three shapes: a triangle, a square, and a circle",
-                "options": ["triangle", "square", "circle"]
+                "options": [
+                  "triangle",
+                  "square",
+                  "circle"
+                ]
               },
-              "choices": ["A. Triangle (first shape)", "B. Square (second shape)", "C. Circle (third shape)", "D. None of these"],
+              "choices": [
+                "A. Triangle (first shape)",
+                "B. Square (second shape)",
+                "C. Circle (third shape)",
+                "D. None of these"
+              ],
               "correct_answer": "A"
             },
             {
@@ -49,7 +68,12 @@
               "type": "multiple_choice",
               "topic": "Addition",
               "question_text": "What is 8 + 6?",
-              "choices": ["A. 12", "B. 13", "C. 14", "D. 15"],
+              "choices": [
+                "A. 12",
+                "B. 13",
+                "C. 14",
+                "D. 15"
+              ],
               "correct_answer": "C"
             },
             {
@@ -58,7 +82,12 @@
               "type": "multiple_choice",
               "topic": "Comparing Numbers",
               "question_text": "Which number is smaller: 12 or 21?",
-              "choices": ["A. 12", "B. 21", "C. They are equal", "D. Cannot tell"],
+              "choices": [
+                "A. 12",
+                "B. 21",
+                "C. They are equal",
+                "D. Cannot tell"
+              ],
               "correct_answer": "A"
             },
             {
@@ -66,8 +95,13 @@
               "number": 6,
               "type": "multiple_choice",
               "topic": "Subtraction",
-              "question_text": "What is 15 − 7?",
-              "choices": ["A. 7", "B. 8", "C. 9", "D. 6"],
+              "question_text": "What is 15 \u2212 7?",
+              "choices": [
+                "A. 7",
+                "B. 8",
+                "C. 9",
+                "D. 6"
+              ],
               "correct_answer": "B"
             },
             {
@@ -81,7 +115,12 @@
                 "time": "3:00",
                 "description": "A clock showing 3 o'clock"
               },
-              "choices": ["A. 12:00", "B. 3:00", "C. 6:00", "D. 9:00"],
+              "choices": [
+                "A. 12:00",
+                "B. 3:00",
+                "C. 6:00",
+                "D. 9:00"
+              ],
               "correct_answer": "B"
             },
             {
@@ -92,10 +131,20 @@
               "question_text": "Which coin is worth the most?",
               "visual": {
                 "type": "coins",
-                "description": "Four coins: penny (1¢), nickel (5¢), dime (10¢), quarter (25¢)",
-                "options": ["penny", "nickel", "dime", "quarter"]
+                "description": "Four coins: penny (1\u00a2), nickel (5\u00a2), dime (10\u00a2), quarter (25\u00a2)",
+                "options": [
+                  "penny",
+                  "nickel",
+                  "dime",
+                  "quarter"
+                ]
               },
-              "choices": ["A. Penny (1¢)", "B. Nickel (5¢)", "C. Dime (10¢)", "D. Quarter (25¢)"],
+              "choices": [
+                "A. Penny (1\u00a2)",
+                "B. Nickel (5\u00a2)",
+                "C. Dime (10\u00a2)",
+                "D. Quarter (25\u00a2)"
+              ],
               "correct_answer": "D"
             },
             {
@@ -104,7 +153,12 @@
               "type": "multiple_choice",
               "topic": "Even Numbers",
               "question_text": "What is the next even number after 16?",
-              "choices": ["A. 17", "B. 18", "C. 19", "D. 20"],
+              "choices": [
+                "A. 17",
+                "B. 18",
+                "C. 19",
+                "D. 20"
+              ],
               "correct_answer": "B"
             },
             {
@@ -117,11 +171,24 @@
                 "type": "object_groups",
                 "description": "Two groups: Group A has 7 stars, Group B has 4 stars",
                 "groups": [
-                  {"label": "Group A", "count": 7, "object": "star"},
-                  {"label": "Group B", "count": 4, "object": "star"}
+                  {
+                    "label": "Group A",
+                    "count": 7,
+                    "object": "star"
+                  },
+                  {
+                    "label": "Group B",
+                    "count": 4,
+                    "object": "star"
+                  }
                 ]
               },
-              "choices": ["A. Group A (7 stars)", "B. Group B (4 stars)", "C. They are equal", "D. Cannot tell"],
+              "choices": [
+                "A. Group A (7 stars)",
+                "B. Group B (4 stars)",
+                "C. They are equal",
+                "D. Cannot tell"
+              ],
               "correct_answer": "B"
             },
             {
@@ -130,7 +197,12 @@
               "type": "multiple_choice",
               "topic": "Addition with 10",
               "question_text": "What number is 10 more than 25?",
-              "choices": ["A. 15", "B. 26", "C. 35", "D. 30"],
+              "choices": [
+                "A. 15",
+                "B. 26",
+                "C. 35",
+                "D. 30"
+              ],
               "correct_answer": "C"
             },
             {
@@ -142,9 +214,17 @@
               "visual": {
                 "type": "comparison",
                 "description": "A small pencil and a large car shown side by side",
-                "items": ["pencil", "car"]
+                "items": [
+                  "pencil",
+                  "car"
+                ]
               },
-              "choices": ["A. Pencil", "B. Car", "C. They are the same", "D. Cannot tell"],
+              "choices": [
+                "A. Pencil",
+                "B. Car",
+                "C. They are the same",
+                "D. Cannot tell"
+              ],
               "correct_answer": "B"
             },
             {
@@ -153,7 +233,12 @@
               "type": "multiple_choice",
               "topic": "Addition",
               "question_text": "What is 5 + 9?",
-              "choices": ["A. 13", "B. 14", "C. 15", "D. 12"],
+              "choices": [
+                "A. 13",
+                "B. 14",
+                "C. 15",
+                "D. 12"
+              ],
               "correct_answer": "B"
             },
             {
@@ -165,9 +250,18 @@
               "visual": {
                 "type": "shapes",
                 "description": "Three shapes: a rectangle, a square, and a circle",
-                "options": ["rectangle", "square", "circle"]
+                "options": [
+                  "rectangle",
+                  "square",
+                  "circle"
+                ]
               },
-              "choices": ["A. Rectangle (first shape)", "B. Square (second shape)", "C. Circle (third shape)", "D. None of these"],
+              "choices": [
+                "A. Rectangle (first shape)",
+                "B. Square (second shape)",
+                "C. Circle (third shape)",
+                "D. None of these"
+              ],
               "correct_answer": "A"
             },
             {
@@ -176,7 +270,12 @@
               "type": "multiple_choice",
               "topic": "Shapes",
               "question_text": "How many sides does a square have?",
-              "choices": ["A. 3", "B. 4", "C. 5", "D. 6"],
+              "choices": [
+                "A. 3",
+                "B. 4",
+                "C. 5",
+                "D. 6"
+              ],
               "correct_answer": "B"
             }
           ]
@@ -281,6 +380,626 @@
       ]
     },
     {
+      "grade": "2",
+      "test_name": "Grade 2 Math Diagnostic Test",
+      "total_time_minutes": 45,
+      "sections": [
+        {
+          "section_title": "Section I: Multiple Choice Questions",
+          "instructions": "Choose the best answer for each question.",
+          "time_limit_minutes": 20,
+          "calculator_allowed": "no",
+          "questions": [
+            {
+              "id": "g2-s1-q1",
+              "number": 1,
+              "type": "multiple_choice",
+              "topic": "Place Value",
+              "question_text": "What is the value of the digit 4 in the number 47?",
+              "choices": [
+                "A. 4",
+                "B. 40",
+                "C. 7",
+                "D. 47"
+              ],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g2-s1-q2",
+              "number": 2,
+              "type": "multiple_choice",
+              "topic": "Addition",
+              "question_text": "What is 36 + 45?",
+              "choices": [
+                "A. 71",
+                "B. 81",
+                "C. 91",
+                "D. 61"
+              ],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g2-s1-q3",
+              "number": 3,
+              "type": "multiple_choice",
+              "topic": "Subtraction",
+              "question_text": "What is 83 - 27?",
+              "choices": [
+                "A. 66",
+                "B. 46",
+                "C. 56",
+                "D. 64"
+              ],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g2-s1-q4",
+              "number": 4,
+              "type": "multiple_choice",
+              "topic": "Skip Counting",
+              "question_text": "What comes next? 5, 10, 15, 20, \u2026",
+              "choices": [
+                "A. 22",
+                "B. 30",
+                "C. 25",
+                "D. 21"
+              ],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g2-s1-q5",
+              "number": 5,
+              "type": "multiple_choice",
+              "topic": "Measurement",
+              "question_text": "Which unit would you use to measure the length of a pencil?",
+              "choices": [
+                "A. Miles",
+                "B. Pounds",
+                "C. Inches",
+                "D. Gallons"
+              ],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g2-s1-q6",
+              "number": 6,
+              "type": "multiple_choice",
+              "topic": "Geometry",
+              "question_text": "How many sides does a rectangle have?",
+              "choices": [
+                "A. 3",
+                "B. 4",
+                "C. 5",
+                "D. 6"
+              ],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g2-s1-q7",
+              "number": 7,
+              "type": "multiple_choice",
+              "topic": "Money",
+              "question_text": "How much is 1 quarter and 2 dimes?",
+              "choices": [
+                "A. 35 cents",
+                "B. 40 cents",
+                "C. 45 cents",
+                "D. 50 cents"
+              ],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g2-s1-q8",
+              "number": 8,
+              "type": "multiple_choice",
+              "topic": "Time",
+              "question_text": "What time does the clock show if the hour hand is on 3 and the minute hand is on 12?",
+              "choices": [
+                "A. 12:03",
+                "B. 3:00",
+                "C. 3:12",
+                "D. 12:30"
+              ],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g2-s1-q9",
+              "number": 9,
+              "type": "multiple_choice",
+              "topic": "Word Problems",
+              "question_text": "Sam has 14 apples. He gives 6 to his friend. How many does he have left?",
+              "choices": [
+                "A. 6",
+                "B. 7",
+                "C. 8",
+                "D. 9"
+              ],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g2-s1-q10",
+              "number": 10,
+              "type": "multiple_choice",
+              "topic": "Odd and Even",
+              "question_text": "Which number is even?",
+              "choices": [
+                "A. 13",
+                "B. 27",
+                "C. 34",
+                "D. 45"
+              ],
+              "correct_answer": "C"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "grade": "3",
+      "test_name": "Grade 3 Math Diagnostic Test",
+      "total_time_minutes": 45,
+      "sections": [
+        {
+          "section_title": "Section I: Multiple Choice Questions",
+          "instructions": "Choose the best answer for each question.",
+          "time_limit_minutes": 20,
+          "calculator_allowed": "no",
+          "questions": [
+            {
+              "id": "g3-s1-q1",
+              "number": 1,
+              "type": "multiple_choice",
+              "topic": "Multiplication",
+              "question_text": "What is 7 \u00d7 8?",
+              "choices": [
+                "A. 48",
+                "B. 54",
+                "C. 56",
+                "D. 64"
+              ],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g3-s1-q2",
+              "number": 2,
+              "type": "multiple_choice",
+              "topic": "Division",
+              "question_text": "What is 42 \u00f7 6?",
+              "choices": [
+                "A. 6",
+                "B. 7",
+                "C. 8",
+                "D. 9"
+              ],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g3-s1-q3",
+              "number": 3,
+              "type": "multiple_choice",
+              "topic": "Fractions",
+              "question_text": "Which fraction is equal to one half?",
+              "choices": [
+                "A. 1/3",
+                "B. 2/4",
+                "C. 3/5",
+                "D. 2/3"
+              ],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g3-s1-q4",
+              "number": 4,
+              "type": "multiple_choice",
+              "topic": "Place Value",
+              "question_text": "What is the value of the digit 5 in 523?",
+              "choices": [
+                "A. 5",
+                "B. 50",
+                "C. 500",
+                "D. 5000"
+              ],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g3-s1-q5",
+              "number": 5,
+              "type": "multiple_choice",
+              "topic": "Rounding",
+              "question_text": "Round 347 to the nearest hundred.",
+              "choices": [
+                "A. 300",
+                "B. 340",
+                "C. 350",
+                "D. 400"
+              ],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g3-s1-q6",
+              "number": 6,
+              "type": "multiple_choice",
+              "topic": "Perimeter",
+              "question_text": "What is the perimeter of a rectangle with length 8 cm and width 3 cm?",
+              "choices": [
+                "A. 11 cm",
+                "B. 22 cm",
+                "C. 24 cm",
+                "D. 16 cm"
+              ],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g3-s1-q7",
+              "number": 7,
+              "type": "multiple_choice",
+              "topic": "Area",
+              "question_text": "What is the area of a rectangle with length 5 units and width 4 units?",
+              "choices": [
+                "A. 9 sq units",
+                "B. 18 sq units",
+                "C. 20 sq units",
+                "D. 25 sq units"
+              ],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g3-s1-q8",
+              "number": 8,
+              "type": "multiple_choice",
+              "topic": "Time",
+              "question_text": "If it is 2:45 PM now, what time will it be in 30 minutes?",
+              "choices": [
+                "A. 3:05 PM",
+                "B. 3:15 PM",
+                "C. 2:75 PM",
+                "D. 3:45 PM"
+              ],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g3-s1-q9",
+              "number": 9,
+              "type": "multiple_choice",
+              "topic": "Word Problems",
+              "question_text": "A bookshelf has 4 shelves with 9 books on each shelf. How many books are there in all?",
+              "choices": [
+                "A. 13",
+                "B. 27",
+                "C. 36",
+                "D. 45"
+              ],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g3-s1-q10",
+              "number": 10,
+              "type": "multiple_choice",
+              "topic": "Patterns",
+              "question_text": "What is the next number in the pattern? 4, 8, 12, 16, \u2026",
+              "choices": [
+                "A. 18",
+                "B. 20",
+                "C. 22",
+                "D. 24"
+              ],
+              "correct_answer": "B"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "grade": "4",
+      "test_name": "Grade 4 Math Diagnostic Test",
+      "total_time_minutes": 45,
+      "sections": [
+        {
+          "section_title": "Section I: Multiple Choice Questions",
+          "instructions": "Choose the best answer for each question.",
+          "time_limit_minutes": 20,
+          "calculator_allowed": "no",
+          "questions": [
+            {
+              "id": "g4-s1-q1",
+              "number": 1,
+              "type": "multiple_choice",
+              "topic": "Multiplication",
+              "question_text": "What is 23 \u00d7 4?",
+              "choices": [
+                "A. 82",
+                "B. 92",
+                "C. 84",
+                "D. 94"
+              ],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g4-s1-q2",
+              "number": 2,
+              "type": "multiple_choice",
+              "topic": "Division",
+              "question_text": "What is 144 \u00f7 12?",
+              "choices": [
+                "A. 11",
+                "B. 12",
+                "C. 13",
+                "D. 14"
+              ],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g4-s1-q3",
+              "number": 3,
+              "type": "multiple_choice",
+              "topic": "Fractions",
+              "question_text": "Which fraction is greater: 3/4 or 2/3?",
+              "choices": [
+                "A. 3/4",
+                "B. 2/3",
+                "C. They are equal",
+                "D. Cannot be determined"
+              ],
+              "correct_answer": "A"
+            },
+            {
+              "id": "g4-s1-q4",
+              "number": 4,
+              "type": "multiple_choice",
+              "topic": "Decimals",
+              "question_text": "What is 0.5 + 0.25?",
+              "choices": [
+                "A. 0.30",
+                "B. 0.55",
+                "C. 0.75",
+                "D. 1.00"
+              ],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g4-s1-q5",
+              "number": 5,
+              "type": "multiple_choice",
+              "topic": "Geometry",
+              "question_text": "How many degrees are in a right angle?",
+              "choices": [
+                "A. 45\u00b0",
+                "B. 90\u00b0",
+                "C. 180\u00b0",
+                "D. 360\u00b0"
+              ],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g4-s1-q6",
+              "number": 6,
+              "type": "multiple_choice",
+              "topic": "Place Value",
+              "question_text": "In the number 6,482, what is the value of the digit 4?",
+              "choices": [
+                "A. 4",
+                "B. 40",
+                "C. 400",
+                "D. 4000"
+              ],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g4-s1-q7",
+              "number": 7,
+              "type": "multiple_choice",
+              "topic": "Factors",
+              "question_text": "Which of the following is a factor of 24?",
+              "choices": [
+                "A. 5",
+                "B. 7",
+                "C. 9",
+                "D. 8"
+              ],
+              "correct_answer": "D"
+            },
+            {
+              "id": "g4-s1-q8",
+              "number": 8,
+              "type": "multiple_choice",
+              "topic": "Measurement",
+              "question_text": "How many centimeters are in 1 meter?",
+              "choices": [
+                "A. 10",
+                "B. 100",
+                "C. 1000",
+                "D. 10000"
+              ],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g4-s1-q9",
+              "number": 9,
+              "type": "multiple_choice",
+              "topic": "Word Problems",
+              "question_text": "A farmer has 156 eggs. He packs them in cartons of 12. How many cartons does he need?",
+              "choices": [
+                "A. 12",
+                "B. 13",
+                "C. 14",
+                "D. 15"
+              ],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g4-s1-q10",
+              "number": 10,
+              "type": "multiple_choice",
+              "topic": "Data & Graphs",
+              "question_text": "In a bar graph, if the tallest bar reaches 45, what does that represent?",
+              "choices": [
+                "A. The smallest value",
+                "B. The average value",
+                "C. The greatest value",
+                "D. The median value"
+              ],
+              "correct_answer": "C"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "grade": "5",
+      "test_name": "Grade 5 Math Diagnostic Test",
+      "total_time_minutes": 45,
+      "sections": [
+        {
+          "section_title": "Section I: Multiple Choice Questions",
+          "instructions": "Choose the best answer for each question.",
+          "time_limit_minutes": 20,
+          "calculator_allowed": "no",
+          "questions": [
+            {
+              "id": "g5-s1-q1",
+              "number": 1,
+              "type": "multiple_choice",
+              "topic": "Order of Operations",
+              "question_text": "What is 3 + 4 \u00d7 2?",
+              "choices": [
+                "A. 14",
+                "B. 11",
+                "C. 10",
+                "D. 12"
+              ],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g5-s1-q2",
+              "number": 2,
+              "type": "multiple_choice",
+              "topic": "Fractions",
+              "question_text": "What is 2/3 + 1/6?",
+              "choices": [
+                "A. 3/9",
+                "B. 3/6",
+                "C. 5/6",
+                "D. 1"
+              ],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g5-s1-q3",
+              "number": 3,
+              "type": "multiple_choice",
+              "topic": "Decimals",
+              "question_text": "What is 3.7 \u00d7 0.4?",
+              "choices": [
+                "A. 1.28",
+                "B. 1.48",
+                "C. 14.8",
+                "D. 0.148"
+              ],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g5-s1-q4",
+              "number": 4,
+              "type": "multiple_choice",
+              "topic": "Volume",
+              "question_text": "What is the volume of a rectangular prism with length 5, width 3, and height 2?",
+              "choices": [
+                "A. 10 cubic units",
+                "B. 20 cubic units",
+                "C. 30 cubic units",
+                "D. 15 cubic units"
+              ],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g5-s1-q5",
+              "number": 5,
+              "type": "multiple_choice",
+              "topic": "Coordinate Plane",
+              "question_text": "Which point is located at (3, 5) on a coordinate grid?",
+              "choices": [
+                "A. 3 units up, 5 units right",
+                "B. 3 units right, 5 units up",
+                "C. 5 units right, 3 units up",
+                "D. 5 units down, 3 units left"
+              ],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g5-s1-q6",
+              "number": 6,
+              "type": "multiple_choice",
+              "topic": "Exponents",
+              "question_text": "What is the value of 10\u00b3?",
+              "choices": [
+                "A. 30",
+                "B. 100",
+                "C. 1000",
+                "D. 10000"
+              ],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g5-s1-q7",
+              "number": 7,
+              "type": "multiple_choice",
+              "topic": "Equivalent Fractions",
+              "question_text": "Which fraction is equivalent to 4/8?",
+              "choices": [
+                "A. 2/3",
+                "B. 1/2",
+                "C. 3/4",
+                "D. 2/6"
+              ],
+              "correct_answer": "B"
+            },
+            {
+              "id": "g5-s1-q8",
+              "number": 8,
+              "type": "multiple_choice",
+              "topic": "Measurement Conversion",
+              "question_text": "How many cups are in 1 gallon?",
+              "choices": [
+                "A. 8",
+                "B. 12",
+                "C. 16",
+                "D. 20"
+              ],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g5-s1-q9",
+              "number": 9,
+              "type": "multiple_choice",
+              "topic": "Word Problems",
+              "question_text": "A store sells notebooks for $2.50 each. If Maria buys 6 notebooks, how much does she spend?",
+              "choices": [
+                "A. $12.00",
+                "B. $13.00",
+                "C. $15.00",
+                "D. $16.50"
+              ],
+              "correct_answer": "C"
+            },
+            {
+              "id": "g5-s1-q10",
+              "number": 10,
+              "type": "multiple_choice",
+              "topic": "Number Properties",
+              "question_text": "Which number is both a multiple of 3 and a multiple of 4?",
+              "choices": [
+                "A. 8",
+                "B. 9",
+                "C. 10",
+                "D. 12"
+              ],
+              "correct_answer": "D"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "grade": "6",
       "test_name": "Grade 6 Diagnostic Math Test",
       "total_time_minutes": 90,
@@ -297,7 +1016,13 @@
               "type": "multiple_choice",
               "topic": "Fractions",
               "question_text": "What is 5/6 + 1/3?",
-              "choices": ["A. 6/9", "B. 1", "C. 7/6", "D. 5/9", "E. I don't know"],
+              "choices": [
+                "A. 6/9",
+                "B. 1",
+                "C. 7/6",
+                "D. 5/9",
+                "E. I don't know"
+              ],
               "correct_answer": "C"
             },
             {
@@ -305,8 +1030,14 @@
               "number": 2,
               "type": "multiple_choice",
               "topic": "Decimals",
-              "question_text": "What is 3.4 × 10?",
-              "choices": ["A. 34", "B. 3.4", "C. 3.04", "D. 340", "E. I don't know"],
+              "question_text": "What is 3.4 \u00d7 10?",
+              "choices": [
+                "A. 34",
+                "B. 3.4",
+                "C. 3.04",
+                "D. 340",
+                "E. I don't know"
+              ],
               "correct_answer": "A"
             },
             {
@@ -314,8 +1045,14 @@
               "number": 3,
               "type": "multiple_choice",
               "topic": "Order of Operations",
-              "question_text": "What is the value of the expression: 8 + 2 × 5?",
-              "choices": ["A. 50", "B. 60", "C. 18", "D. 20", "E. I don't know"],
+              "question_text": "What is the value of the expression: 8 + 2 \u00d7 5?",
+              "choices": [
+                "A. 50",
+                "B. 60",
+                "C. 18",
+                "D. 20",
+                "E. I don't know"
+              ],
               "correct_answer": "C"
             },
             {
@@ -324,7 +1061,13 @@
               "type": "multiple_choice",
               "topic": "Distributive Property",
               "question_text": "Which of the following is equivalent to 2(3 + x)?",
-              "choices": ["A. 6 + x", "B. 6x", "C. 3 + 2x", "D. 6 + 2x", "E. I don't know"],
+              "choices": [
+                "A. 6 + x",
+                "B. 6x",
+                "C. 3 + 2x",
+                "D. 6 + 2x",
+                "E. I don't know"
+              ],
               "correct_answer": "D"
             },
             {
@@ -333,7 +1076,13 @@
               "type": "multiple_choice",
               "topic": "GCF",
               "question_text": "Find the GCF of 24 and 36.",
-              "choices": ["A. 4", "B. 6", "C. 12", "D. 18", "E. I don't know"],
+              "choices": [
+                "A. 4",
+                "B. 6",
+                "C. 12",
+                "D. 18",
+                "E. I don't know"
+              ],
               "correct_answer": "C"
             },
             {
@@ -342,7 +1091,13 @@
               "type": "multiple_choice",
               "topic": "Equations",
               "question_text": "Which number is a solution to: x + 7 = 12?",
-              "choices": ["A. 3", "B. 5", "C. 6", "D. 7", "E. I don't know"],
+              "choices": [
+                "A. 3",
+                "B. 5",
+                "C. 6",
+                "D. 7",
+                "E. I don't know"
+              ],
               "correct_answer": "B"
             },
             {
@@ -351,7 +1106,13 @@
               "type": "multiple_choice",
               "topic": "Area",
               "question_text": "What is the area of a triangle with base 8 cm and height 6 cm?",
-              "choices": ["A. 24 cm²", "B. 48 cm²", "C. 14 cm²", "D. 28 cm²", "E. I don't know"],
+              "choices": [
+                "A. 24 cm\u00b2",
+                "B. 48 cm\u00b2",
+                "C. 14 cm\u00b2",
+                "D. 28 cm\u00b2",
+                "E. I don't know"
+              ],
               "correct_answer": "A"
             },
             {
@@ -360,7 +1121,13 @@
               "type": "multiple_choice",
               "topic": "Expressions",
               "question_text": "Which expression represents '4 more than 3 times a number n'?",
-              "choices": ["A. 3n + 4", "B. 4n + 3", "C. 4 + n + 3", "D. 3 + 4n", "E. I don't know"],
+              "choices": [
+                "A. 3n + 4",
+                "B. 4n + 3",
+                "C. 4 + n + 3",
+                "D. 3 + 4n",
+                "E. I don't know"
+              ],
               "correct_answer": "A"
             },
             {
@@ -369,7 +1136,13 @@
               "type": "multiple_choice",
               "topic": "Integers",
               "question_text": "Which is the smallest: -3, 0, 2, -7?",
-              "choices": ["A. -3", "B. -7", "C. 0", "D. 2", "E. I don't know"],
+              "choices": [
+                "A. -3",
+                "B. -7",
+                "C. 0",
+                "D. 2",
+                "E. I don't know"
+              ],
               "correct_answer": "B"
             },
             {
@@ -378,7 +1151,13 @@
               "type": "multiple_choice",
               "topic": "Number Line",
               "question_text": "What is the coordinate of point A on a number line if it is 3 units to the right of -4?",
-              "choices": ["A. -1", "B. -7", "C. 1", "D. -2", "E. I don't know"],
+              "choices": [
+                "A. -1",
+                "B. -7",
+                "C. 1",
+                "D. -2",
+                "E. I don't know"
+              ],
               "correct_answer": "A"
             },
             {
@@ -386,8 +1165,14 @@
               "number": 11,
               "type": "multiple_choice",
               "topic": "Order of Operations",
-              "question_text": "Evaluate: 6 × (2 + 3)",
-              "choices": ["A. 11", "B. 30", "C. 36", "D. 25", "E. I don't know"],
+              "question_text": "Evaluate: 6 \u00d7 (2 + 3)",
+              "choices": [
+                "A. 11",
+                "B. 30",
+                "C. 36",
+                "D. 25",
+                "E. I don't know"
+              ],
               "correct_answer": "B"
             },
             {
@@ -396,7 +1181,13 @@
               "type": "multiple_choice",
               "topic": "Percentages",
               "question_text": "What is 10% of 250?",
-              "choices": ["A. 20", "B. 25", "C. 30", "D. 35", "E. I don't know"],
+              "choices": [
+                "A. 20",
+                "B. 25",
+                "C. 30",
+                "D. 35",
+                "E. I don't know"
+              ],
               "correct_answer": "B"
             },
             {
@@ -405,7 +1196,13 @@
               "type": "multiple_choice",
               "topic": "Ratios",
               "question_text": "Which of the following is a ratio?",
-              "choices": ["A. 6 + 2", "B. 6 out of 10", "C. x = 3", "D. x - 5", "E. I don't know"],
+              "choices": [
+                "A. 6 + 2",
+                "B. 6 out of 10",
+                "C. x = 3",
+                "D. x - 5",
+                "E. I don't know"
+              ],
               "correct_answer": "B"
             },
             {
@@ -414,7 +1211,13 @@
               "type": "multiple_choice",
               "topic": "Volume",
               "question_text": "What is the volume of a rectangular prism with l=4, w=2, h=5?",
-              "choices": ["A. 11", "B. 40", "C. 20", "D. 80", "E. I don't know"],
+              "choices": [
+                "A. 11",
+                "B. 40",
+                "C. 20",
+                "D. 80",
+                "E. I don't know"
+              ],
               "correct_answer": "B"
             },
             {
@@ -423,7 +1226,13 @@
               "type": "multiple_choice",
               "topic": "Inequalities",
               "question_text": "Which is the correct inequality for: 5 is less than x?",
-              "choices": ["A. x < 5", "B. x > 5", "C. x = 5", "D. x ≤ 5", "E. I don't know"],
+              "choices": [
+                "A. x < 5",
+                "B. x > 5",
+                "C. x = 5",
+                "D. x \u2264 5",
+                "E. I don't know"
+              ],
               "correct_answer": "B"
             },
             {
@@ -432,7 +1241,13 @@
               "type": "multiple_choice",
               "topic": "Decimals to Fractions",
               "question_text": "Convert 0.75 to a fraction.",
-              "choices": ["A. 1/2", "B. 3/4", "C. 2/3", "D. 1/4", "E. I don't know"],
+              "choices": [
+                "A. 1/2",
+                "B. 3/4",
+                "C. 2/3",
+                "D. 1/4",
+                "E. I don't know"
+              ],
               "correct_answer": "B"
             },
             {
@@ -441,7 +1256,13 @@
               "type": "multiple_choice",
               "topic": "Properties",
               "question_text": "Which property is shown: a + b = b + a",
-              "choices": ["A. Associative", "B. Distributive", "C. Commutative", "D. Identity", "E. I don't know"],
+              "choices": [
+                "A. Associative",
+                "B. Distributive",
+                "C. Commutative",
+                "D. Identity",
+                "E. I don't know"
+              ],
               "correct_answer": "C"
             },
             {
@@ -450,7 +1271,13 @@
               "type": "multiple_choice",
               "topic": "Comparing Decimals",
               "question_text": "Which decimal is greatest: 0.65, 0.56, 0.75, 0.72?",
-              "choices": ["A. 0.65", "B. 0.56", "C. 0.75", "D. 0.72", "E. I don't know"],
+              "choices": [
+                "A. 0.65",
+                "B. 0.56",
+                "C. 0.75",
+                "D. 0.72",
+                "E. I don't know"
+              ],
               "correct_answer": "C"
             },
             {
@@ -459,7 +1286,13 @@
               "type": "multiple_choice",
               "topic": "Prime Factorization",
               "question_text": "What is the prime factorization of 30?",
-              "choices": ["A. 2 × 5", "B. 2 × 3 × 5", "C. 3 × 5", "D. 6 × 5", "E. I don't know"],
+              "choices": [
+                "A. 2 \u00d7 5",
+                "B. 2 \u00d7 3 \u00d7 5",
+                "C. 3 \u00d7 5",
+                "D. 6 \u00d7 5",
+                "E. I don't know"
+              ],
               "correct_answer": "B"
             },
             {
@@ -468,7 +1301,13 @@
               "type": "multiple_choice",
               "topic": "Unit Rate",
               "question_text": "Which is a unit rate?",
-              "choices": ["A. 8 steps in 4 seconds", "B. 12 pages in 6 minutes", "C. 2 pencils per student", "D. 100 miles per 2 hours", "E. I don't know"],
+              "choices": [
+                "A. 8 steps in 4 seconds",
+                "B. 12 pages in 6 minutes",
+                "C. 2 pencils per student",
+                "D. 100 miles per 2 hours",
+                "E. I don't know"
+              ],
               "correct_answer": "C"
             }
           ]
@@ -565,9 +1404,21 @@
                 "yMin": 0,
                 "yMax": 7,
                 "points": [
-                  { "label": "A", "x": 2, "y": 3 },
-                  { "label": "B", "x": 2, "y": 6 },
-                  { "label": "C", "x": 5, "y": 3 }
+                  {
+                    "label": "A",
+                    "x": 2,
+                    "y": 3
+                  },
+                  {
+                    "label": "B",
+                    "x": 2,
+                    "y": 6
+                  },
+                  {
+                    "label": "C",
+                    "x": 5,
+                    "y": 3
+                  }
                 ],
                 "description": "A coordinate grid with plotted points A(2,3), B(2,6), and C(5,3) forming a right triangle"
               },
@@ -601,8 +1452,13 @@
               "number": 1,
               "type": "multiple_choice",
               "topic": "Exponents",
-              "question_text": "What is the value of 5²?",
-              "choices": ["A. 10", "B. 15", "C. 25", "D. 30"],
+              "question_text": "What is the value of 5\u00b2?",
+              "choices": [
+                "A. 10",
+                "B. 15",
+                "C. 25",
+                "D. 30"
+              ],
               "correct_answer": "C"
             },
             {
@@ -611,7 +1467,12 @@
               "type": "multiple_choice",
               "topic": "Prime Numbers",
               "question_text": "Which number is a prime number?",
-              "choices": ["A. 4", "B. 9", "C. 11", "D. 15"],
+              "choices": [
+                "A. 4",
+                "B. 9",
+                "C. 11",
+                "D. 15"
+              ],
               "correct_answer": "C"
             },
             {
@@ -620,7 +1481,12 @@
               "type": "multiple_choice",
               "topic": "Algebra",
               "question_text": "Simplify: 3(x + 2)",
-              "choices": ["A. 3x + 2", "B. 3x + 6", "C. x + 6", "D. 3x – 2"],
+              "choices": [
+                "A. 3x + 2",
+                "B. 3x + 6",
+                "C. x + 6",
+                "D. 3x \u2013 2"
+              ],
               "correct_answer": "B"
             },
             {
@@ -629,7 +1495,12 @@
               "type": "multiple_choice",
               "topic": "Statistics",
               "question_text": "What is the mean of the numbers: 4, 8, 6, 2, 10?",
-              "choices": ["A. 6", "B. 5", "C. 7", "D. 8"],
+              "choices": [
+                "A. 6",
+                "B. 5",
+                "C. 7",
+                "D. 8"
+              ],
               "correct_answer": "A"
             },
             {
@@ -637,8 +1508,13 @@
               "number": 5,
               "type": "multiple_choice",
               "topic": "Equations",
-              "question_text": "Solve: 2x – 3 = 7",
-              "choices": ["A. x = 2", "B. x = 5", "C. x = 4", "D. x = 3"],
+              "question_text": "Solve: 2x \u2013 3 = 7",
+              "choices": [
+                "A. x = 2",
+                "B. x = 5",
+                "C. x = 4",
+                "D. x = 3"
+              ],
               "correct_answer": "B"
             },
             {
@@ -646,8 +1522,13 @@
               "number": 6,
               "type": "multiple_choice",
               "topic": "Distributive Property",
-              "question_text": "Which expression is equivalent to: 4(2x – 1)?",
-              "choices": ["A. 8x – 1", "B. 8x – 4", "C. 6x – 1", "D. 2x – 4"],
+              "question_text": "Which expression is equivalent to: 4(2x \u2013 1)?",
+              "choices": [
+                "A. 8x \u2013 1",
+                "B. 8x \u2013 4",
+                "C. 6x \u2013 1",
+                "D. 2x \u2013 4"
+              ],
               "correct_answer": "B"
             },
             {
@@ -656,7 +1537,12 @@
               "type": "multiple_choice",
               "topic": "Area",
               "question_text": "What is the area of a triangle with base 10 cm and height 5 cm?",
-              "choices": ["A. 50 cm²", "B. 25 cm²", "C. 15 cm²", "D. 100 cm²"],
+              "choices": [
+                "A. 50 cm\u00b2",
+                "B. 25 cm\u00b2",
+                "C. 15 cm\u00b2",
+                "D. 100 cm\u00b2"
+              ],
               "correct_answer": "B"
             },
             {
@@ -664,8 +1550,13 @@
               "number": 8,
               "type": "multiple_choice",
               "topic": "Absolute Value",
-              "question_text": "What is the value of |–8|?",
-              "choices": ["A. –8", "B. 0", "C. 8", "D. 1"],
+              "question_text": "What is the value of |\u20138|?",
+              "choices": [
+                "A. \u20138",
+                "B. 0",
+                "C. 8",
+                "D. 1"
+              ],
               "correct_answer": "C"
             },
             {
@@ -674,7 +1565,12 @@
               "type": "multiple_choice",
               "topic": "Fractions",
               "question_text": "Convert 0.75 to a fraction.",
-              "choices": ["A. 1/2", "B. 3/4", "C. 1/4", "D. 2/3"],
+              "choices": [
+                "A. 1/2",
+                "B. 3/4",
+                "C. 1/4",
+                "D. 2/3"
+              ],
               "correct_answer": "B"
             },
             {
@@ -683,7 +1579,12 @@
               "type": "multiple_choice",
               "topic": "Equations",
               "question_text": "What is the solution to: 3y = 21?",
-              "choices": ["A. y = 3", "B. y = 7", "C. y = 18", "D. y = 24"],
+              "choices": [
+                "A. y = 3",
+                "B. y = 7",
+                "C. y = 18",
+                "D. y = 24"
+              ],
               "correct_answer": "B"
             },
             {
@@ -691,8 +1592,13 @@
               "number": 11,
               "type": "multiple_choice",
               "topic": "Coordinate Plane",
-              "question_text": "Which point is located at (–3, 2) on the coordinate plane?",
-              "choices": ["A. 3 units right, 2 up", "B. 3 units left, 2 up", "C. 2 units left, 3 up", "D. 3 units right, 2 down"],
+              "question_text": "Which point is located at (\u20133, 2) on the coordinate plane?",
+              "choices": [
+                "A. 3 units right, 2 up",
+                "B. 3 units left, 2 up",
+                "C. 2 units left, 3 up",
+                "D. 3 units right, 2 down"
+              ],
               "correct_answer": "B"
             },
             {
@@ -701,7 +1607,12 @@
               "type": "multiple_choice",
               "topic": "Statistics",
               "question_text": "What is the median of: 5, 9, 1, 3, 7?",
-              "choices": ["A. 7", "B. 5", "C. 4", "D. 6"],
+              "choices": [
+                "A. 7",
+                "B. 5",
+                "C. 4",
+                "D. 6"
+              ],
               "correct_answer": "B"
             },
             {
@@ -709,8 +1620,13 @@
               "number": 13,
               "type": "multiple_choice",
               "topic": "Order of Operations",
-              "question_text": "Evaluate: 12 ÷ (3 + 1)",
-              "choices": ["A. 4", "B. 3", "C. 12", "D. 2"],
+              "question_text": "Evaluate: 12 \u00f7 (3 + 1)",
+              "choices": [
+                "A. 4",
+                "B. 3",
+                "C. 12",
+                "D. 2"
+              ],
               "correct_answer": "B"
             },
             {
@@ -719,7 +1635,12 @@
               "type": "multiple_choice",
               "topic": "Volume",
               "question_text": "What is the volume of a cube with edge length 4 cm?",
-              "choices": ["A. 16 cm³", "B. 64 cm³", "C. 32 cm³", "D. 8 cm³"],
+              "choices": [
+                "A. 16 cm\u00b3",
+                "B. 64 cm\u00b3",
+                "C. 32 cm\u00b3",
+                "D. 8 cm\u00b3"
+              ],
               "correct_answer": "B"
             },
             {
@@ -728,7 +1649,12 @@
               "type": "multiple_choice",
               "topic": "Probability",
               "question_text": "If the probability of rain is 0.6, what is the probability it won't rain?",
-              "choices": ["A. 0.6", "B. 0.4", "C. 1.6", "D. 0.94"],
+              "choices": [
+                "A. 0.6",
+                "B. 0.4",
+                "C. 1.6",
+                "D. 0.94"
+              ],
               "correct_answer": "B"
             },
             {
@@ -737,7 +1663,12 @@
               "type": "multiple_choice",
               "topic": "Slope",
               "question_text": "What is the slope of the line: y = 2x + 3?",
-              "choices": ["A. 2", "B. 3", "C. –2", "D. 1"],
+              "choices": [
+                "A. 2",
+                "B. 3",
+                "C. \u20132",
+                "D. 1"
+              ],
               "correct_answer": "A"
             },
             {
@@ -745,8 +1676,13 @@
               "number": 17,
               "type": "multiple_choice",
               "topic": "Exponents",
-              "question_text": "Simplify: (2²)³",
-              "choices": ["A. 12", "B. 16", "C. 64", "D. 36"],
+              "question_text": "Simplify: (2\u00b2)\u00b3",
+              "choices": [
+                "A. 12",
+                "B. 16",
+                "C. 64",
+                "D. 36"
+              ],
               "correct_answer": "C"
             },
             {
@@ -755,7 +1691,12 @@
               "type": "multiple_choice",
               "topic": "Rational Numbers",
               "question_text": "Which of the following is a rational number?",
-              "choices": ["A. √2", "B. 1.5", "C. π", "D. √3"],
+              "choices": [
+                "A. \u221a2",
+                "B. 1.5",
+                "C. \u03c0",
+                "D. \u221a3"
+              ],
               "correct_answer": "B"
             },
             {
@@ -764,7 +1705,12 @@
               "type": "multiple_choice",
               "topic": "Equations",
               "question_text": "Solve for x: x/5 = 2",
-              "choices": ["A. x = 10", "B. x = 7", "C. x = 2", "D. x = 15"],
+              "choices": [
+                "A. x = 10",
+                "B. x = 7",
+                "C. x = 2",
+                "D. x = 15"
+              ],
               "correct_answer": "A"
             },
             {
@@ -772,8 +1718,13 @@
               "number": 20,
               "type": "multiple_choice",
               "topic": "Pi",
-              "question_text": "What is the value of π rounded to the nearest hundredth?",
-              "choices": ["A. 3.14", "B. 3.15", "C. 3.10", "D. 3.12"],
+              "question_text": "What is the value of \u03c0 rounded to the nearest hundredth?",
+              "choices": [
+                "A. 3.14",
+                "B. 3.15",
+                "C. 3.10",
+                "D. 3.12"
+              ],
               "correct_answer": "A"
             }
           ]
@@ -813,7 +1764,7 @@
               "number": 4,
               "type": "word_problem",
               "topic": "Fractions",
-              "question_text": "A recipe calls for 2 ½ cups of flour. If you want to make half the recipe, how much flour do you need?",
+              "question_text": "A recipe calls for 2 \u00bd cups of flour. If you want to make half the recipe, how much flour do you need?",
               "choices": []
             },
             {
@@ -838,7 +1789,7 @@
               "number": 1,
               "type": "multi_step",
               "topic": "Proportions",
-              "question_text": "A recipe for 24 cookies requires 2 ½ cups of flour. How many cups of flour are needed to make 60 cookies? Then, if you only have 5 cups of flour, how many cookies can you make? Show your work.",
+              "question_text": "A recipe for 24 cookies requires 2 \u00bd cups of flour. How many cups of flour are needed to make 60 cookies? Then, if you only have 5 cups of flour, how many cookies can you make? Show your work.",
               "choices": []
             },
             {
@@ -893,8 +1844,13 @@
               "number": 1,
               "type": "multiple_choice",
               "topic": "Arithmetic",
-              "question_text": "What is the value of 3² + 4?",
-              "choices": ["A. 11", "B. 13", "C. 12", "D. 15"],
+              "question_text": "What is the value of 3\u00b2 + 4?",
+              "choices": [
+                "A. 11",
+                "B. 13",
+                "C. 12",
+                "D. 15"
+              ],
               "correct_answer": "B"
             },
             {
@@ -903,7 +1859,12 @@
               "type": "multiple_choice",
               "topic": "Rational Numbers",
               "question_text": "Which of the following is a rational number?",
-              "choices": ["A. √2", "B. π", "C. 4/5", "D. √3"],
+              "choices": [
+                "A. \u221a2",
+                "B. \u03c0",
+                "C. 4/5",
+                "D. \u221a3"
+              ],
               "correct_answer": "C"
             },
             {
@@ -911,8 +1872,13 @@
               "number": 3,
               "type": "multiple_choice",
               "topic": "Equations",
-              "question_text": "Solve: 5x – 3 = 17",
-              "choices": ["A. 2", "B. 4", "C. 5", "D. 3"],
+              "question_text": "Solve: 5x \u2013 3 = 17",
+              "choices": [
+                "A. 2",
+                "B. 4",
+                "C. 5",
+                "D. 3"
+              ],
               "correct_answer": "B"
             },
             {
@@ -921,7 +1887,12 @@
               "type": "multiple_choice",
               "topic": "Slope",
               "question_text": "What is the slope of a line that passes through (2, 3) and (4, 7)?",
-              "choices": ["A. 2", "B. 4", "C. 1", "D. 3"],
+              "choices": [
+                "A. 2",
+                "B. 4",
+                "C. 1",
+                "D. 3"
+              ],
               "correct_answer": "A"
             },
             {
@@ -929,8 +1900,13 @@
               "number": 5,
               "type": "multiple_choice",
               "topic": "Exponents",
-              "question_text": "Simplify: (2x)(3x²)",
-              "choices": ["A. 6x", "B. 5x²", "C. 6x³", "D. 5x³"],
+              "question_text": "Simplify: (2x)(3x\u00b2)",
+              "choices": [
+                "A. 6x",
+                "B. 5x\u00b2",
+                "C. 6x\u00b3",
+                "D. 5x\u00b3"
+              ],
               "correct_answer": "C"
             },
             {
@@ -939,7 +1915,12 @@
               "type": "multiple_choice",
               "topic": "Volume",
               "question_text": "What is the volume of a rectangular prism with sides 3 cm, 4 cm, and 5 cm?",
-              "choices": ["A. 60 cm³", "B. 12 cm³", "C. 30 cm³", "D. 80 cm³"],
+              "choices": [
+                "A. 60 cm\u00b3",
+                "B. 12 cm\u00b3",
+                "C. 30 cm\u00b3",
+                "D. 80 cm\u00b3"
+              ],
               "correct_answer": "A"
             },
             {
@@ -948,7 +1929,12 @@
               "type": "multiple_choice",
               "topic": "Fractions",
               "question_text": "Convert 0.75 to a fraction.",
-              "choices": ["A. 3/4", "B. 1/2", "C. 2/3", "D. 4/5"],
+              "choices": [
+                "A. 3/4",
+                "B. 1/2",
+                "C. 2/3",
+                "D. 4/5"
+              ],
               "correct_answer": "A"
             },
             {
@@ -956,8 +1942,13 @@
               "number": 8,
               "type": "multiple_choice",
               "topic": "Inequalities",
-              "question_text": "What is the solution to the inequality: x – 5 > 10?",
-              "choices": ["A. x > 15", "B. x < 15", "C. x > 5", "D. x < 5"],
+              "question_text": "What is the solution to the inequality: x \u2013 5 > 10?",
+              "choices": [
+                "A. x > 15",
+                "B. x < 15",
+                "C. x > 5",
+                "D. x < 5"
+              ],
               "correct_answer": "A"
             },
             {
@@ -966,7 +1957,12 @@
               "type": "multiple_choice",
               "topic": "Statistics",
               "question_text": "Find the mean of these numbers: 4, 8, 6, 10.",
-              "choices": ["A. 6", "B. 7", "C. 8", "D. 9"],
+              "choices": [
+                "A. 6",
+                "B. 7",
+                "C. 8",
+                "D. 9"
+              ],
               "correct_answer": "B"
             },
             {
@@ -975,7 +1971,12 @@
               "type": "multiple_choice",
               "topic": "Probability",
               "question_text": "What is the probability of rolling an even number on a standard die?",
-              "choices": ["A. 1/6", "B. 1/3", "C. 1/2", "D. 2/3"],
+              "choices": [
+                "A. 1/6",
+                "B. 1/3",
+                "C. 1/2",
+                "D. 2/3"
+              ],
               "correct_answer": "C"
             },
             {
@@ -984,7 +1985,12 @@
               "type": "multiple_choice",
               "topic": "Linear Equations",
               "question_text": "Which point lies on the line y = 2x + 1?",
-              "choices": ["A. (1, 3)", "B. (2, 5)", "C. (3, 6)", "D. (0, 0)"],
+              "choices": [
+                "A. (1, 3)",
+                "B. (2, 5)",
+                "C. (3, 6)",
+                "D. (0, 0)"
+              ],
               "correct_answer": "B"
             },
             {
@@ -993,7 +1999,12 @@
               "type": "multiple_choice",
               "topic": "Percent",
               "question_text": "What is 25% of 200?",
-              "choices": ["A. 25", "B. 50", "C. 75", "D. 100"],
+              "choices": [
+                "A. 25",
+                "B. 50",
+                "C. 75",
+                "D. 100"
+              ],
               "correct_answer": "B"
             },
             {
@@ -1001,8 +2012,13 @@
               "number": 13,
               "type": "multiple_choice",
               "topic": "Angles",
-              "question_text": "A triangle has angles 50° and 60°. What is the third angle?",
-              "choices": ["A. 80°", "B. 70°", "C. 60°", "D. 90°"],
+              "question_text": "A triangle has angles 50\u00b0 and 60\u00b0. What is the third angle?",
+              "choices": [
+                "A. 80\u00b0",
+                "B. 70\u00b0",
+                "C. 60\u00b0",
+                "D. 90\u00b0"
+              ],
               "correct_answer": "B"
             },
             {
@@ -1011,7 +2027,12 @@
               "type": "multiple_choice",
               "topic": "GCF",
               "question_text": "What is the greatest common factor (GCF) of 12 and 18?",
-              "choices": ["A. 3", "B. 4", "C. 6", "D. 2"],
+              "choices": [
+                "A. 3",
+                "B. 4",
+                "C. 6",
+                "D. 2"
+              ],
               "correct_answer": "C"
             },
             {
@@ -1019,8 +2040,13 @@
               "number": 15,
               "type": "multiple_choice",
               "topic": "Order of Operations",
-              "question_text": "Solve: (8 + 2) ÷ 5",
-              "choices": ["A. 2", "B. 3", "C. 4", "D. 5"],
+              "question_text": "Solve: (8 + 2) \u00f7 5",
+              "choices": [
+                "A. 2",
+                "B. 3",
+                "C. 4",
+                "D. 5"
+              ],
               "correct_answer": "A"
             },
             {
@@ -1028,8 +2054,13 @@
               "number": 16,
               "type": "multiple_choice",
               "topic": "Distributive Property",
-              "question_text": "Which expression is equivalent to 4(x – 3)?",
-              "choices": ["A. 4x – 3", "B. 4x – 12", "C. 4x + 12", "D. x – 12"],
+              "question_text": "Which expression is equivalent to 4(x \u2013 3)?",
+              "choices": [
+                "A. 4x \u2013 3",
+                "B. 4x \u2013 12",
+                "C. 4x + 12",
+                "D. x \u2013 12"
+              ],
               "correct_answer": "B"
             },
             {
@@ -1038,7 +2069,12 @@
               "type": "multiple_choice",
               "topic": "Statistics",
               "question_text": "What is the median of: 3, 7, 9, 5, 11?",
-              "choices": ["A. 7", "B. 6", "C. 8", "D. 9"],
+              "choices": [
+                "A. 7",
+                "B. 6",
+                "C. 8",
+                "D. 9"
+              ],
               "correct_answer": "A"
             },
             {
@@ -1047,7 +2083,12 @@
               "type": "multiple_choice",
               "topic": "Equations",
               "question_text": "Solve for x: 3(x + 4) = 21",
-              "choices": ["A. 1", "B. 2", "C. 3", "D. 5"],
+              "choices": [
+                "A. 1",
+                "B. 2",
+                "C. 3",
+                "D. 5"
+              ],
               "correct_answer": "C"
             },
             {
@@ -1056,7 +2097,12 @@
               "type": "multiple_choice",
               "topic": "Linear Equations",
               "question_text": "Which of the following is a linear equation?",
-              "choices": ["A. y = x² + 2", "B. y = 2x + 5", "C. y = √x", "D. y = 1/x"],
+              "choices": [
+                "A. y = x\u00b2 + 2",
+                "B. y = 2x + 5",
+                "C. y = \u221ax",
+                "D. y = 1/x"
+              ],
               "correct_answer": "B"
             },
             {
@@ -1064,8 +2110,13 @@
               "number": 20,
               "type": "multiple_choice",
               "topic": "Absolute Value",
-              "question_text": "What is the value of |–6|?",
-              "choices": ["A. –6", "B. 6", "C. 0", "D. 1"],
+              "question_text": "What is the value of |\u20136|?",
+              "choices": [
+                "A. \u20136",
+                "B. 6",
+                "C. 0",
+                "D. 1"
+              ],
               "correct_answer": "B"
             }
           ]
@@ -1186,7 +2237,12 @@
               "type": "multiple_choice",
               "topic": "Fractions",
               "question_text": "2/3 + 3/4",
-              "choices": ["A. 5/7", "B. 17/12", "C. 11/12", "D. 5/12"],
+              "choices": [
+                "A. 5/7",
+                "B. 17/12",
+                "C. 11/12",
+                "D. 5/12"
+              ],
               "correct_answer": "B"
             },
             {
@@ -1195,7 +2251,12 @@
               "type": "multiple_choice",
               "topic": "Ratios",
               "question_text": "Ratio of red to blue marbles is 3:5, what fraction is red?",
-              "choices": ["A. 3/8", "B. 3/5", "C. 5/8", "D. 3/4"],
+              "choices": [
+                "A. 3/8",
+                "B. 3/5",
+                "C. 5/8",
+                "D. 3/4"
+              ],
               "correct_answer": "A"
             },
             {
@@ -1204,7 +2265,12 @@
               "type": "multiple_choice",
               "topic": "Integers",
               "question_text": "Evaluate: -4 + 7 - 12",
-              "choices": ["A. -9", "B. -1", "C. 1", "D. -15"],
+              "choices": [
+                "A. -9",
+                "B. -1",
+                "C. 1",
+                "D. -15"
+              ],
               "correct_answer": "A"
             },
             {
@@ -1213,7 +2279,12 @@
               "type": "multiple_choice",
               "topic": "Area",
               "question_text": "Area of rectangle is 48 sq units, width 6, what is the length?",
-              "choices": ["A. 6", "B. 7", "C. 8", "D. 9"],
+              "choices": [
+                "A. 6",
+                "B. 7",
+                "C. 8",
+                "D. 9"
+              ],
               "correct_answer": "C"
             },
             {
@@ -1222,7 +2293,12 @@
               "type": "multiple_choice",
               "topic": "Proportions",
               "question_text": "3 notebooks cost $6; what is the cost of 5 notebooks?",
-              "choices": ["A. $8", "B. $9", "C. $10", "D. $11"],
+              "choices": [
+                "A. $8",
+                "B. $9",
+                "C. $10",
+                "D. $11"
+              ],
               "correct_answer": "C"
             },
             {
@@ -1231,7 +2307,12 @@
               "type": "multiple_choice",
               "topic": "Algebra",
               "question_text": "Simplify: 3x + 4 - 2x + 7",
-              "choices": ["A. x + 3", "B. x + 11", "C. 5x + 11", "D. x + 7"],
+              "choices": [
+                "A. x + 3",
+                "B. x + 11",
+                "C. 5x + 11",
+                "D. x + 7"
+              ],
               "correct_answer": "B"
             },
             {
@@ -1240,7 +2321,12 @@
               "type": "multiple_choice",
               "topic": "Slope",
               "question_text": "Slope of line through (1,2) and (3,6)?",
-              "choices": ["A. 2", "B. 1/2", "C. 4", "D. 3"],
+              "choices": [
+                "A. 2",
+                "B. 1/2",
+                "C. 4",
+                "D. 3"
+              ],
               "correct_answer": "A"
             },
             {
@@ -1249,7 +2335,12 @@
               "type": "multiple_choice",
               "topic": "Equations",
               "question_text": "Solve for x: 2x - 3 = 7",
-              "choices": ["A. 5", "B. 2", "C. 3", "D. -2"],
+              "choices": [
+                "A. 5",
+                "B. 2",
+                "C. 3",
+                "D. -2"
+              ],
               "correct_answer": "A"
             },
             {
@@ -1258,7 +2349,12 @@
               "type": "multiple_choice",
               "topic": "Systems of Equations",
               "question_text": "Which represents a system with no solution?",
-              "choices": ["A. Intersecting lines", "B. Different slopes", "C. Parallel lines", "D. Line and a parabola"],
+              "choices": [
+                "A. Intersecting lines",
+                "B. Different slopes",
+                "C. Parallel lines",
+                "D. Line and a parabola"
+              ],
               "correct_answer": "C"
             },
             {
@@ -1266,8 +2362,13 @@
               "number": 10,
               "type": "multiple_choice",
               "topic": "Exponents",
-              "question_text": "Simplify: x³ × x²",
-              "choices": ["A. x⁶", "B. x⁵", "C. x", "D. x¹"],
+              "question_text": "Simplify: x\u00b3 \u00d7 x\u00b2",
+              "choices": [
+                "A. x\u2076",
+                "B. x\u2075",
+                "C. x",
+                "D. x\u00b9"
+              ],
               "correct_answer": "B"
             },
             {
@@ -1275,8 +2376,13 @@
               "number": 11,
               "type": "multiple_choice",
               "topic": "Order of Operations",
-              "question_text": "5 + 3 × 2",
-              "choices": ["A. 16", "B. 11", "C. 11", "D. 10"],
+              "question_text": "5 + 3 \u00d7 2",
+              "choices": [
+                "A. 16",
+                "B. 11",
+                "C. 11",
+                "D. 10"
+              ],
               "correct_answer": "B"
             },
             {
@@ -1285,7 +2391,12 @@
               "type": "multiple_choice",
               "topic": "Equations",
               "question_text": "Solve: 2(x + 3) = 14",
-              "choices": ["A. 2", "B. 4", "C. 5", "D. 6"],
+              "choices": [
+                "A. 2",
+                "B. 4",
+                "C. 5",
+                "D. 6"
+              ],
               "correct_answer": "B"
             },
             {
@@ -1294,7 +2405,12 @@
               "type": "multiple_choice",
               "topic": "Linear Equations",
               "question_text": "Which is a solution to y = 2x - 1?",
-              "choices": ["A. (0,0)", "B. (1,0)", "C. (2,3)", "D. (3,5)"],
+              "choices": [
+                "A. (0,0)",
+                "B. (1,0)",
+                "C. (2,3)",
+                "D. (3,5)"
+              ],
               "correct_answer": "C"
             },
             {
@@ -1302,8 +2418,13 @@
               "number": 14,
               "type": "multiple_choice",
               "topic": "Square Roots",
-              "question_text": "What is √49?",
-              "choices": ["A. 7", "B. 14", "C. 6", "D. 9"],
+              "question_text": "What is \u221a49?",
+              "choices": [
+                "A. 7",
+                "B. 14",
+                "C. 6",
+                "D. 9"
+              ],
               "correct_answer": "A"
             },
             {
@@ -1312,7 +2433,12 @@
               "type": "multiple_choice",
               "topic": "Exponents",
               "question_text": "Simplify: (3x)(4x)",
-              "choices": ["A. 12x", "B. 12x²", "C. 7x²", "D. 6x"],
+              "choices": [
+                "A. 12x",
+                "B. 12x\u00b2",
+                "C. 7x\u00b2",
+                "D. 6x"
+              ],
               "correct_answer": "B"
             },
             {
@@ -1321,7 +2447,12 @@
               "type": "multiple_choice",
               "topic": "Functions",
               "question_text": "Which graph represents a function?",
-              "choices": ["A. Circle", "B. Parabola", "C. Line", "D. Both B and C"],
+              "choices": [
+                "A. Circle",
+                "B. Parabola",
+                "C. Line",
+                "D. Both B and C"
+              ],
               "correct_answer": "D"
             },
             {
@@ -1329,8 +2460,13 @@
               "number": 17,
               "type": "multiple_choice",
               "topic": "Evaluating Expressions",
-              "question_text": "If x = 2, what is x² + 3x?",
-              "choices": ["A. 10", "B. 14", "C. 8", "D. 10"],
+              "question_text": "If x = 2, what is x\u00b2 + 3x?",
+              "choices": [
+                "A. 10",
+                "B. 14",
+                "C. 8",
+                "D. 10"
+              ],
               "correct_answer": "A"
             },
             {
@@ -1339,7 +2475,12 @@
               "type": "multiple_choice",
               "topic": "Equations",
               "question_text": "Solve: 5x = 35",
-              "choices": ["A. 7", "B. 5", "C. 8", "D. 6"],
+              "choices": [
+                "A. 7",
+                "B. 5",
+                "C. 8",
+                "D. 6"
+              ],
               "correct_answer": "A"
             },
             {
@@ -1348,7 +2489,12 @@
               "type": "multiple_choice",
               "topic": "Algebra",
               "question_text": "Simplify: 7x - 2x + 4",
-              "choices": ["A. 9x", "B. 4x + 4", "C. 5x + 4", "D. 7x"],
+              "choices": [
+                "A. 9x",
+                "B. 4x + 4",
+                "C. 5x + 4",
+                "D. 7x"
+              ],
               "correct_answer": "C"
             },
             {
@@ -1357,7 +2503,12 @@
               "type": "multiple_choice",
               "topic": "Properties",
               "question_text": "Property: a + b = b + a",
-              "choices": ["A. Associative", "B. Commutative", "C. Identity", "D. Distributive"],
+              "choices": [
+                "A. Associative",
+                "B. Commutative",
+                "C. Identity",
+                "D. Distributive"
+              ],
               "correct_answer": "B"
             }
           ]
@@ -1477,8 +2628,13 @@
               "number": 1,
               "type": "multiple_choice",
               "topic": "Factoring",
-              "question_text": "Which expression is equivalent to (x + 3)(x – 4)?",
-              "choices": ["A. x² – x – 12", "B. x² + 12", "C. x² + 7x – 12", "D. x² – 7x + 12"],
+              "question_text": "Which expression is equivalent to (x + 3)(x \u2013 4)?",
+              "choices": [
+                "A. x\u00b2 \u2013 x \u2013 12",
+                "B. x\u00b2 + 12",
+                "C. x\u00b2 + 7x \u2013 12",
+                "D. x\u00b2 \u2013 7x + 12"
+              ],
               "correct_answer": "A"
             },
             {
@@ -1486,8 +2642,13 @@
               "number": 2,
               "type": "multiple_choice",
               "topic": "Equations",
-              "question_text": "What is the solution to the equation 2x – 5 = 13?",
-              "choices": ["A. x = 4", "B. x = 7", "C. x = 9", "D. x = 10"],
+              "question_text": "What is the solution to the equation 2x \u2013 5 = 13?",
+              "choices": [
+                "A. x = 4",
+                "B. x = 7",
+                "C. x = 9",
+                "D. x = 10"
+              ],
               "correct_answer": "C"
             },
             {
@@ -1495,8 +2656,13 @@
               "number": 3,
               "type": "multiple_choice",
               "topic": "Linear Equations",
-              "question_text": "Which of the following represents the slope-intercept form of a line with slope 3 and y-intercept –2?",
-              "choices": ["A. y = 3x – 2", "B. y = –2x + 3", "C. y = x – 5", "D. y = 2x + 3"],
+              "question_text": "Which of the following represents the slope-intercept form of a line with slope 3 and y-intercept \u20132?",
+              "choices": [
+                "A. y = 3x \u2013 2",
+                "B. y = \u20132x + 3",
+                "C. y = x \u2013 5",
+                "D. y = 2x + 3"
+              ],
               "correct_answer": "A"
             },
             {
@@ -1504,8 +2670,13 @@
               "number": 4,
               "type": "multiple_choice",
               "topic": "Equations",
-              "question_text": "Solve for x: 3(x – 4) = 2x + 1",
-              "choices": ["A. x = 13", "B. x = 5", "C. x = –7", "D. x = 1"],
+              "question_text": "Solve for x: 3(x \u2013 4) = 2x + 1",
+              "choices": [
+                "A. x = 13",
+                "B. x = 5",
+                "C. x = \u20137",
+                "D. x = 1"
+              ],
               "correct_answer": "A"
             },
             {
@@ -1513,8 +2684,13 @@
               "number": 5,
               "type": "multiple_choice",
               "topic": "Quadratics",
-              "question_text": "A quadratic equation has roots x = –2 and x = 5. Which equation represents this?",
-              "choices": ["A. (x – 2)(x + 5) = 0", "B. (x + 2)(x – 5) = 0", "C. (x – 5)(x – 2) = 0", "D. (x + 2)(x + 5) = 0"],
+              "question_text": "A quadratic equation has roots x = \u20132 and x = 5. Which equation represents this?",
+              "choices": [
+                "A. (x \u2013 2)(x + 5) = 0",
+                "B. (x + 2)(x \u2013 5) = 0",
+                "C. (x \u2013 5)(x \u2013 2) = 0",
+                "D. (x + 2)(x + 5) = 0"
+              ],
               "correct_answer": "B"
             },
             {
@@ -1523,7 +2699,12 @@
               "type": "multiple_choice",
               "topic": "Inequalities",
               "question_text": "Which inequality represents: 4 less than twice a number is greater than 10?",
-              "choices": ["A. 2x – 4 > 10", "B. 2x + 4 > 10", "C. 2x – 10 > 4", "D. 4x – 2 > 10"],
+              "choices": [
+                "A. 2x \u2013 4 > 10",
+                "B. 2x + 4 > 10",
+                "C. 2x \u2013 10 > 4",
+                "D. 4x \u2013 2 > 10"
+              ],
               "correct_answer": "A"
             },
             {
@@ -1531,8 +2712,13 @@
               "number": 7,
               "type": "multiple_choice",
               "topic": "Functions",
-              "question_text": "If f(x) = 2x² – 3x + 1, what is f(2)?",
-              "choices": ["A. 3", "B. 5", "C. 1", "D. 7"],
+              "question_text": "If f(x) = 2x\u00b2 \u2013 3x + 1, what is f(2)?",
+              "choices": [
+                "A. 3",
+                "B. 5",
+                "C. 1",
+                "D. 7"
+              ],
               "correct_answer": "A"
             },
             {
@@ -1541,7 +2727,12 @@
               "type": "multiple_choice",
               "topic": "Functions",
               "question_text": "Which graph represents a function?",
-              "choices": ["A. A circle", "B. A parabola", "C. A vertical line", "D. A horizontal line"],
+              "choices": [
+                "A. A circle",
+                "B. A parabola",
+                "C. A vertical line",
+                "D. A horizontal line"
+              ],
               "correct_answer": "B"
             },
             {
@@ -1549,8 +2740,13 @@
               "number": 9,
               "type": "multiple_choice",
               "topic": "Domain",
-              "question_text": "What is the domain of the function f(x) = √(x – 2)?",
-              "choices": ["A. x ≥ 2", "B. x ≤ 2", "C. x > 0", "D. All real numbers"],
+              "question_text": "What is the domain of the function f(x) = \u221a(x \u2013 2)?",
+              "choices": [
+                "A. x \u2265 2",
+                "B. x \u2264 2",
+                "C. x > 0",
+                "D. All real numbers"
+              ],
               "correct_answer": "A"
             },
             {
@@ -1559,7 +2755,12 @@
               "type": "multiple_choice",
               "topic": "Trigonometry",
               "question_text": "What is the value of x in the triangle if sin(x) = 0.5?",
-              "choices": ["A. 60°", "B. 90°", "C. 30°", "D. 45°"],
+              "choices": [
+                "A. 60\u00b0",
+                "B. 90\u00b0",
+                "C. 30\u00b0",
+                "D. 45\u00b0"
+              ],
               "correct_answer": "C"
             },
             {
@@ -1567,8 +2768,13 @@
               "number": 11,
               "type": "multiple_choice",
               "topic": "Factoring",
-              "question_text": "Factor the expression: x² – 9x + 20",
-              "choices": ["A. (x – 4)(x – 5)", "B. (x + 4)(x – 5)", "C. (x + 2)(x + 10)", "D. (x – 2)(x – 10)"],
+              "question_text": "Factor the expression: x\u00b2 \u2013 9x + 20",
+              "choices": [
+                "A. (x \u2013 4)(x \u2013 5)",
+                "B. (x + 4)(x \u2013 5)",
+                "C. (x + 2)(x + 10)",
+                "D. (x \u2013 2)(x \u2013 10)"
+              ],
               "correct_answer": "A"
             },
             {
@@ -1576,8 +2782,13 @@
               "number": 12,
               "type": "multiple_choice",
               "topic": "Exponents",
-              "question_text": "Simplify: (3x²)(2x³)",
-              "choices": ["A. 5x⁵", "B. 6x⁶", "C. 6x⁵", "D. 3x⁶"],
+              "question_text": "Simplify: (3x\u00b2)(2x\u00b3)",
+              "choices": [
+                "A. 5x\u2075",
+                "B. 6x\u2076",
+                "C. 6x\u2075",
+                "D. 3x\u2076"
+              ],
               "correct_answer": "C"
             },
             {
@@ -1585,8 +2796,13 @@
               "number": 13,
               "type": "multiple_choice",
               "topic": "Absolute Value",
-              "question_text": "Solve: |2x – 3| = 5",
-              "choices": ["A. x = 4 only", "B. x = –1 and x = 4", "C. x = –1 only", "D. x = 5 only"],
+              "question_text": "Solve: |2x \u2013 3| = 5",
+              "choices": [
+                "A. x = 4 only",
+                "B. x = \u20131 and x = 4",
+                "C. x = \u20131 only",
+                "D. x = 5 only"
+              ],
               "correct_answer": "B"
             },
             {
@@ -1595,7 +2811,12 @@
               "type": "multiple_choice",
               "topic": "Systems of Equations",
               "question_text": "The solution to a system of equations is the point where the graphs:",
-              "choices": ["A. Intersect", "B. Are parallel", "C. Are perpendicular", "D. Touch the x-axis"],
+              "choices": [
+                "A. Intersect",
+                "B. Are parallel",
+                "C. Are perpendicular",
+                "D. Touch the x-axis"
+              ],
               "correct_answer": "A"
             },
             {
@@ -1604,7 +2825,12 @@
               "type": "multiple_choice",
               "topic": "Pythagorean Theorem",
               "question_text": "Which set of numbers represents a Pythagorean triple?",
-              "choices": ["A. 3, 4, 5", "B. 2, 3, 4", "C. 6, 8, 11", "D. 5, 10, 12"],
+              "choices": [
+                "A. 3, 4, 5",
+                "B. 2, 3, 4",
+                "C. 6, 8, 11",
+                "D. 5, 10, 12"
+              ],
               "correct_answer": "A"
             },
             {
@@ -1612,8 +2838,13 @@
               "number": 16,
               "type": "multiple_choice",
               "topic": "Radians",
-              "question_text": "Convert 30° to radians:",
-              "choices": ["A. π/3", "B. π/6", "C. π/4", "D. π/2"],
+              "question_text": "Convert 30\u00b0 to radians:",
+              "choices": [
+                "A. \u03c0/3",
+                "B. \u03c0/6",
+                "C. \u03c0/4",
+                "D. \u03c0/2"
+              ],
               "correct_answer": "B"
             },
             {
@@ -1622,7 +2853,12 @@
               "type": "multiple_choice",
               "topic": "Exponential Functions",
               "question_text": "Which of the following best represents exponential growth?",
-              "choices": ["A. y = 2ˣ", "B. y = x²", "C. y = x + 2", "D. y = √x"],
+              "choices": [
+                "A. y = 2\u02e3",
+                "B. y = x\u00b2",
+                "C. y = x + 2",
+                "D. y = \u221ax"
+              ],
               "correct_answer": "A"
             },
             {
@@ -1630,8 +2866,13 @@
               "number": 18,
               "type": "multiple_choice",
               "topic": "Systems of Equations",
-              "question_text": "Solve the system: 2x + y = 5 and x – y = 1",
-              "choices": ["A. (2, 1)", "B. (1, 3)", "C. (3, –1)", "D. (0, 0)"],
+              "question_text": "Solve the system: 2x + y = 5 and x \u2013 y = 1",
+              "choices": [
+                "A. (2, 1)",
+                "B. (1, 3)",
+                "C. (3, \u20131)",
+                "D. (0, 0)"
+              ],
               "correct_answer": "A"
             },
             {
@@ -1639,8 +2880,13 @@
               "number": 19,
               "type": "multiple_choice",
               "topic": "Quadratics",
-              "question_text": "The graph of y = –x² opens:",
-              "choices": ["A. Upward", "B. Downward", "C. To the right", "D. To the left"],
+              "question_text": "The graph of y = \u2013x\u00b2 opens:",
+              "choices": [
+                "A. Upward",
+                "B. Downward",
+                "C. To the right",
+                "D. To the left"
+              ],
               "correct_answer": "B"
             },
             {
@@ -1649,7 +2895,12 @@
               "type": "multiple_choice",
               "topic": "Linear Equations",
               "question_text": "Which of the following represents a linear equation?",
-              "choices": ["A. y = 2x + 3", "B. y = x²", "C. y = √x", "D. y = 1/x"],
+              "choices": [
+                "A. y = 2x + 3",
+                "B. y = x\u00b2",
+                "C. y = \u221ax",
+                "D. y = 1/x"
+              ],
               "correct_answer": "A"
             }
           ]
@@ -1745,8 +2996,13 @@
               "number": 1,
               "type": "multiple_choice",
               "topic": "Equations",
-              "question_text": "What is the solution to the equation 2(x – 3) = 4x + 1?",
-              "choices": ["A. x = -3", "B. x = 2", "C. x = -2", "D. x = 5"],
+              "question_text": "What is the solution to the equation 2(x \u2013 3) = 4x + 1?",
+              "choices": [
+                "A. x = -3",
+                "B. x = 2",
+                "C. x = -2",
+                "D. x = 5"
+              ],
               "correct_answer": "B"
             },
             {
@@ -1754,8 +3010,13 @@
               "number": 2,
               "type": "multiple_choice",
               "topic": "Factoring",
-              "question_text": "Which expression represents the factored form of x² – 5x + 6?",
-              "choices": ["A. (x – 3)(x – 2)", "B. (x + 3)(x – 2)", "C. (x – 1)(x – 6)", "D. (x – 5)(x + 1)"],
+              "question_text": "Which expression represents the factored form of x\u00b2 \u2013 5x + 6?",
+              "choices": [
+                "A. (x \u2013 3)(x \u2013 2)",
+                "B. (x + 3)(x \u2013 2)",
+                "C. (x \u2013 1)(x \u2013 6)",
+                "D. (x \u2013 5)(x + 1)"
+              ],
               "correct_answer": "A"
             },
             {
@@ -1763,8 +3024,13 @@
               "number": 3,
               "type": "multiple_choice",
               "topic": "Functions",
-              "question_text": "If f(x) = 2x² – 3x + 1, what is f(–1)?",
-              "choices": ["A. 6", "B. 2", "C. –2", "D. 0"],
+              "question_text": "If f(x) = 2x\u00b2 \u2013 3x + 1, what is f(\u20131)?",
+              "choices": [
+                "A. 6",
+                "B. 2",
+                "C. \u20132",
+                "D. 0"
+              ],
               "correct_answer": "C"
             },
             {
@@ -1772,8 +3038,13 @@
               "number": 4,
               "type": "multiple_choice",
               "topic": "Domain",
-              "question_text": "What is the domain of the function f(x) = 1 / (x – 4)?",
-              "choices": ["A. x = 0", "B. x ≠ 4", "C. All real numbers", "D. x ≥ 0"],
+              "question_text": "What is the domain of the function f(x) = 1 / (x \u2013 4)?",
+              "choices": [
+                "A. x = 0",
+                "B. x \u2260 4",
+                "C. All real numbers",
+                "D. x \u2265 0"
+              ],
               "correct_answer": "B"
             },
             {
@@ -1781,8 +3052,13 @@
               "number": 5,
               "type": "multiple_choice",
               "topic": "Radical Equations",
-              "question_text": "Solve: √(x + 5) = 4",
-              "choices": ["A. x = 21", "B. x = 11", "C. x = 5", "D. x = -5"],
+              "question_text": "Solve: \u221a(x + 5) = 4",
+              "choices": [
+                "A. x = 21",
+                "B. x = 11",
+                "C. x = 5",
+                "D. x = -5"
+              ],
               "correct_answer": "B"
             },
             {
@@ -1791,7 +3067,12 @@
               "type": "multiple_choice",
               "topic": "Inequalities",
               "question_text": "Which inequality matches the graph of a line that passes through (0, 2) and slopes downward?",
-              "choices": ["A. y > -x + 2", "B. y < -x + 2", "C. y ≥ x + 2", "D. y ≤ x – 2"],
+              "choices": [
+                "A. y > -x + 2",
+                "B. y < -x + 2",
+                "C. y \u2265 x + 2",
+                "D. y \u2264 x \u2013 2"
+              ],
               "correct_answer": "B"
             },
             {
@@ -1799,8 +3080,13 @@
               "number": 7,
               "type": "multiple_choice",
               "topic": "Absolute Value",
-              "question_text": "What is the solution to |2x – 3| = 7?",
-              "choices": ["A. x = 2, -5", "B. x = 5, -2", "C. x = -2, -5", "D. x = 2, 5"],
+              "question_text": "What is the solution to |2x \u2013 3| = 7?",
+              "choices": [
+                "A. x = 2, -5",
+                "B. x = 5, -2",
+                "C. x = -2, -5",
+                "D. x = 2, 5"
+              ],
               "correct_answer": "D"
             },
             {
@@ -1808,8 +3094,13 @@
               "number": 8,
               "type": "multiple_choice",
               "topic": "Quadratics",
-              "question_text": "What is the sum of the roots of x² – 7x + 10 = 0?",
-              "choices": ["A. 10", "B. -7", "C. 7", "D. -10"],
+              "question_text": "What is the sum of the roots of x\u00b2 \u2013 7x + 10 = 0?",
+              "choices": [
+                "A. 10",
+                "B. -7",
+                "C. 7",
+                "D. -10"
+              ],
               "correct_answer": "C"
             },
             {
@@ -1818,7 +3109,12 @@
               "type": "multiple_choice",
               "topic": "Exponential Functions",
               "question_text": "Which function represents exponential growth?",
-              "choices": ["A. f(x) = 3x² + 2", "B. f(x) = 2ˣ", "C. f(x) = √x", "D. f(x) = x – 3"],
+              "choices": [
+                "A. f(x) = 3x\u00b2 + 2",
+                "B. f(x) = 2\u02e3",
+                "C. f(x) = \u221ax",
+                "D. f(x) = x \u2013 3"
+              ],
               "correct_answer": "B"
             },
             {
@@ -1826,8 +3122,13 @@
               "number": 10,
               "type": "multiple_choice",
               "topic": "Logarithms",
-              "question_text": "If log₂x = 3, what is the value of x?",
-              "choices": ["A. 6", "B. 9", "C. 8", "D. 3"],
+              "question_text": "If log\u2082x = 3, what is the value of x?",
+              "choices": [
+                "A. 6",
+                "B. 9",
+                "C. 8",
+                "D. 3"
+              ],
               "correct_answer": "C"
             },
             {
@@ -1835,8 +3136,13 @@
               "number": 11,
               "type": "multiple_choice",
               "topic": "Systems of Equations",
-              "question_text": "What is the solution to the system: x + y = 5 and x – y = 1?",
-              "choices": ["A. (3, 2)", "B. (2, 3)", "C. (1, 4)", "D. (4, 1)"],
+              "question_text": "What is the solution to the system: x + y = 5 and x \u2013 y = 1?",
+              "choices": [
+                "A. (3, 2)",
+                "B. (2, 3)",
+                "C. (1, 4)",
+                "D. (4, 1)"
+              ],
               "correct_answer": "A"
             },
             {
@@ -1845,7 +3151,12 @@
               "type": "multiple_choice",
               "topic": "Parallel Lines",
               "question_text": "Which equation represents a line parallel to y = 2x + 1?",
-              "choices": ["A. y = -2x + 3", "B. y = 2x – 5", "C. y = 1/2x + 4", "D. y = -1/2x – 3"],
+              "choices": [
+                "A. y = -2x + 3",
+                "B. y = 2x \u2013 5",
+                "C. y = 1/2x + 4",
+                "D. y = -1/2x \u2013 3"
+              ],
               "correct_answer": "B"
             },
             {
@@ -1853,8 +3164,13 @@
               "number": 13,
               "type": "multiple_choice",
               "topic": "Discriminant",
-              "question_text": "What is the value of the discriminant of 2x² – 4x + 1 = 0?",
-              "choices": ["A. 8", "B. 0", "C. 4", "D. –4"],
+              "question_text": "What is the value of the discriminant of 2x\u00b2 \u2013 4x + 1 = 0?",
+              "choices": [
+                "A. 8",
+                "B. 0",
+                "C. 4",
+                "D. \u20134"
+              ],
               "correct_answer": "A"
             },
             {
@@ -1862,8 +3178,13 @@
               "number": 14,
               "type": "multiple_choice",
               "topic": "Range",
-              "question_text": "What is the range of f(x) = x² – 4?",
-              "choices": ["A. All real numbers", "B. x > 0", "C. y ≥ –4", "D. y ≤ 4"],
+              "question_text": "What is the range of f(x) = x\u00b2 \u2013 4?",
+              "choices": [
+                "A. All real numbers",
+                "B. x > 0",
+                "C. y \u2265 \u20134",
+                "D. y \u2264 4"
+              ],
               "correct_answer": "C"
             },
             {
@@ -1871,8 +3192,13 @@
               "number": 15,
               "type": "multiple_choice",
               "topic": "Exponents",
-              "question_text": "Simplify: (3x²)(2x³)",
-              "choices": ["A. 6x⁵", "B. 6x⁶", "C. 5x⁶", "D. 5x⁵"],
+              "question_text": "Simplify: (3x\u00b2)(2x\u00b3)",
+              "choices": [
+                "A. 6x\u2075",
+                "B. 6x\u2076",
+                "C. 5x\u2076",
+                "D. 5x\u2075"
+              ],
               "correct_answer": "A"
             },
             {
@@ -1880,8 +3206,13 @@
               "number": 16,
               "type": "multiple_choice",
               "topic": "Trigonometry",
-              "question_text": "If sin θ = 1/2, what is the value of θ in degrees (0° ≤ θ ≤ 180°)?",
-              "choices": ["A. 90°", "B. 45°", "C. 30° or 150°", "D. 60°"],
+              "question_text": "If sin \u03b8 = 1/2, what is the value of \u03b8 in degrees (0\u00b0 \u2264 \u03b8 \u2264 180\u00b0)?",
+              "choices": [
+                "A. 90\u00b0",
+                "B. 45\u00b0",
+                "C. 30\u00b0 or 150\u00b0",
+                "D. 60\u00b0"
+              ],
               "correct_answer": "C"
             },
             {
@@ -1889,8 +3220,13 @@
               "number": 17,
               "type": "multiple_choice",
               "topic": "Binomial Expansion",
-              "question_text": "What is the result of (x – 2)²?",
-              "choices": ["A. x² – 4", "B. x² + 4", "C. x² – 2x + 4", "D. x² – 4x + 4"],
+              "question_text": "What is the result of (x \u2013 2)\u00b2?",
+              "choices": [
+                "A. x\u00b2 \u2013 4",
+                "B. x\u00b2 + 4",
+                "C. x\u00b2 \u2013 2x + 4",
+                "D. x\u00b2 \u2013 4x + 4"
+              ],
               "correct_answer": "D"
             },
             {
@@ -1898,8 +3234,13 @@
               "number": 18,
               "type": "multiple_choice",
               "topic": "Circles",
-              "question_text": "Which point lies on the circle with equation (x – 3)² + (y + 2)² = 25?",
-              "choices": ["A. (6, 2)", "B. (3, –2)", "C. (8, –2)", "D. (3, 3)"],
+              "question_text": "Which point lies on the circle with equation (x \u2013 3)\u00b2 + (y + 2)\u00b2 = 25?",
+              "choices": [
+                "A. (6, 2)",
+                "B. (3, \u20132)",
+                "C. (8, \u20132)",
+                "D. (3, 3)"
+              ],
               "correct_answer": "C"
             },
             {
@@ -1907,8 +3248,13 @@
               "number": 19,
               "type": "multiple_choice",
               "topic": "Inverse Functions",
-              "question_text": "What is the inverse of the function f(x) = 3x – 7?",
-              "choices": ["A. f⁻¹(x) = (x + 7)/3", "B. f⁻¹(x) = 3x + 7", "C. f⁻¹(x) = (x – 7)/3", "D. f⁻¹(x) = x/3 – 7"],
+              "question_text": "What is the inverse of the function f(x) = 3x \u2013 7?",
+              "choices": [
+                "A. f\u207b\u00b9(x) = (x + 7)/3",
+                "B. f\u207b\u00b9(x) = 3x + 7",
+                "C. f\u207b\u00b9(x) = (x \u2013 7)/3",
+                "D. f\u207b\u00b9(x) = x/3 \u2013 7"
+              ],
               "correct_answer": "A"
             },
             {
@@ -1917,7 +3263,12 @@
               "type": "multiple_choice",
               "topic": "Quadratic Functions",
               "question_text": "Which of the following represents a quadratic function?",
-              "choices": ["A. f(x) = 4x – 3", "B. f(x) = x² + x – 6", "C. f(x) = 2/x", "D. f(x) = √x"],
+              "choices": [
+                "A. f(x) = 4x \u2013 3",
+                "B. f(x) = x\u00b2 + x \u2013 6",
+                "C. f(x) = 2/x",
+                "D. f(x) = \u221ax"
+              ],
               "correct_answer": "B"
             }
           ]
@@ -2006,7 +3357,7 @@
               "number": 4,
               "type": "multi_step",
               "topic": "Volume",
-              "question_text": "A cylinder has a volume of 500π cm³. If the height is 10 cm, find the radius of the base.",
+              "question_text": "A cylinder has a volume of 500\u03c0 cm\u00b3. If the height is 10 cm, find the radius of the base.",
               "choices": []
             },
             {
@@ -2037,8 +3388,13 @@
               "number": 1,
               "type": "multiple_choice",
               "topic": "Derivatives",
-              "question_text": "What is the derivative of f(x) = 3x² + 2x – 5?",
-              "choices": ["A. 6x + 2", "B. 6x – 2", "C. 3x + 2", "D. x² + 2"],
+              "question_text": "What is the derivative of f(x) = 3x\u00b2 + 2x \u2013 5?",
+              "choices": [
+                "A. 6x + 2",
+                "B. 6x \u2013 2",
+                "C. 3x + 2",
+                "D. x\u00b2 + 2"
+              ],
               "correct_answer": "A"
             },
             {
@@ -2046,8 +3402,13 @@
               "number": 2,
               "type": "multiple_choice",
               "topic": "Limits",
-              "question_text": "Evaluate the limit: lim(x→0) (sin x)/x",
-              "choices": ["A. 0", "B. 1", "C. ∞", "D. Does not exist"],
+              "question_text": "Evaluate the limit: lim(x\u21920) (sin x)/x",
+              "choices": [
+                "A. 0",
+                "B. 1",
+                "C. \u221e",
+                "D. Does not exist"
+              ],
               "correct_answer": "B"
             },
             {
@@ -2055,8 +3416,13 @@
               "number": 3,
               "type": "multiple_choice",
               "topic": "Logarithms",
-              "question_text": "Solve: log₂(8x) = 6",
-              "choices": ["A. x = 2", "B. x = 8", "C. x = 4", "D. x = 1"],
+              "question_text": "Solve: log\u2082(8x) = 6",
+              "choices": [
+                "A. x = 2",
+                "B. x = 8",
+                "C. x = 4",
+                "D. x = 1"
+              ],
               "correct_answer": "B"
             },
             {
@@ -2064,8 +3430,13 @@
               "number": 4,
               "type": "multiple_choice",
               "topic": "Composition of Functions",
-              "question_text": "If f(x) = x² and g(x) = √x, find f(g(4))",
-              "choices": ["A. 2", "B. 4", "C. 8", "D. 16"],
+              "question_text": "If f(x) = x\u00b2 and g(x) = \u221ax, find f(g(4))",
+              "choices": [
+                "A. 2",
+                "B. 4",
+                "C. 8",
+                "D. 16"
+              ],
               "correct_answer": "B"
             },
             {
@@ -2073,8 +3444,13 @@
               "number": 5,
               "type": "multiple_choice",
               "topic": "Equations",
-              "question_text": "What is the solution to the equation: 2x – 3 = 5x + 9?",
-              "choices": ["A. x = -4", "B. x = 3", "C. x = -3", "D. x = 4"],
+              "question_text": "What is the solution to the equation: 2x \u2013 3 = 5x + 9?",
+              "choices": [
+                "A. x = -4",
+                "B. x = 3",
+                "C. x = -3",
+                "D. x = 4"
+              ],
               "correct_answer": "A"
             },
             {
@@ -2082,8 +3458,13 @@
               "number": 6,
               "type": "multiple_choice",
               "topic": "Simplifying Expressions",
-              "question_text": "Simplify: (x² – 4)/(x – 2)",
-              "choices": ["A. x + 2", "B. x – 2", "C. x² – 2", "D. x² + 2"],
+              "question_text": "Simplify: (x\u00b2 \u2013 4)/(x \u2013 2)",
+              "choices": [
+                "A. x + 2",
+                "B. x \u2013 2",
+                "C. x\u00b2 \u2013 2",
+                "D. x\u00b2 + 2"
+              ],
               "correct_answer": "A"
             },
             {
@@ -2092,7 +3473,12 @@
               "type": "multiple_choice",
               "topic": "Integrals",
               "question_text": "What is the integral of f(x) = 4x?",
-              "choices": ["A. 2x² + C", "B. x² + C", "C. 4x² + C", "D. 2x + C"],
+              "choices": [
+                "A. 2x\u00b2 + C",
+                "B. x\u00b2 + C",
+                "C. 4x\u00b2 + C",
+                "D. 2x + C"
+              ],
               "correct_answer": "A"
             },
             {
@@ -2100,8 +3486,13 @@
               "number": 8,
               "type": "multiple_choice",
               "topic": "Quadratics",
-              "question_text": "Solve for x: x² – 4x – 5 = 0",
-              "choices": ["A. x = -1, 5", "B. x = -5, 1", "C. x = 5, 1", "D. x = -2, 2"],
+              "question_text": "Solve for x: x\u00b2 \u2013 4x \u2013 5 = 0",
+              "choices": [
+                "A. x = -1, 5",
+                "B. x = -5, 1",
+                "C. x = 5, 1",
+                "D. x = -2, 2"
+              ],
               "correct_answer": "A"
             },
             {
@@ -2109,8 +3500,13 @@
               "number": 9,
               "type": "multiple_choice",
               "topic": "Asymptotes",
-              "question_text": "What is the vertical asymptote of y = 1/(x – 3)?",
-              "choices": ["A. x = 3", "B. x = -3", "C. y = 3", "D. y = -3"],
+              "question_text": "What is the vertical asymptote of y = 1/(x \u2013 3)?",
+              "choices": [
+                "A. x = 3",
+                "B. x = -3",
+                "C. y = 3",
+                "D. y = -3"
+              ],
               "correct_answer": "A"
             },
             {
@@ -2118,8 +3514,13 @@
               "number": 10,
               "type": "multiple_choice",
               "topic": "Matrices",
-              "question_text": "What is the matrix product of A = [1 2] and B = [3 4]ᵀ?",
-              "choices": ["A. [11]", "B. [10]", "C. [5]", "D. [7]"],
+              "question_text": "What is the matrix product of A = [1 2] and B = [3 4]\u1d40?",
+              "choices": [
+                "A. [11]",
+                "B. [10]",
+                "C. [5]",
+                "D. [7]"
+              ],
               "correct_answer": "A"
             },
             {
@@ -2128,7 +3529,12 @@
               "type": "multiple_choice",
               "topic": "Determinants",
               "question_text": "Find the value of the determinant: |2 3| |1 4|",
-              "choices": ["A. 5", "B. 11", "C. -5", "D. 8"],
+              "choices": [
+                "A. 5",
+                "B. 11",
+                "C. -5",
+                "D. 8"
+              ],
               "correct_answer": "A"
             },
             {
@@ -2136,8 +3542,13 @@
               "number": 12,
               "type": "multiple_choice",
               "topic": "Radians",
-              "question_text": "Convert 45° to radians",
-              "choices": ["A. π/6", "B. π/3", "C. π/4", "D. π/2"],
+              "question_text": "Convert 45\u00b0 to radians",
+              "choices": [
+                "A. \u03c0/6",
+                "B. \u03c0/3",
+                "C. \u03c0/4",
+                "D. \u03c0/2"
+              ],
               "correct_answer": "C"
             },
             {
@@ -2145,8 +3556,13 @@
               "number": 13,
               "type": "multiple_choice",
               "topic": "Exponential Equations",
-              "question_text": "Solve for x: eˣ = 7",
-              "choices": ["A. x = ln 7", "B. x = 7", "C. x = 1/7", "D. x = ln(1/7)"],
+              "question_text": "Solve for x: e\u02e3 = 7",
+              "choices": [
+                "A. x = ln 7",
+                "B. x = 7",
+                "C. x = 1/7",
+                "D. x = ln(1/7)"
+              ],
               "correct_answer": "A"
             },
             {
@@ -2155,7 +3571,12 @@
               "type": "multiple_choice",
               "topic": "Statistics",
               "question_text": "What is the mean of: 3, 7, 7, 10?",
-              "choices": ["A. 6.5", "B. 7", "C. 6.75", "D. 8"],
+              "choices": [
+                "A. 6.5",
+                "B. 7",
+                "C. 6.75",
+                "D. 8"
+              ],
               "correct_answer": "C"
             },
             {
@@ -2164,7 +3585,12 @@
               "type": "multiple_choice",
               "topic": "Standard Deviation",
               "question_text": "What is the standard deviation of: 5, 5, 5, 5?",
-              "choices": ["A. 0", "B. 1", "C. 5", "D. ∞"],
+              "choices": [
+                "A. 0",
+                "B. 1",
+                "C. 5",
+                "D. \u221e"
+              ],
               "correct_answer": "A"
             },
             {
@@ -2173,7 +3599,12 @@
               "type": "multiple_choice",
               "topic": "Perpendicular Lines",
               "question_text": "Find the slope of a line perpendicular to y = 3x + 2",
-              "choices": ["A. 1/3", "B. -1/3", "C. -3", "D. 3"],
+              "choices": [
+                "A. 1/3",
+                "B. -1/3",
+                "C. -3",
+                "D. 3"
+              ],
               "correct_answer": "B"
             },
             {
@@ -2181,8 +3612,13 @@
               "number": 17,
               "type": "multiple_choice",
               "topic": "Inequalities",
-              "question_text": "What is the solution to the inequality: 3x – 4 > 8",
-              "choices": ["A. x > 4", "B. x > 3", "C. x < 4", "D. x > 2"],
+              "question_text": "What is the solution to the inequality: 3x \u2013 4 > 8",
+              "choices": [
+                "A. x > 4",
+                "B. x > 3",
+                "C. x < 4",
+                "D. x > 2"
+              ],
               "correct_answer": "A"
             },
             {
@@ -2190,8 +3626,13 @@
               "number": 18,
               "type": "multiple_choice",
               "topic": "Factoring",
-              "question_text": "Expand: (x + 2)(x – 3)",
-              "choices": ["A. x² – x – 6", "B. x² + 5x – 6", "C. x² – x + 6", "D. x² + 2x – 3"],
+              "question_text": "Expand: (x + 2)(x \u2013 3)",
+              "choices": [
+                "A. x\u00b2 \u2013 x \u2013 6",
+                "B. x\u00b2 + 5x \u2013 6",
+                "C. x\u00b2 \u2013 x + 6",
+                "D. x\u00b2 + 2x \u2013 3"
+              ],
               "correct_answer": "A"
             },
             {
@@ -2199,8 +3640,13 @@
               "number": 19,
               "type": "multiple_choice",
               "topic": "Trigonometry",
-              "question_text": "If sin θ = 0.6 and θ is in quadrant II, what is cos θ?",
-              "choices": ["A. -0.8", "B. 0.8", "C. -0.6", "D. 0.6"],
+              "question_text": "If sin \u03b8 = 0.6 and \u03b8 is in quadrant II, what is cos \u03b8?",
+              "choices": [
+                "A. -0.8",
+                "B. 0.8",
+                "C. -0.6",
+                "D. 0.6"
+              ],
               "correct_answer": "A"
             },
             {
@@ -2208,8 +3654,13 @@
               "number": 20,
               "type": "multiple_choice",
               "topic": "Absolute Value",
-              "question_text": "What is the solution to the absolute value equation |x – 2| = 5?",
-              "choices": ["A. x = -3 or 7", "B. x = 3 or -7", "C. x = -5 or 2", "D. x = -2 or 5"],
+              "question_text": "What is the solution to the absolute value equation |x \u2013 2| = 5?",
+              "choices": [
+                "A. x = -3 or 7",
+                "B. x = 3 or -7",
+                "C. x = -5 or 2",
+                "D. x = -2 or 5"
+              ],
               "correct_answer": "A"
             }
           ]
@@ -2249,7 +3700,7 @@
               "number": 4,
               "type": "word_problem",
               "topic": "Trigonometry",
-              "question_text": "A triangle has an angle measuring 30° and an adjacent side of 10 cm. Use trigonometry to find the opposite side (to the nearest tenth).",
+              "question_text": "A triangle has an angle measuring 30\u00b0 and an adjacent side of 10 cm. Use trigonometry to find the opposite side (to the nearest tenth).",
               "choices": []
             },
             {
@@ -2298,7 +3749,7 @@
               "number": 4,
               "type": "multi_step",
               "topic": "Volume",
-              "question_text": "A cylinder has a volume of 500π cm³. If its height is 10 cm, find the radius of the base. Use the formula V = π r² h.",
+              "question_text": "A cylinder has a volume of 500\u03c0 cm\u00b3. If its height is 10 cm, find the radius of the base. Use the formula V = \u03c0 r\u00b2 h.",
               "choices": []
             },
             {
