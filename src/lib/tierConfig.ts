@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════════
-   D.E.Bs LEARNING ACADEMY — Centralized Tier Configuration
+   D.E.Bs DIAGNOSTIC HUB — Centralized Tier Configuration
    ══════════════════════════════════════════════════════════ */
 
 /* ── Thresholds ── */

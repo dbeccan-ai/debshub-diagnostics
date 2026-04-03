@@ -267,7 +267,7 @@ export function RecommendedNextStepPanel({
 
     const studentDisplay = studentName ? studentName : "Your Child";
 
-    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${subjectLabel} Home Support Plan – D.E.Bs Learning Academy</title>
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${subjectLabel} Home Support Plan – D.E.Bs Diagnostic Hub</title>
 <style>
 body{font-family:Georgia,serif;max-width:750px;margin:40px auto;padding:20px;color:#1C2D5A;}
 h1{color:#1C2D5A;border-bottom:3px solid #FFDE59;padding-bottom:10px;}
@@ -284,7 +284,7 @@ a{color:#1C2D5A;}
 @media print{body{margin:20px;}}
 </style></head>
 <body>
-<p style="text-align:center;font-size:13px;letter-spacing:2px;color:#64748b;text-transform:uppercase;">D.E.Bs LEARNING ACADEMY — Unlocking Brilliance Through Learning</p>
+<p style="text-align:center;font-size:13px;letter-spacing:2px;color:#64748b;text-transform:uppercase;">D.E.Bs DIAGNOSTIC HUB — Unlocking Brilliance Through Learning</p>
 <h1>🏠 ${subjectLabel} Home Support Plan</h1>
 <div class="student-banner">
   <h2>👤 ${studentDisplay}</h2>
@@ -308,7 +308,7 @@ ${weeklyPlanHtml}
   <li>🌐 Website: <a href="https://www.debslearnacademy.com">www.debslearnacademy.com</a></li>
 </ul>
 <div class="footer">
-  <p><strong>D.E.Bs Learning Academy</strong> — Supporting every learner from foundational skills to academic excellence.</p>
+  <p><strong>D.E.Bs Diagnostic Hub</strong> — Supporting every learner from foundational skills to academic excellence.</p>
   <p>Generated: ${new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</p>
 </div>
 <script>window.onload=()=>{setTimeout(()=>window.print(),400);}</script>

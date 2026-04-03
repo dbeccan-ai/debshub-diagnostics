@@ -18,7 +18,7 @@ serve(async (req) => {
     const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
     const emailResponse = await resend.emails.send({
-      from: "D.E.Bs Learning Academy <noreply@debslearnacademy.com>",
+      from: "D.E.Bs Diagnostic Hub <noreply@debslearnacademy.com>",
       to: [email],
       subject: `Your Diagnostic Bundle Coupon Code — ${couponCode}`,
       html: `
@@ -26,7 +26,7 @@ serve(async (req) => {
 <html><head><meta charset="utf-8"></head>
 <body style="font-family:Georgia,serif;max-width:600px;margin:0 auto;padding:20px;color:#1C2D5A;">
   <div style="text-align:center;padding:20px 0;border-bottom:3px solid #FFDE59;">
-    <h1 style="margin:0;font-size:24px;">D.E.Bs Learning Academy</h1>
+    <h1 style="margin:0;font-size:24px;">D.E.Bs Diagnostic Hub</h1>
     <p style="margin:4px 0 0;font-size:13px;color:#64748b;letter-spacing:2px;text-transform:uppercase;">Unlocking Brilliance Through Learning</p>
   </div>
 
@@ -55,7 +55,7 @@ serve(async (req) => {
   </div>
 
   <div style="border-top:2px solid #e2e8f0;padding-top:16px;font-size:13px;color:#64748b;">
-    <p><strong>D.E.Bs Learning Academy</strong></p>
+    <p><strong>D.E.Bs Diagnostic Hub</strong></p>
     <p>📧 info@debslearnacademy.com | 📞 347-364-1906</p>
     <p>🌐 <a href="https://www.debslearnacademy.com" style="color:#1C2D5A;">www.debslearnacademy.com</a></p>
   </div>

@@ -209,7 +209,7 @@ export default function Grade6Diagnostic() {
     const percentage = Math.round((score / maxScore) * 100);
     const tierInfo = getTier(percentage);
     
-    let content = `D.E.Bs LEARNING ACADEMY\nGrade 6 Diagnostic Math Test Results\n${"=".repeat(50)}\n\n`;
+    let content = `D.E.Bs DIAGNOSTIC HUB\nGrade 6 Diagnostic Math Test Results\n${"=".repeat(50)}\n\n`;
     content += `Student Name: ${studentName}\n`;
     content += `Date: ${assessmentDate}\n`;
     content += `Grade Level: ${gradeLevel}\n\n`;
@@ -372,7 +372,7 @@ export default function Grade6Diagnostic() {
               📞 347-364-1906 • 📧 info@debslearnacademy.com
             </p>
             <p className="text-sm text-gray-400 mt-2">
-              © {new Date().getFullYear()} D.E.Bs Learning Academy
+              © {new Date().getFullYear()} D.E.Bs Diagnostic Hub
             </p>
           </div>
         </footer>
@@ -776,7 +776,7 @@ export default function Grade6Diagnostic() {
       <footer className="bg-[#1C2D5A] text-white py-4 mt-8 print:hidden">
         <div className="container mx-auto px-4 text-center">
           <p className="text-[#FFDE59] font-semibold">
-            D.E.Bs Learning Academy — Unlocking Brilliance Through Learning
+            D.E.Bs Diagnostic Hub — Unlocking Brilliance Through Learning
           </p>
         </div>
       </footer>

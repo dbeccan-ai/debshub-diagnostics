@@ -168,7 +168,7 @@ serve(async (req) => {
 <body>
   <div class="container">
     <div class="header">
-      <h1>D.E.Bs LEARNING ACADEMY</h1>
+      <h1>D.E.Bs DIAGNOSTIC HUB</h1>
       <p>Unlocking Brilliance Through Learning</p>
     </div>
     <div class="content">
@@ -192,16 +192,16 @@ serve(async (req) => {
       ${attempt.tier === "Tier 3" ? `
       <div class="tier3-message">
         <strong>Recommendation:</strong> Based on the results, we strongly recommend additional support. 
-        Consider booking a tutor with D.E.Bs LEARNING ACADEMY to help your child improve.
+        Consider booking a tutor with D.E.Bs DIAGNOSTIC HUB to help your child improve.
       </div>` : ""}
       ${certificate?.certificate_url ? `
       <p style="text-align: center;">
         <a href="${certificate.certificate_url}" class="button">View Certificate</a>
       </p>` : ""}
-      <p>Thank you for choosing D.E.Bs LEARNING ACADEMY. Contact us at 347-364-1906 or info@debslearnacademy.com with any questions.</p>
+      <p>Thank you for choosing D.E.Bs DIAGNOSTIC HUB. Contact us at 347-364-1906 or info@debslearnacademy.com with any questions.</p>
     </div>
     <div class="footer">
-      <p>© ${new Date().getFullYear()} D.E.Bs LEARNING ACADEMY</p>
+      <p>© ${new Date().getFullYear()} D.E.Bs DIAGNOSTIC HUB</p>
       <p>This email was sent automatically.</p>
     </div>
   </div>
@@ -212,7 +212,7 @@ serve(async (req) => {
     const resend = new Resend(resendApiKey);
 
     const { error: emailError } = await resend.emails.send({
-      from: "D.E.Bs Learning Academy <noreply@debslearnacademy.com>",
+      from: "D.E.Bs Diagnostic Hub <noreply@debslearnacademy.com>",
       to: [parentEmail],
       subject: `Test Results: ${attempt.tests?.name} - ${attempt.profiles?.full_name}`,
       html: emailHTML,

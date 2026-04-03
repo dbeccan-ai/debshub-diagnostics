@@ -520,7 +520,7 @@ export const SampleResultsDialog = ({ buttonText, className }: SampleResultsDial
               
               <div className="border-t border-slate-100 pt-4 mt-4">
                 <p className="text-xs text-slate-500">
-                  <strong>Contact D.E.Bs LEARNING ACADEMY</strong><br />
+                  <strong>Contact D.E.Bs DIAGNOSTIC HUB</strong><br />
                   📧 Email: info@debslearnacademy.com | 📞 Phone: 347-364-1906
                 </p>
               </div>

@@ -122,7 +122,7 @@ Deno.serve(async (req) => {
         </p>
         <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
         <p style="color: #a0aec0; font-size: 12px;">
-          This is an automated notification from DEBs Learning Academy Reading Recovery Programme.
+          This is an automated notification from DEBs Diagnostic Hub Reading Recovery Programme.
           <br/>Contact: info@debslearnacademy.com | 347-364-1906
         </p>
       </div>

@@ -166,7 +166,7 @@ const Register = () => {
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-100 via-white to-amber-50 p-4">
       <Card className="w-full max-w-md border-slate-200 shadow-lg">
         <CardHeader className="text-center pb-2">
-          <img src="/icon-512.png" alt="DEBs Learning Academy" className="h-12 w-12 rounded-full object-cover mx-auto mb-2" />
+          <img src="/icon-512.png" alt="DEBs Diagnostic Hub" className="h-12 w-12 rounded-full object-cover mx-auto mb-2" />
           <CardTitle className="text-xl font-bold text-slate-900">
             Create Your {roleName} Account
           </CardTitle>

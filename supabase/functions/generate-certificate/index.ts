@@ -183,7 +183,7 @@ serve(async (req) => {
 <body>
   <div class="certificate">
     <div class="header">
-      <div class="logo">D.E.Bs LEARNING ACADEMY</div>
+      <div class="logo">D.E.Bs DIAGNOSTIC HUB</div>
       <div class="tagline">Unlocking Brilliance Through Learning</div>
     </div>
     

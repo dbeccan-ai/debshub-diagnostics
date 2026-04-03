@@ -440,7 +440,7 @@ const Curriculum = () => {
                   Register for our tutoring pods for personalized instruction and guided practice sessions.
                 </p>
                 <div className="text-xs text-amber-600">
-                  <strong>Contact D.E.Bs LEARNING ACADEMY</strong><br />
+                  <strong>Contact D.E.Bs DIAGNOSTIC HUB</strong><br />
                   📧 info@debslearnacademy.com | 📞 347-364-1906
                 </div>
               </CardContent>

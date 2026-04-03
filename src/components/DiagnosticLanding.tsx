@@ -112,7 +112,7 @@ export default function DiagnosticLanding({
             📞 347-364-1906 • 📧 info@debslearnacademy.com
           </p>
           <p className="text-sm text-gray-400 mt-2">
-            © {new Date().getFullYear()} D.E.Bs Learning Academy
+            © {new Date().getFullYear()} D.E.Bs Diagnostic Hub
           </p>
         </div>
       </footer>

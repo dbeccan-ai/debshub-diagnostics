@@ -199,7 +199,7 @@ body { margin: 0; padding: 40px; font-family: Georgia, serif; background: linear
 .footer { text-align: center; margin-top: 50px; padding-top: 30px; border-top: 2px solid ${tc.border}; color: #666; }
 </style></head><body>
 <div class="cert">
-  <div class="header"><div class="logo">D.E.Bs LEARNING ACADEMY</div><div class="tagline">Reading Recovery Programme</div></div>
+  <div class="header"><div class="logo">D.E.Bs DIAGNOSTIC HUB</div><div class="tagline">Reading Recovery Programme</div></div>
   <div class="title">Reading Assessment Results</div>
   <div class="name">${res.student_name}</div>
   <p style="text-align:center;font-size:18px;margin:30px 0;">

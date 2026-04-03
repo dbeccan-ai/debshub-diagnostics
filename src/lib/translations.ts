@@ -154,7 +154,7 @@ export const translations = {
     },
     // Footer
     footer: {
-      copyright: "© 2024 D.E.Bs Learning Academy. All rights reserved.",
+      copyright: "© 2024 D.E.Bs Diagnostic Hub. All rights reserved.",
       terms: "Terms",
       privacy: "Privacy",
       contact: "Contact",
@@ -263,7 +263,7 @@ export const translations = {
     readingRecovery: {
       // Landing page
       programmeTitle: "Reading Recovery Programme",
-      byDebs: "by D.E.Bs Learning Academy",
+      byDebs: "by D.E.Bs Diagnostic Hub",
       heroTitle: "Transform Your Child's Reading in 21 Days",
       heroDesc: "Identify exactly where your child's reading breaks down and get a clear roadmap to fluency with our comprehensive diagnostic and recovery programme.",
       startFreeAssessment: "Start Free Assessment",
@@ -535,7 +535,7 @@ export const translations = {
       viewPricing: "Ver Precios",
     },
     footer: {
-      copyright: "© 2024 D.E.Bs Learning Academy. Todos los derechos reservados.",
+      copyright: "© 2024 D.E.Bs Diagnostic Hub. Todos los derechos reservados.",
       terms: "Términos",
       privacy: "Privacidad",
       contact: "Contacto",
@@ -639,7 +639,7 @@ export const translations = {
     },
     readingRecovery: {
       programmeTitle: "Programa de Recuperación de Lectura",
-      byDebs: "por D.E.Bs Learning Academy",
+      byDebs: "por D.E.Bs Diagnostic Hub",
       heroTitle: "Transforma la Lectura de tu Hijo en 21 Días",
       heroDesc: "Identifica exactamente dónde falla la lectura de tu hijo y obtén una hoja de ruta clara hacia la fluidez con nuestro programa integral de diagnóstico y recuperación.",
       startFreeAssessment: "Comenzar Evaluación Gratuita",
@@ -899,7 +899,7 @@ export const translations = {
       viewPricing: "Voir les Tarifs",
     },
     footer: {
-      copyright: "© 2024 D.E.Bs Learning Academy. Tous droits réservés.",
+      copyright: "© 2024 D.E.Bs Diagnostic Hub. Tous droits réservés.",
       terms: "Conditions",
       privacy: "Confidentialité",
       contact: "Contact",
@@ -1003,7 +1003,7 @@ export const translations = {
     },
     readingRecovery: {
       programmeTitle: "Programme de Récupération en Lecture",
-      byDebs: "par D.E.Bs Learning Academy",
+      byDebs: "par D.E.Bs Diagnostic Hub",
       heroTitle: "Transformez la Lecture de Votre Enfant en 21 Jours",
       heroDesc: "Identifiez exactement où la lecture de votre enfant échoue et obtenez une feuille de route claire vers la fluidité avec notre programme complet de diagnostic et de récupération.",
       startFreeAssessment: "Commencer l'Évaluation Gratuite",
@@ -1263,7 +1263,7 @@ export const translations = {
       viewPricing: "查看价格",
     },
     footer: {
-      copyright: "© 2024 D.E.Bs Learning Academy。保留所有权利。",
+      copyright: "© 2024 D.E.Bs Diagnostic Hub。保留所有权利。",
       terms: "条款",
       privacy: "隐私",
       contact: "联系",
@@ -1367,7 +1367,7 @@ export const translations = {
     },
     readingRecovery: {
       programmeTitle: "阅读恢复计划",
-      byDebs: "由 D.E.Bs Learning Academy 提供",
+      byDebs: "由 D.E.Bs Diagnostic Hub 提供",
       heroTitle: "21天内改变您孩子的阅读能力",
       heroDesc: "准确识别您孩子阅读障碍的位置，并通过我们全面的诊断和恢复计划获得清晰的流利阅读路线图。",
       startFreeAssessment: "开始免费评估",
