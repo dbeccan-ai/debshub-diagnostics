@@ -1,33 +1,51 @@
 
 
-# Add Demo Test Questions for All Missing Grades
+# Add Homescreen Icon (Favicon + PWA)
 
-## Problem
-The demo test shows "Sample Not Available" for Math grades 2-5 and ELA grades 1-4 because these grades' questions exist only in the database, not in the local JSON files that `DemoTest.tsx` reads from.
+## What We're Doing
+Copy the uploaded shield/chart icon image into the project and configure it as the favicon and Apple touch icon so the app displays this icon on device homescreens and browser tabs. Also update the page title and meta descriptions to reflect "DEBs Diagnostic Hub."
 
-## Solution
-Add the missing grade entries to both JSON data files by pulling existing MC questions from the database. Only multiple-choice questions are needed (the demo extracts MC only). Each grade entry will include 8-10 MC questions — enough for the 5-question demo sample.
+## Changes
 
-## Missing Grades
+### 1. Copy the uploaded image
+Copy `user-uploads://ChatGPT_Image_Apr_3_2026_01_15_02_PM.png` to `public/icon-512.png`
 
-| File | Missing Grades |
-|------|---------------|
-| `src/data/diagnostic-tests.json` | 2, 3, 4, 5 |
-| `src/data/ela-diagnostic-tests.json` | 1, 2, 3, 4 |
+### 2. Generate smaller icon sizes
+Use a script to create `public/favicon.png` (32x32) and `public/apple-touch-icon.png` (180x180) from the uploaded image.
 
-## Approach
+### 3. Update `index.html`
+- Add `<link rel="icon" href="/favicon.png" type="image/png">`
+- Add `<link rel="apple-touch-icon" href="/apple-touch-icon.png">`
+- Update `<title>` to "DEBs Diagnostic Hub"
+- Update meta description and OG tags to reflect the brand
+- Delete `public/favicon.ico` if it exists
 
-1. Query the database for each missing grade's questions (already confirmed all exist)
-2. Add each grade as a new entry in `all_diagnostics` array in the respective JSON file, matching the existing format: `{ grade, test_name, total_time_minutes, sections: [{ section_title, instructions, time_limit_minutes, calculator_allowed, questions: [...] }] }`
-3. Include only the MC questions (type: `multiple_choice`) with `id`, `number`, `type`, `topic`, `question_text`, `choices`, `correct_answer`
-4. No code changes to `DemoTest.tsx` needed — it already handles the format correctly
+### 4. Add `public/manifest.json`
+Create a basic web app manifest so the icon appears when users "Add to Home Screen":
+```json
+{
+  "name": "DEBs Diagnostic Hub",
+  "short_name": "DEBs Hub",
+  "icons": [
+    { "src": "/favicon.png", "sizes": "32x32", "type": "image/png" },
+    { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#001F3F",
+  "theme_color": "#001F3F"
+}
+```
+Link it in `index.html` with `<link rel="manifest" href="/manifest.json">`.
 
 ## Files Changed
 
 | File | Change |
 |------|--------|
-| `src/data/diagnostic-tests.json` | Add grade 2, 3, 4, 5 entries to `all_diagnostics` |
-| `src/data/ela-diagnostic-tests.json` | Add grade 1, 2, 3, 4 entries to `all_diagnostics` |
-
-No database changes. No new files. No code logic changes.
+| `public/icon-512.png` | New — copied from upload |
+| `public/favicon.png` | New — resized 32x32 |
+| `public/apple-touch-icon.png` | New — resized 180x180 |
+| `public/manifest.json` | New — PWA manifest |
+| `index.html` | Add icon links, manifest link, update title/meta |
 
