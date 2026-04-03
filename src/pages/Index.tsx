@@ -30,9 +30,7 @@ export default function Page() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
           {/* Logo / Brand */}
           <div className="flex items-center gap-2">
-            <div className="h-9 w-9 rounded-full bg-gradient-to-br from-amber-300 to-yellow-400 flex items-center justify-center font-bold text-slate-900 text-sm">
-              DEB
-            </div>
+            <img src="/icon-512.png" alt="DEBs Learning Academy" className="h-9 w-9 rounded-full object-cover" />
             <div className="leading-tight">
               <div className="font-bold text-slate-900 text-sm sm:text-base">D.E.Bs LEARNING ACADEMY</div>
               <div className="text-xs text-slate-500">Unlocking Brilliance Through Learning</div>
