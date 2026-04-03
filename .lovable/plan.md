@@ -1,29 +1,33 @@
 
 
-# Upgrade Demo Test Results to Full Report
+# Add Demo Test Questions for All Missing Grades
 
 ## Problem
-The current demo test results view is a bare-bones score card + simple skill list. The actual Results page (`Results.tsx`) is the key differentiator — it includes tier badges, insight boxes, skill-by-skill performance bars, placement pathway, recommended next steps with CTAs, and curriculum preview. Principals need to see this full report to understand the product's value.
+The demo test shows "Sample Not Available" for Math grades 2-5 and ELA grades 1-4 because these grades' questions exist only in the database, not in the local JSON files that `DemoTest.tsx` reads from.
 
 ## Solution
-Replace the simplified results section in `DemoTest.tsx` with the full report layout that mirrors `Results.tsx`, reusing the existing `TierComponents` (InsightBox, TierStatusBadge, SkillRow, TierClassificationBlocks, PlacementPathwayCard, RecommendedNextStepPanel).
+Add the missing grade entries to both JSON data files by pulling existing MC questions from the database. Only multiple-choice questions are needed (the demo extracts MC only). Each grade entry will include 8-10 MC questions — enough for the 5-question demo sample.
 
-## Changes — `src/pages/DemoTest.tsx` only
+## Missing Grades
 
-Rewrite the `if (submitted)` results block to include:
+| File | Missing Grades |
+|------|---------------|
+| `src/data/diagnostic-tests.json` | 2, 3, 4, 5 |
+| `src/data/ela-diagnostic-tests.json` | 1, 2, 3, 4 |
 
-1. **Score Overview Card** — Tier badge, percentage, correct/total, student name placeholder ("Demo Student"), test name, grade level, date — matching Results.tsx layout
-2. **InsightBox** — Emotional urgency box driven by score tier
-3. **RecommendedNextStepPanel** — Tier-specific CTA panel (consultation / skill builder / enrichment)
-4. **Quick Stats Row** — 3 colored cards: Correct, Incorrect, Skills Tested
-5. **TierClassificationBlocks** — Grouped skill sections by tier color
-6. **SkillRow breakdown** — Per-skill performance bars with status pills and action text
-7. **PlacementPathwayCard** — Shows all 3 tiers with the student's tier highlighted
-8. **Curriculum Preview Card** — Static preview showing what a personalized curriculum looks like (with a "This is a demo preview" note)
-9. **Tier Explanation Card** — Understanding your placement + contact info
-10. **"Back to Demo" and "Retake" buttons** remain at bottom
+## Approach
 
-All data is computed locally from the 5-question answers — no database or auth calls. Imports are added for `TierStatusBadge`, `SkillRow`, `RecommendedNextStepPanel`, `PlacementPathwayCard`, `TierClassificationBlocks`, `InsightBox` from `TierComponents`, and `getTierFromScore`, `TIER_LABELS` from `tierConfig`.
+1. Query the database for each missing grade's questions (already confirmed all exist)
+2. Add each grade as a new entry in `all_diagnostics` array in the respective JSON file, matching the existing format: `{ grade, test_name, total_time_minutes, sections: [{ section_title, instructions, time_limit_minutes, calculator_allowed, questions: [...] }] }`
+3. Include only the MC questions (type: `multiple_choice`) with `id`, `number`, `type`, `topic`, `question_text`, `choices`, `correct_answer`
+4. No code changes to `DemoTest.tsx` needed — it already handles the format correctly
 
-No new files. No database changes. Single file edit.
+## Files Changed
+
+| File | Change |
+|------|--------|
+| `src/data/diagnostic-tests.json` | Add grade 2, 3, 4, 5 entries to `all_diagnostics` |
+| `src/data/ela-diagnostic-tests.json` | Add grade 1, 2, 3, 4 entries to `all_diagnostics` |
+
+No database changes. No new files. No code logic changes.
 
