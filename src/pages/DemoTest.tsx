@@ -349,7 +349,7 @@ export default function DemoTest() {
                 <p className={`text-sm ${tierCfg.textClass}`}>{tierCfg.helper}</p>
               </div>
               <div className="border-t border-slate-100 pt-4 mt-4">
-                <p className="font-bold text-[#1C2D5A] mb-1 text-sm">Contact D.E.Bs LEARNING ACADEMY</p>
+                <p className="font-bold text-[#1C2D5A] mb-1 text-sm">Contact D.E.Bs DIAGNOSTIC HUB</p>
                 <p className="text-xs text-slate-600">
                   📧 <a href="mailto:info@debslearnacademy.com" className="text-blue-600 underline hover:text-blue-800">info@debslearnacademy.com</a>{" "}
                   | 📞 <a href="tel:+13473641906" className="text-blue-600 underline hover:text-blue-800">347-364-1906</a>

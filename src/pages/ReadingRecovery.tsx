@@ -241,7 +241,7 @@ const ReadingRecovery = () => {
       {/* Footer */}
       <footer className="py-8 border-t border-border bg-white">
         <div className="container mx-auto px-4 text-center text-muted-foreground text-sm">
-          <p>© {new Date().getFullYear()} D.E.Bs LEARNING ACADEMY. {t.footer.copyright.split('.')[0]}.</p>
+          <p>© {new Date().getFullYear()} D.E.Bs DIAGNOSTIC HUB. {t.footer.copyright.split('.')[0]}.</p>
           <p className="mt-1">{t.footer.contact}: info@debslearnacademy.com | 347-364-1906</p>
         </div>
       </footer>

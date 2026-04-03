@@ -97,7 +97,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; l
 </style></head><body>
 <div class="container">
   <div class="header">
-    <h1>D.E.Bs LEARNING ACADEMY</h1>
+    <h1>D.E.Bs DIAGNOSTIC HUB</h1>
     <p style="margin:10px 0 0;opacity:0.9;">Reading Recovery Programme Results</p>
   </div>
   <div class="content">
@@ -117,19 +117,19 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; l
     ${tier === "Tier 3" ? `
     <div style="background:#fff3cd;border-left:4px solid #ffc107;padding:15px;margin:20px 0;border-radius:5px;">
       <strong>Recommendation:</strong> Based on the results, we strongly recommend additional reading support. 
-      Consider booking a tutor with D.E.Bs LEARNING ACADEMY to help your child improve.
+      Consider booking a tutor with D.E.Bs DIAGNOSTIC HUB to help your child improve.
     </div>` : ""}
-    <p>Thank you for choosing D.E.Bs LEARNING ACADEMY. Contact us at 347-364-1906 or info@debslearnacademy.com with any questions.</p>
+    <p>Thank you for choosing D.E.Bs DIAGNOSTIC HUB. Contact us at 347-364-1906 or info@debslearnacademy.com with any questions.</p>
   </div>
   <div class="footer">
     <p>Assessment Date: ${assessmentDate}</p>
-    <p>© ${new Date().getFullYear()} D.E.Bs LEARNING ACADEMY</p>
+    <p>© ${new Date().getFullYear()} D.E.Bs DIAGNOSTIC HUB</p>
   </div>
 </div></body></html>`;
 
     const resend = new Resend(resendApiKey);
     const { error: emailError } = await resend.emails.send({
-      from: "D.E.Bs Learning Academy <noreply@debslearnacademy.com>",
+      from: "D.E.Bs Diagnostic Hub <noreply@debslearnacademy.com>",
       to: [parentEmail],
       subject: `Reading Recovery Results: ${studentName}`,
       html: emailHTML,

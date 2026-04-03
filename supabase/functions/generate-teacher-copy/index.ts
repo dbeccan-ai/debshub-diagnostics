@@ -563,7 +563,7 @@ function generateTeacherCopyHTML(data: {
   ${sectionsHTML}
   
   <div class="footer">
-    <p><strong>D.E.Bs LEARNING ACADEMY</strong> — Unlocking Brilliance Through Learning</p>
+    <p><strong>D.E.Bs DIAGNOSTIC HUB</strong> — Unlocking Brilliance Through Learning</p>
     <p>Phone: 347-364-1906 | Email: info@debslearnacademy.com</p>
   </div>
 </body>

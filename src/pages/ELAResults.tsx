@@ -216,7 +216,7 @@ a{color:#1C2D5A;}
 @media print{body{margin:20px;}}
 </style></head>
 <body>
-<p style="text-align:center;font-size:12px;letter-spacing:2px;color:#64748b;text-transform:uppercase;">D.E.Bs LEARNING ACADEMY — Unlocking Brilliance Through Learning</p>
+<p style="text-align:center;font-size:12px;letter-spacing:2px;color:#64748b;text-transform:uppercase;">D.E.Bs DIAGNOSTIC HUB — Unlocking Brilliance Through Learning</p>
 <h1>📋 ELA Diagnostic Results</h1>
 <p><span class="badge">${tierCfg.badge} — ${tierCfg.label}</span></p>
 <table>
@@ -239,7 +239,7 @@ ${result.sectionBreakdown.length > 0 ? `
   <li>🌐 Website: <a href="https://www.debslearnacademy.com">www.debslearnacademy.com</a></li>
 </ul>
 <div class="footer">
-  <p><strong>D.E.Bs Learning Academy</strong> — Supporting every learner from foundational skills to academic excellence.</p>
+  <p><strong>D.E.Bs Diagnostic Hub</strong> — Supporting every learner from foundational skills to academic excellence.</p>
   <p>Generated: ${new Date().toLocaleDateString("en-US",{weekday:"long",year:"numeric",month:"long",day:"numeric"})}</p>
 </div>
 <script>window.onload=()=>{setTimeout(()=>window.print(),400);}</script>
@@ -515,7 +515,7 @@ ${result.sectionBreakdown.length > 0 ? `
               <p className={`text-sm ${tierCfg.textClass}`}>{tierCfg.helper}</p>
             </div>
             <div className="border-t border-slate-100 pt-4">
-              <p className="font-bold text-[#1C2D5A] mb-1 text-sm">Contact D.E.Bs LEARNING ACADEMY</p>
+              <p className="font-bold text-[#1C2D5A] mb-1 text-sm">Contact D.E.Bs DIAGNOSTIC HUB</p>
               <p className="text-xs text-slate-600">
                 📧{" "}
                 <a href="mailto:info@debslearnacademy.com" className="text-blue-600 underline hover:text-blue-800">

@@ -183,7 +183,7 @@ export default function Grade2Diagnostic() {
     const percentage = Math.round((score / maxScore) * 100);
     const tierInfo = getTier(percentage);
     
-    let content = `D.E.Bs LEARNING ACADEMY\nGrade 2 Diagnostic Math Test Results\n${"=".repeat(50)}\n\n`;
+    let content = `D.E.Bs DIAGNOSTIC HUB\nGrade 2 Diagnostic Math Test Results\n${"=".repeat(50)}\n\n`;
     content += `Student Name: ${studentName}\n`;
     content += `Date: ${assessmentDate}\n`;
     content += `Grade Level: ${gradeLevel}\n\n`;
@@ -416,7 +416,7 @@ export default function Grade2Diagnostic() {
                   Want to get even better at math? 📚
                 </p>
                 <p className="text-[#1C2D5A]">
-                  D.E.Bs Learning Academy can help you become a math superstar!
+                  D.E.Bs Diagnostic Hub can help you become a math superstar!
                 </p>
               </div>
             </CardContent>

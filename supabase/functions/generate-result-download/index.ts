@@ -541,7 +541,7 @@ serve(async (req) => {
   <div class="page">
     <div class="certificate">
       <div class="header">
-        <div class="logo">D.E.Bs LEARNING ACADEMY</div>
+        <div class="logo">D.E.Bs DIAGNOSTIC HUB</div>
         <div class="tagline">Unlocking Brilliance Through Learning</div>
       </div>
       
@@ -612,7 +612,7 @@ serve(async (req) => {
   <!-- Page 2: Detailed Report with Skills Analysis -->
   <div class="report-page">
     <div class="header">
-      <div class="logo">D.E.Bs LEARNING ACADEMY</div>
+      <div class="logo">D.E.Bs DIAGNOSTIC HUB</div>
       <div class="tagline">Unlocking Brilliance Through Learning</div>
     </div>
     
@@ -699,14 +699,14 @@ serve(async (req) => {
     </div>
 
     <div class="contact-info">
-      <strong>Contact D.E.Bs LEARNING ACADEMY</strong>
+      <strong>Contact D.E.Bs DIAGNOSTIC HUB</strong>
       📧 Email: info@debslearnacademy.com | 📞 Phone: 347-364-1906<br>
       🌐 Website: www.debslearnacademy.com
     </div>
 
     <div class="footer">
       <div class="footer-text">
-        D.E.Bs LEARNING ACADEMY – Unlocking Brilliance Through Learning
+        D.E.Bs DIAGNOSTIC HUB – Unlocking Brilliance Through Learning
       </div>
       <div class="date">
         Report Generated: ${new Date().toLocaleDateString()}
@@ -762,7 +762,7 @@ serve(async (req) => {
 <body>
   <div class="certificate">
     <div class="header">
-      <div class="logo">D.E.Bs LEARNING ACADEMY</div>
+      <div class="logo">D.E.Bs DIAGNOSTIC HUB</div>
       <div class="tagline">Unlocking Brilliance Through Learning</div>
     </div>
     <div class="title">Certificate of Achievement</div>

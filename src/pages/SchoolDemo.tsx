@@ -88,9 +88,9 @@ export default function SchoolDemo() {
       <header className="border-b border-border bg-card/70 backdrop-blur sticky top-0 z-30">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
           <div className="flex items-center gap-2">
-            <img src="/icon-512.png" alt="DEBs Learning Academy" className="h-9 w-9 rounded-full object-cover" />
+            <img src="/icon-512.png" alt="DEBs Diagnostic Hub" className="h-9 w-9 rounded-full object-cover" />
             <div className="leading-tight">
-              <div className="font-bold text-sm sm:text-base">D.E.Bs LEARNING ACADEMY</div>
+              <div className="font-bold text-sm sm:text-base">D.E.Bs DIAGNOSTIC HUB</div>
               <div className="text-xs text-muted-foreground">School &amp; District Partnerships</div>
             </div>
           </div>
@@ -509,7 +509,7 @@ export default function SchoolDemo() {
       {/* FOOTER */}
       <footer className="border-t border-border bg-card/70 py-8">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm text-muted-foreground">
-          <p>© {new Date().getFullYear()} D.E.Bs Learning Academy. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} D.E.Bs Diagnostic Hub. All rights reserved.</p>
           <p className="mt-1">
             <a href="/" className="underline hover:text-foreground">Main Site</a> · <a href="/auth" className="underline hover:text-foreground">Student Login</a>
           </p>

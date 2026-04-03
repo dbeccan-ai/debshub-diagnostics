@@ -280,7 +280,7 @@ serve(async (req) => {
 <body>
   <div class="container">
     <div class="header">
-      <h1>D.E.Bs LEARNING ACADEMY</h1>
+      <h1>D.E.Bs DIAGNOSTIC HUB</h1>
       <p>Unlocking Brilliance Through Learning</p>
     </div>
     <div class="content">
@@ -326,7 +326,7 @@ serve(async (req) => {
       <p>Contact us at 347-364-1906 or info@debslearnacademy.com with any questions.</p>
     </div>
     <div class="footer">
-      <p>© ${new Date().getFullYear()} D.E.Bs LEARNING ACADEMY</p>
+      <p>© ${new Date().getFullYear()} D.E.Bs DIAGNOSTIC HUB</p>
     </div>
   </div>
 </body>
@@ -335,7 +335,7 @@ serve(async (req) => {
       try {
         const resend = new Resend(resendApiKey);
         const { error: sendError } = await resend.emails.send({
-          from: 'D.E.Bs Learning Academy <noreply@debslearnacademy.com>',
+          from: 'D.E.Bs Diagnostic Hub <noreply@debslearnacademy.com>',
           to: [parentEmail],
           subject: `Final Results: ${attempt.tests?.name} - ${attempt.profiles?.full_name}`,
           html: emailHTML,

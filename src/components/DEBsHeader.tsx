@@ -8,9 +8,9 @@ export default function DEBsHeader({ subtitle, rightContent }: DEBsHeaderProps) 
     <header className="bg-[#001F3F] text-white py-3 px-4 border-b-4 border-[#FFD700] sticky top-0 z-50">
       <div className="container mx-auto flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <img src="/icon-512.png" alt="DEBs Learning Academy" className="w-10 h-10 rounded-full flex-shrink-0 object-cover" />
+          <img src="/icon-512.png" alt="DEBs Diagnostic Hub" className="w-10 h-10 rounded-full flex-shrink-0 object-cover" />
           <div>
-            <h1 className="font-bold text-sm md:text-base">D.E.Bs LEARNING ACADEMY</h1>
+            <h1 className="font-bold text-sm md:text-base">D.E.Bs DIAGNOSTIC HUB</h1>
             <p className="text-[#FFD700] text-xs md:text-sm">
               {subtitle || "DEBs Diagnostic Hub"}
             </p>

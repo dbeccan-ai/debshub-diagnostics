@@ -70,7 +70,7 @@ const Enroll = () => {
       <header className="bg-white border-b shadow-sm">
         <div className="max-w-4xl mx-auto px-4 py-5 text-center">
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-            D.E.Bs LEARNING ACADEMY
+            D.E.Bs DIAGNOSTIC HUB
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
             Enrollment &amp; Payment Options

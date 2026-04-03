@@ -340,7 +340,7 @@ export default function ELASectionReport({
       {/* ══════════════════ CERTIFICATE HEADER ══════════════════ */}
       <Card className="border-2 border-[#1C2D5A] overflow-hidden">
         <div className="bg-[#1C2D5A] text-white text-center py-6 px-4">
-          <p className="text-sm font-medium tracking-widest uppercase opacity-80">D.E.Bs LEARNING ACADEMY</p>
+          <p className="text-sm font-medium tracking-widest uppercase opacity-80">D.E.Bs DIAGNOSTIC HUB</p>
           <p className="text-xs italic opacity-60 mt-1">Unlocking Brilliance Through Learning</p>
           <h1 className="text-2xl font-black mt-4 tracking-wide">TEST RESULT CERTIFICATE</h1>
         </div>
@@ -431,7 +431,7 @@ export default function ELASectionReport({
       {/* ══════════════════ DETAILED SKILLS ANALYSIS ══════════════════ */}
       <Card className="border-slate-200">
         <div className="bg-[#1C2D5A] text-white px-6 py-4">
-          <p className="text-sm font-medium tracking-widest uppercase opacity-80">D.E.Bs LEARNING ACADEMY</p>
+          <p className="text-sm font-medium tracking-widest uppercase opacity-80">D.E.Bs DIAGNOSTIC HUB</p>
           <p className="text-xs italic opacity-60 mt-0.5">Unlocking Brilliance Through Learning</p>
           <h2 className="text-xl font-black mt-3">DETAILED SKILLS ANALYSIS REPORT</h2>
         </div>
@@ -500,7 +500,7 @@ export default function ELASectionReport({
       {/* ══════════════════ TIER EXPLANATION & NEXT STEPS ══════════════════ */}
       <Card className="border-slate-200">
         <div className="bg-slate-50 px-6 py-4 border-b border-slate-200">
-          <p className="text-xs text-slate-500 font-medium">D.E.Bs LEARNING ACADEMY – Unlocking Brilliance Through Learning</p>
+          <p className="text-xs text-slate-500 font-medium">D.E.Bs DIAGNOSTIC HUB – Unlocking Brilliance Through Learning</p>
           <h2 className="text-lg font-bold text-[#1C2D5A] mt-1">Understanding Your {tier} Placement</h2>
         </div>
         <CardContent className="p-6 space-y-4 text-sm text-slate-700">
@@ -518,7 +518,7 @@ export default function ELASectionReport({
 
           {/* Contact */}
           <div className="border-t border-slate-200 pt-4 mt-4">
-            <p className="font-bold text-[#1C2D5A] mb-1">Contact D.E.Bs LEARNING ACADEMY</p>
+            <p className="font-bold text-[#1C2D5A] mb-1">Contact D.E.Bs DIAGNOSTIC HUB</p>
             <p className="text-xs text-slate-600">
               📧 <a href="mailto:info@debslearnacademy.com" className="text-blue-600 underline hover:text-blue-800">info@debslearnacademy.com</a>{" "}
               | 📞 <a href="tel:+13473641906" className="text-blue-600 underline hover:text-blue-800">347-364-1906</a>
@@ -737,7 +737,7 @@ export default function ELASectionReport({
 
       {/* Footer */}
       <div className="text-center text-xs text-slate-400 py-2">
-        <p>D.E.Bs LEARNING ACADEMY – Unlocking Brilliance Through Learning</p>
+        <p>D.E.Bs DIAGNOSTIC HUB – Unlocking Brilliance Through Learning</p>
         <p>Report Generated: {new Date().toLocaleDateString()}</p>
       </div>
     </div>

@@ -130,7 +130,7 @@ serve(async (req) => {
         const roleName = role === "admin" ? "Administrator" : "Teacher";
         
         await resend.emails.send({
-          from: "D.E.Bs LEARNING ACADEMY <noreply@debslearnacademy.com>",
+          from: "D.E.Bs DIAGNOSTIC HUB <noreply@debslearnacademy.com>",
           to: [email],
           subject: `You've been invited to join DEBs Diagnostic Hub as a ${roleName}`,
           html: `
@@ -151,7 +151,7 @@ serve(async (req) => {
             <body>
               <div class="container">
                 <div class="header">
-                  <div class="logo">D.E.Bs LEARNING ACADEMY</div>
+                  <div class="logo">D.E.Bs DIAGNOSTIC HUB</div>
                   <div class="tagline">Unlocking Brilliance Through Learning</div>
                 </div>
                 <div class="content">
@@ -176,7 +176,7 @@ serve(async (req) => {
                   <p style="font-size: 12px; color: #64748b;">This invitation expires in 7 days.</p>
                 </div>
                 <div class="footer">
-                  <p><strong>D.E.Bs LEARNING ACADEMY</strong></p>
+                  <p><strong>D.E.Bs DIAGNOSTIC HUB</strong></p>
                   <p>Phone: 347-364-1906 | Email: info@debslearnacademy.com</p>
                 </div>
               </div>
