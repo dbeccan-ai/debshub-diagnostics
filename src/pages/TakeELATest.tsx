@@ -307,8 +307,11 @@ export default function TakeELATest() {
       />
       <Progress value={progress} className="h-1" />
 
+      {/* Tools Sidebar */}
+      <TestToolsSidebar />
+
       {/* Question */}
-      <div className="container max-w-3xl mx-auto px-4 py-8">
+      <div className="container max-w-3xl mx-auto px-4 py-8 pr-16">
         {/* Reading Passage Panel */}
         {currentQ?.passage && (
           <Card className="mb-4 border-blue-200 bg-blue-50/50">
