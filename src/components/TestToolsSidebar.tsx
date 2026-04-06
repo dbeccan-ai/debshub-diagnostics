@@ -108,7 +108,7 @@ export default function TestToolsSidebar({ gradeLevel }: TestToolsSidebarProps) 
           style={{
             left: panelPos.x,
             top: panelPos.y,
-            minWidth: activeTool === "draw" ? "420px" : activeTool === "graph" ? "420px" : "280px",
+            minWidth: activeTool === "calculator" && isAdvanced ? "420px" : activeTool === "draw" ? "420px" : activeTool === "graph" ? "420px" : "280px",
             maxWidth: "90vw",
             maxHeight: "80vh",
           }}

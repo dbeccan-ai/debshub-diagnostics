@@ -601,7 +601,7 @@ const TakeTest = () => {
       )}
 
       {/* Tools Sidebar */}
-      <TestToolsSidebar />
+      <TestToolsSidebar gradeLevel={attempt?.grade_level} />
 
       {/* Main Content */}
       <main className="container mx-auto px-6 py-8 max-w-5xl pr-16">
