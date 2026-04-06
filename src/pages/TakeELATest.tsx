@@ -10,6 +10,7 @@ import { Clock, ArrowLeft, ArrowRight, Check } from "lucide-react";
 import elaTests from "@/data/ela-diagnostic-tests.json";
 import DEBsHeader from "@/components/DEBsHeader";
 import DiagnosticLanding from "@/components/DiagnosticLanding";
+import TestToolsSidebar from "@/components/TestToolsSidebar";
 import { useAccountStatus } from "@/hooks/useAccountStatus";
 import { toast } from "sonner";
 
