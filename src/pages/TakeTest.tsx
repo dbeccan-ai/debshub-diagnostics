@@ -19,6 +19,7 @@ import { useLanguage, languageOptions } from "@/contexts/LanguageContext";
 import QuestionVisual from "@/components/QuestionVisual";
 import DEBsHeader from "@/components/DEBsHeader";
 import DiagnosticLanding from "@/components/DiagnosticLanding";
+import TestToolsSidebar from "@/components/TestToolsSidebar";
 import { useAccountStatus } from "@/hooks/useAccountStatus";
 import { 
   getGrade2DiagramByVisual, 
@@ -599,8 +600,11 @@ const TakeTest = () => {
         </Alert>
       )}
 
+      {/* Tools Sidebar */}
+      <TestToolsSidebar />
+
       {/* Main Content */}
-      <main className="container mx-auto px-6 py-8 max-w-5xl">
+      <main className="container mx-auto px-6 py-8 max-w-5xl pr-16">
         {/* Student Info */}
         <div className="text-sm text-[#1e3a8a]/60 mb-4">
           Student: {profile?.full_name} | Grade: {attempt?.grade_level || "N/A"} | Time limit: {test.duration_minutes} minutes

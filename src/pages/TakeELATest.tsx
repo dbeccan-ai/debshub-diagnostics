@@ -10,6 +10,7 @@ import { Clock, ArrowLeft, ArrowRight, Check } from "lucide-react";
 import elaTests from "@/data/ela-diagnostic-tests.json";
 import DEBsHeader from "@/components/DEBsHeader";
 import DiagnosticLanding from "@/components/DiagnosticLanding";
+import TestToolsSidebar from "@/components/TestToolsSidebar";
 import { useAccountStatus } from "@/hooks/useAccountStatus";
 import { toast } from "sonner";
 
@@ -306,8 +307,11 @@ export default function TakeELATest() {
       />
       <Progress value={progress} className="h-1" />
 
+      {/* Tools Sidebar */}
+      <TestToolsSidebar />
+
       {/* Question */}
-      <div className="container max-w-3xl mx-auto px-4 py-8">
+      <div className="container max-w-3xl mx-auto px-4 py-8 pr-16">
         {/* Reading Passage Panel */}
         {currentQ?.passage && (
           <Card className="mb-4 border-blue-200 bg-blue-50/50">
