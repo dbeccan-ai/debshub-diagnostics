@@ -308,7 +308,7 @@ export default function TakeELATest() {
       <Progress value={progress} className="h-1" />
 
       {/* Tools Sidebar */}
-      <TestToolsSidebar />
+      <TestToolsSidebar gradeLevel={undefined} />
 
       {/* Question */}
       <div className="container max-w-3xl mx-auto px-4 py-8 pr-16">
