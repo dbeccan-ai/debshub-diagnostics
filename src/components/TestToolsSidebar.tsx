@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Calculator, Ruler, Triangle, Circle, Hexagon, Grid3X3, Pencil, ChevronLeft, ChevronRight, X } from "lucide-react";
 import CalculatorTool from "@/components/tools/CalculatorTool";
+import ScientificCalculatorTool from "@/components/tools/ScientificCalculatorTool";
 import RulerTool from "@/components/tools/RulerTool";
 import ProtractorTool from "@/components/tools/ProtractorTool";
 import CompassTool from "@/components/tools/CompassTool";
@@ -8,17 +9,27 @@ import ShapesTool from "@/components/tools/ShapesTool";
 import GraphPaperTool from "@/components/tools/GraphPaperTool";
 import DrawingPadTool from "@/components/tools/DrawingPadTool";
 
-const tools = [
-  { id: "calculator", label: "Calculator", icon: Calculator, component: CalculatorTool },
-  { id: "ruler", label: "Ruler", icon: Ruler, component: RulerTool },
-  { id: "protractor", label: "Protractor", icon: Triangle, component: ProtractorTool },
-  { id: "compass", label: "Compass", icon: Circle, component: CompassTool },
-  { id: "shapes", label: "Shapes", icon: Hexagon, component: ShapesTool },
-  { id: "graph", label: "Graph Paper", icon: Grid3X3, component: GraphPaperTool },
-  { id: "draw", label: "Drawing Pad", icon: Pencil, component: DrawingPadTool },
-];
+interface TestToolsSidebarProps {
+  gradeLevel?: number | null;
+}
 
-export default function TestToolsSidebar() {
+export default function TestToolsSidebar({ gradeLevel }: TestToolsSidebarProps) {
+  const isAdvanced = (gradeLevel ?? 0) >= 9;
+
+  const tools = useMemo(() => [
+    {
+      id: "calculator",
+      label: isAdvanced ? "Sci Calculator" : "Calculator",
+      icon: Calculator,
+      component: isAdvanced ? ScientificCalculatorTool : CalculatorTool,
+    },
+    { id: "ruler", label: "Ruler", icon: Ruler, component: RulerTool },
+    { id: "protractor", label: "Protractor", icon: Triangle, component: ProtractorTool },
+    { id: "compass", label: "Compass", icon: Circle, component: CompassTool },
+    { id: "shapes", label: "Shapes", icon: Hexagon, component: ShapesTool },
+    { id: "graph", label: "Graph Paper", icon: Grid3X3, component: GraphPaperTool },
+    { id: "draw", label: "Drawing Pad", icon: Pencil, component: DrawingPadTool },
+  ], [isAdvanced]);
   const [expanded, setExpanded] = useState(false);
   const [activeTool, setActiveTool] = useState<string | null>(null);
   const [panelPos, setPanelPos] = useState({ x: 100, y: 100 });
