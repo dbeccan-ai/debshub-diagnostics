@@ -19,6 +19,7 @@ import { useLanguage, languageOptions } from "@/contexts/LanguageContext";
 import QuestionVisual from "@/components/QuestionVisual";
 import DEBsHeader from "@/components/DEBsHeader";
 import DiagnosticLanding from "@/components/DiagnosticLanding";
+import TestToolsSidebar from "@/components/TestToolsSidebar";
 import { useAccountStatus } from "@/hooks/useAccountStatus";
 import { 
   getGrade2DiagramByVisual, 
