@@ -34,18 +34,20 @@ export const useTabVisibility = (enabled: boolean = true) => {
 
   const handleWindowBlur = useCallback(() => {
     if (!enabled) return;
-    
-    setState((prev) => {
-      if (prev.isVisible) {
-        const newCount = prev.tabSwitchCount + 1;
-        return {
-          isVisible: false,
-          tabSwitchCount: newCount,
-          isTestDisabled: true,
-        };
-      }
-      return prev;
-    });
+    setTimeout(() => {
+      if (document.activeElement?.tagName === "IFRAME") return;
+      setState((prev) => {
+        if (prev.isVisible) {
+          const newCount = prev.tabSwitchCount + 1;
+          return {
+            isVisible: false,
+            tabSwitchCount: newCount,
+            isTestDisabled: true,
+          };
+        }
+        return prev;
+      });
+    }, 0);
   }, [enabled]);
 
   useEffect(() => {
