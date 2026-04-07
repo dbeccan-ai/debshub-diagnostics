@@ -1,44 +1,51 @@
 
 
-# Add Desmos Scientific/Graphing Calculator for Grades 9-12
+# Fix Desmos Calculator Triggering Tab-Switch Security
 
-## What's Changing
-Embed the Desmos calculator as the calculator tool for higher grades (9-12), while keeping the basic calculator for lower grades. Desmos provides a full scientific and graphing calculator via a free embeddable iframe — no API key needed for the public embed URLs.
+## Root Cause
 
-## Approach
+There are **two problems**:
 
-Rather than installing a package (which requires an API key and Desmos approval), we'll use the **free Desmos embed URLs** via iframe:
-- Scientific calculator: `https://www.desmos.com/scientific`
-- Graphing calculator: `https://www.desmos.com/calculator`
+1. **Iframe focus triggers `window.blur`**: When a student clicks inside the Desmos iframe, the main window loses focus and fires a `blur` event. The `handleWindowBlur` handler in `use-tab-visibility.tsx` interprets this as a tab switch and immediately disables the test.
 
-This is the simplest, most reliable approach — no dependencies, no API keys.
+2. **Iframe `allow-popups` sandbox attribute**: The Desmos iframe has `allow-popups` in its sandbox, which could let Desmos open new tabs/windows — a real tab switch.
 
-## Changes
+## Fix
 
-### 1. `src/components/tools/ScientificCalculatorTool.tsx` (Create)
-- Embeds Desmos scientific calculator in an iframe
-- Includes a toggle to switch between Scientific and Graphing modes
-- Sized appropriately for the floating panel (~400x500)
+### 1. `src/hooks/use-tab-visibility.tsx` — Ignore blur when focus moves to an iframe
 
-### 2. `src/components/TestToolsSidebar.tsx` (Modify)
-- Accept a `gradeLevel` prop (number or string)
-- If grade >= 9, swap the basic `CalculatorTool` with `ScientificCalculatorTool` in the tools array
-- Adjust the floating panel min-width for the scientific calculator
+Update `handleWindowBlur` to check if the newly focused element is an iframe within the page. When `window.blur` fires because a same-page iframe received focus, `document.activeElement` will be the `<iframe>` element. In that case, skip the security trigger.
 
-### 3. `src/pages/TakeTest.tsx` (Modify)
-- Pass `gradeLevel={attempt?.grade_level}` to `<TestToolsSidebar />`
+```ts
+const handleWindowBlur = useCallback(() => {
+  if (!enabled) return;
+  // If focus moved to an iframe on our page (e.g. Desmos calculator tool),
+  // this is NOT a tab switch — ignore it.
+  setTimeout(() => {
+    if (document.activeElement?.tagName === "IFRAME") return;
+    setState((prev) => {
+      if (prev.isVisible) {
+        const newCount = prev.tabSwitchCount + 1;
+        return { isVisible: false, tabSwitchCount: newCount, isTestDisabled: true };
+      }
+      return prev;
+    });
+  }, 0);
+}, [enabled]);
+```
 
-### 4. `src/pages/TakeELATest.tsx` (Modify)
-- Pass `gradeLevel` from the route/test data to `<TestToolsSidebar />`
+The `setTimeout(…, 0)` is needed because `document.activeElement` isn't updated until after the blur event fires.
 
-## Files
+### 2. `src/components/tools/ScientificCalculatorTool.tsx` — Remove `allow-popups`
 
-| File | Action |
+Change the sandbox attribute from `"allow-scripts allow-same-origin allow-popups"` to `"allow-scripts allow-same-origin"`. This prevents Desmos from opening any new tabs at all.
+
+## Files Changed
+
+| File | Change |
 |------|--------|
-| `src/components/tools/ScientificCalculatorTool.tsx` | Create — Desmos iframe embed with scientific/graphing toggle |
-| `src/components/TestToolsSidebar.tsx` | Modify — accept `gradeLevel` prop, conditionally use advanced calculator |
-| `src/pages/TakeTest.tsx` | Modify — pass grade level to sidebar |
-| `src/pages/TakeELATest.tsx` | Modify — pass grade level to sidebar |
+| `src/hooks/use-tab-visibility.tsx` | Skip blur handler when active element is an iframe |
+| `src/components/tools/ScientificCalculatorTool.tsx` | Remove `allow-popups` from sandbox |
 
-No new dependencies. Uses free Desmos public embeds via iframe.
+Two files, minimal changes. No new dependencies.
 
