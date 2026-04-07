@@ -44,7 +44,7 @@ export default function ScientificCalculatorTool() {
         className="w-full rounded-lg border border-gray-200"
         style={{ height: mode === "graphing" ? 480 : 400 }}
         allow="clipboard-write"
-        sandbox="allow-scripts allow-same-origin allow-popups"
+        sandbox="allow-scripts allow-same-origin"
       />
     </div>
   );
