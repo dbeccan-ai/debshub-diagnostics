@@ -5,6 +5,8 @@ import { LanguageSelector } from "@/components/LanguageSelector";
 import { SampleResultsDialog } from "@/components/SampleResultsDialog";
 import ReadingRecoveryPreviewDialog from "@/components/ReadingRecoveryPreviewDialog";
 import { useTranslation } from "@/hooks/useTranslation";
+import { Menu, X } from "lucide-react";
+import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 
 export default function Page() {
   const [gradeDialogOpen, setGradeDialogOpen] = useState(false);
