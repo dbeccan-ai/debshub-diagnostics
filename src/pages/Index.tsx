@@ -58,7 +58,7 @@ export default function Page() {
           {/* Language & Auth buttons */}
           <div className="flex items-center gap-2 sm:gap-3">
             <LanguageSelector />
-            <a href="/auth" className="hidden sm:inline-flex px-3 py-1.5 text-sm font-medium rounded-full border border-slate-300 text-slate-700 hover:bg-slate-50">
+            <a href="/auth" className="inline-flex px-3 py-1.5 text-sm font-medium rounded-full border border-slate-300 text-slate-700 hover:bg-slate-50">
               {t.nav.login}
             </a>
             <a
@@ -67,6 +67,46 @@ export default function Page() {
             >
               {t.nav.getStarted}
             </a>
+
+            {/* Mobile hamburger menu */}
+            <Sheet>
+              <SheetTrigger className="md:hidden p-2 rounded-md hover:bg-slate-100">
+                <Menu className="h-5 w-5 text-slate-700" />
+              </SheetTrigger>
+              <SheetContent side="right" className="w-64 bg-white">
+                <nav className="flex flex-col gap-4 mt-8 text-base font-medium">
+                  <SheetClose asChild>
+                    <a href="#how-it-works" className="text-slate-600 hover:text-slate-900 py-2">
+                      {t.nav.howItWorks}
+                    </a>
+                  </SheetClose>
+                  <SheetClose asChild>
+                    <a href="#tests" className="text-slate-600 hover:text-slate-900 py-2">
+                      {t.nav.diagnosticTests}
+                    </a>
+                  </SheetClose>
+                  <SheetClose asChild>
+                    <a href="#pricing" className="text-slate-600 hover:text-slate-900 py-2">
+                      {t.nav.pricing}
+                    </a>
+                  </SheetClose>
+                  <SheetClose asChild>
+                    <a href="#faq" className="text-slate-600 hover:text-slate-900 py-2">
+                      {t.nav.faq}
+                    </a>
+                  </SheetClose>
+                  <hr className="border-slate-200" />
+                  <SheetClose asChild>
+                    <a
+                      href="#cta"
+                      className="inline-flex justify-center px-4 py-2 text-sm font-semibold rounded-full bg-slate-900 text-white hover:bg-slate-800"
+                    >
+                      {t.nav.getStarted}
+                    </a>
+                  </SheetClose>
+                </nav>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </header>
