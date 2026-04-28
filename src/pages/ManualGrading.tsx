@@ -219,33 +219,105 @@ const ManualGrading = () => {
     }
   }, [attemptId, navigate]);
 
-  const handleGrade = async (responseId: string, isCorrect: boolean) => {
-    setGradingId(responseId);
+  const submitGrade = async (
+    response: PendingResponse,
+    payload: { pointsAwarded?: number; isCorrect?: boolean; maxPoints: number; teacherComment?: string },
+    successMsg: string,
+  ) => {
+    setGradingId(response.id);
     try {
       const { data, error } = await supabase.functions.invoke("grade-manual-response", {
-        body: { responseId, isCorrect, attemptId },
+        body: { responseId: response.id, attemptId, ...payload },
       });
-
       if (error) throw new Error(error.message);
+      if (data?.error) throw new Error(data.error);
 
-      // Update local state
-      setPendingResponses(prev => prev.filter(r => r.id !== responseId));
+      setPendingResponses(prev => prev.filter(r => r.id !== response.id));
+      setDrafts(prev => {
+        const next = { ...prev };
+        delete next[response.id];
+        return next;
+      });
       setStats({
         correctCount: data.correctCount,
         totalGraded: data.totalGraded,
         pendingCount: data.pendingCount,
         score: data.score,
-        tier: data.tier
+        tier: data.tier,
       });
-
-      toast.success(`Marked as ${isCorrect ? 'correct' : 'incorrect'}`);
-    } catch (err) {
+      toast.success(successMsg);
+    } catch (err: any) {
       console.error("Grading error:", err);
-      toast.error("Failed to save grade.");
+      toast.error(err?.message || "Failed to save grade.");
     } finally {
       setGradingId(null);
     }
   };
+
+  const handleQuickGrade = (response: PendingResponse, isCorrect: boolean) => {
+    const draft = getDraft(response);
+    const max = Math.max(1, parseFloat(draft.max) || 1);
+    return submitGrade(
+      response,
+      { isCorrect, maxPoints: max, teacherComment: draft.comment.trim() || undefined },
+      `Marked as ${isCorrect ? 'correct' : 'incorrect'}`,
+    );
+  };
+
+  const handleSavePartial = (response: PendingResponse) => {
+    const draft = getDraft(response);
+    const max = Math.max(1, parseFloat(draft.max) || 1);
+    const ptsRaw = parseFloat(draft.points);
+    if (isNaN(ptsRaw)) {
+      toast.error("Enter a points value (e.g. 0, 1, 2).");
+      return;
+    }
+    const pts = Math.max(0, Math.min(max, ptsRaw));
+    return submitGrade(
+      response,
+      { pointsAwarded: pts, maxPoints: max, teacherComment: draft.comment.trim() || undefined },
+      `Saved ${pts}/${max}`,
+    );
+  };
+
+  const handleSuggest = async (response: PendingResponse) => {
+    updateDraft(response.id, { loadingSuggest: true });
+    try {
+      const draft = getDraft(response);
+      const maxHint = Math.max(1, parseFloat(draft.max) || inferDefaultMax(response.question_id, response.answer));
+      const { data, error } = await supabase.functions.invoke("suggest-grade", {
+        body: {
+          questionText: getQuestionText(response.question_id),
+          expectedAnswer: getCorrectAnswer(response.question_id),
+          studentAnswer: response.answer,
+          skillTag: getSkillTag(response.question_id),
+          maxPoints: maxHint,
+        },
+      });
+      if (error) throw new Error(error.message);
+      if (data?.error) throw new Error(data.error);
+      updateDraft(response.id, {
+        suggestion: data as Suggestion,
+        loadingSuggest: false,
+      });
+    } catch (err: any) {
+      console.error("Suggest error:", err);
+      toast.error(err?.message || "AI suggestion failed.");
+      updateDraft(response.id, { loadingSuggest: false });
+    }
+  };
+
+  const applySuggestion = (responseId: string) => {
+    const d = drafts[responseId];
+    if (!d?.suggestion) return;
+    updateDraft(responseId, {
+      points: String(d.suggestion.suggestedPoints),
+      max: String(d.suggestion.maxPoints),
+      comment: d.comment?.trim() ? d.comment : d.suggestion.suggestedComment,
+    });
+    toast.success("Suggestion applied — review before saving.");
+  };
+
 
   const handleFinalize = async () => {
     setFinalizing(true);
