@@ -14,7 +14,7 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    
+
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       return new Response(
@@ -37,7 +37,6 @@ serve(async (req) => {
       );
     }
 
-    // Check if user is admin or teacher
     const { data: roleData } = await supabaseAdmin
       .from('user_roles')
       .select('role')
@@ -51,21 +50,44 @@ serve(async (req) => {
       );
     }
 
-    const { responseId, isCorrect, attemptId } = await req.json();
-    
-    if (!responseId || isCorrect === undefined || !attemptId) {
+    const body = await req.json();
+    const { responseId, attemptId } = body;
+    let { isCorrect, pointsAwarded, maxPoints, teacherComment } = body;
+
+    if (!responseId || !attemptId) {
       return new Response(
-        JSON.stringify({ error: 'responseId, isCorrect, and attemptId are required' }),
+        JSON.stringify({ error: 'responseId and attemptId are required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log(`Grading response ${responseId} as ${isCorrect ? 'correct' : 'incorrect'} by ${user.id}`);
+    // Normalize: support legacy boolean-only callers, partial-credit callers, or both.
+    const max = typeof maxPoints === 'number' && maxPoints > 0 ? maxPoints : 1;
+    let earned: number;
+    if (typeof pointsAwarded === 'number') {
+      earned = Math.max(0, Math.min(max, pointsAwarded));
+    } else if (typeof isCorrect === 'boolean') {
+      earned = isCorrect ? max : 0;
+    } else {
+      return new Response(
+        JSON.stringify({ error: 'Provide either pointsAwarded or isCorrect' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    const finalIsCorrect = earned >= max;
 
-    // Update the response
+    const updatePayload: Record<string, unknown> = {
+      is_correct: finalIsCorrect,
+      points_awarded: earned,
+      max_points: max,
+    };
+    if (typeof teacherComment === 'string') {
+      updatePayload.teacher_comment = teacherComment.trim() || null;
+    }
+
     const { error: updateError } = await supabaseAdmin
       .from('test_responses')
-      .update({ is_correct: isCorrect })
+      .update(updatePayload)
       .eq('id', responseId)
       .eq('attempt_id', attemptId);
 
@@ -77,46 +99,43 @@ serve(async (req) => {
       );
     }
 
-    // Recalculate scores for the attempt
+    // Recalculate scores using points_awarded / max_points (with boolean fallback)
     const { data: allResponses, error: respError } = await supabaseAdmin
       .from('test_responses')
-      .select('is_correct')
+      .select('is_correct, points_awarded, max_points')
       .eq('attempt_id', attemptId);
 
     if (respError) {
-      console.error('Fetch responses error:', respError);
       return new Response(
         JSON.stringify({ error: 'Failed to fetch responses' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Count graded responses
-    const gradedResponses = allResponses.filter(r => r.is_correct !== null);
-    const correctCount = gradedResponses.filter(r => r.is_correct === true).length;
-    const totalGraded = gradedResponses.length;
-    const pendingCount = allResponses.length - totalGraded;
-
-    const score = totalGraded > 0 ? (correctCount / totalGraded) * 100 : 0;
-    // Correct thresholds: Tier 1 = 85%+, Tier 2 = 66–84%, Tier 3 = ≤65%
+    const graded = (allResponses || []).filter(r => r.is_correct !== null);
+    const pendingCount = (allResponses || []).length - graded.length;
+    let pointsEarned = 0;
+    let pointsPossible = 0;
+    let correctCount = 0;
+    for (const r of graded) {
+      const m = typeof r.max_points === 'number' && r.max_points > 0 ? r.max_points : 1;
+      const e = typeof r.points_awarded === 'number' ? r.points_awarded : (r.is_correct ? m : 0);
+      pointsEarned += e;
+      pointsPossible += m;
+      if (r.is_correct) correctCount++;
+    }
+    const score = pointsPossible > 0 ? (pointsEarned / pointsPossible) * 100 : 0;
     const tier = score >= 85 ? 'Tier 1' : score >= 66 ? 'Tier 2' : 'Tier 3';
 
-    // Update attempt with new scores
-    const { error: attemptUpdateError } = await supabaseAdmin
+    await supabaseAdmin
       .from('test_attempts')
       .update({
         score: Math.round(score * 100) / 100,
         correct_answers: correctCount,
-        total_questions: totalGraded,
-        tier
+        total_questions: graded.length,
+        tier,
       })
       .eq('id', attemptId);
-
-    if (attemptUpdateError) {
-      console.error('Attempt update error:', attemptUpdateError);
-    }
-
-    console.log(`Updated attempt ${attemptId}: ${correctCount}/${totalGraded} = ${score.toFixed(1)}% (${tier}), ${pendingCount} pending`);
 
     return new Response(
       JSON.stringify({
@@ -124,12 +143,13 @@ serve(async (req) => {
         score: Math.round(score * 100) / 100,
         tier,
         correctCount,
-        totalGraded,
-        pendingCount
+        totalGraded: graded.length,
+        pendingCount,
+        pointsEarned,
+        pointsPossible,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
-
   } catch (error) {
     console.error('Error in grade-manual-response:', error);
     return new Response(
