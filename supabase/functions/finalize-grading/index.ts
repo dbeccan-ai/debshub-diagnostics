@@ -168,27 +168,33 @@ serve(async (req) => {
     // Normalize questions for skill analysis
     const questions = normalizeQuestions(attempt.tests?.questions);
     
-    // Build skill stats
+    // Build skill stats — supports partial credit via points_awarded / max_points
     interface SkillStat { total: number; correct: number; percentage: number; }
     const skillStats: Record<string, SkillStat> = {};
+    let pointsEarned = 0;
+    let pointsPossible = 0;
     let correctCount = 0;
     let totalCount = 0;
 
     for (const response of responses || []) {
       const question = questions.find((q: any) => q.id === response.question_id);
       const skill = question?.topic || 'General Math';
-      
+
+      const max = typeof response.max_points === 'number' && response.max_points > 0 ? response.max_points : 1;
+      const earned = typeof response.points_awarded === 'number'
+        ? response.points_awarded
+        : (response.is_correct ? max : 0);
+
       if (!skillStats[skill]) {
         skillStats[skill] = { total: 0, correct: 0, percentage: 0 };
       }
-      
-      skillStats[skill].total++;
+
+      skillStats[skill].total += max;
+      skillStats[skill].correct += earned;
+      pointsPossible += max;
+      pointsEarned += earned;
       totalCount++;
-      
-      if (response.is_correct) {
-        correctCount++;
-        skillStats[skill].correct++;
-      }
+      if (response.is_correct) correctCount++;
     }
 
     // Calculate percentages and categorize
@@ -204,7 +210,7 @@ serve(async (req) => {
     }
 
     const skillAnalysis = { mastered: mastered.sort(), needsSupport: needsSupport.sort(), developing: developing.sort(), skillStats };
-    const score = totalCount > 0 ? (correctCount / totalCount) * 100 : 0;
+    const score = pointsPossible > 0 ? (pointsEarned / pointsPossible) * 100 : 0;
     // Correct thresholds: Tier 1 = 85%+, Tier 2 = 66–84%, Tier 3 = ≤65%
     const tier = score >= 85 ? 'Tier 1' : score >= 66 ? 'Tier 2' : 'Tier 3';
 
