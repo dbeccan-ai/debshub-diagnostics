@@ -697,7 +697,10 @@ export type Database = {
           created_at: string
           id: string
           is_correct: boolean | null
+          max_points: number | null
+          points_awarded: number | null
           question_id: string
+          teacher_comment: string | null
         }
         Insert: {
           answer: string
@@ -705,7 +708,10 @@ export type Database = {
           created_at?: string
           id?: string
           is_correct?: boolean | null
+          max_points?: number | null
+          points_awarded?: number | null
           question_id: string
+          teacher_comment?: string | null
         }
         Update: {
           answer?: string
@@ -713,7 +719,10 @@ export type Database = {
           created_at?: string
           id?: string
           is_correct?: boolean | null
+          max_points?: number | null
+          points_awarded?: number | null
           question_id?: string
+          teacher_comment?: string | null
         }
         Relationships: [
           {

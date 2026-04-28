@@ -1,29 +1,58 @@
-# Fix Admin/Teacher Password Reset Redirecting to Login
+# Manual Grading: Partial Credit, Comments, and AI Suggestions
 
-## Root Cause
+## Problems
 
-The Supabase JS client defaults to the **PKCE flow** for password recovery. The email link arrives as `/admin/login?code=<pkce_code>`, not the older hash-fragment format (`#access_token=...&type=recovery`).
+1. **Static grading** — only "Mark Correct" / "Mark Incorrect" buttons. No way to enter a partial score (e.g. 2/3) or leave a comment for the parent/student.
+2. **No suggestion** — the teacher reads each free-response answer cold, slowing down grading for Section 2 (short answer) and Section 3 (extended response) items.
+3. **Score math is binary** — finalization treats every question as 1 point all-or-nothing, so a partial grade has nowhere to live.
 
-Both `AdminAuth.tsx` and `Auth.tsx` only check `window.location.hash` for recovery tokens. They never see the PKCE `?code=` query param, so:
+## Solution
 
-1. The supabase client auto-exchanges the code in the background and fires a `PASSWORD_RECOVERY` event.
-2. But the `onAuthStateChange` listener is only attached **after** an `await` in `handleRecovery()` — by then the event may have already fired and been missed.
-3. The user ends up signed in OR the page just shows the login form, where their old password fails with "invalid credentials" (matching the network log we see).
+### 1. Schema additions (migration)
 
-## Fix
+Add three nullable columns to `test_responses`:
 
-In both `src/pages/AdminAuth.tsx` and `src/pages/Auth.tsx`:
+| Column | Type | Purpose |
+|---|---|---|
+| `points_awarded` | numeric | Points the teacher gave (e.g. 2) |
+| `max_points` | numeric | Out of how many (e.g. 3); defaults to 1 |
+| `teacher_comment` | text | Free-form note shown on the result/report |
 
-1. **Register the `onAuthStateChange` listener synchronously at the very top of the effect**, before any `await`. Inside it, when `event === 'PASSWORD_RECOVERY'`, set `isPasswordReset = true` and `isLoggedIn = false`.
-2. **Detect PKCE recovery via query string**: read `new URLSearchParams(window.location.search).get('code')`. If a `code` is present, call `await supabase.auth.exchangeCodeForSession(window.location.href)`. On success, set `isPasswordReset = true`, clear the URL (`history.replaceState`), and skip the auto-login path.
-3. Keep the existing hash-token branch as a fallback for older email links.
-4. Use a `isPasswordResetRef = useRef(false)` flag (set whenever recovery is detected) so the `SIGNED_IN` branch in the listener can skip navigating to the dashboard during recovery — `isPasswordReset` state is stale inside the listener closure.
+Backfill rule: existing rows where `is_correct = true` → `points_awarded = 1, max_points = 1`; `false` → `0, 1`. Keep `is_correct` so existing logic keeps working — when a teacher saves a partial grade, set `is_correct = (points_awarded >= max_points)` and store the fraction in the new columns.
+
+### 2. Manual Grading UI (`src/pages/ManualGrading.tsx`)
+
+Replace the two-button row with a richer card per pending response:
+
+- **Points input**: numeric input "Points awarded" + "out of" (default 1, teacher can set 2, 3, 5...). Quick-pick chips for 0 / half / full.
+- **Comment box**: textarea "Comment to student (optional)".
+- **AI Suggestion button**: "Suggest grade" → calls a new edge function `suggest-grade` that returns `{ suggestedPoints, maxPoints, rationale, suggestedComment }`. Teacher can click "Use suggestion" to fill the form, then edit before saving.
+- **Save button**: posts `{ responseId, attemptId, pointsAwarded, maxPoints, teacherComment }` to the existing `grade-manual-response` function (extended).
+
+The legacy single-click Mark Correct / Mark Incorrect remain as one-click shortcuts that pre-fill points = max / 0 and save immediately.
+
+### 3. Edge function changes
+
+**`grade-manual-response`** — accept the new fields. Compute `is_correct = pointsAwarded >= maxPoints`. Persist all four fields. Recompute attempt score using the sum of `points_awarded / max_points` across graded responses (so partial credit affects the percentage correctly). Tier thresholds unchanged (85 / 66).
+
+**`suggest-grade`** (new) — admin/teacher-gated, calls Lovable AI (`google/gemini-2.5-flash`) with the question text, expected answer, skill tag, and student answer. Returns suggested points (out of a sensible max inferred from the question — short answer = 2, extended response = 3, otherwise 1), a one-line rationale, and a 1–2 sentence comment to the student. No new secret needed (uses `LOVABLE_API_KEY`). Add to `supabase/config.toml` with `verify_jwt = true`.
+
+**`finalize-grading`** — switch the score calculation to `sum(points_awarded) / sum(max_points)` when the new columns are populated, falling back to the boolean count otherwise.
+
+### 4. Surface comments in results
+
+`Results.tsx` and the parent email/PDF currently show only correctness. Add a small "Teacher's note" line under any question whose `teacher_comment` is non-empty so the partial-credit reasoning reaches the parent. (Minimal touch: only the per-question render block.)
 
 ## Files Changed
 
 | File | Change |
-|------|--------|
-| `src/pages/AdminAuth.tsx` | Register auth listener first; handle `?code=` PKCE recovery via `exchangeCodeForSession`; use ref to gate `SIGNED_IN` during recovery |
-| `src/pages/Auth.tsx` | Same fix for student auth flow |
+|---|---|
+| migration | Add `points_awarded`, `max_points`, `teacher_comment` to `test_responses`; backfill |
+| `src/pages/ManualGrading.tsx` | Points input, comment box, AI-suggest button, partial-credit flow |
+| `supabase/functions/grade-manual-response/index.ts` | Accept partial points + comment; recompute score from points |
+| `supabase/functions/suggest-grade/index.ts` | New — Lovable AI grade suggestion |
+| `supabase/config.toml` | Register `suggest-grade` with `verify_jwt = true` |
+| `supabase/functions/finalize-grading/index.ts` | Score = Σ points / Σ max when present |
+| `src/pages/Results.tsx` (and PDF/email render) | Show `teacher_comment` per question when present |
 
-No DB or config changes. No new dependencies.
+No new secrets required. No breaking changes to existing graded attempts.
