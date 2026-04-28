@@ -63,6 +63,31 @@ const ManualGrading = () => {
   const [gradingId, setGradingId] = useState<string | null>(null);
   const [finalizing, setFinalizing] = useState(false);
   const [stats, setStats] = useState({ correctCount: 0, totalGraded: 0, pendingCount: 0, score: 0, tier: '' });
+  const [drafts, setDrafts] = useState<Record<string, DraftState>>({});
+
+  const inferDefaultMax = (questionId: string, studentAnswer: string): number => {
+    const q = questions.get(questionId);
+    const t = (q?.type || '').toLowerCase();
+    if (t.includes('extended') || t.includes('essay') || t.includes('long')) return 3;
+    if (t.includes('short') || t.includes('written') || t.includes('open') || t.includes('text')) return 2;
+    const words = (studentAnswer || '').trim().split(/\s+/).filter(Boolean).length;
+    if (words >= 30) return 3;
+    if (words >= 8) return 2;
+    return 1;
+  };
+
+  const getDraft = (r: PendingResponse): DraftState => {
+    if (drafts[r.id]) return drafts[r.id];
+    const max = inferDefaultMax(r.question_id, r.answer);
+    return { points: '', max: String(max), comment: '', loadingSuggest: false, suggestion: null };
+  };
+
+  const updateDraft = (id: string, patch: Partial<DraftState>) => {
+    setDrafts(prev => ({
+      ...prev,
+      [id]: { ...(prev[id] || { points: '', max: '1', comment: '', loadingSuggest: false, suggestion: null }), ...patch },
+    }));
+  };
 
   useEffect(() => {
     const loadData = async () => {
