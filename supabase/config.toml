@@ -3,6 +3,9 @@ project_id = "heyjvukoaxgkzbgcxakn"
 [functions.grade-manual-response]
 verify_jwt = true
 
+[functions.suggest-grade]
+verify_jwt = true
+
 [functions.finalize-grading]
 verify_jwt = true
 
