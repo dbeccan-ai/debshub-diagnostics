@@ -1,17 +1,35 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { ArrowLeft, CheckCircle, XCircle, AlertCircle, Loader2, Send } from "lucide-react";
+import { ArrowLeft, CheckCircle, XCircle, AlertCircle, Loader2, Send, Sparkles, Save } from "lucide-react";
 
 interface PendingResponse {
   id: string;
   question_id: string;
   answer: string;
   is_correct: boolean | null;
+}
+
+interface Suggestion {
+  suggestedPoints: number;
+  maxPoints: number;
+  rationale: string;
+  suggestedComment: string;
+}
+
+interface DraftState {
+  points: string;
+  max: string;
+  comment: string;
+  loadingSuggest: boolean;
+  suggestion: Suggestion | null;
 }
 
 interface QuestionData {
