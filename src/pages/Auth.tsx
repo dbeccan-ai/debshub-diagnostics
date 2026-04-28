@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -92,81 +92,110 @@ const Auth = () => {
   const [parentEmail, setParentEmail] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const isRecoveryRef = useRef(false);
 
   useEffect(() => {
     let isMounted = true;
-    
+
+    // 1. Register auth listener FIRST (synchronously) so we never miss PASSWORD_RECOVERY
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        isRecoveryRef.current = true;
+        setIsPasswordReset(true);
+        setIsLoggedIn(false);
+        setInitializing(false);
+      } else if (event === 'SIGNED_IN') {
+        if (!isRecoveryRef.current) {
+          setIsLoggedIn(true);
+        }
+        setInitializing(false);
+      } else if (event === 'SIGNED_OUT') {
+        if (!isRecoveryRef.current) {
+          setIsLoggedIn(false);
+        }
+        setInitializing(false);
+      }
+    });
+
     const handleRecovery = async () => {
-      // Check URL for recovery tokens FIRST
+      // PKCE flow: recovery link arrives as ?code=...
+      const queryParams = new URLSearchParams(window.location.search);
+      const code = queryParams.get('code');
+
+      if (code) {
+        try {
+          isRecoveryRef.current = true;
+          const { error } = await supabase.auth.exchangeCodeForSession(window.location.href);
+          if (!isMounted) return true;
+          if (error) {
+            console.error('Error exchanging recovery code:', error);
+            toast.error("Password reset link is invalid or has expired. Please request a new one.");
+            isRecoveryRef.current = false;
+          } else {
+            setIsPasswordReset(true);
+            setIsLoggedIn(false);
+            // Preserve any other query params (like ?redirect=) by stripping only code
+            const url = new URL(window.location.href);
+            url.searchParams.delete('code');
+            window.history.replaceState(null, '', url.pathname + url.search);
+          }
+        } catch (err) {
+          console.error('Recovery error:', err);
+          if (isMounted) toast.error("Password reset link is invalid or has expired. Please request a new one.");
+          isRecoveryRef.current = false;
+        }
+        if (isMounted) setInitializing(false);
+        return true;
+      }
+
+      // Legacy hash-fragment flow fallback
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
       const accessToken = hashParams.get('access_token');
       const refreshToken = hashParams.get('refresh_token');
       const type = hashParams.get('type');
-      
-      // If this is a recovery link with tokens, handle it exclusively
+
       if (type === 'recovery' && accessToken && refreshToken) {
         try {
-          // Sign out any existing session first
+          isRecoveryRef.current = true;
           await supabase.auth.signOut();
-          
           const { error } = await supabase.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken,
           });
-          
-          if (!isMounted) return;
-          
+          if (!isMounted) return true;
           if (error) {
             console.error('Error setting recovery session:', error);
             toast.error("Password reset link is invalid or has expired. Please request a new one.");
+            isRecoveryRef.current = false;
           } else {
             setIsPasswordReset(true);
             setIsLoggedIn(false);
-            // Clear the hash from URL for security
             window.history.replaceState(null, '', window.location.pathname);
           }
         } catch (err) {
           console.error('Recovery error:', err);
-          if (isMounted) {
-            toast.error("Password reset link is invalid or has expired. Please request a new one.");
-          }
+          if (isMounted) toast.error("Password reset link is invalid or has expired. Please request a new one.");
+          isRecoveryRef.current = false;
         }
         if (isMounted) setInitializing(false);
-        return true; // Indicate we handled recovery
+        return true;
       }
-      return false; // Not a recovery link
+      return false;
     };
 
     handleRecovery().then((wasRecovery) => {
-      if (wasRecovery) return; // Don't set up other listeners if handling recovery
-      
-      // Set up auth state listener only if not recovery
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-        if (event === 'PASSWORD_RECOVERY') {
-          setIsPasswordReset(true);
-          setIsLoggedIn(false);
-          setInitializing(false);
-        } else if (event === 'SIGNED_IN' && !isPasswordReset) {
-          setIsLoggedIn(true);
-          setInitializing(false);
-        } else if (event === 'SIGNED_OUT') {
-          setIsLoggedIn(false);
-          setInitializing(false);
-        }
-      });
-
+      if (wasRecovery) return;
       supabase.auth.getSession().then(({ data: { session } }) => {
-        if (isMounted && session && !isPasswordReset) {
+        if (isMounted && session && !isRecoveryRef.current) {
           setIsLoggedIn(true);
         }
         if (isMounted) setInitializing(false);
       });
-
-      return () => subscription.unsubscribe();
     });
 
     return () => {
       isMounted = false;
+      subscription.unsubscribe();
     };
   }, []);
 
