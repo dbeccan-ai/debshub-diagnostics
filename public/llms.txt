@@ -1,0 +1,24 @@
+# DEBs Diagnostic Hub
+
+> AI-powered diagnostic testing platform for K-12 Math and ELA. Identifies skill gaps, generates personalized learning paths, and tracks student progress for schools, teachers, and parents.
+
+DEBs Diagnostic Hub provides standards-aligned diagnostic assessments across Math and ELA for grades 1-12, plus a Reading Recovery oral assessment suite. Schools, teachers, and parents use it to pinpoint priority intervention areas (≤65%), strengthening areas (66-84%), and mastery (85%+), then receive AI-generated 6-week support plans.
+
+## Pages
+
+- [Home](/): Overview of the diagnostic hub and pricing.
+- [Enroll](/enroll): Enroll a student in a diagnostic test.
+- [Tests](/tests): Browse available diagnostic tests by subject and grade.
+- [ELA Diagnostics](/diagnostics/ela): English Language Arts diagnostic tests for grades 5-12.
+- [Math Grade 2](/diagnostics/math/grade-2): Grade 2 Math diagnostic.
+- [Math Grade 4](/diagnostics/math/grade-4): Grade 4 Math diagnostic.
+- [Math Grade 6](/diagnostics/math/grade-6): Grade 6 Math diagnostic.
+- [ELA Grade 1](/diagnostics/ela/grade-1): Grade 1 ELA diagnostic.
+- [Reading Recovery](/reading-recovery): Oral reading assessment with AI-assisted grading.
+- [School Demo](/demo): Sandbox demo for institutional buyers.
+- [Sign In](/auth): Student, parent, and teacher sign-in.
+- [Register](/register): Create a new account.
+
+## Optional
+
+- [Admin Login](/admin/login): School administrator access.
