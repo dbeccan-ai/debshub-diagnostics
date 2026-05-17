@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Clock, AlertCircle, X, Lightbulb, Globe } from "lucide-react";
+import { Clock, AlertCircle, X, Lightbulb, Globe, Pause } from "lucide-react";
+import TestPauseOverlay from "@/components/TestPauseOverlay";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { getQuestionsByTestName, normalizeQuestions } from "@/lib/testQuestions";
 import reinforcementData from "@/data/reinforcement-questions.json";
@@ -57,14 +58,17 @@ const TakeTest = () => {
   const [isTranslating, setIsTranslating] = useState(false);
   const [translatedLanguage, setTranslatedLanguage] = useState<string>("en");
   
-  // Tab visibility security
+  const [isBreakPaused, setIsBreakPaused] = useState(false);
+  const [pausedAt, setPausedAt] = useState<number | null>(null);
+
+  // Tab visibility security — disabled while student is on a self-initiated break
   const {
     isTestDisabled,
     tabSwitchCount,
     showFirstWarning,
     resetState: resetTabVisibility,
     dismissFirstWarning,
-  } = useTabVisibility(testStarted);
+  } = useTabVisibility(testStarted && !isBreakPaused);
   const [progressRestored, setProgressRestored] = useState(false);
   
   // Adaptive testing state
@@ -84,8 +88,8 @@ const TakeTest = () => {
   }, [attemptId, isPaused]);
 
   useEffect(() => {
-    // Only start timer if test has started and not disabled
-    if (timeRemaining > 0 && testStarted && !isTestDisabled) {
+    // Only start timer if test has started and not disabled or paused
+    if (timeRemaining > 0 && testStarted && !isTestDisabled && !isBreakPaused) {
       const timer = setInterval(() => {
         setTimeRemaining((prev) => {
           if (prev <= 1) {
@@ -100,7 +104,7 @@ const TakeTest = () => {
       }, 1000);
       return () => clearInterval(timer);
     }
-  }, [timeRemaining, testStarted, isTestDisabled]);
+  }, [timeRemaining, testStarted, isTestDisabled, isBreakPaused]);
 
   // Auto-save in-progress state (answers, current question, remaining time)
   // to both localStorage (instant) and the DB (durable, multi-device).
@@ -149,6 +153,17 @@ const TakeTest = () => {
   const handleResume = () => {
     resetTabVisibility();
     toast.success("Test resumed. Stay on this tab to avoid pausing again.");
+  };
+
+  const handleBreakPause = () => {
+    setIsBreakPaused(true);
+    setPausedAt(Date.now());
+  };
+
+  const handleBreakResume = () => {
+    setIsBreakPaused(false);
+    setPausedAt(null);
+    toast.success("Welcome back! Timer resumed.");
   };
 
   const fetchTestAttempt = async () => {
@@ -639,6 +654,13 @@ const TakeTest = () => {
         tabSwitchCount={tabSwitchCount}
       />
 
+      {/* Self-initiated Break Overlay */}
+      <TestPauseOverlay
+        open={isBreakPaused}
+        onResume={handleBreakResume}
+        pausedAt={pausedAt}
+      />
+
       {/* DEBs Header */}
       <DEBsHeader 
         subtitle={test.name}
@@ -653,6 +675,14 @@ const TakeTest = () => {
             <span className="text-sm text-white/70 hidden sm:inline">
               Q {currentQuestionIndex + 1}/{questions.length}
             </span>
+            <button
+              onClick={handleBreakPause}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/15 text-white text-xs font-semibold hover:bg-white/25 transition-colors"
+              title="Pause the test to take a break"
+            >
+              <Pause className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Pause Break</span>
+            </button>
             <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full font-semibold ${
               timeRemaining < 300 ? "bg-red-500 text-white" : 
               timeRemaining < 600 ? "bg-orange-400 text-white" : 
