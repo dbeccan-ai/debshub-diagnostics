@@ -302,14 +302,27 @@ export default function TakeELATest() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+      <TestPauseOverlay
+        open={isBreakPaused}
+        onResume={handleBreakResume}
+        pausedAt={pausedAt}
+      />
       {/* DEBs Header */}
       <DEBsHeader 
         subtitle={`Grade ${gradeNum} ELA Diagnostic`}
         rightContent={
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <span className="text-sm text-white/70 hidden sm:inline">
               Q {currentQuestion + 1}/{allQuestions.length}
             </span>
+            <button
+              onClick={handleBreakPause}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/15 text-white text-xs font-semibold hover:bg-white/25 transition-colors"
+              title="Pause the test to take a break"
+            >
+              <Pause className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Pause Break</span>
+            </button>
             <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full">
               <Clock className="h-4 w-4 text-[#FFD700]" />
               <span className="font-mono text-[#FFD700]">{formatTime(timeRemaining)}</span>
