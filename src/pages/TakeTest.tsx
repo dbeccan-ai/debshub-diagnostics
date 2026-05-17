@@ -635,6 +635,7 @@ const TakeTest = () => {
         open={isTestDisabled && testStarted}
         onClose={() => {}}
         onReturnToDashboard={() => navigate("/dashboard")}
+        onResume={handleResume}
         tabSwitchCount={tabSwitchCount}
       />
 
