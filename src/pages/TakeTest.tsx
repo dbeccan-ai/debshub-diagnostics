@@ -58,7 +58,14 @@ const TakeTest = () => {
   const [translatedLanguage, setTranslatedLanguage] = useState<string>("en");
   
   // Tab visibility security
-  const { isTestDisabled, tabSwitchCount } = useTabVisibility(testStarted);
+  const {
+    isTestDisabled,
+    tabSwitchCount,
+    showFirstWarning,
+    resetState: resetTabVisibility,
+    dismissFirstWarning,
+  } = useTabVisibility(testStarted);
+  const [progressRestored, setProgressRestored] = useState(false);
   
   // Adaptive testing state
   const [questions, setQuestions] = useState<any[]>([]);
