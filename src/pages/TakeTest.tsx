@@ -88,8 +88,8 @@ const TakeTest = () => {
   }, [attemptId, isPaused]);
 
   useEffect(() => {
-    // Only start timer if test has started and not disabled
-    if (timeRemaining > 0 && testStarted && !isTestDisabled) {
+    // Only start timer if test has started and not disabled or paused
+    if (timeRemaining > 0 && testStarted && !isTestDisabled && !isBreakPaused) {
       const timer = setInterval(() => {
         setTimeRemaining((prev) => {
           if (prev <= 1) {
@@ -104,7 +104,7 @@ const TakeTest = () => {
       }, 1000);
       return () => clearInterval(timer);
     }
-  }, [timeRemaining, testStarted, isTestDisabled]);
+  }, [timeRemaining, testStarted, isTestDisabled, isBreakPaused]);
 
   // Auto-save in-progress state (answers, current question, remaining time)
   // to both localStorage (instant) and the DB (durable, multi-device).
