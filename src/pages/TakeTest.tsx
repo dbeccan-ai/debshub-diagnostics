@@ -510,6 +510,13 @@ const TakeTest = () => {
       toast.dismiss();
       toast.success(`Test submitted! Score: ${gradeResult.score}% (${gradeResult.tier})`);
 
+      // Clear saved progress now that the test is graded
+      try { localStorage.removeItem(`test-progress-${attemptId}`); } catch {}
+      await supabase
+        .from("test_attempts")
+        .update({ progress_state: null })
+        .eq("id", attemptId);
+
       navigate("/dashboard");
     } catch (error: any) {
       toast.dismiss();
