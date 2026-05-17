@@ -197,7 +197,42 @@ const TakeTest = () => {
       setQuestions(questionsArray);
       setOriginalQuestions(questionsArray);
       setTimeRemaining(finalTestData.duration_minutes * 60);
-      
+
+      // Restore any saved progress (answers, current question, remaining time)
+      try {
+        const localKey = `test-progress-${attemptId}`;
+        const localRaw = localStorage.getItem(localKey);
+        const localProgress = localRaw ? JSON.parse(localRaw) : null;
+        const dbProgress = (attemptData as any).progress_state || null;
+
+        // Prefer whichever was saved more recently
+        const pick = (() => {
+          if (localProgress && dbProgress) {
+            return (localProgress.savedAt || 0) >= (dbProgress.savedAt || 0)
+              ? localProgress
+              : dbProgress;
+          }
+          return localProgress || dbProgress;
+        })();
+
+        if (pick && typeof pick === "object") {
+          if (pick.answers && typeof pick.answers === "object") {
+            setAnswers(pick.answers);
+          }
+          if (typeof pick.currentQuestionIndex === "number") {
+            setCurrentQuestionIndex(pick.currentQuestionIndex);
+          }
+          if (typeof pick.timeRemaining === "number" && pick.timeRemaining > 0) {
+            setTimeRemaining(pick.timeRemaining);
+          }
+          if (Object.keys(pick.answers || {}).length > 0 || pick.currentQuestionIndex > 0) {
+            setProgressRestored(true);
+          }
+        }
+      } catch (e) {
+        console.warn("Could not restore saved progress", e);
+      }
+
       // Translate if needed
       if (language !== "en") {
         await translateQuestions(questionsArray, language);
