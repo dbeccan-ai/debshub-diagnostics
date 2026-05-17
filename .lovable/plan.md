@@ -1,44 +1,36 @@
-# Fix: Grade 9 & 12 ELA tests show Math questions
+## Problem
 
-## Root cause
+Several ELA Reading Comprehension sections show questions that reference "the passage / story / article," but the passage itself is missing or is just a placeholder stub. Affected grades:
 
-The `tests` table rows for **Grade 7, 8, 9, and 12 ELA Diagnostic Test** store an empty `[]` in the `questions` column (verified via DB query — length = 2 bytes). When `TakeTest.tsx` loads these tests:
+- **Grade 7** — no comprehension passage at all
+- **Grade 8** — "Echoes of the River" is an ellipsis-only outline (~780 chars of "...")
+- **Grade 9** — stub: `(Reading passage about Liana and investigative journalism)`
+- **Grade 11** — stub: `(Passage about generational expectations and individual identity)`
+- **Grade 12** — "The Cost of Knowing" is an ellipsis-only outline
 
-1. The edge function `get-test-questions` returns `[]`.
-2. `normalizeQuestions` produces 0 questions, so `TakeTest` falls back to `getQuestionsByTestName(finalTestData.name)` in `src/lib/testQuestions.ts`.
-3. That helper only searches `src/data/diagnostic-tests.json` (the **Math** dataset) and uses a loose match: `testName.toLowerCase().includes("grade " + t.grade)`.
-4. "Grade 9 ELA Diagnostic Test" contains "grade 9", so it matches the **Grade 9 Math Diagnostic Assessment** entry and returns Math questions. Same for Grade 12.
-
-Grades 10 & 11 work because their DB rows already contain full ELA question arrays. Grades 7 & 8 are likely broken in the same way but the user only reported 9 & 12.
+`TakeELATest.tsx` correctly reads `section.passage` / `passage_title` and renders the passage above the questions — the bug is purely missing data in `src/data/ela-diagnostic-tests.json` (and the same rows backfilled into the `tests` DB table earlier).
 
 ## Fix
 
-### 1. Make the JSON fallback subject-aware (`src/lib/testQuestions.ts`)
+1. **Author full reading passages** (3-6 paragraphs each, grade-appropriate lexile/complexity) for:
+   - Grade 7 — new passage matching the existing comprehension topics, or matching the existing essay theme so questions still align
+   - Grade 8 — "Echoes of the River" (Layla, the polluted river, the factory) — expand the ellipsis outline into a full narrative consistent with all existing comprehension questions (symbolism of the river, Layla's character, theme)
+   - Grade 9 — "The Weight of Silence" (Liana, Malik, investigative journalism) — write a full short story consistent with the 4 comprehension questions (Liana's disappearance, Malik's character arc, central theme, silence as a literary device)
+   - Grade 11 — "The Burden of Legacy" (heirloom watch, generational expectations) — write a full passage consistent with the central-idea and symbolism questions
+   - Grade 12 — "The Cost of Knowing" (Scopes trial → Brown v. Board → civil rights) — expand into a full informational/expository passage consistent with the existing 7 questions
 
-- Import `ela-diagnostic-tests.json` alongside the existing math JSON.
-- In `getQuestionsByTestName`, detect ELA names (`/ela|english/i`) and search the ELA dataset; otherwise search the math dataset.
-- Tighten the loose match so the grade-number shortcut requires the subject keyword to also match (prevents future cross-subject leaks). Use a regex like `\bgrade\s*${grade}\b` plus a subject check rather than plain `includes`.
+2. **Update `src/data/ela-diagnostic-tests.json`** with the new passages (set `passage_title` + `passage` on the Reading Comprehension section for each affected grade).
 
-### 2. Backfill the DB rows for the affected ELA tests
+3. **Re-backfill the `tests` table** in the database for Grade 7, 8, 9, 11, and 12 ELA Diagnostic Test rows so the edge-function path (`get-test-questions`) returns the updated sections. (The JSON file is the source of truth; the DB rows are a synced copy.)
 
-Add a migration that updates the `tests` rows whose `questions` is an empty array, copying the corresponding test object from `ela-diagnostic-tests.json` into the column. Scope:
+4. **Verification**:
+   - `node` check confirming every comprehension question's referenced entity (character names, "the article") appears in the corresponding passage
+   - Spot-check `psql` query confirming each updated row's `questions` JSONB now contains the new passage text
+   - Open one affected grade in the preview, start the test, confirm the passage card renders above the first comprehension question
 
-- Grade 7 ELA Diagnostic Test
-- Grade 8 ELA Diagnostic Test
-- Grade 9 ELA Diagnostic Test
-- Grade 12 ELA Diagnostic Test
+## Files / data touched
 
-This ensures the edge-function path (which is the primary path) returns the right questions and the JSON fallback is only a safety net.
+- `src/data/ela-diagnostic-tests.json` (add/replace 5 passages)
+- DB migration / update to `public.tests` for the 5 affected ELA rows
 
-## Verification
-
-- Reload Grade 9 ELA and Grade 12 ELA: questions shown should be the ELA items listed in `src/data/ela-diagnostic-tests.json` (e.g. Grade 9 Q1 "What is the main purpose of an author using a first-person narrator?").
-- Confirm Grades 7 & 8 ELA now also render ELA content.
-- Confirm Math grades 9 & 12 are unaffected.
-
-## Files touched
-
-- `src/lib/testQuestions.ts` — subject-aware fallback.
-- `supabase/migrations/<new>.sql` — backfill four ELA test rows.
-
-No UI/styling changes.
+No UI/component changes — `TakeELATest.tsx` already handles passage rendering correctly.
