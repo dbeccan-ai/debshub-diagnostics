@@ -608,6 +608,7 @@ export type Database = {
           grade_level: number | null
           id: string
           payment_status: string | null
+          progress_state: Json | null
           school_id: string | null
           score: number | null
           skill_analysis: Json | null
@@ -628,6 +629,7 @@ export type Database = {
           grade_level?: number | null
           id?: string
           payment_status?: string | null
+          progress_state?: Json | null
           school_id?: string | null
           score?: number | null
           skill_analysis?: Json | null
@@ -648,6 +650,7 @@ export type Database = {
           grade_level?: number | null
           id?: string
           payment_status?: string | null
+          progress_state?: Json | null
           school_id?: string | null
           score?: number | null
           skill_analysis?: Json | null
