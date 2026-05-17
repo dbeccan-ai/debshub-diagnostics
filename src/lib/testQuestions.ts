@@ -41,12 +41,21 @@ export function getQuestionsForGrade(grade: number): Section[] | null {
 
 // Get questions by test name (for grades 7-12)
 export function getQuestionsByTestName(testName: string): { sections: Section[] } | null {
-  const diagnostics = diagnosticTests.all_diagnostics as DiagnosticTest[];
-  const test = diagnostics.find((t) => 
-    t.test_name.toLowerCase() === testName.toLowerCase() ||
-    testName.toLowerCase().includes(`grade ${t.grade}`)
-  );
-  
+  const lower = testName.toLowerCase();
+  const isELA = /\bela\b|english/.test(lower);
+  const source = isELA
+    ? (elaDiagnosticTests as any).all_diagnostics as DiagnosticTest[]
+    : (diagnosticTests as any).all_diagnostics as DiagnosticTest[];
+
+  const test = source.find((t) => {
+    if (t.test_name.toLowerCase() === lower) return true;
+    const gradeMatch = new RegExp(`\\bgrade\\s*${t.grade}\\b`).test(lower);
+    if (!gradeMatch) return false;
+    // Ensure subject matches to avoid cross-subject collisions
+    const tIsELA = /\bela\b|english/.test(t.test_name.toLowerCase());
+    return tIsELA === isELA;
+  });
+
   if (test) {
     return { sections: test.sections };
   }
