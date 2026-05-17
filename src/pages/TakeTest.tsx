@@ -102,6 +102,55 @@ const TakeTest = () => {
     }
   }, [timeRemaining, testStarted, isTestDisabled]);
 
+  // Auto-save in-progress state (answers, current question, remaining time)
+  // to both localStorage (instant) and the DB (durable, multi-device).
+  useEffect(() => {
+    if (!attemptId || !testStarted || !test) return;
+    const payload = {
+      answers,
+      currentQuestionIndex,
+      timeRemaining,
+      savedAt: Date.now(),
+    };
+    try {
+      localStorage.setItem(`test-progress-${attemptId}`, JSON.stringify(payload));
+    } catch {}
+    const dbTimer = setTimeout(() => {
+      supabase
+        .from("test_attempts")
+        .update({ progress_state: payload as any })
+        .eq("id", attemptId)
+        .then(({ error }) => {
+          if (error) console.warn("Progress save failed", error.message);
+        });
+    }, 1500); // debounce DB writes
+    return () => clearTimeout(dbTimer);
+  }, [attemptId, testStarted, test, answers, currentQuestionIndex, timeRemaining]);
+
+  // Notify user the first time they switch tabs (before we actually pause)
+  useEffect(() => {
+    if (showFirstWarning) {
+      toast.warning(
+        "Stay on this tab. One more switch and your test will be paused.",
+        { duration: 6000 }
+      );
+      dismissFirstWarning();
+    }
+  }, [showFirstWarning, dismissFirstWarning]);
+
+  // Let the student know progress was restored
+  useEffect(() => {
+    if (progressRestored && testStarted) {
+      toast.success("Resumed from where you left off.");
+      setProgressRestored(false);
+    }
+  }, [progressRestored, testStarted]);
+
+  const handleResume = () => {
+    resetTabVisibility();
+    toast.success("Test resumed. Stay on this tab to avoid pausing again.");
+  };
+
   const fetchTestAttempt = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
