@@ -48,6 +48,17 @@ export default function TakeELATest() {
   const [timeRemaining, setTimeRemaining] = useState((test?.total_time_minutes || 90) * 60);
   const [submitted, setSubmitted] = useState(false);
   const [testStarted, setTestStarted] = useState(false);
+  const [isBreakPaused, setIsBreakPaused] = useState(false);
+  const [pausedAt, setPausedAt] = useState<number | null>(null);
+
+  const handleBreakPause = () => {
+    setIsBreakPaused(true);
+    setPausedAt(Date.now());
+  };
+  const handleBreakResume = () => {
+    setIsBreakPaused(false);
+    setPausedAt(null);
+  };
 
   // Flatten all questions from all sections, preserving passage data
   const allQuestions: Question[] = [];
