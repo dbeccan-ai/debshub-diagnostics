@@ -1,4 +1,5 @@
 import diagnosticTests from "@/data/diagnostic-tests.json";
+import elaDiagnosticTests from "@/data/ela-diagnostic-tests.json";
 
 interface Question {
   id: string;
