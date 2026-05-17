@@ -58,14 +58,17 @@ const TakeTest = () => {
   const [isTranslating, setIsTranslating] = useState(false);
   const [translatedLanguage, setTranslatedLanguage] = useState<string>("en");
   
-  // Tab visibility security
+  const [isBreakPaused, setIsBreakPaused] = useState(false);
+  const [pausedAt, setPausedAt] = useState<number | null>(null);
+
+  // Tab visibility security — disabled while student is on a self-initiated break
   const {
     isTestDisabled,
     tabSwitchCount,
     showFirstWarning,
     resetState: resetTabVisibility,
     dismissFirstWarning,
-  } = useTabVisibility(testStarted);
+  } = useTabVisibility(testStarted && !isBreakPaused);
   const [progressRestored, setProgressRestored] = useState(false);
   
   // Adaptive testing state
