@@ -654,6 +654,13 @@ const TakeTest = () => {
         tabSwitchCount={tabSwitchCount}
       />
 
+      {/* Self-initiated Break Overlay */}
+      <TestPauseOverlay
+        open={isBreakPaused}
+        onResume={handleBreakResume}
+        pausedAt={pausedAt}
+      />
+
       {/* DEBs Header */}
       <DEBsHeader 
         subtitle={test.name}
@@ -668,6 +675,14 @@ const TakeTest = () => {
             <span className="text-sm text-white/70 hidden sm:inline">
               Q {currentQuestionIndex + 1}/{questions.length}
             </span>
+            <button
+              onClick={handleBreakPause}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/15 text-white text-xs font-semibold hover:bg-white/25 transition-colors"
+              title="Pause the test to take a break"
+            >
+              <Pause className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Pause Break</span>
+            </button>
             <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full font-semibold ${
               timeRemaining < 300 ? "bg-red-500 text-white" : 
               timeRemaining < 600 ? "bg-orange-400 text-white" : 
