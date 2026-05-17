@@ -1,58 +1,44 @@
-# Manual Grading: Partial Credit, Comments, and AI Suggestions
+# Fix: Grade 9 & 12 ELA tests show Math questions
 
-## Problems
+## Root cause
 
-1. **Static grading** — only "Mark Correct" / "Mark Incorrect" buttons. No way to enter a partial score (e.g. 2/3) or leave a comment for the parent/student.
-2. **No suggestion** — the teacher reads each free-response answer cold, slowing down grading for Section 2 (short answer) and Section 3 (extended response) items.
-3. **Score math is binary** — finalization treats every question as 1 point all-or-nothing, so a partial grade has nowhere to live.
+The `tests` table rows for **Grade 7, 8, 9, and 12 ELA Diagnostic Test** store an empty `[]` in the `questions` column (verified via DB query — length = 2 bytes). When `TakeTest.tsx` loads these tests:
 
-## Solution
+1. The edge function `get-test-questions` returns `[]`.
+2. `normalizeQuestions` produces 0 questions, so `TakeTest` falls back to `getQuestionsByTestName(finalTestData.name)` in `src/lib/testQuestions.ts`.
+3. That helper only searches `src/data/diagnostic-tests.json` (the **Math** dataset) and uses a loose match: `testName.toLowerCase().includes("grade " + t.grade)`.
+4. "Grade 9 ELA Diagnostic Test" contains "grade 9", so it matches the **Grade 9 Math Diagnostic Assessment** entry and returns Math questions. Same for Grade 12.
 
-### 1. Schema additions (migration)
+Grades 10 & 11 work because their DB rows already contain full ELA question arrays. Grades 7 & 8 are likely broken in the same way but the user only reported 9 & 12.
 
-Add three nullable columns to `test_responses`:
+## Fix
 
-| Column | Type | Purpose |
-|---|---|---|
-| `points_awarded` | numeric | Points the teacher gave (e.g. 2) |
-| `max_points` | numeric | Out of how many (e.g. 3); defaults to 1 |
-| `teacher_comment` | text | Free-form note shown on the result/report |
+### 1. Make the JSON fallback subject-aware (`src/lib/testQuestions.ts`)
 
-Backfill rule: existing rows where `is_correct = true` → `points_awarded = 1, max_points = 1`; `false` → `0, 1`. Keep `is_correct` so existing logic keeps working — when a teacher saves a partial grade, set `is_correct = (points_awarded >= max_points)` and store the fraction in the new columns.
+- Import `ela-diagnostic-tests.json` alongside the existing math JSON.
+- In `getQuestionsByTestName`, detect ELA names (`/ela|english/i`) and search the ELA dataset; otherwise search the math dataset.
+- Tighten the loose match so the grade-number shortcut requires the subject keyword to also match (prevents future cross-subject leaks). Use a regex like `\bgrade\s*${grade}\b` plus a subject check rather than plain `includes`.
 
-### 2. Manual Grading UI (`src/pages/ManualGrading.tsx`)
+### 2. Backfill the DB rows for the affected ELA tests
 
-Replace the two-button row with a richer card per pending response:
+Add a migration that updates the `tests` rows whose `questions` is an empty array, copying the corresponding test object from `ela-diagnostic-tests.json` into the column. Scope:
 
-- **Points input**: numeric input "Points awarded" + "out of" (default 1, teacher can set 2, 3, 5...). Quick-pick chips for 0 / half / full.
-- **Comment box**: textarea "Comment to student (optional)".
-- **AI Suggestion button**: "Suggest grade" → calls a new edge function `suggest-grade` that returns `{ suggestedPoints, maxPoints, rationale, suggestedComment }`. Teacher can click "Use suggestion" to fill the form, then edit before saving.
-- **Save button**: posts `{ responseId, attemptId, pointsAwarded, maxPoints, teacherComment }` to the existing `grade-manual-response` function (extended).
+- Grade 7 ELA Diagnostic Test
+- Grade 8 ELA Diagnostic Test
+- Grade 9 ELA Diagnostic Test
+- Grade 12 ELA Diagnostic Test
 
-The legacy single-click Mark Correct / Mark Incorrect remain as one-click shortcuts that pre-fill points = max / 0 and save immediately.
+This ensures the edge-function path (which is the primary path) returns the right questions and the JSON fallback is only a safety net.
 
-### 3. Edge function changes
+## Verification
 
-**`grade-manual-response`** — accept the new fields. Compute `is_correct = pointsAwarded >= maxPoints`. Persist all four fields. Recompute attempt score using the sum of `points_awarded / max_points` across graded responses (so partial credit affects the percentage correctly). Tier thresholds unchanged (85 / 66).
+- Reload Grade 9 ELA and Grade 12 ELA: questions shown should be the ELA items listed in `src/data/ela-diagnostic-tests.json` (e.g. Grade 9 Q1 "What is the main purpose of an author using a first-person narrator?").
+- Confirm Grades 7 & 8 ELA now also render ELA content.
+- Confirm Math grades 9 & 12 are unaffected.
 
-**`suggest-grade`** (new) — admin/teacher-gated, calls Lovable AI (`google/gemini-2.5-flash`) with the question text, expected answer, skill tag, and student answer. Returns suggested points (out of a sensible max inferred from the question — short answer = 2, extended response = 3, otherwise 1), a one-line rationale, and a 1–2 sentence comment to the student. No new secret needed (uses `LOVABLE_API_KEY`). Add to `supabase/config.toml` with `verify_jwt = true`.
+## Files touched
 
-**`finalize-grading`** — switch the score calculation to `sum(points_awarded) / sum(max_points)` when the new columns are populated, falling back to the boolean count otherwise.
+- `src/lib/testQuestions.ts` — subject-aware fallback.
+- `supabase/migrations/<new>.sql` — backfill four ELA test rows.
 
-### 4. Surface comments in results
-
-`Results.tsx` and the parent email/PDF currently show only correctness. Add a small "Teacher's note" line under any question whose `teacher_comment` is non-empty so the partial-credit reasoning reaches the parent. (Minimal touch: only the per-question render block.)
-
-## Files Changed
-
-| File | Change |
-|---|---|
-| migration | Add `points_awarded`, `max_points`, `teacher_comment` to `test_responses`; backfill |
-| `src/pages/ManualGrading.tsx` | Points input, comment box, AI-suggest button, partial-credit flow |
-| `supabase/functions/grade-manual-response/index.ts` | Accept partial points + comment; recompute score from points |
-| `supabase/functions/suggest-grade/index.ts` | New — Lovable AI grade suggestion |
-| `supabase/config.toml` | Register `suggest-grade` with `verify_jwt = true` |
-| `supabase/functions/finalize-grading/index.ts` | Score = Σ points / Σ max when present |
-| `src/pages/Results.tsx` (and PDF/email render) | Show `teacher_comment` per question when present |
-
-No new secrets required. No breaking changes to existing graded attempts.
+No UI/styling changes.
