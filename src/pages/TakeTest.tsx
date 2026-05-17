@@ -155,6 +155,17 @@ const TakeTest = () => {
     toast.success("Test resumed. Stay on this tab to avoid pausing again.");
   };
 
+  const handleBreakPause = () => {
+    setIsBreakPaused(true);
+    setPausedAt(Date.now());
+  };
+
+  const handleBreakResume = () => {
+    setIsBreakPaused(false);
+    setPausedAt(null);
+    toast.success("Welcome back! Timer resumed.");
+  };
+
   const fetchTestAttempt = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
