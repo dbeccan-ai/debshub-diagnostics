@@ -88,7 +88,7 @@ export default function TakeELATest() {
   });
 
   useEffect(() => {
-    if (submitted || !testStarted) return;
+    if (submitted || !testStarted || isBreakPaused) return;
     const timer = setInterval(() => {
       setTimeRemaining(prev => {
         if (prev <= 1) {
@@ -100,7 +100,7 @@ export default function TakeELATest() {
       });
     }, 1000);
     return () => clearInterval(timer);
-  }, [submitted, testStarted]);
+  }, [submitted, testStarted, isBreakPaused]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
