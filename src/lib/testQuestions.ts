@@ -65,63 +65,66 @@ export function getQuestionsByTestName(testName: string): { sections: Section[] 
 // Normalize question format for consistent rendering
 export function normalizeQuestions(rawQuestions: any): any[] {
   let questions: any[] = [];
+
+  const mapQuestionWithContext = (q: any, context: any = {}) => ({
+    ...q,
+    question: q.question_text || q.question || q.text,
+    options: q.choices || q.options || [],
+    type: normalizeQuestionType(q.type),
+    topic: q.topic || q.skill_tag || q.skill,
+    section_title: context.section_title,
+    section_instructions: context.section_instructions,
+    student_completes: context.student_completes,
+    correct_answer: q.correct_answer || q.correctAnswer,
+    visual: q.visual || null,
+    passage: q.passage || context.passage || null,
+    passage_title: q.passage_title || context.passage_title || null,
+  });
+
+  const flattenSectionQuestions = (section: any) => {
+    const sectionContext = {
+      section_title: section.section_title,
+      section_instructions: section.instructions,
+      student_completes: section.student_completes,
+      passage: section.passage,
+      passage_title: section.passage_title,
+    };
+
+    const directQuestions = (section.questions || []).map((q: any) =>
+      mapQuestionWithContext(q, sectionContext)
+    );
+
+    const subsectionQuestions = (section.subsections || []).flatMap((subsection: any) =>
+      (subsection.questions || []).map((q: any) =>
+        mapQuestionWithContext(q, {
+          ...sectionContext,
+          section_title: subsection.title || section.section_title,
+          section_instructions: subsection.instructions || section.instructions,
+          passage: subsection.passage || section.passage,
+          passage_title: subsection.passage_title || section.passage_title,
+        })
+      )
+    );
+
+    return [...directQuestions, ...subsectionQuestions];
+  };
   
   if (Array.isArray(rawQuestions)) {
     // Check if array items are section objects (have a `questions` array inside)
-    const isSectionsArray = rawQuestions.length > 0 && Array.isArray(rawQuestions[0]?.questions);
+    const isSectionsArray = rawQuestions.length > 0 && (Array.isArray(rawQuestions[0]?.questions) || Array.isArray(rawQuestions[0]?.subsections));
     if (isSectionsArray) {
       // Flat array of section objects — same as the { sections: [...] } case
-      questions = rawQuestions.flatMap((section: any) =>
-        (section.questions || []).map((q: any) => ({
-          ...q,
-          question: q.question_text || q.question || q.text,
-          options: q.choices || q.options || [],
-          type: normalizeQuestionType(q.type),
-          topic: q.topic || q.skill_tag || q.skill,
-          section_title: section.section_title,
-          section_instructions: section.instructions,
-          student_completes: section.student_completes,
-          correct_answer: q.correct_answer || q.correctAnswer,
-          visual: q.visual || null,
-        }))
-      );
+      questions = rawQuestions.flatMap((section: any) => flattenSectionQuestions(section));
     } else {
       // Flat array of questions
-      questions = rawQuestions.map((q: any) => ({
-        ...q,
-        question: q.question_text || q.question || q.text,
-        options: q.choices || q.options || [],
-        type: normalizeQuestionType(q.type),
-        topic: q.topic || q.skill_tag || q.skill,
-        visual: q.visual || null,
-      }));
+      questions = rawQuestions.map((q: any) => mapQuestionWithContext(q));
     }
   } else if (rawQuestions?.sections && Array.isArray(rawQuestions.sections)) {
     // Sections structure (grades 1-12) - flatten all questions from all sections
-    questions = rawQuestions.sections.flatMap((section: any) => 
-      (section.questions || []).map((q: any) => ({
-        ...q,
-        question: q.question_text || q.question || q.text,
-        options: q.choices || q.options || [],
-        type: normalizeQuestionType(q.type),
-        topic: q.topic || q.skill_tag || q.skill,
-        section_title: section.section_title,
-        section_instructions: section.instructions,
-        student_completes: section.student_completes,
-        correct_answer: q.correct_answer || q.correctAnswer,
-        visual: q.visual || null,
-      }))
-    );
+    questions = rawQuestions.sections.flatMap((section: any) => flattenSectionQuestions(section));
   } else if (rawQuestions?.questions && Array.isArray(rawQuestions.questions)) {
     // Object with nested questions array
-    questions = rawQuestions.questions.map((q: any) => ({
-      ...q,
-      question: q.question_text || q.question || q.text,
-      options: q.choices || q.options || [],
-      type: normalizeQuestionType(q.type),
-      topic: q.topic || q.skill_tag || q.skill,
-      visual: q.visual || null,
-    }));
+    questions = rawQuestions.questions.map((q: any) => mapQuestionWithContext(q));
   }
   
   return questions;

@@ -750,6 +750,18 @@ const TakeTest = () => {
                   </span>
                 )}
               </h3>
+
+              {currentQuestion?.passage && (
+                <div className="mb-5 rounded-lg border border-blue-200 bg-blue-50 p-4">
+                  <p className="mb-2 text-sm font-semibold text-blue-900">
+                    📖 {currentQuestion.passage_title || "Reading Passage"}
+                  </p>
+                  <div className="max-h-[320px] overflow-y-auto whitespace-pre-line pr-2 text-sm leading-relaxed text-blue-950">
+                    {currentQuestion.passage}
+                  </div>
+                </div>
+              )}
+
               <p className="text-[#1e3a8a] text-base leading-relaxed mb-4">
                 {currentQuestion.question}
               </p>
