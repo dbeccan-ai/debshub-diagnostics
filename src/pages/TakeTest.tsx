@@ -58,7 +58,14 @@ const TakeTest = () => {
   const [translatedLanguage, setTranslatedLanguage] = useState<string>("en");
   
   // Tab visibility security
-  const { isTestDisabled, tabSwitchCount } = useTabVisibility(testStarted);
+  const {
+    isTestDisabled,
+    tabSwitchCount,
+    showFirstWarning,
+    resetState: resetTabVisibility,
+    dismissFirstWarning,
+  } = useTabVisibility(testStarted);
+  const [progressRestored, setProgressRestored] = useState(false);
   
   // Adaptive testing state
   const [questions, setQuestions] = useState<any[]>([]);
@@ -94,6 +101,55 @@ const TakeTest = () => {
       return () => clearInterval(timer);
     }
   }, [timeRemaining, testStarted, isTestDisabled]);
+
+  // Auto-save in-progress state (answers, current question, remaining time)
+  // to both localStorage (instant) and the DB (durable, multi-device).
+  useEffect(() => {
+    if (!attemptId || !testStarted || !test) return;
+    const payload = {
+      answers,
+      currentQuestionIndex,
+      timeRemaining,
+      savedAt: Date.now(),
+    };
+    try {
+      localStorage.setItem(`test-progress-${attemptId}`, JSON.stringify(payload));
+    } catch {}
+    const dbTimer = setTimeout(() => {
+      supabase
+        .from("test_attempts")
+        .update({ progress_state: payload as any })
+        .eq("id", attemptId)
+        .then(({ error }) => {
+          if (error) console.warn("Progress save failed", error.message);
+        });
+    }, 1500); // debounce DB writes
+    return () => clearTimeout(dbTimer);
+  }, [attemptId, testStarted, test, answers, currentQuestionIndex, timeRemaining]);
+
+  // Notify user the first time they switch tabs (before we actually pause)
+  useEffect(() => {
+    if (showFirstWarning) {
+      toast.warning(
+        "Stay on this tab. One more switch and your test will be paused.",
+        { duration: 6000 }
+      );
+      dismissFirstWarning();
+    }
+  }, [showFirstWarning, dismissFirstWarning]);
+
+  // Let the student know progress was restored
+  useEffect(() => {
+    if (progressRestored && testStarted) {
+      toast.success("Resumed from where you left off.");
+      setProgressRestored(false);
+    }
+  }, [progressRestored, testStarted]);
+
+  const handleResume = () => {
+    resetTabVisibility();
+    toast.success("Test resumed. Stay on this tab to avoid pausing again.");
+  };
 
   const fetchTestAttempt = async () => {
     try {
@@ -190,7 +246,42 @@ const TakeTest = () => {
       setQuestions(questionsArray);
       setOriginalQuestions(questionsArray);
       setTimeRemaining(finalTestData.duration_minutes * 60);
-      
+
+      // Restore any saved progress (answers, current question, remaining time)
+      try {
+        const localKey = `test-progress-${attemptId}`;
+        const localRaw = localStorage.getItem(localKey);
+        const localProgress = localRaw ? JSON.parse(localRaw) : null;
+        const dbProgress = (attemptData as any).progress_state || null;
+
+        // Prefer whichever was saved more recently
+        const pick = (() => {
+          if (localProgress && dbProgress) {
+            return (localProgress.savedAt || 0) >= (dbProgress.savedAt || 0)
+              ? localProgress
+              : dbProgress;
+          }
+          return localProgress || dbProgress;
+        })();
+
+        if (pick && typeof pick === "object") {
+          if (pick.answers && typeof pick.answers === "object") {
+            setAnswers(pick.answers);
+          }
+          if (typeof pick.currentQuestionIndex === "number") {
+            setCurrentQuestionIndex(pick.currentQuestionIndex);
+          }
+          if (typeof pick.timeRemaining === "number" && pick.timeRemaining > 0) {
+            setTimeRemaining(pick.timeRemaining);
+          }
+          if (Object.keys(pick.answers || {}).length > 0 || pick.currentQuestionIndex > 0) {
+            setProgressRestored(true);
+          }
+        }
+      } catch (e) {
+        console.warn("Could not restore saved progress", e);
+      }
+
       // Translate if needed
       if (language !== "en") {
         await translateQuestions(questionsArray, language);
@@ -419,6 +510,13 @@ const TakeTest = () => {
       toast.dismiss();
       toast.success(`Test submitted! Score: ${gradeResult.score}% (${gradeResult.tier})`);
 
+      // Clear saved progress now that the test is graded
+      try { localStorage.removeItem(`test-progress-${attemptId}`); } catch {}
+      await supabase
+        .from("test_attempts")
+        .update({ progress_state: null })
+        .eq("id", attemptId);
+
       navigate("/dashboard");
     } catch (error: any) {
       toast.dismiss();
@@ -537,6 +635,7 @@ const TakeTest = () => {
         open={isTestDisabled && testStarted}
         onClose={() => {}}
         onReturnToDashboard={() => navigate("/dashboard")}
+        onResume={handleResume}
         tabSwitchCount={tabSwitchCount}
       />
 
