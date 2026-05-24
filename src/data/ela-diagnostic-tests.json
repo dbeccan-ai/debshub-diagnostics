@@ -2637,25 +2637,28 @@
         },
         {
           "section_title": "Section III: Writing Prompts",
-          "instructions": "Choose one of the following prompts. Write clearly and support your ideas with examples.",
+          "instructions": "Read the short excerpt below, then choose ONE of the following prompts. Write clearly and support your ideas with specific details.",
           "time_limit_minutes": 25,
+          "passage_title": "The Lighthouse Letter (excerpt)",
+          "passage": "Julia had not been to Pelican Point in eleven years, not since the summer her grandfather died. The lighthouse still leaned against the wind the way she remembered, its white paint peeled to gray, its red cap faded to the color of old brick. In her pocket was the last page of his journal, folded into quarters and softened by re-reading:\n\n\"If you are reading this, Jules, then I never got the chance to show you what is at the top. Climb carefully. The third step from the landing is loose. What you find belongs to you now — and to anyone who still believes the light is worth keeping.\"\n\nShe pushed open the door. Salt air and dust met her at once. Somewhere above, in the dark of the spiral stair, something small and metallic shifted, as if it had been waiting.",
           "questions": [
             {
               "id": "g9-w1",
               "number": 1,
               "type": "writing",
               "topic": "Narrative Writing",
-              "question_text": "Imagine Julia continues her journey and makes a surprising discovery in the lighthouse. Write the next chapter of her adventure. Describe the setting, what she finds, and how it changes her understanding of her grandfather's story. Write in story format, include dialogue and emotion if appropriate."
+              "question_text": "Continue Julia's story from the moment she steps inside the lighthouse. Write the next scene of her adventure: describe the setting as she climbs, what she discovers at the top, and how it changes her understanding of her grandfather. Write in story format and include dialogue and emotion where appropriate."
             },
             {
               "id": "g9-w2",
               "number": 2,
               "type": "writing",
               "topic": "Argumentative Essay",
-              "question_text": "Do you believe it's important to follow your family's legacy, even if others don't believe in it? Write an argumentative essay stating your position and supporting it with examples from the passage, your experience, or outside knowledge. Include a clear thesis, body paragraphs with reasons, and a conclusion."
+              "question_text": "In \"The Weight of Silence\" (Section II), Liana disappears because of the story she was investigating, and Malik chooses to finish it anyway. Do you believe pursuing a difficult truth is worth the personal cost it can carry? Write an argumentative essay stating your position and supporting it with specific examples from \"The Weight of Silence,\" along with your own experience or outside knowledge. Include a clear thesis, body paragraphs with reasons, and a conclusion."
             }
           ]
         }
+
       ]
     },
     {
