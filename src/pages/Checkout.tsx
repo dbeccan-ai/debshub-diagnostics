@@ -178,6 +178,46 @@ const Checkout = () => {
                 </div>
               </div>
 
+              {/* Coupon Code Section */}
+              <div className="rounded-lg border-2 border-primary/30 bg-primary/5 p-4">
+                <h3 className="font-semibold mb-3 flex items-center gap-2">
+                  <Tag className="h-4 w-4" />
+                  Program or Coupon Code
+                </h3>
+                {couponApplied ? (
+                  <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 p-4">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    <span className="text-green-700 font-medium">Coupon applied! Redirecting to test...</span>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    <Input
+                      placeholder="Enter code, e.g. ENROLL7"
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && couponCode.trim() && !applyingCoupon) {
+                          handleApplyCoupon();
+                        }
+                      }}
+                      className="flex-1"
+                      disabled={applyingCoupon}
+                    />
+                    <Button
+                      onClick={handleApplyCoupon}
+                      disabled={applyingCoupon || !couponCode.trim()}
+                      variant="outline"
+                    >
+                      {applyingCoupon ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        "Apply Code"
+                      )}
+                    </Button>
+                  </div>
+                )}
+              </div>
+
               <div className="space-y-3">
                 <h3 className="font-semibold">What's Included:</h3>
                 <ul className="space-y-2">
@@ -221,43 +261,6 @@ const Checkout = () => {
                   )}
                 </ul>
               </div>
-
-              {/* Coupon Code Section */}
-              {!isBundle && (
-                <div className="border-t pt-4">
-                  <h3 className="font-semibold mb-3 flex items-center gap-2">
-                    <Tag className="h-4 w-4" />
-                    Have a Coupon Code?
-                  </h3>
-                  {couponApplied ? (
-                    <div className="flex items-center gap-2 p-4 bg-green-50 border border-green-200 rounded-lg">
-                      <CheckCircle className="h-5 w-5 text-green-600" />
-                      <span className="text-green-700 font-medium">Coupon applied! Redirecting to test...</span>
-                    </div>
-                  ) : (
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder="Enter coupon code"
-                        value={couponCode}
-                        onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                        className="flex-1"
-                        disabled={applyingCoupon}
-                      />
-                      <Button
-                        onClick={handleApplyCoupon}
-                        disabled={applyingCoupon || !couponCode.trim()}
-                        variant="outline"
-                      >
-                        {applyingCoupon ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          "Apply"
-                        )}
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              )}
 
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
