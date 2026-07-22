@@ -208,7 +208,9 @@ const Auth = () => {
 
     try {
       if (isLogin) {
-        const validation = loginSchema.safeParse({ username, password });
+        const trimmedUsername = username.trim();
+        const cleanedPassword = password.replace(/[\r\n]+$/, "");
+        const validation = loginSchema.safeParse({ username: trimmedUsername, password: cleanedPassword });
         if (!validation.success) {
           const fieldErrors: Record<string, string> = {};
           validation.error.errors.forEach((err) => {
@@ -221,21 +223,31 @@ const Auth = () => {
           return;
         }
 
-        const { data: emailData, error: lookupError } = await supabase
-          .rpc('get_email_from_username', { input_username: validation.data.username });
-        
-        if (lookupError || !emailData) {
-          toast.error("Invalid username or password");
-          setLoading(false);
-          return;
+        // If the username field contains an email (common with browser autofill),
+        // sign in directly by email. Also works for legacy users without a username.
+        let signInEmail: string | null = null;
+        if (validation.data.username.includes("@")) {
+          signInEmail = validation.data.username.toLowerCase();
+        } else {
+          const { data: emailData, error: lookupError } = await supabase
+            .rpc('get_email_from_username', { input_username: validation.data.username });
+
+          if (lookupError || !emailData) {
+            console.warn("Username lookup failed", { lookupError });
+            toast.error("Invalid username or password");
+            setLoading(false);
+            return;
+          }
+          signInEmail = emailData;
         }
 
         const { error } = await supabase.auth.signInWithPassword({
-          email: emailData,
-          password: validation.data.password,
+          email: signInEmail,
+          password: cleanedPassword,
         });
 
         if (error) {
+          console.warn("signInWithPassword failed", { message: error.message });
           toast.error("Invalid username or password");
           setLoading(false);
           return;
