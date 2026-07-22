@@ -527,7 +527,7 @@ const Auth = () => {
                   placeholder="student123"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  maxLength={50}
+                  maxLength={255}
                 />
                 {errors.username && (
                   <p className="text-xs text-destructive">{errors.username}</p>
