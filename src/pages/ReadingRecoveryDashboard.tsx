@@ -520,23 +520,15 @@ const ReadingRecoveryDashboard = () => {
                           </div>
                           <p className="text-sm text-muted-foreground">{activity.description}</p>
                         </div>
-                        {isCurrent && (
-                          <Button 
-                            size="sm" 
-                            className="bg-amber-500 hover:bg-amber-600 flex-shrink-0"
-                            onClick={() => {
-                              // For assessment days, go to diagnostic
-                              if (activity.category === "Assessment") {
-                                navigate("/reading-recovery/diagnostic");
-                              } else {
-                                toast.info("Activity content coming soon!");
-                              }
-                            }}
-                          >
-                            Start
-                            <ArrowRight className="ml-1 h-3 w-3" />
-                          </Button>
-                        )}
+                        <Button
+                          size="sm"
+                          variant={isCurrent ? "default" : "outline"}
+                          className={`flex-shrink-0 ${isCurrent ? "bg-amber-500 hover:bg-amber-600" : ""}`}
+                          onClick={() => handleStartActivity(activity.day, activity.title, activity.category)}
+                        >
+                          {isCompleted ? "Review" : isCurrent ? "Start" : "Open"}
+                          <ArrowRight className="ml-1 h-3 w-3" />
+                        </Button>
                       </div>
                     );
                   })}
