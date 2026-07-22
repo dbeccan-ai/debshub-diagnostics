@@ -121,6 +121,41 @@ const ReadingRecoveryDashboard = () => {
   const [progressItems, setProgressItems] = useState<ProgressItem[]>([]);
   const roadmapScrollRef = useRef<HTMLDivElement>(null);
   const currentTaskRef = useRef<HTMLDivElement>(null);
+  const [openActivityDay, setOpenActivityDay] = useState<number | null>(null);
+
+  const handleStartActivity = (day: number, title: string, category: string) => {
+    if (category === "Assessment") {
+      navigate("/reading-recovery/diagnostic");
+      return;
+    }
+    setOpenActivityDay(day);
+  };
+
+  const handleMarkComplete = async (day: number) => {
+    if (!enrollment) return;
+    const activity = get21DayRoadmap().find((a) => a.day === day);
+    if (!activity) return;
+    const existing = progressItems.find((p) => p.day_number === day);
+    if (existing?.completed_at) {
+      toast.info("Already marked complete.");
+      return;
+    }
+    const { error } = await supabase.from("reading_recovery_progress").insert({
+      enrollment_id: enrollment.id,
+      day_number: day,
+      activity_title: activity.title,
+      completed_at: new Date().toISOString(),
+    });
+    if (error) {
+      toast.error("Could not save progress.");
+      return;
+    }
+    setProgressItems((prev) => [
+      ...prev.filter((p) => p.day_number !== day),
+      { day_number: day, activity_title: activity.title, completed_at: new Date().toISOString() },
+    ]);
+    toast.success(`Day ${day} complete! 🎉`);
+  };
 
   useEffect(() => {
     let isMounted = true;
