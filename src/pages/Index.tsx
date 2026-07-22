@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { SEO } from "@/components/SEO";
 import { GradeRangeTestDialog } from "@/components/GradeRangeTestDialog";
 import { HeroTestDropdown } from "@/components/HeroTestDropdown";
 import { LanguageSelector } from "@/components/LanguageSelector";
@@ -27,6 +28,49 @@ export default function Page() {
 
   return (
     <div className="bg-gradient-to-br from-sky-100 via-white to-amber-50 text-slate-900 min-h-screen">
+      <SEO
+        title="DEBs Diagnostic Hub — K-12 ELA & Math Testing"
+        description="AI-powered K-12 diagnostic testing for ELA and Math. Identify skill gaps, get personalized 6-week learning plans, and track student progress."
+        path="/"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: [
+            {
+              "@type": "Question",
+              name: "What grades does DEBs Diagnostic Hub cover?",
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: "We offer ELA and Math diagnostic assessments for students in Grades 1 through 12.",
+              },
+            },
+            {
+              "@type": "Question",
+              name: "How much does a diagnostic test cost?",
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: "Diagnostics are $99 for Grades 1–6 and $120 for Grades 7–12. Dual-subject bundles are also available.",
+              },
+            },
+            {
+              "@type": "Question",
+              name: "What do students receive after the test?",
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: "Each student gets a tiered results report, a certificate, and a personalized 6-week learning plan targeting weak skills.",
+              },
+            },
+            {
+              "@type": "Question",
+              name: "Do you offer school and district pricing?",
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: "Yes. Schools can request a demo to see multi-classroom pricing, teacher dashboards, and bulk enrollment.",
+              },
+            },
+          ],
+        }}
+      />
       {/* NAVBAR */}
       <header className="border-b border-slate-200 bg-white/70 backdrop-blur sticky top-0 z-30">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">

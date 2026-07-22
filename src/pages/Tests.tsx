@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { SEO } from "@/components/SEO";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -183,6 +184,11 @@ const Tests = () => {
   if (!selectedTestType) {
     return (
       <div className="min-h-screen bg-background">
+        <SEO
+          title="Available Diagnostic Tests | DEBs Diagnostic Hub"
+          description="Browse available ELA and Math diagnostic tests by grade level and start an assessment."
+          path="/tests"
+        />
         <header className="border-b bg-card">
           <div className="container mx-auto flex items-center justify-between py-4 px-4">
             <div className="flex items-center gap-4">

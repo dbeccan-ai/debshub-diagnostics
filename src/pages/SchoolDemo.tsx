@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -84,6 +85,11 @@ export default function SchoolDemo() {
 
   return (
     <div className="bg-gradient-to-br from-sky-100 via-white to-amber-50 text-foreground min-h-screen">
+      <SEO
+        title="Request a School Demo | DEBs Diagnostic Hub"
+        description="See DEBs Diagnostic Hub in action for your school or district — teacher dashboards, class analytics, and bulk enrollment."
+        path="/demo"
+      />
       {/* NAVBAR */}
       <header className="border-b border-border bg-card/70 backdrop-blur sticky top-0 z-30">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
