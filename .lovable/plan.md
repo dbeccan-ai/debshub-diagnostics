@@ -1,78 +1,70 @@
-## Problem
+# Phonics Listening & Pronunciation Practice
 
-Clicking **Start** on any non-assessment day in the 21-Day Recovery Blueprint (dashboard) currently fires `toast.info("Activity content coming soon!")`. Only Days 1, 10, 21 (assessments) route somewhere real. So Phonics, Vocabulary, Fluency, Comprehension, Writing, Review days all dead-end.
+Add an interactive "PhonicsChip" that lets students tap any letter or word to hear it, then repeat it into the mic and get instant correct/try-again feedback. Attempt accuracy is logged so teachers can see progress.
 
-## Fix
+## What the student experiences
 
-Create a real, printable/interactive **Activity Workbook** for each of the 18 non-assessment days, wire the Start button to open it, and let the parent/teacher run the lesson right in the browser.
+1. In any phonics warm-up, word list, or Grade 1 ELA letter-sound item, each letter/word appears as a chip with a 🔊 speaker icon and a 🎤 mic icon.
+2. Tap 🔊 → AI voice says the phoneme (letter) or blended pronunciation (word). They can replay as often as they like.
+3. Tap 🎤 → 3-second recording. System transcribes and compares to the target.
+   - ✅ "Great job! You said it correctly." (green pulse, +1 to streak)
+   - 🔁 "Almost — try again. Listen once more." (auto-replays target audio)
+4. Progress bar on each activity: "8 / 12 sounds mastered." Saved to their Reading Recovery record.
 
-### 1. New activity content module
-Create `src/data/reading-recovery-activities.ts` — a keyed record `activities[day]` with, for each of days 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20:
+## Scope
 
-- `title`, `category`, `objective`, `estimatedMinutes`
-- `warmUp` — 2–3 quick verbal prompts
-- `instructions` — step-by-step teacher/parent script
-- `worksheet` — array of exercise blocks. Block types:
-  - `word-list` (e.g. consonant/vowel sound tables, sight-word sets, word families)
-  - `fill-blank` (sentences with missing words)
-  - `matching` (word ↔ picture / word ↔ definition)
-  - `short-passage` (mini reading + 3–5 comprehension Qs)
-  - `writing-prompt` (lines for student response)
-  - `checklist` (fluency/expression rubric for the observer)
-- `answerKey` where applicable
-- `extension` — 1 optional bonus challenge
+- All Phonics-category days in the 21-Day Blueprint (Days 2, 5, 11, 14, etc.)
+- Every `word-list` block in **all** activity days (so word-work across Vocabulary/Fluency days benefits too)
+- Grade 1 ELA diagnostic — letter-sound identification questions
 
-Content will be grade-neutral but leveled by the student's grade band (1–2, 3–4, 5–6, 7–8) using a `variantsByBand` object where phonics/vocab differs. Reuse the existing grade-band logic from `reading-recovery-content.ts`.
+## Technical Details
 
-Day-by-day coverage (examples):
-- Day 2 Phonics Warm-up — consonant chart, short/long vowel sort, blend practice, 10 CVC decode words
-- Day 3 Sight Words Set 1 — 20 Dolch/Fry words by band, flashcards, sentence fill-blanks
-- Day 4 Guided Reading 1 — short passage + fluency checklist for observer
-- Day 5 Predictions — passage stops with "What do you think happens next?" prompts
-- Day 6 Blending & Segmenting — digraphs (sh/ch/th), CCVC words
-- Day 7 Week 1 Review — mixed 15-item quiz + reflection journal
-- Day 8 Sight Words Set 2
-- Day 9 Repeated Reading Fluency — 3 timed reads with WPM tracker
-- Day 11 Asking Questions — passage + student-generated Qs template
-- Day 12 Word Families — -at, -ip, -ock etc., generation grid
-- Day 13 Independent Reading — self-selected reading log + 5 Qs
-- Day 14 Week 2 Review — celebration certificate + reflection
-- Day 15 Vocabulary Games — matching, synonyms, context clues
-- Day 16 Expression & Phrasing — punctuation drills, dialogue reading
-- Day 17 Summarizing — main idea/details graphic organizer + passage
-- Day 18 Guided Reading 3
-- Day 19 Writing Connection — story response prompt + planning organizer
-- Day 20 Final Practice — mixed review + Post-Test warm-up
+### New shared component
+`src/components/PhonicsChip.tsx`
+- Props: `text`, `mode: "letter" | "word"`, `onResult(correct: boolean)`
+- Play button → POST `/functions/v1/phonics-speak` → plays returned MP3 (cached in-memory Map keyed by text+mode so replays are free)
+- Record button → uses `MediaRecorder` (webm), sends to `/functions/v1/phonics-check`
+- Shows result badge, retry count, and cumulative attempt state
 
-### 2. New workbook page/component
-Create `src/components/ReadingRecoveryActivityDialog.tsx` — a full-screen `Dialog` that renders the activity for a given `day`:
+### New edge functions (both `verify_jwt = true`, added to `supabase/config.toml`)
 
-- Header: Day #, title, category badge, objective, timer
-- Warm-Up card
-- Instructions card
-- Worksheet blocks rendered per block type with input fields (state-only, no persistence needed)
-- Show/Hide **Answer Key** toggle
-- **Print** button (`window.print()`) with print CSS so the worksheet prints cleanly
-- **Mark Complete** button that closes the dialog
+**`phonics-speak`** — TTS via Lovable AI Gateway
+- Model: `openai/gpt-4o-mini-tts`, voice `alloy` (warm, child-friendly), non-streaming (small payload)
+- For `mode: "letter"`, prompt-instructs: *"Say only the primary short phoneme for the letter X, clearly and slowly, no letter name."* For `mode: "word"`: *"Say the word 'X' at a slow, encouraging pace."*
+- Returns MP3 bytes; frontend caches per session
 
-### 3. Wire the dashboard button
-Edit `src/pages/ReadingRecoveryDashboard.tsx` (lines 487–503):
-- Replace `toast.info("Activity content coming soon!")` with opening the new dialog for that `activity.day`.
-- Also enable Start for non-current days (view/preview mode) so parents can peek ahead — keep the amber highlight only for the current day.
-- Add state `const [openDay, setOpenDay] = useState<number | null>(null)` and render `<ReadingRecoveryActivityDialog day={openDay} onClose={() => setOpenDay(null)} />`.
+**`phonics-check`** — STT + match
+- Accepts audio blob, target text, mode
+- Sends audio to `openai/gpt-4o-transcribe` (`/v1/audio/transcriptions`)
+- For letters: compares first phonetic token; a small mapping table (`a→"ah"/"æ"`, `b→"buh"/"bee"`, etc.) plus normalized-string match
+- For words: normalized string equality (lowercase, strip punctuation), plus Levenshtein distance ≤ 1 tolerance
+- Returns `{ correct: boolean, heard: string, target: string }`
 
-### 4. Print styling
-Add a small `@media print` block (in `src/index.css` or scoped in the dialog) so the workbook prints without the app chrome.
+### Progress logging
 
-## Out of scope
+New table `phonics_attempts`:
+```
+id uuid pk, enrollment_id uuid null, user_id uuid, day_number int null,
+target text, mode text, correct boolean, heard text, created_at timestamptz
+```
+- RLS: students insert/select their own; admins/teachers select all in their school
+- GRANTs for `authenticated` + `service_role`
+- Rollup query on `ReadingRecoveryDashboard` shows accuracy per day
 
-- No backend/DB changes; completion tracking stays as-is (local state).
-- No AI generation — content is authored deterministically so it's stable and free.
-- Assessment days (1, 10, 21) keep routing to `/reading-recovery/diagnostic`.
+### Wiring
 
-## Files touched
+- `src/components/ReadingRecoveryActivityDialog.tsx` — replace plain letter/word tiles in the `word-list` block with `<PhonicsChip>` when the activity `category === "Phonics"` OR block title contains "sound"/"phoneme"; word-mode chips elsewhere
+- `src/pages/Grade1ELADiagnostic.tsx` — inject `<PhonicsChip mode="letter">` next to letter-sound questions
+- `src/pages/ReadingRecoveryDashboard.tsx` — show mastery % strip per Phonics day, pulled from `phonics_attempts`
 
-- **new** `src/data/reading-recovery-activities.ts`
-- **new** `src/components/ReadingRecoveryActivityDialog.tsx`
-- **edit** `src/pages/ReadingRecoveryDashboard.tsx` (Start handler + dialog render)
-- **edit** `src/index.css` (print styles)
+### Consent & permissions
+
+- Mic permission requested on first 🎤 tap with a friendly explainer toast
+- Reuses existing Reading Recovery recording consent — if consent missing, mic button is disabled with tooltip "Enable recording consent in your account to practice out loud"
+- Play (🔊) always available regardless of consent
+
+## Out of scope for this pass
+
+- Voice selection / accent picker (defaults to `alloy`)
+- Offline caching of audio beyond current session
+- Full running-record replacement — this is practice, not assessment

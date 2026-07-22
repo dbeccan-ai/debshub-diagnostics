@@ -9,15 +9,24 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Printer, Eye, EyeOff, CheckCircle2, Clock, Target, Sparkles } from "lucide-react";
 import { getActivity, pickBand, type WorksheetBlock } from "@/data/reading-recovery-activities";
+import PhonicsChip from "@/components/PhonicsChip";
 
 interface Props {
   day: number | null;
   gradeLevel: number | null;
+  enrollmentId?: string | null;
   onClose: () => void;
   onComplete?: (day: number) => void;
 }
 
-const Block = ({ block, showAnswers }: { block: WorksheetBlock; showAnswers: boolean }) => {
+interface BlockCtx {
+  usePhonics: boolean;
+  isLetterMode: boolean;
+  dayNumber: number | null;
+  enrollmentId: string | null;
+}
+
+const Block = ({ block, showAnswers, ctx }: { block: WorksheetBlock; showAnswers: boolean; ctx: BlockCtx }) => {
   switch (block.type) {
     case "word-list": {
       const cols = block.columns ?? 4;
@@ -28,14 +37,24 @@ const Block = ({ block, showAnswers }: { block: WorksheetBlock; showAnswers: boo
             className="grid gap-2 text-center"
             style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
           >
-            {block.words.map((w, i) => (
-              <div
-                key={i}
-                className="border border-muted rounded-md p-2 text-sm bg-muted/20 font-medium"
-              >
-                {w}
-              </div>
-            ))}
+            {block.words.map((w, i) =>
+              ctx.usePhonics ? (
+                <PhonicsChip
+                  key={i}
+                  text={w}
+                  mode={ctx.isLetterMode || w.trim().length === 1 ? "letter" : "word"}
+                  dayNumber={ctx.dayNumber}
+                  enrollmentId={ctx.enrollmentId}
+                />
+              ) : (
+                <div
+                  key={i}
+                  className="border border-muted rounded-md p-2 text-sm bg-muted/20 font-medium"
+                >
+                  {w}
+                </div>
+              )
+            )}
           </div>
         </div>
       );
@@ -161,7 +180,7 @@ const Block = ({ block, showAnswers }: { block: WorksheetBlock; showAnswers: boo
   }
 };
 
-const ReadingRecoveryActivityDialog = ({ day, gradeLevel, onClose, onComplete }: Props) => {
+const ReadingRecoveryActivityDialog = ({ day, gradeLevel, enrollmentId, onClose, onComplete }: Props) => {
   const [showAnswers, setShowAnswers] = useState(false);
   const open = day !== null;
   const activity = useMemo(() => (day !== null ? getActivity(day) : null), [day]);
@@ -255,13 +274,28 @@ const ReadingRecoveryActivityDialog = ({ day, gradeLevel, onClose, onComplete }:
               <div>
                 <h3 className="font-semibold text-base mb-3">📝 Worksheet</h3>
                 <div className="space-y-6">
-                  {blocks.map((b, i) => (
-                    <Card key={i}>
-                      <CardContent className="pt-4">
-                        <Block block={b} showAnswers={showAnswers} />
-                      </CardContent>
-                    </Card>
-                  ))}
+                  {blocks.map((b, i) => {
+                    const title = (b as any).title?.toLowerCase?.() ?? "";
+                    const isPhonicsCat = activity.category.toLowerCase().includes("phonics");
+                    const isSoundBlock = /sound|phoneme|letter/.test(title);
+                    const usePhonics = b.type === "word-list" && (isPhonicsCat || isSoundBlock);
+                    return (
+                      <Card key={i}>
+                        <CardContent className="pt-4">
+                          <Block
+                            block={b}
+                            showAnswers={showAnswers}
+                            ctx={{
+                              usePhonics,
+                              isLetterMode: isSoundBlock && isPhonicsCat,
+                              dayNumber: activity.day,
+                              enrollmentId: enrollmentId ?? null,
+                            }}
+                          />
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
               </div>
 

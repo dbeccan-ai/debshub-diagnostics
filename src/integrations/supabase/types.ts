@@ -357,6 +357,42 @@ export type Database = {
           },
         ]
       }
+      phonics_attempts: {
+        Row: {
+          correct: boolean
+          created_at: string
+          day_number: number | null
+          enrollment_id: string | null
+          heard: string | null
+          id: string
+          mode: string
+          target: string
+          user_id: string
+        }
+        Insert: {
+          correct: boolean
+          created_at?: string
+          day_number?: number | null
+          enrollment_id?: string | null
+          heard?: string | null
+          id?: string
+          mode: string
+          target: string
+          user_id: string
+        }
+        Update: {
+          correct?: boolean
+          created_at?: string
+          day_number?: number | null
+          enrollment_id?: string | null
+          heard?: string | null
+          id?: string
+          mode?: string
+          target?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           account_status: string

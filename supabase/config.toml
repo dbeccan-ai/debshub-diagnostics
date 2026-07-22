@@ -65,3 +65,9 @@ verify_jwt = false
 
 [functions.send-bundle-coupon]
 verify_jwt = false
+
+[functions.phonics-speak]
+verify_jwt = true
+
+[functions.phonics-check]
+verify_jwt = true
