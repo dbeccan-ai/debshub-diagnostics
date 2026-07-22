@@ -14,11 +14,19 @@ import PhonicsChip from "@/components/PhonicsChip";
 interface Props {
   day: number | null;
   gradeLevel: number | null;
+  enrollmentId?: string | null;
   onClose: () => void;
   onComplete?: (day: number) => void;
 }
 
-const Block = ({ block, showAnswers }: { block: WorksheetBlock; showAnswers: boolean }) => {
+interface BlockCtx {
+  usePhonics: boolean;
+  isLetterMode: boolean;
+  dayNumber: number | null;
+  enrollmentId: string | null;
+}
+
+const Block = ({ block, showAnswers, ctx }: { block: WorksheetBlock; showAnswers: boolean; ctx: BlockCtx }) => {
   switch (block.type) {
     case "word-list": {
       const cols = block.columns ?? 4;
