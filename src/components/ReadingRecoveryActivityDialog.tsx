@@ -180,7 +180,7 @@ const Block = ({ block, showAnswers, ctx }: { block: WorksheetBlock; showAnswers
   }
 };
 
-const ReadingRecoveryActivityDialog = ({ day, gradeLevel, onClose, onComplete }: Props) => {
+const ReadingRecoveryActivityDialog = ({ day, gradeLevel, enrollmentId, onClose, onComplete }: Props) => {
   const [showAnswers, setShowAnswers] = useState(false);
   const open = day !== null;
   const activity = useMemo(() => (day !== null ? getActivity(day) : null), [day]);
