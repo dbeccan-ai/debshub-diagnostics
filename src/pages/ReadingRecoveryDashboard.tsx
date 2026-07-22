@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { useTranslation } from "@/hooks/useTranslation";
+import ReadingRecoveryActivityDialog from "@/components/ReadingRecoveryActivityDialog";
 
 interface Enrollment {
   id: string;
