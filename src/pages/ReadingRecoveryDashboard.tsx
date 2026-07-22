@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { useTranslation } from "@/hooks/useTranslation";
+import ReadingRecoveryActivityDialog from "@/components/ReadingRecoveryActivityDialog";
 
 interface Enrollment {
   id: string;
@@ -120,6 +121,41 @@ const ReadingRecoveryDashboard = () => {
   const [progressItems, setProgressItems] = useState<ProgressItem[]>([]);
   const roadmapScrollRef = useRef<HTMLDivElement>(null);
   const currentTaskRef = useRef<HTMLDivElement>(null);
+  const [openActivityDay, setOpenActivityDay] = useState<number | null>(null);
+
+  const handleStartActivity = (day: number, title: string, category: string) => {
+    if (category === "Assessment") {
+      navigate("/reading-recovery/diagnostic");
+      return;
+    }
+    setOpenActivityDay(day);
+  };
+
+  const handleMarkComplete = async (day: number) => {
+    if (!enrollment) return;
+    const activity = get21DayRoadmap().find((a) => a.day === day);
+    if (!activity) return;
+    const existing = progressItems.find((p) => p.day_number === day);
+    if (existing?.completed_at) {
+      toast.info("Already marked complete.");
+      return;
+    }
+    const { error } = await supabase.from("reading_recovery_progress").insert({
+      enrollment_id: enrollment.id,
+      day_number: day,
+      activity_title: activity.title,
+      completed_at: new Date().toISOString(),
+    });
+    if (error) {
+      toast.error("Could not save progress.");
+      return;
+    }
+    setProgressItems((prev) => [
+      ...prev.filter((p) => p.day_number !== day),
+      { day_number: day, activity_title: activity.title, completed_at: new Date().toISOString() },
+    ]);
+    toast.success(`Day ${day} complete! 🎉`);
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -484,23 +520,15 @@ const ReadingRecoveryDashboard = () => {
                           </div>
                           <p className="text-sm text-muted-foreground">{activity.description}</p>
                         </div>
-                        {isCurrent && (
-                          <Button 
-                            size="sm" 
-                            className="bg-amber-500 hover:bg-amber-600 flex-shrink-0"
-                            onClick={() => {
-                              // For assessment days, go to diagnostic
-                              if (activity.category === "Assessment") {
-                                navigate("/reading-recovery/diagnostic");
-                              } else {
-                                toast.info("Activity content coming soon!");
-                              }
-                            }}
-                          >
-                            Start
-                            <ArrowRight className="ml-1 h-3 w-3" />
-                          </Button>
-                        )}
+                        <Button
+                          size="sm"
+                          variant={isCurrent ? "default" : "outline"}
+                          className={`flex-shrink-0 ${isCurrent ? "bg-amber-500 hover:bg-amber-600" : ""}`}
+                          onClick={() => handleStartActivity(activity.day, activity.title, activity.category)}
+                        >
+                          {isCompleted ? "Review" : isCurrent ? "Start" : "Open"}
+                          <ArrowRight className="ml-1 h-3 w-3" />
+                        </Button>
                       </div>
                     );
                   })}
@@ -643,6 +671,13 @@ const ReadingRecoveryDashboard = () => {
           </div>
         </div>
       </main>
+
+      <ReadingRecoveryActivityDialog
+        day={openActivityDay}
+        gradeLevel={enrollment?.grade_level ?? null}
+        onClose={() => setOpenActivityDay(null)}
+        onComplete={handleMarkComplete}
+      />
     </div>
   );
 };

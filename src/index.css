@@ -158,3 +158,10 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+@media print {
+  body * { visibility: hidden; }
+  #rr-print-area, #rr-print-area * { visibility: visible; }
+  #rr-print-area { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; }
+  .print\:hidden { display: none !important; }
+  [role="dialog"] { position: static !important; max-height: none !important; overflow: visible !important; box-shadow: none !important; border: none !important; }
+}
