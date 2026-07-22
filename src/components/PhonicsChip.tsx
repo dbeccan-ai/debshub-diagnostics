@@ -31,12 +31,25 @@ const PhonicsChip = ({ text, mode = "word", dayNumber, enrollmentId, className }
       setPlaying(true);
       let url = audioCache.get(cacheKey);
       if (!url) {
-        const { data, error } = await supabase.functions.invoke("phonics-speak", {
-          body: { text, mode },
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+        const { data: sessionData } = await supabase.auth.getSession();
+        const token = sessionData.session?.access_token ?? anonKey;
+        const res = await fetch(`${supabaseUrl}/functions/v1/phonics-speak`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+            apikey: anonKey,
+          },
+          body: JSON.stringify({ text, mode }),
         });
-        if (error) throw error;
-        // data is a Blob when the function returns audio/mpeg
-        const blob = data instanceof Blob ? data : new Blob([data as BlobPart], { type: "audio/mpeg" });
+        if (!res.ok) {
+          const errText = await res.text().catch(() => "");
+          throw new Error(errText || `TTS failed (${res.status})`);
+        }
+        const buf = await res.arrayBuffer();
+        const blob = new Blob([buf], { type: "audio/mpeg" });
         url = URL.createObjectURL(blob);
         audioCache.set(cacheKey, url);
       }
