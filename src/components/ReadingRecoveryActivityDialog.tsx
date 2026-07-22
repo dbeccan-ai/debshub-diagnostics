@@ -274,13 +274,28 @@ const ReadingRecoveryActivityDialog = ({ day, gradeLevel, enrollmentId, onClose,
               <div>
                 <h3 className="font-semibold text-base mb-3">📝 Worksheet</h3>
                 <div className="space-y-6">
-                  {blocks.map((b, i) => (
-                    <Card key={i}>
-                      <CardContent className="pt-4">
-                        <Block block={b} showAnswers={showAnswers} />
-                      </CardContent>
-                    </Card>
-                  ))}
+                  {blocks.map((b, i) => {
+                    const title = (b as any).title?.toLowerCase?.() ?? "";
+                    const isPhonicsCat = activity.category.toLowerCase().includes("phonics");
+                    const isSoundBlock = /sound|phoneme|letter/.test(title);
+                    const usePhonics = b.type === "word-list" && (isPhonicsCat || isSoundBlock);
+                    return (
+                      <Card key={i}>
+                        <CardContent className="pt-4">
+                          <Block
+                            block={b}
+                            showAnswers={showAnswers}
+                            ctx={{
+                              usePhonics,
+                              isLetterMode: isSoundBlock && isPhonicsCat,
+                              dayNumber: activity.day,
+                              enrollmentId: enrollmentId ?? null,
+                            }}
+                          />
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
               </div>
 
