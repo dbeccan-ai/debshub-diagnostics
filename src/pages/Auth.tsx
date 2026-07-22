@@ -314,7 +314,8 @@ const Auth = () => {
     setLoading(true);
 
     try {
-      const validation = resetSchema.safeParse({ username });
+      const trimmedUsername = username.trim();
+      const validation = resetSchema.safeParse({ username: trimmedUsername });
       if (!validation.success) {
         const fieldErrors: Record<string, string> = {};
         validation.error.errors.forEach((err) => {
@@ -327,18 +328,25 @@ const Auth = () => {
         return;
       }
 
-      const { data: emailData, error: lookupError } = await supabase
-        .rpc('get_email_from_username', { input_username: validation.data.username });
-      
-      if (lookupError || !emailData) {
-        toast.success("If this username exists, a reset link was sent to the parent's email");
-        setIsForgotPassword(false);
-        setUsername("");
-        setLoading(false);
-        return;
+      // If they entered an email, use it directly; otherwise look it up by username.
+      let resetEmail: string | null = null;
+      if (validation.data.username.includes("@")) {
+        resetEmail = validation.data.username.toLowerCase();
+      } else {
+        const { data: emailData, error: lookupError } = await supabase
+          .rpc('get_email_from_username', { input_username: validation.data.username });
+
+        if (lookupError || !emailData) {
+          toast.success("If this username exists, a reset link was sent to the parent's email");
+          setIsForgotPassword(false);
+          setUsername("");
+          setLoading(false);
+          return;
+        }
+        resetEmail = emailData;
       }
 
-      const { error } = await supabase.auth.resetPasswordForEmail(emailData, {
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
         redirectTo: `${window.location.origin}/auth`,
       });
 
