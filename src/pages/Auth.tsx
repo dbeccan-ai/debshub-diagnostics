@@ -66,12 +66,12 @@ const signupSchema = z.object({
 });
 
 const loginSchema = z.object({
-  username: z.string().min(1, "Username is required").max(50, "Username must be less than 50 characters"),
+  username: z.string().min(1, "Username is required").max(255, "Must be less than 255 characters"),
   password: z.string().min(1, "Password is required").max(100, "Password must be less than 100 characters")
 });
 
 const resetSchema = z.object({
-  username: z.string().min(1, "Username is required").max(50, "Username must be less than 50 characters")
+  username: z.string().min(1, "Username is required").max(255, "Must be less than 255 characters")
 });
 
 const Auth = () => {
@@ -208,7 +208,9 @@ const Auth = () => {
 
     try {
       if (isLogin) {
-        const validation = loginSchema.safeParse({ username, password });
+        const trimmedUsername = username.trim();
+        const cleanedPassword = password.replace(/[\r\n]+$/, "");
+        const validation = loginSchema.safeParse({ username: trimmedUsername, password: cleanedPassword });
         if (!validation.success) {
           const fieldErrors: Record<string, string> = {};
           validation.error.errors.forEach((err) => {
@@ -221,21 +223,31 @@ const Auth = () => {
           return;
         }
 
-        const { data: emailData, error: lookupError } = await supabase
-          .rpc('get_email_from_username', { input_username: validation.data.username });
-        
-        if (lookupError || !emailData) {
-          toast.error("Invalid username or password");
-          setLoading(false);
-          return;
+        // If the username field contains an email (common with browser autofill),
+        // sign in directly by email. Also works for legacy users without a username.
+        let signInEmail: string | null = null;
+        if (validation.data.username.includes("@")) {
+          signInEmail = validation.data.username.toLowerCase();
+        } else {
+          const { data: emailData, error: lookupError } = await supabase
+            .rpc('get_email_from_username', { input_username: validation.data.username });
+
+          if (lookupError || !emailData) {
+            console.warn("Username lookup failed", { lookupError });
+            toast.error("Invalid username or password");
+            setLoading(false);
+            return;
+          }
+          signInEmail = emailData;
         }
 
         const { error } = await supabase.auth.signInWithPassword({
-          email: emailData,
-          password: validation.data.password,
+          email: signInEmail,
+          password: cleanedPassword,
         });
 
         if (error) {
+          console.warn("signInWithPassword failed", { message: error.message });
           toast.error("Invalid username or password");
           setLoading(false);
           return;
@@ -302,7 +314,8 @@ const Auth = () => {
     setLoading(true);
 
     try {
-      const validation = resetSchema.safeParse({ username });
+      const trimmedUsername = username.trim();
+      const validation = resetSchema.safeParse({ username: trimmedUsername });
       if (!validation.success) {
         const fieldErrors: Record<string, string> = {};
         validation.error.errors.forEach((err) => {
@@ -315,18 +328,25 @@ const Auth = () => {
         return;
       }
 
-      const { data: emailData, error: lookupError } = await supabase
-        .rpc('get_email_from_username', { input_username: validation.data.username });
-      
-      if (lookupError || !emailData) {
-        toast.success("If this username exists, a reset link was sent to the parent's email");
-        setIsForgotPassword(false);
-        setUsername("");
-        setLoading(false);
-        return;
+      // If they entered an email, use it directly; otherwise look it up by username.
+      let resetEmail: string | null = null;
+      if (validation.data.username.includes("@")) {
+        resetEmail = validation.data.username.toLowerCase();
+      } else {
+        const { data: emailData, error: lookupError } = await supabase
+          .rpc('get_email_from_username', { input_username: validation.data.username });
+
+        if (lookupError || !emailData) {
+          toast.success("If this username exists, a reset link was sent to the parent's email");
+          setIsForgotPassword(false);
+          setUsername("");
+          setLoading(false);
+          return;
+        }
+        resetEmail = emailData;
       }
 
-      const { error } = await supabase.auth.resetPasswordForEmail(emailData, {
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
         redirectTo: `${window.location.origin}/auth`,
       });
 
@@ -507,7 +527,7 @@ const Auth = () => {
                   placeholder="student123"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  maxLength={50}
+                  maxLength={255}
                 />
                 {errors.username && (
                   <p className="text-xs text-destructive">{errors.username}</p>
@@ -597,7 +617,7 @@ const Auth = () => {
                 placeholder="student123"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                maxLength={50}
+                maxLength={isLogin ? 255 : 50}
               />
               {errors.username && (
                 <p className="text-xs text-destructive">{errors.username}</p>
