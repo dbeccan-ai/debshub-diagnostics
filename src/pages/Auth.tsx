@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { SEO } from "@/components/SEO";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -406,6 +407,11 @@ const Auth = () => {
   if (initializing) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+        <SEO
+          title="Sign In | DEBs Diagnostic Hub"
+          description="Sign in to your DEBs Diagnostic Hub account to take a test or view your results."
+          path="/auth"
+        />
         <div className="text-muted-foreground">Loading...</div>
       </div>
     );
