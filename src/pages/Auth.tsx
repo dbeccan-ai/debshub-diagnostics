@@ -66,12 +66,12 @@ const signupSchema = z.object({
 });
 
 const loginSchema = z.object({
-  username: z.string().min(1, "Username is required").max(50, "Username must be less than 50 characters"),
+  username: z.string().min(1, "Username is required").max(255, "Must be less than 255 characters"),
   password: z.string().min(1, "Password is required").max(100, "Password must be less than 100 characters")
 });
 
 const resetSchema = z.object({
-  username: z.string().min(1, "Username is required").max(50, "Username must be less than 50 characters")
+  username: z.string().min(1, "Username is required").max(255, "Must be less than 255 characters")
 });
 
 const Auth = () => {
