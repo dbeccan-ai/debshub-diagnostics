@@ -1,4 +1,5 @@
 import { useSearchParams } from "react-router-dom";
+import { SEO } from "@/components/SEO";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { TIER_LABELS, PAYMENT_PLANS, TIER_CTAS, CTA_STYLES } from "@/lib/tierConfig";
@@ -66,6 +67,11 @@ const Enroll = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+      <SEO
+        title="Enroll in a Learning Program | DEBs Diagnostic Hub"
+        description="Enroll your student in the recommended DEBs learning program based on diagnostic results and pick a payment plan."
+        path="/enroll"
+      />
       {/* Header */}
       <header className="bg-white border-b shadow-sm">
         <div className="max-w-4xl mx-auto px-4 py-5 text-center">

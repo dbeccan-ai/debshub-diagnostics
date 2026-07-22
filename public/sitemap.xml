@@ -2,7 +2,10 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://debshub-diagnostics.lovable.app/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
   <url><loc>https://debshub-diagnostics.lovable.app/auth</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://debshub-diagnostics.lovable.app/admin/login</loc><changefreq>monthly</changefreq><priority>0.3</priority></url>
   <url><loc>https://debshub-diagnostics.lovable.app/register</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://debshub-diagnostics.lovable.app/dashboard</loc><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://debshub-diagnostics.lovable.app/verify-payment</loc><changefreq>monthly</changefreq><priority>0.3</priority></url>
   <url><loc>https://debshub-diagnostics.lovable.app/enroll</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://debshub-diagnostics.lovable.app/tests</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://debshub-diagnostics.lovable.app/diagnostics/ela</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>

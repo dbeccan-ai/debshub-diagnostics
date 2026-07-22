@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { SEO } from "@/components/SEO";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -55,6 +56,11 @@ const ReadingRecovery = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-white to-sky-50">
+      <SEO
+        title="Reading Recovery Program | DEBs Diagnostic Hub"
+        description="Oral reading assessments with AI-powered scoring, decoding strategies, and staggered pre/mid/post-test progress tracking."
+        path="/reading-recovery"
+      />
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-border">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">

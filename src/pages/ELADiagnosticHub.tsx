@@ -1,3 +1,4 @@
+import { SEO } from "@/components/SEO";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BookOpen, Clock, ArrowRight } from "lucide-react";
@@ -19,6 +20,11 @@ export default function ELADiagnosticHub() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+      <SEO
+        title="ELA Diagnostic Suite (Grades 1–12) | DEBs"
+        description="Pick an ELA diagnostic by grade — reading comprehension, vocabulary, grammar, writing, and passage analysis with instant scoring."
+        path="/diagnostics/ela"
+      />
       <div className="container mx-auto px-4 py-8">
         <div className="text-center mb-10">
           <h1 className="text-4xl font-bold text-primary mb-4">ELA Diagnostic Tests</h1>
