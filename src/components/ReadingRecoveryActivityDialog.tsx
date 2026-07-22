@@ -37,14 +37,24 @@ const Block = ({ block, showAnswers, ctx }: { block: WorksheetBlock; showAnswers
             className="grid gap-2 text-center"
             style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
           >
-            {block.words.map((w, i) => (
-              <div
-                key={i}
-                className="border border-muted rounded-md p-2 text-sm bg-muted/20 font-medium"
-              >
-                {w}
-              </div>
-            ))}
+            {block.words.map((w, i) =>
+              ctx.usePhonics ? (
+                <PhonicsChip
+                  key={i}
+                  text={w}
+                  mode={ctx.isLetterMode || w.trim().length === 1 ? "letter" : "word"}
+                  dayNumber={ctx.dayNumber}
+                  enrollmentId={ctx.enrollmentId}
+                />
+              ) : (
+                <div
+                  key={i}
+                  className="border border-muted rounded-md p-2 text-sm bg-muted/20 font-medium"
+                >
+                  {w}
+                </div>
+              )
+            )}
           </div>
         </div>
       );
