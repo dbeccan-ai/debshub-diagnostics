@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Printer, Eye, EyeOff, CheckCircle2, Clock, Target, Sparkles } from "lucide-react";
 import { getActivity, pickBand, type WorksheetBlock } from "@/data/reading-recovery-activities";
+import PhonicsChip from "@/components/PhonicsChip";
 
 interface Props {
   day: number | null;
