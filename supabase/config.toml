@@ -71,3 +71,7 @@ verify_jwt = true
 
 [functions.phonics-check]
 verify_jwt = true
+
+[functions.confirm-user-email]
+verify_jwt = true
+
