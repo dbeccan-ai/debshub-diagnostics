@@ -317,7 +317,24 @@ const Auth = () => {
     }
   };
 
+  const handleResendVerification = async () => {
+    if (!unconfirmedEmail) return;
+    setLoading(true);
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email: unconfirmedEmail,
+      options: { emailRedirectTo: `${window.location.origin}/dashboard` },
+    });
+    setLoading(false);
+    if (error) {
+      toast.error(error.message || "Could not resend the verification email.");
+    } else {
+      toast.success("Verification email sent. Check the parent email inbox.");
+    }
+  };
+
   const handleSignOut = async () => {
+
     await supabase.auth.signOut();
     setIsLoggedIn(false);
     toast.success("Signed out successfully");
@@ -666,6 +683,25 @@ const Auth = () => {
               {loading ? t.auth.loading : isLogin ? t.auth.signIn : t.auth.signUp}
             </Button>
           </form>
+          {isLogin && unconfirmedEmail && (
+            <div className="mt-4 rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+              <p className="font-medium">Account not verified</p>
+              <p className="mt-1">
+                A verification link was sent to {unconfirmedEmail}. Check the inbox and spam folder, or resend it.
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="mt-2 w-full"
+                disabled={loading}
+                onClick={handleResendVerification}
+              >
+                Resend verification email
+              </Button>
+            </div>
+          )}
+
           <div className="mt-4 space-y-2 text-center text-sm">
             {isLogin && (
               <button
