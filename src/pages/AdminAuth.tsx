@@ -167,10 +167,18 @@ const AdminAuth = () => {
       });
 
       if (error) {
-        toast.error("Invalid email or password");
+        const code = (error as any).code as string | undefined;
+        if (code === "email_not_confirmed" || /not confirmed/i.test(error.message)) {
+          toast.error("This account isn't verified yet. Check your inbox for the verification link.");
+        } else if (code === "invalid_credentials" || /invalid login credentials/i.test(error.message)) {
+          toast.error("Incorrect email or password. Use \"Forgot Password\" to reset it.");
+        } else {
+          toast.error(error.message || "Unable to sign in. Please try again.");
+        }
         setLoading(false);
         return;
       }
+
 
       // Check if user has admin or teacher role
       const { data: roleData } = await supabase
