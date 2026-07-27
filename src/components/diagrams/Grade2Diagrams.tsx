@@ -467,41 +467,23 @@ export const PencilsHelper = () => (
 
 // Q26: Equal groups organizer (24 split into 2)
 export const EqualGroupsDrawArea = () => (
-  <div className="my-4 p-4 bg-gray-50 rounded-xl border-2 border-dashed border-gray-400">
-    <div className="flex items-center gap-2 mb-3">
-      <span className="text-lg">✏️</span>
-      <span className="text-lg">📌</span>
-      <span className="text-lg">📏</span>
-      <span className="text-sm font-medium text-[#1C2D5A]">Draw here</span>
-    </div>
-    <div className="grid grid-cols-2 gap-4 min-h-[180px]">
-      <div className="border-2 border-gray-300 rounded-lg p-3 bg-white">
-        <p className="text-center text-sm font-bold text-[#1C2D5A] border-b border-gray-200 pb-2 mb-2">
-          Group 1
-        </p>
-        <div className="min-h-[120px]"></div>
+  <SketchPad storageKey="g2-q26" height={220} label="Draw your equal groups">
+    <div className="grid grid-cols-2 gap-4 h-full">
+      <div className="border-2 border-gray-300 rounded-lg p-2 h-full">
+        <p className="text-center text-sm font-bold text-[#1C2D5A] border-b border-gray-200 pb-1">Group 1</p>
       </div>
-      <div className="border-2 border-gray-300 rounded-lg p-3 bg-white">
-        <p className="text-center text-sm font-bold text-[#1C2D5A] border-b border-gray-200 pb-2 mb-2">
-          Group 2
-        </p>
-        <div className="min-h-[120px]"></div>
+      <div className="border-2 border-gray-300 rounded-lg p-2 h-full">
+        <p className="text-center text-sm font-bold text-[#1C2D5A] border-b border-gray-200 pb-1">Group 2</p>
       </div>
     </div>
-  </div>
+  </SketchPad>
 );
 
 // Q27: Fraction circle template (4 parts, unshaded)
 export const FractionDrawArea = () => (
-  <div className="my-4 p-4 bg-gray-50 rounded-xl border-2 border-dashed border-gray-400">
-    <div className="flex items-center gap-2 mb-3">
-      <span className="text-lg">✏️</span>
-      <span className="text-lg">📌</span>
-      <span className="text-lg">📏</span>
-      <span className="text-sm font-medium text-[#1C2D5A]">Shade 3 of 4 parts</span>
-    </div>
-    <div className="flex justify-center min-h-[180px] items-center bg-white rounded-lg border-2 border-gray-300 p-4">
-      <svg width="160" height="160" viewBox="0 0 160 160">
+  <SketchPad storageKey="g2-q27" height={220} label="Shade 3 of 4 parts">
+    <div className="flex justify-center items-center h-full">
+      <svg width="180" height="180" viewBox="0 0 160 160">
         <circle cx="80" cy="80" r="70" fill="white" stroke="#1C2D5A" strokeWidth="3" />
         <line x1="80" y1="10" x2="80" y2="150" stroke="#1C2D5A" strokeWidth="2" strokeDasharray="5,3" />
         <line x1="10" y1="80" x2="150" y2="80" stroke="#1C2D5A" strokeWidth="2" strokeDasharray="5,3" />
@@ -511,128 +493,66 @@ export const FractionDrawArea = () => (
         <text x="100" y="110" fontSize="14" fill="#999">4</text>
       </svg>
     </div>
-  </div>
+  </SketchPad>
 );
 
 // Q28: Ruler template (0-6)
 export const RulerDrawArea = () => (
-  <div className="my-4 p-4 bg-gray-50 rounded-xl border-2 border-dashed border-gray-400">
-    <div className="flex items-center gap-2 mb-3">
-      <span className="text-lg">✏️</span>
-      <span className="text-lg">📌</span>
-      <span className="text-lg">📏</span>
-      <span className="text-sm font-medium text-[#1C2D5A]">Draw something 5 inches long</span>
-    </div>
-    <div className="min-h-[180px] bg-white rounded-lg border-2 border-gray-300 p-4">
-      <svg width="100%" height="50" viewBox="0 0 300 50" preserveAspectRatio="xMidYMid meet">
-        <rect x="10" y="20" width="280" height="25" fill="#FFF9E6" stroke="#CCC" strokeWidth="1" rx="2" />
+  <SketchPad storageKey="g2-q28" height={220} label="Draw something 5 inches long">
+    <div className="h-full">
+      <svg width="100%" height="60" viewBox="0 0 300 60" preserveAspectRatio="xMidYMid meet">
+        <rect x="10" y="10" width="280" height="25" fill="#FFF9E6" stroke="#CCC" strokeWidth="1" rx="2" />
         {[0, 1, 2, 3, 4, 5, 6].map((inch) => (
           <g key={inch}>
-            <line x1={20 + inch * 40} y1={20} x2={20 + inch * 40} y2={32} stroke="#999" strokeWidth="1" />
-            <text x={20 + inch * 40} y={55} textAnchor="middle" fontSize="10" fill="#666">{inch}</text>
+            <line x1={20 + inch * 40} y1={10} x2={20 + inch * 40} y2={24} stroke="#999" strokeWidth="1" />
+            <text x={20 + inch * 40} y={47} textAnchor="middle" fontSize="10" fill="#666">{inch}</text>
           </g>
         ))}
       </svg>
-      <div className="h-[100px] border-t border-dashed border-gray-300 mt-4"></div>
+      <div className="border-t border-dashed border-gray-300 mt-2" />
     </div>
-  </div>
+  </SketchPad>
 );
 
 // Q29: Blank bar graph grid
 export const BarGraphDrawArea = () => (
-  <div className="my-4 p-4 bg-gray-50 rounded-xl border-2 border-dashed border-gray-400">
-    <div className="flex items-center gap-2 mb-3">
-      <span className="text-lg">✏️</span>
-      <span className="text-lg">📌</span>
-      <span className="text-lg">📊</span>
-      <span className="text-sm font-medium text-[#1C2D5A]">Create a bar graph</span>
-    </div>
-    <div className="min-h-[180px] bg-white rounded-lg border-2 border-gray-300 p-4">
-      <svg width="100%" height="160" viewBox="0 0 250 160" preserveAspectRatio="xMidYMid meet">
-        {/* Y-axis */}
+  <SketchPad storageKey="g2-q29" height={240} label="Create a bar graph">
+    <div className="flex justify-center h-full">
+      <svg width="100%" height="100%" viewBox="0 0 250 160" preserveAspectRatio="xMidYMid meet">
         <line x1="50" y1="10" x2="50" y2="130" stroke="#CCC" strokeWidth="1" />
         <text x="25" y="15" fontSize="10" fill="#999">Votes</text>
-        
-        {/* X-axis */}
         <line x1="50" y1="130" x2="230" y2="130" stroke="#CCC" strokeWidth="1" />
         <text x="140" y="150" fontSize="10" textAnchor="middle" fill="#999">Pets</text>
-        
-        {/* Grid lines */}
         {[0, 1, 2, 3, 4, 5].map((i) => (
           <g key={i}>
             <line x1="50" y1={130 - i * 20} x2="230" y2={130 - i * 20} stroke="#EEE" strokeWidth="1" />
             <text x="40" y={133 - i * 20} fontSize="8" textAnchor="end" fill="#999">{i * 2}</text>
           </g>
         ))}
-        
-        {/* Bar placeholders */}
         <rect x="70" y="30" width="40" height="100" fill="none" stroke="#DDD" strokeWidth="1" strokeDasharray="3,3" />
         <rect x="130" y="30" width="40" height="100" fill="none" stroke="#DDD" strokeWidth="1" strokeDasharray="3,3" />
         <rect x="190" y="30" width="40" height="100" fill="none" stroke="#DDD" strokeWidth="1" strokeDasharray="3,3" />
-        
-        {/* Labels */}
         <text x="90" y="145" fontSize="8" textAnchor="middle" fill="#999">Dog</text>
         <text x="150" y="145" fontSize="8" textAnchor="middle" fill="#999">Cat</text>
         <text x="210" y="145" fontSize="8" textAnchor="middle" fill="#999">Fish</text>
       </svg>
     </div>
-  </div>
+  </SketchPad>
 );
 
 // Q30: Base-ten blocks template
 export const BaseTenDrawArea = () => (
-  <div className="my-4 p-4 bg-gray-50 rounded-xl border-2 border-dashed border-gray-400">
-    <div className="flex items-center gap-2 mb-3">
-      <span className="text-lg">✏️</span>
-      <span className="text-lg">📌</span>
-      <span className="text-lg">📏</span>
-      <span className="text-sm font-medium text-[#1C2D5A]">Draw base-ten blocks</span>
+  <SketchPad storageKey="g2-q30" height={240} label="Draw base-ten blocks">
+    <div className="grid grid-cols-3 gap-3 h-full">
+      {["Hundreds", "Tens", "Ones"].map((title) => (
+        <div key={title} className="border-2 border-gray-300 rounded-lg p-2 h-full">
+          <p className="text-center text-sm font-bold text-[#1C2D5A] border-b border-gray-200 pb-1">{title}</p>
+        </div>
+      ))}
     </div>
-    <div className="grid grid-cols-3 gap-3 min-h-[180px]">
-      <div className="border-2 border-gray-300 rounded-lg p-3 bg-white">
-        <p className="text-center text-sm font-bold text-[#1C2D5A] border-b border-gray-200 pb-2 mb-2">
-          Hundreds
-        </p>
-        <div className="flex justify-center mb-2 opacity-30">
-          <svg width="40" height="40" viewBox="0 0 40 40">
-            <rect x="2" y="2" width="36" height="36" fill="#FFD" stroke="#999" strokeWidth="1" />
-            {[...Array(9)].map((_, i) => (
-              <line key={i} x1={6 + i * 4} y1="2" x2={6 + i * 4} y2="38" stroke="#DDD" strokeWidth="0.5" />
-            ))}
-            {[...Array(9)].map((_, i) => (
-              <line key={i} x1="2" y1={6 + i * 4} x2="38" y2={6 + i * 4} stroke="#DDD" strokeWidth="0.5" />
-            ))}
-          </svg>
-        </div>
-        <div className="min-h-[80px]"></div>
-      </div>
-      <div className="border-2 border-gray-300 rounded-lg p-3 bg-white">
-        <p className="text-center text-sm font-bold text-[#1C2D5A] border-b border-gray-200 pb-2 mb-2">
-          Tens
-        </p>
-        <div className="flex justify-center mb-2 opacity-30">
-          <svg width="12" height="50" viewBox="0 0 12 50">
-            {[...Array(10)].map((_, i) => (
-              <rect key={i} x="1" y={1 + i * 5} width="10" height="4" fill="#FFD" stroke="#999" strokeWidth="0.5" />
-            ))}
-          </svg>
-        </div>
-        <div className="min-h-[80px]"></div>
-      </div>
-      <div className="border-2 border-gray-300 rounded-lg p-3 bg-white">
-        <p className="text-center text-sm font-bold text-[#1C2D5A] border-b border-gray-200 pb-2 mb-2">
-          Ones
-        </p>
-        <div className="flex justify-center mb-2 opacity-30">
-          <svg width="14" height="14" viewBox="0 0 14 14">
-            <rect x="1" y="1" width="12" height="12" fill="#FFD" stroke="#999" strokeWidth="0.5" />
-          </svg>
-        </div>
-        <div className="min-h-[80px]"></div>
-      </div>
-    </div>
-  </div>
+  </SketchPad>
 );
+
 
 // Diagram renderer mapping by question ID
 export const getDiagramForQuestion = (questionId: string): React.ReactNode | null => {
