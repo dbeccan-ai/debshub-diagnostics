@@ -2,6 +2,7 @@
 // All diagrams are vector-based for crisp display on mobile + print
 
 import React from "react";
+import SketchPad from "@/components/tools/SketchPad";
 
 // Q1: Place Value - Tens and Ones (3 tens + 5 ones = 35)
 export const TensOnesDiagram = () => (
