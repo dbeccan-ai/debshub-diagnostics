@@ -93,7 +93,9 @@ const Auth = () => {
   const [parentEmail, setParentEmail] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [unconfirmedEmail, setUnconfirmedEmail] = useState<string | null>(null);
   const isRecoveryRef = useRef(false);
+
 
   useEffect(() => {
     let isMounted = true;
@@ -235,7 +237,7 @@ const Auth = () => {
 
           if (lookupError || !emailData) {
             console.warn("Username lookup failed", { lookupError });
-            toast.error("Invalid username or password");
+            toast.error("We couldn't find that username. Check the spelling, or sign in with the parent email instead.");
             setLoading(false);
             return;
           }
@@ -248,11 +250,23 @@ const Auth = () => {
         });
 
         if (error) {
-          console.warn("signInWithPassword failed", { message: error.message });
-          toast.error("Invalid username or password");
+          console.warn("signInWithPassword failed", { code: (error as any).code, message: error.message });
+          const code = (error as any).code as string | undefined;
+          const isUnconfirmed = code === "email_not_confirmed" || /not confirmed/i.test(error.message);
+
+          if (isUnconfirmed) {
+            setUnconfirmedEmail(signInEmail);
+            toast.error("Your account isn't verified yet. Check the parent email for the verification link, or resend it below.");
+          } else if (code === "invalid_credentials" || /invalid login credentials/i.test(error.message)) {
+            toast.error("Incorrect password. Use \"Forgot Password\" to reset it.");
+          } else {
+            toast.error(error.message || "Unable to sign in. Please try again.");
+          }
           setLoading(false);
           return;
         }
+        setUnconfirmedEmail(null);
+
         toast.success("Logged in successfully!");
         navigate(redirectTo);
       } else {
@@ -303,7 +317,24 @@ const Auth = () => {
     }
   };
 
+  const handleResendVerification = async () => {
+    if (!unconfirmedEmail) return;
+    setLoading(true);
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email: unconfirmedEmail,
+      options: { emailRedirectTo: `${window.location.origin}/dashboard` },
+    });
+    setLoading(false);
+    if (error) {
+      toast.error(error.message || "Could not resend the verification email.");
+    } else {
+      toast.success("Verification email sent. Check the parent email inbox.");
+    }
+  };
+
   const handleSignOut = async () => {
+
     await supabase.auth.signOut();
     setIsLoggedIn(false);
     toast.success("Signed out successfully");
@@ -652,6 +683,25 @@ const Auth = () => {
               {loading ? t.auth.loading : isLogin ? t.auth.signIn : t.auth.signUp}
             </Button>
           </form>
+          {isLogin && unconfirmedEmail && (
+            <div className="mt-4 rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+              <p className="font-medium">Account not verified</p>
+              <p className="mt-1">
+                A verification link was sent to {unconfirmedEmail}. Check the inbox and spam folder, or resend it.
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="mt-2 w-full"
+                disabled={loading}
+                onClick={handleResendVerification}
+              >
+                Resend verification email
+              </Button>
+            </div>
+          )}
+
           <div className="mt-4 space-y-2 text-center text-sm">
             {isLogin && (
               <button

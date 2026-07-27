@@ -156,6 +156,23 @@ const AdminUserLogins = () => {
     setUsers(prev => prev.map(u => u.id === userId ? { ...u, account_status: newStatus, pause_reason: reason } : u));
   };
 
+  const confirmEmail = async (email: string | null) => {
+    if (!email) {
+      toast.error("This user has no email on file.");
+      return;
+    }
+    const { data, error } = await supabase.functions.invoke("confirm-user-email", {
+      body: { email },
+    });
+    if (error || (data as any)?.error) {
+      console.error(error || data);
+      toast.error("Could not verify this account.");
+      return;
+    }
+    toast.success(`${email} verified — they can sign in now.`);
+  };
+
+
   if (loading) return <div className="flex min-h-screen items-center justify-center bg-slate-50"><p className="text-sm font-medium text-slate-600">Loading...</p></div>;
   if (isAdmin === false) return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 p-4">
@@ -261,8 +278,18 @@ const AdminUserLogins = () => {
                             >
                               {u.account_status === "paused" ? <PlayCircle className="h-4 w-4 text-emerald-600" /> : <PauseCircle className="h-4 w-4 text-red-500" />}
                             </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 px-2 text-xs text-indigo-600"
+                              onClick={() => confirmEmail(u.parent_email)}
+                              title="Mark this account's email as verified so the student can sign in"
+                            >
+                              Verify email
+                            </Button>
                           </div>
                         </td>
+
                         <td className="py-3 text-slate-600">{formatDate(u.created_at)}</td>
                       </tr>
                     ))}
