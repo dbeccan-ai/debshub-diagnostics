@@ -304,8 +304,19 @@ const ReadingRecoveryActivityDialog = ({ day, gradeLevel, enrollmentId, studentN
             </div>
 
 
-            <div className="space-y-4 print:space-y-6" id="rr-print-area">
-              <Card>
+            <div className="space-y-4" id="rr-print-area">
+              {/* Print header — only meaningful on paper */}
+              <div className="hidden print:block mb-4 border-b border-black pb-2">
+                <div className="text-lg font-bold">
+                  D.E.Bs Reading Recovery — Day {activity.day}: {activity.title}
+                </div>
+                <div className="text-xs">
+                  {studentName ? `Student: ${studentName} · ` : ""}Grade {gradeLevel ?? "___"} · {activity.category} ·{" "}
+                  {showAnswers ? "ANSWER KEY" : "Student Copy"} · Date: ____________
+                </div>
+              </div>
+
+              <Card className="rr-card">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm flex items-center gap-2">
                     <Target className="w-4 h-4 text-primary" />
@@ -315,7 +326,7 @@ const ReadingRecoveryActivityDialog = ({ day, gradeLevel, enrollmentId, studentN
                 <CardContent className="text-sm">{activity.objective}</CardContent>
               </Card>
 
-              <Card>
+              <Card className="rr-card">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm">Warm-Up (2–3 min)</CardTitle>
                 </CardHeader>
@@ -328,7 +339,7 @@ const ReadingRecoveryActivityDialog = ({ day, gradeLevel, enrollmentId, studentN
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className={`rr-card ${showAnswers ? "" : "print-hide"}`}>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm">Instructions (for the adult)</CardTitle>
                 </CardHeader>
@@ -341,7 +352,7 @@ const ReadingRecoveryActivityDialog = ({ day, gradeLevel, enrollmentId, studentN
                 </CardContent>
               </Card>
 
-              <Separator />
+              <Separator className="print-hide" />
 
               <div>
                 <h3 className="font-semibold text-base mb-3">📝 Worksheet</h3>
@@ -352,7 +363,7 @@ const ReadingRecoveryActivityDialog = ({ day, gradeLevel, enrollmentId, studentN
                     const isSoundBlock = /sound|phoneme|letter/.test(title);
                     const usePhonics = b.type === "word-list" && (isPhonicsCat || isSoundBlock);
                     return (
-                      <Card key={i}>
+                      <Card key={i} className="rr-card rr-block">
                         <CardContent className="pt-4">
                           <Block
                             block={b}
@@ -372,7 +383,7 @@ const ReadingRecoveryActivityDialog = ({ day, gradeLevel, enrollmentId, studentN
               </div>
 
               {activity.extension && (
-                <Card className="border-amber-200 bg-amber-50">
+                <Card className="rr-card border-amber-200 bg-amber-50">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm">⭐ Extension Challenge</CardTitle>
                   </CardHeader>
@@ -380,6 +391,7 @@ const ReadingRecoveryActivityDialog = ({ day, gradeLevel, enrollmentId, studentN
                 </Card>
               )}
             </div>
+
           </>
         ) : (
           <div className="py-8 text-center text-muted-foreground">
