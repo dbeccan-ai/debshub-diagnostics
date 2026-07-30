@@ -1407,3 +1407,79 @@ export const activities: Record<number, DayActivity> = {
 };
 
 export const getActivity = (day: number): DayActivity | null => activities[day] ?? null;
+
+// ---------- Grade-level tuning ----------
+// Each band spans two grades. These helpers tailor the band worksheet to the
+// student's exact grade: the lower grade gets a lighter load, the upper grade
+// gets extra items and a stretch challenge. Fluency targets are per grade.
+
+export const WCPM_TARGETS: Record<number, number> = {
+  1: 60,
+  2: 90,
+  3: 110,
+  4: 125,
+  5: 140,
+  6: 150,
+  7: 155,
+  8: 160,
+};
+
+export const gradeTargetWcpm = (grade: number | null | undefined): number =>
+  WCPM_TARGETS[Math.min(8, Math.max(1, grade ?? 2))] ?? 110;
+
+/** True when the grade is the upper of its two-grade band (2, 4, 6, 8). */
+const isUpperOfBand = (grade: number) => grade % 2 === 0;
+
+const takeItems = <T,>(items: T[], keepRatio: number, min: number): T[] => {
+  const keep = Math.max(min, Math.round(items.length * keepRatio));
+  return items.slice(0, Math.min(items.length, keep));
+};
+
+const trimPassage = (passage: string, keepRatio: number): string => {
+  const sentences = passage.match(/[^.!?]+[.!?]+(\s|$)/g);
+  if (!sentences || sentences.length < 4) return passage;
+  const keep = Math.max(3, Math.round(sentences.length * keepRatio));
+  return sentences.slice(0, keep).join("").trim();
+};
+
+/**
+ * Tailor a band's worksheet blocks to a specific grade level.
+ * Lower grade in the band -> ~75% of the load and a shortened passage.
+ * Upper grade in the band -> full load plus a stretch note.
+ */
+export const tuneForGrade = (
+  blocks: WorksheetBlock[],
+  grade: number | null | undefined
+): WorksheetBlock[] => {
+  const g = Math.min(8, Math.max(1, grade ?? 2));
+  const lighter = !isUpperOfBand(g);
+  const target = gradeTargetWcpm(g);
+
+  return blocks.map((b): WorksheetBlock => {
+    switch (b.type) {
+      case "word-list":
+        return lighter ? { ...b, words: takeItems(b.words, 0.75, 6) } : b;
+      case "fill-blank":
+        return lighter ? { ...b, items: takeItems(b.items, 0.75, 3) } : b;
+      case "matching":
+        return lighter ? { ...b, pairs: takeItems(b.pairs, 0.8, 4) } : b;
+      case "short-passage":
+        return lighter
+          ? {
+              ...b,
+              passage: trimPassage(b.passage, 0.7),
+              questions: takeItems(b.questions, 0.75, 2),
+            }
+          : b;
+      case "writing-prompt":
+        return { ...b, lines: lighter ? Math.max(4, (b.lines ?? 8) - 2) : b.lines ?? 8 };
+      case "fluency-tracker":
+        return {
+          ...b,
+          instructions: `${b.instructions} Grade ${g} target: about ${target} words correct per minute (WCPM).`,
+        };
+      default:
+        return b;
+    }
+  });
+};
