@@ -7,9 +7,63 @@ import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Printer, Eye, EyeOff, CheckCircle2, Clock, Target, Sparkles } from "lucide-react";
-import { getActivity, pickBand, type WorksheetBlock } from "@/data/reading-recovery-activities";
+import { Printer, Eye, EyeOff, CheckCircle2, Clock, Target, Sparkles, FileText } from "lucide-react";
+import { getActivity, pickBand, tuneForGrade, gradeTargetWcpm, type WorksheetBlock } from "@/data/reading-recovery-activities";
 import PhonicsChip from "@/components/PhonicsChip";
+
+const PRINT_CSS = `
+@media print {
+  @page { size: Letter portrait; margin: 0.6in; }
+  html, body { background: #fff !important; }
+  body * { visibility: hidden !important; }
+  #rr-print-area, #rr-print-area * { visibility: visible !important; }
+  #rr-print-area {
+    position: absolute !important;
+    left: 0 !important; top: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    color: #000 !important;
+    font-size: 12pt;
+  }
+  #rr-print-area .rr-card {
+    border: 1px solid #999 !important;
+    box-shadow: none !important;
+    background: #fff !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    margin-bottom: 10pt !important;
+    padding: 8pt !important;
+  }
+  #rr-print-area .rr-block { break-inside: avoid; page-break-inside: avoid; }
+  #rr-print-area input, #rr-print-area textarea {
+    border: 0 !important;
+    border-bottom: 1px solid #333 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    width: 100% !important;
+  }
+  #rr-print-area textarea { border: 1px solid #333 !important; min-height: 0.9in; }
+  #rr-print-area .print-hide, .print-hide { display: none !important; }
+  #rr-print-area .rr-phonics-controls { display: none !important; }
+  [data-radix-popper-content-wrapper], [data-radix-dialog-overlay] { display: none !important; }
+  [data-radix-dialog-content] {
+    position: static !important;
+    transform: none !important;
+    max-height: none !important;
+    height: auto !important;
+    overflow: visible !important;
+    box-shadow: none !important;
+    border: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+  }
+}
+`;
+
 
 interface Props {
   day: number | null;
