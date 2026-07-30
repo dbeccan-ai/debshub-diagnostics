@@ -41,7 +41,9 @@ interface DiagnosticResult {
   final_error_count: number | null;
   created_at: string;
   user_id: string;
+  assessment_duration_seconds?: number | null;
 }
+
 
 const ReadingRecoveryResults = () => {
   const { transcriptId } = useParams<{ transcriptId: string }>();
