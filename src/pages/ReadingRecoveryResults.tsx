@@ -309,6 +309,15 @@ body { margin: 0; padding: 40px; font-family: Georgia, serif; background: linear
 
   const { tier, color } = calculateTier(result.final_error_count, result.confirmed_errors);
 
+  const readerProfile = computeReaderProfile({
+    detectedErrors: result.confirmed_errors ?? result.detected_errors,
+    finalErrorCount: result.final_error_count,
+    durationSeconds: result.assessment_duration_seconds ?? null,
+    comprehensionSummary: result.confirmed_errors?.comprehensionSummary ?? null,
+    passageWordCount: passage?.metadata?.wordCount ?? null,
+  });
+
+
   const getVersionLabel = (version: string) => {
     if (version === "A") return "Pre-Test";
     if (version === "B") return "Mid-Test";
