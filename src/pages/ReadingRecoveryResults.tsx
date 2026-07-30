@@ -12,6 +12,8 @@ import {
   interpretationGuide, 
   type Passage 
 } from "@/data/reading-recovery-content";
+import { computeReaderProfile } from "@/lib/readerProfile";
+
 
 interface QuestionResult {
   id: string;
