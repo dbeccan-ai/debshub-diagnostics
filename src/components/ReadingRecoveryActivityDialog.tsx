@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Printer, Eye, EyeOff, CheckCircle2, Clock, Target, Sparkles, FileText } from "lucide-react";
-import { getActivity, pickBand, tuneForGrade, gradeTargetWcpm, type Activity, type WorksheetBlock } from "@/data/reading-recovery-activities";
+import { getActivity, pickBand, tuneForGrade, gradeTargetWcpm, type DayActivity, type WorksheetBlock } from "@/data/reading-recovery-activities";
 import PhonicsChip from "@/components/PhonicsChip";
 
 interface Props {
@@ -321,7 +321,7 @@ const buildPrintHtml = ({
   band,
   studentName,
 }: {
-  activity: Activity;
+  activity: DayActivity;
   blocks: WorksheetBlock[];
   showAnswers: boolean;
   gradeLevel: number | null;
