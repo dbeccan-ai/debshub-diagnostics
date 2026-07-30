@@ -69,9 +69,11 @@ interface Props {
   day: number | null;
   gradeLevel: number | null;
   enrollmentId?: string | null;
+  studentName?: string | null;
   onClose: () => void;
   onComplete?: (day: number) => void;
 }
+
 
 interface BlockCtx {
   usePhonics: boolean;
