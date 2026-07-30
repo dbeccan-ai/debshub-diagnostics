@@ -188,6 +188,28 @@ const ReadingRecoveryResults = () => {
     };
     const tc = tierColors[tierInfo.tier] || tierColors["Tier 3"];
 
+    const rp = computeReaderProfile({
+      detectedErrors: res.confirmed_errors ?? res.detected_errors,
+      finalErrorCount: res.final_error_count,
+      durationSeconds: res.assessment_duration_seconds ?? null,
+      comprehensionSummary: res.confirmed_errors?.comprehensionSummary ?? null,
+      passageWordCount: passage?.metadata?.wordCount ?? null,
+    });
+
+    const profileHTML = rp
+      ? `<div class="section">
+    <div class="section-title">🧠 Reader Profile — ${rp.primary.emoji} ${rp.primary.label}</div>
+    <p>${rp.primary.summary}</p>
+    ${rp.secondary ? `<p><em>Secondary pattern: ${rp.secondary.emoji} ${rp.secondary.label}</em></p>` : ""}
+    <p><strong>Evidence:</strong></p>
+    <ul>${rp.evidence.map((e) => `<li>${e}</li>`).join("")}</ul>
+    <p><strong>Targeted strategies:</strong></p>
+    <ul>${rp.primary.strategies.map((s) => `<li>${s}</li>`).join("")}</ul>
+  </div>`
+      : "";
+
+
+
     return `<!DOCTYPE html>
 <html><head><meta charset="UTF-8"><style>
 body { margin: 0; padding: 40px; font-family: Georgia, serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
