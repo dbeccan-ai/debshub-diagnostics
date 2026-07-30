@@ -8,62 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Printer, Eye, EyeOff, CheckCircle2, Clock, Target, Sparkles, FileText } from "lucide-react";
-import { getActivity, pickBand, tuneForGrade, gradeTargetWcpm, type WorksheetBlock } from "@/data/reading-recovery-activities";
+import { getActivity, pickBand, tuneForGrade, gradeTargetWcpm, type DayActivity, type WorksheetBlock } from "@/data/reading-recovery-activities";
 import PhonicsChip from "@/components/PhonicsChip";
-
-const PRINT_CSS = `
-@media print {
-  @page { size: Letter portrait; margin: 0.6in; }
-  html, body { background: #fff !important; }
-  body * { visibility: hidden !important; }
-  #rr-print-area, #rr-print-area * { visibility: visible !important; }
-  #rr-print-area {
-    position: absolute !important;
-    left: 0 !important; top: 0 !important;
-    width: 100% !important;
-    max-width: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    color: #000 !important;
-    font-size: 12pt;
-  }
-  #rr-print-area .rr-card {
-    border: 1px solid #999 !important;
-    box-shadow: none !important;
-    background: #fff !important;
-    break-inside: avoid;
-    page-break-inside: avoid;
-    margin-bottom: 10pt !important;
-    padding: 8pt !important;
-  }
-  #rr-print-area .rr-block { break-inside: avoid; page-break-inside: avoid; }
-  #rr-print-area input, #rr-print-area textarea {
-    border: 0 !important;
-    border-bottom: 1px solid #333 !important;
-    border-radius: 0 !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    width: 100% !important;
-  }
-  #rr-print-area textarea { border: 1px solid #333 !important; min-height: 0.9in; }
-  #rr-print-area .print-hide, .print-hide { display: none !important; }
-  #rr-print-area .rr-phonics-controls { display: none !important; }
-  [data-radix-popper-content-wrapper], [data-radix-dialog-overlay] { display: none !important; }
-  [data-radix-dialog-content] {
-    position: static !important;
-    transform: none !important;
-    max-height: none !important;
-    height: auto !important;
-    overflow: visible !important;
-    box-shadow: none !important;
-    border: 0 !important;
-    padding: 0 !important;
-    width: 100% !important;
-    max-width: none !important;
-  }
-}
-`;
-
 
 interface Props {
   day: number | null;
@@ -236,6 +182,258 @@ const Block = ({ block, showAnswers, ctx }: { block: WorksheetBlock; showAnswers
   }
 };
 
+const escapeHtml = (value: unknown) =>
+  String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
+const answerLine = (height = 36) => `<div class="answer-line" style="min-height:${height}px"></div>`;
+
+const renderPrintBlock = (block: WorksheetBlock, showAnswers: boolean) => {
+  switch (block.type) {
+    case "word-list": {
+      const cols = block.columns ?? 4;
+      return `
+        <section class="block avoid-break">
+          <h3>${escapeHtml(block.title)}</h3>
+          <div class="word-grid" style="grid-template-columns: repeat(${cols}, minmax(0, 1fr));">
+            ${block.words.map((word) => `<div class="word-tile">${escapeHtml(word)}</div>`).join("")}
+          </div>
+        </section>
+      `;
+    }
+    case "fill-blank":
+      return `
+        <section class="block avoid-break">
+          <h3>${escapeHtml(block.title)}</h3>
+          <ol class="questions">
+            ${block.items
+              .map(
+                (item) => `
+                  <li>
+                    <div>${escapeHtml(item.sentence)}</div>
+                    ${answerLine(26)}
+                    ${showAnswers ? `<p class="answer">Answer: ${escapeHtml(item.answer)}</p>` : ""}
+                  </li>
+                `
+              )
+              .join("")}
+          </ol>
+        </section>
+      `;
+    case "matching":
+      return `
+        <section class="block avoid-break">
+          <h3>${escapeHtml(block.title)}</h3>
+          <div class="matching-grid">
+            <div>
+              ${block.pairs
+                .map((pair, index) => `<div class="match-row">${index + 1}. ${escapeHtml(pair.left)}</div>`)
+                .join("")}
+            </div>
+            <div>
+              ${block.pairs
+                .map((pair, index) => `<div class="match-row">${String.fromCharCode(65 + index)}. ${escapeHtml(pair.right)}</div>`)
+                .join("")}
+            </div>
+          </div>
+          ${showAnswers ? `<p class="answer">Answer key: ${block.pairs.map((pair, index) => `${index + 1}. ${escapeHtml(pair.left)} → ${escapeHtml(pair.right)}`).join(" | ")}</p>` : ""}
+        </section>
+      `;
+    case "short-passage":
+      return `
+        <section class="block">
+          <h3>${escapeHtml(block.title)}</h3>
+          <div class="passage">${escapeHtml(block.passage).replace(/\n/g, "<br />")}</div>
+          <ol class="questions">
+            ${block.questions
+              .map(
+                (question) => `
+                  <li>
+                    <div><strong>${escapeHtml(question.q)}</strong></div>
+                    ${answerLine(62)}
+                    ${showAnswers && question.a ? `<p class="answer">Answer: ${escapeHtml(question.a)}</p>` : ""}
+                  </li>
+                `
+              )
+              .join("")}
+          </ol>
+        </section>
+      `;
+    case "writing-prompt":
+      return `
+        <section class="block avoid-break">
+          <h3>${escapeHtml(block.title)}</h3>
+          <p>${escapeHtml(block.prompt)}</p>
+          <div class="writing-lines">
+            ${Array.from({ length: block.lines ?? 6 }).map(() => `<div></div>`).join("")}
+          </div>
+        </section>
+      `;
+    case "checklist":
+      return `
+        <section class="block avoid-break">
+          <h3>${escapeHtml(block.title)}</h3>
+          <ul class="checklist">
+            ${block.items.map((item) => `<li><span class="box"></span>${escapeHtml(item)}</li>`).join("")}
+          </ul>
+        </section>
+      `;
+    case "fluency-tracker":
+      return `
+        <section class="block avoid-break">
+          <h3>${escapeHtml(block.title)}</h3>
+          <p>${escapeHtml(block.instructions)}</p>
+          <div class="fluency-grid" style="grid-template-columns: repeat(${block.reads ?? 3}, minmax(0, 1fr));">
+            ${Array.from({ length: block.reads ?? 3 })
+              .map((_, index) => `<div class="fluency-box"><strong>Read ${index + 1}</strong><span>WCPM</span></div>`)
+              .join("")}
+          </div>
+        </section>
+      `;
+    case "reflection":
+      return `
+        <section class="block avoid-break">
+          <h3>${escapeHtml(block.title)}</h3>
+          ${block.prompts
+            .map(
+              (prompt) => `
+                <div class="reflection-item">
+                  <p>${escapeHtml(prompt)}</p>
+                  ${answerLine(52)}
+                </div>
+              `
+            )
+            .join("")}
+        </section>
+      `;
+  }
+};
+
+const buildPrintHtml = ({
+  activity,
+  blocks,
+  showAnswers,
+  gradeLevel,
+  band,
+  studentName,
+}: {
+  activity: DayActivity;
+  blocks: WorksheetBlock[];
+  showAnswers: boolean;
+  gradeLevel: number | null;
+  band: string;
+  studentName?: string | null;
+}) => `<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>D.E.Bs Reading Recovery Day ${activity.day}</title>
+    <style>
+      @page { size: Letter portrait; margin: 0.55in; }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; background: #fff; color: #000; }
+      body { font-family: Arial, Helvetica, sans-serif; font-size: 11pt; line-height: 1.35; }
+      main { width: 100%; }
+      header { border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 14px; }
+      h1 { font-size: 17pt; margin: 0 0 4px; line-height: 1.2; }
+      h2 { font-size: 12pt; margin: 16px 0 8px; border-bottom: 1px solid #777; padding-bottom: 3px; }
+      h3 { font-size: 11.5pt; margin: 0 0 8px; }
+      p { margin: 0 0 8px; }
+      .meta { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 18px; font-size: 9.5pt; }
+      .meta div { min-height: 16px; }
+      .card, .block { border: 1px solid #999; border-radius: 4px; padding: 10px; margin: 0 0 12px; background: #fff; }
+      .avoid-break, .card, .block, li, .word-grid, .matching-grid, .fluency-grid { break-inside: avoid; page-break-inside: avoid; }
+      ul, ol { margin-top: 6px; padding-left: 22px; }
+      li { margin-bottom: 8px; }
+      .word-grid { display: grid; gap: 7px; }
+      .word-tile { border: 1px solid #999; border-radius: 6px; min-height: 28px; display: flex; align-items: center; justify-content: center; padding: 5px; font-weight: 700; text-align: center; }
+      .passage { border: 1px solid #aaa; background: #f7f7f7; padding: 10px; margin-bottom: 10px; white-space: normal; }
+      .questions { margin-bottom: 0; }
+      .answer-line { border: 1px solid #999; border-radius: 4px; margin-top: 5px; background: repeating-linear-gradient(to bottom, #fff 0, #fff 25px, #ddd 26px); }
+      .writing-lines { border: 1px solid #999; border-radius: 4px; padding: 8px 10px 4px; }
+      .writing-lines div { height: 24px; border-bottom: 1px solid #777; }
+      .matching-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+      .match-row { border: 1px solid #999; border-radius: 4px; padding: 7px; margin-bottom: 6px; }
+      .checklist { list-style: none; padding-left: 0; }
+      .checklist li { display: flex; gap: 8px; align-items: flex-start; }
+      .box { width: 13px; height: 13px; border: 1px solid #000; display: inline-block; flex: 0 0 auto; margin-top: 2px; }
+      .fluency-grid { display: grid; gap: 8px; }
+      .fluency-box { border: 1px solid #999; border-radius: 4px; min-height: 52px; padding: 8px; text-align: center; }
+      .fluency-box span { display: block; margin-top: 8px; border-top: 1px solid #777; padding-top: 4px; }
+      .answer { color: #000; font-size: 9.5pt; font-weight: 700; margin-top: 5px; }
+      .reflection-item { margin-bottom: 10px; }
+      @media screen { body { padding: 24px; } main { max-width: 760px; margin: 0 auto; } }
+      @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>D.E.Bs Reading Recovery — Day ${activity.day}: ${escapeHtml(activity.title)}</h1>
+        <div class="meta">
+          <div>Student: ${studentName ? escapeHtml(studentName) : "____________________________"}</div>
+          <div>Date: ____________________</div>
+          <div>Grade ${escapeHtml(gradeLevel ?? "___")} · Band ${escapeHtml(band)} · ${escapeHtml(activity.category)}</div>
+          <div>${showAnswers ? "Answer Key" : "Student Copy"}</div>
+          <div>Name: ______________________________</div>
+          <div>Fluency target: ~${gradeTargetWcpm(gradeLevel)} WCPM</div>
+        </div>
+      </header>
+
+      <section class="card avoid-break">
+        <h2>Objective</h2>
+        <p>${escapeHtml(activity.objective)}</p>
+      </section>
+
+      <section class="card avoid-break">
+        <h2>Warm-Up (2–3 min)</h2>
+        <ul>${activity.warmUp.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+      </section>
+
+      ${showAnswers ? `
+        <section class="card avoid-break">
+          <h2>Instructions for the Adult</h2>
+          <ol>${activity.instructions.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ol>
+        </section>
+      ` : ""}
+
+      <h2>Worksheet</h2>
+      ${blocks.map((block) => renderPrintBlock(block, showAnswers)).join("")}
+
+      ${activity.extension ? `
+        <section class="card avoid-break">
+          <h2>Extension Challenge</h2>
+          <p>${escapeHtml(activity.extension)}</p>
+        </section>
+      ` : ""}
+    </main>
+  </body>
+</html>`;
+
+const openPrintDocument = (html: string) => {
+  const printWindow = window.open("", "_blank", "noopener,noreferrer,width=900,height=1100");
+
+  if (!printWindow) {
+    const fallback = new Blob([html], { type: "text/html" });
+    const url = URL.createObjectURL(fallback);
+    window.open(url, "_blank", "noopener,noreferrer");
+    setTimeout(() => URL.revokeObjectURL(url), 30_000);
+    return;
+  }
+
+  printWindow.document.open();
+  printWindow.document.write(html);
+  printWindow.document.close();
+  printWindow.focus();
+  printWindow.onload = () => {
+    printWindow.print();
+  };
+};
+
 const ReadingRecoveryActivityDialog = ({ day, gradeLevel, enrollmentId, studentName, onClose, onComplete }: Props) => {
   const [showAnswers, setShowAnswers] = useState(false);
   const open = day !== null;
@@ -248,14 +446,22 @@ const ReadingRecoveryActivityDialog = ({ day, gradeLevel, enrollmentId, studentN
 
   const printWith = (withAnswers: boolean) => {
     setShowAnswers(withAnswers);
-    // let React paint the answer key state before the print dialog opens
-    setTimeout(() => window.print(), 120);
+    if (!activity) return;
+    openPrintDocument(
+      buildPrintHtml({
+        activity,
+        blocks,
+        showAnswers: withAnswers,
+        gradeLevel,
+        band,
+        studentName,
+      })
+    );
   };
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-w-4xl max-h-[92vh] overflow-y-auto">
-        <style>{PRINT_CSS}</style>
         {activity ? (
           <>
             <DialogHeader className="print-hide">
