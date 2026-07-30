@@ -727,8 +727,10 @@ const ReadingRecoveryDashboard = () => {
 
       <ReadingRecoveryActivityDialog
         day={openActivityDay}
-        gradeLevel={enrollment?.grade_level ?? null}
+        gradeLevel={resolvedGrade}
         enrollmentId={enrollment?.id ?? null}
+        studentName={enrollment?.student_name ?? null}
+
         onClose={() => setOpenActivityDay(null)}
         onComplete={handleMarkComplete}
       />
