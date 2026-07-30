@@ -479,7 +479,31 @@ const ReadingRecoveryDashboard = () => {
                     {progressPercent}% {rr.complete}
                   </Badge>
                 </div>
+                <div className="mt-3 flex flex-wrap items-center gap-2 rounded-md border bg-muted/30 px-3 py-2">
+                  <span className="text-xs font-medium text-muted-foreground">
+                    Plan tailored for grade:
+                  </span>
+                  <select
+                    value={resolvedGrade}
+                    onChange={(e) => handleGradeChange(parseInt(e.target.value, 10))}
+                    disabled={savingGrade}
+                    className="h-8 rounded-md border bg-background px-2 text-sm"
+                    aria-label="Student grade level"
+                  >
+                    {[1, 2, 3, 4, 5, 6, 7, 8].map((g) => (
+                      <option key={g} value={g}>
+                        Grade {g}
+                      </option>
+                    ))}
+                  </select>
+                  {gradeIsInferred && (
+                    <span className="text-xs text-amber-700">
+                      Estimated from the latest diagnostic — set it to tailor the daily worksheets.
+                    </span>
+                  )}
+                </div>
                 <Progress value={progressPercent} className="mt-2" />
+
               </CardHeader>
               <CardContent ref={roadmapScrollRef} className="max-h-[600px] overflow-y-auto scroll-smooth">
                 <div className="space-y-3">
