@@ -234,42 +234,57 @@ const Block = ({ block, showAnswers, ctx }: { block: WorksheetBlock; showAnswers
   }
 };
 
-const ReadingRecoveryActivityDialog = ({ day, gradeLevel, enrollmentId, onClose, onComplete }: Props) => {
+const ReadingRecoveryActivityDialog = ({ day, gradeLevel, enrollmentId, studentName, onClose, onComplete }: Props) => {
   const [showAnswers, setShowAnswers] = useState(false);
   const open = day !== null;
   const activity = useMemo(() => (day !== null ? getActivity(day) : null), [day]);
   const band = useMemo(() => pickBand(gradeLevel), [gradeLevel]);
-  const blocks = activity?.variantsByBand[band] ?? [];
+  const blocks = useMemo(
+    () => tuneForGrade(activity?.variantsByBand[band] ?? [], gradeLevel),
+    [activity, band, gradeLevel]
+  );
 
-  const handlePrint = () => window.print();
+  const printWith = (withAnswers: boolean) => {
+    setShowAnswers(withAnswers);
+    // let React paint the answer key state before the print dialog opens
+    setTimeout(() => window.print(), 120);
+  };
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-4xl max-h-[92vh] overflow-y-auto print:max-w-none print:max-h-none print:overflow-visible print:shadow-none">
+      <DialogContent className="max-w-4xl max-h-[92vh] overflow-y-auto">
+        <style>{PRINT_CSS}</style>
         {activity ? (
           <>
-            <DialogHeader>
+            <DialogHeader className="print-hide">
               <DialogTitle className="flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-emerald-600" />
                 Day {activity.day} — {activity.title}
               </DialogTitle>
               <div className="flex flex-wrap items-center gap-2 mt-2 text-xs text-muted-foreground">
                 <Badge variant="secondary">{activity.category}</Badge>
-                <Badge variant="outline">Grade band {band}</Badge>
+                <Badge variant="outline">
+                  Grade {gradeLevel ?? "—"} · band {band}
+                </Badge>
                 <span className="flex items-center gap-1">
                   <Clock className="w-3 h-3" />~{activity.estimatedMinutes} min
                 </span>
+                <span>Fluency target ~{gradeTargetWcpm(gradeLevel)} WCPM</span>
               </div>
             </DialogHeader>
 
-            <div className="flex flex-wrap gap-2 print:hidden">
+            <div className="flex flex-wrap gap-2 print-hide">
               <Button size="sm" variant="outline" onClick={() => setShowAnswers((s) => !s)}>
                 {showAnswers ? <EyeOff className="w-4 h-4 mr-1" /> : <Eye className="w-4 h-4 mr-1" />}
                 {showAnswers ? "Hide Answer Key" : "Show Answer Key"}
               </Button>
-              <Button size="sm" variant="outline" onClick={handlePrint}>
+              <Button size="sm" variant="outline" onClick={() => printWith(false)}>
                 <Printer className="w-4 h-4 mr-1" />
-                Print Workbook
+                Print Student Copy
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => printWith(true)}>
+                <FileText className="w-4 h-4 mr-1" />
+                Print Answer Key
               </Button>
               {onComplete && (
                 <Button
@@ -285,6 +300,7 @@ const ReadingRecoveryActivityDialog = ({ day, gradeLevel, enrollmentId, onClose,
                 </Button>
               )}
             </div>
+
 
             <div className="space-y-4 print:space-y-6" id="rr-print-area">
               <Card>
