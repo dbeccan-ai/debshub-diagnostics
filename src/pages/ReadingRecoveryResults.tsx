@@ -12,6 +12,8 @@ import {
   interpretationGuide, 
   type Passage 
 } from "@/data/reading-recovery-content";
+import { computeReaderProfile } from "@/lib/readerProfile";
+
 
 interface QuestionResult {
   id: string;
@@ -41,7 +43,9 @@ interface DiagnosticResult {
   final_error_count: number | null;
   created_at: string;
   user_id: string;
+  assessment_duration_seconds?: number | null;
 }
+
 
 const ReadingRecoveryResults = () => {
   const { transcriptId } = useParams<{ transcriptId: string }>();
@@ -184,6 +188,28 @@ const ReadingRecoveryResults = () => {
     };
     const tc = tierColors[tierInfo.tier] || tierColors["Tier 3"];
 
+    const rp = computeReaderProfile({
+      detectedErrors: res.confirmed_errors ?? res.detected_errors,
+      finalErrorCount: res.final_error_count,
+      durationSeconds: res.assessment_duration_seconds ?? null,
+      comprehensionSummary: res.confirmed_errors?.comprehensionSummary ?? null,
+      passageWordCount: passage?.metadata?.wordCount ?? null,
+    });
+
+    const profileHTML = rp
+      ? `<div class="section">
+    <div class="section-title">🧠 Reader Profile — ${rp.primary.emoji} ${rp.primary.label}</div>
+    <p>${rp.primary.summary}</p>
+    ${rp.secondary ? `<p><em>Secondary pattern: ${rp.secondary.emoji} ${rp.secondary.label}</em></p>` : ""}
+    <p><strong>Evidence:</strong></p>
+    <ul>${rp.evidence.map((e) => `<li>${e}</li>`).join("")}</ul>
+    <p><strong>Targeted strategies:</strong></p>
+    <ul>${rp.primary.strategies.map((s) => `<li>${s}</li>`).join("")}</ul>
+  </div>`
+      : "";
+
+
+
     return `<!DOCTYPE html>
 <html><head><meta charset="UTF-8"><style>
 body { margin: 0; padding: 40px; font-family: Georgia, serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
@@ -210,6 +236,8 @@ body { margin: 0; padding: 40px; font-family: Georgia, serif; background: linear
     <div class="section-title">📊 Tier Summary</div>
     <p>${getTierDescription(tierInfo.tier)}</p>
   </div>
+  ${profileHTML}
+
   <div class="section">
     <div class="section-title">📚 Recommendations</div>
     <ul>
@@ -304,6 +332,15 @@ body { margin: 0; padding: 40px; font-family: Georgia, serif; background: linear
   }
 
   const { tier, color } = calculateTier(result.final_error_count, result.confirmed_errors);
+
+  const readerProfile = computeReaderProfile({
+    detectedErrors: result.confirmed_errors ?? result.detected_errors,
+    finalErrorCount: result.final_error_count,
+    durationSeconds: result.assessment_duration_seconds ?? null,
+    comprehensionSummary: result.confirmed_errors?.comprehensionSummary ?? null,
+    passageWordCount: passage?.metadata?.wordCount ?? null,
+  });
+
 
   const getVersionLabel = (version: string) => {
     if (version === "A") return "Pre-Test";
@@ -436,6 +473,70 @@ body { margin: 0; padding: 40px; font-family: Georgia, serif; background: linear
             <p className="text-muted-foreground">{getTierDescription(tier)}</p>
           </CardContent>
         </Card>
+
+        {/* Reader Profile */}
+        {readerProfile && (
+          <Card className="mb-6 border-primary/30">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Brain className="w-5 h-5 text-primary" />
+                Reader Profile
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex flex-wrap items-center gap-3">
+                <Badge className="text-base px-4 py-1.5">
+                  {readerProfile.primary.emoji} {readerProfile.primary.label}
+                </Badge>
+                {readerProfile.secondary && (
+                  <Badge variant="outline" className="text-sm">
+                    Secondary: {readerProfile.secondary.emoji} {readerProfile.secondary.label}
+                  </Badge>
+                )}
+              </div>
+              <p className="text-sm text-muted-foreground">{readerProfile.primary.summary}</p>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="border rounded-lg p-3 text-center">
+                  <div className="text-xs text-muted-foreground">Rate</div>
+                  <div className="text-lg font-bold">{readerProfile.metrics.wpm ?? "—"}<span className="text-xs font-normal"> wpm</span></div>
+                </div>
+                <div className="border rounded-lg p-3 text-center">
+                  <div className="text-xs text-muted-foreground">Accuracy</div>
+                  <div className="text-lg font-bold">{readerProfile.metrics.accuracyPct !== null ? `${readerProfile.metrics.accuracyPct}%` : "—"}</div>
+                </div>
+                <div className="border rounded-lg p-3 text-center">
+                  <div className="text-xs text-muted-foreground">Comprehension</div>
+                  <div className="text-lg font-bold">{readerProfile.metrics.comprehensionPct !== null ? `${readerProfile.metrics.comprehensionPct}%` : "—"}</div>
+                </div>
+                <div className="border rounded-lg p-3 text-center">
+                  <div className="text-xs text-muted-foreground">Errors</div>
+                  <div className="text-lg font-bold">{readerProfile.metrics.errors}</div>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-sm font-semibold mb-2 uppercase tracking-wide text-muted-foreground">Why this profile</h4>
+                <ul className="list-disc ml-5 text-sm space-y-1 text-muted-foreground">
+                  {readerProfile.evidence.map((e, i) => (
+                    <li key={i}>{e}</li>
+                  ))}
+                </ul>
+              </div>
+
+              <div>
+                <h4 className="text-sm font-semibold mb-2 uppercase tracking-wide text-muted-foreground">Targeted strategies</h4>
+                <ul className="list-disc ml-5 text-sm space-y-1">
+                  {readerProfile.primary.strategies.map((s, i) => (
+                    <li key={i}>{s}</li>
+                  ))}
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+
 
         {/* Download & Email Actions — Prominent */}
         <Card className="mb-6 border-primary/20 bg-primary/5">

@@ -7,17 +7,73 @@ import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Printer, Eye, EyeOff, CheckCircle2, Clock, Target, Sparkles } from "lucide-react";
-import { getActivity, pickBand, type WorksheetBlock } from "@/data/reading-recovery-activities";
+import { Printer, Eye, EyeOff, CheckCircle2, Clock, Target, Sparkles, FileText } from "lucide-react";
+import { getActivity, pickBand, tuneForGrade, gradeTargetWcpm, type WorksheetBlock } from "@/data/reading-recovery-activities";
 import PhonicsChip from "@/components/PhonicsChip";
+
+const PRINT_CSS = `
+@media print {
+  @page { size: Letter portrait; margin: 0.6in; }
+  html, body { background: #fff !important; }
+  body * { visibility: hidden !important; }
+  #rr-print-area, #rr-print-area * { visibility: visible !important; }
+  #rr-print-area {
+    position: absolute !important;
+    left: 0 !important; top: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    color: #000 !important;
+    font-size: 12pt;
+  }
+  #rr-print-area .rr-card {
+    border: 1px solid #999 !important;
+    box-shadow: none !important;
+    background: #fff !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    margin-bottom: 10pt !important;
+    padding: 8pt !important;
+  }
+  #rr-print-area .rr-block { break-inside: avoid; page-break-inside: avoid; }
+  #rr-print-area input, #rr-print-area textarea {
+    border: 0 !important;
+    border-bottom: 1px solid #333 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    width: 100% !important;
+  }
+  #rr-print-area textarea { border: 1px solid #333 !important; min-height: 0.9in; }
+  #rr-print-area .print-hide, .print-hide { display: none !important; }
+  #rr-print-area .rr-phonics-controls { display: none !important; }
+  [data-radix-popper-content-wrapper], [data-radix-dialog-overlay] { display: none !important; }
+  [data-radix-dialog-content] {
+    position: static !important;
+    transform: none !important;
+    max-height: none !important;
+    height: auto !important;
+    overflow: visible !important;
+    box-shadow: none !important;
+    border: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+  }
+}
+`;
+
 
 interface Props {
   day: number | null;
   gradeLevel: number | null;
   enrollmentId?: string | null;
+  studentName?: string | null;
   onClose: () => void;
   onComplete?: (day: number) => void;
 }
+
 
 interface BlockCtx {
   usePhonics: boolean;
@@ -180,42 +236,57 @@ const Block = ({ block, showAnswers, ctx }: { block: WorksheetBlock; showAnswers
   }
 };
 
-const ReadingRecoveryActivityDialog = ({ day, gradeLevel, enrollmentId, onClose, onComplete }: Props) => {
+const ReadingRecoveryActivityDialog = ({ day, gradeLevel, enrollmentId, studentName, onClose, onComplete }: Props) => {
   const [showAnswers, setShowAnswers] = useState(false);
   const open = day !== null;
   const activity = useMemo(() => (day !== null ? getActivity(day) : null), [day]);
   const band = useMemo(() => pickBand(gradeLevel), [gradeLevel]);
-  const blocks = activity?.variantsByBand[band] ?? [];
+  const blocks = useMemo(
+    () => tuneForGrade(activity?.variantsByBand[band] ?? [], gradeLevel),
+    [activity, band, gradeLevel]
+  );
 
-  const handlePrint = () => window.print();
+  const printWith = (withAnswers: boolean) => {
+    setShowAnswers(withAnswers);
+    // let React paint the answer key state before the print dialog opens
+    setTimeout(() => window.print(), 120);
+  };
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-4xl max-h-[92vh] overflow-y-auto print:max-w-none print:max-h-none print:overflow-visible print:shadow-none">
+      <DialogContent className="max-w-4xl max-h-[92vh] overflow-y-auto">
+        <style>{PRINT_CSS}</style>
         {activity ? (
           <>
-            <DialogHeader>
+            <DialogHeader className="print-hide">
               <DialogTitle className="flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-emerald-600" />
                 Day {activity.day} — {activity.title}
               </DialogTitle>
               <div className="flex flex-wrap items-center gap-2 mt-2 text-xs text-muted-foreground">
                 <Badge variant="secondary">{activity.category}</Badge>
-                <Badge variant="outline">Grade band {band}</Badge>
+                <Badge variant="outline">
+                  Grade {gradeLevel ?? "—"} · band {band}
+                </Badge>
                 <span className="flex items-center gap-1">
                   <Clock className="w-3 h-3" />~{activity.estimatedMinutes} min
                 </span>
+                <span>Fluency target ~{gradeTargetWcpm(gradeLevel)} WCPM</span>
               </div>
             </DialogHeader>
 
-            <div className="flex flex-wrap gap-2 print:hidden">
+            <div className="flex flex-wrap gap-2 print-hide">
               <Button size="sm" variant="outline" onClick={() => setShowAnswers((s) => !s)}>
                 {showAnswers ? <EyeOff className="w-4 h-4 mr-1" /> : <Eye className="w-4 h-4 mr-1" />}
                 {showAnswers ? "Hide Answer Key" : "Show Answer Key"}
               </Button>
-              <Button size="sm" variant="outline" onClick={handlePrint}>
+              <Button size="sm" variant="outline" onClick={() => printWith(false)}>
                 <Printer className="w-4 h-4 mr-1" />
-                Print Workbook
+                Print Student Copy
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => printWith(true)}>
+                <FileText className="w-4 h-4 mr-1" />
+                Print Answer Key
               </Button>
               {onComplete && (
                 <Button
@@ -232,8 +303,20 @@ const ReadingRecoveryActivityDialog = ({ day, gradeLevel, enrollmentId, onClose,
               )}
             </div>
 
-            <div className="space-y-4 print:space-y-6" id="rr-print-area">
-              <Card>
+
+            <div className="space-y-4" id="rr-print-area">
+              {/* Print header — only meaningful on paper */}
+              <div className="hidden print:block mb-4 border-b border-black pb-2">
+                <div className="text-lg font-bold">
+                  D.E.Bs Reading Recovery — Day {activity.day}: {activity.title}
+                </div>
+                <div className="text-xs">
+                  {studentName ? `Student: ${studentName} · ` : ""}Grade {gradeLevel ?? "___"} · {activity.category} ·{" "}
+                  {showAnswers ? "ANSWER KEY" : "Student Copy"} · Date: ____________
+                </div>
+              </div>
+
+              <Card className="rr-card">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm flex items-center gap-2">
                     <Target className="w-4 h-4 text-primary" />
@@ -243,7 +326,7 @@ const ReadingRecoveryActivityDialog = ({ day, gradeLevel, enrollmentId, onClose,
                 <CardContent className="text-sm">{activity.objective}</CardContent>
               </Card>
 
-              <Card>
+              <Card className="rr-card">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm">Warm-Up (2–3 min)</CardTitle>
                 </CardHeader>
@@ -256,7 +339,7 @@ const ReadingRecoveryActivityDialog = ({ day, gradeLevel, enrollmentId, onClose,
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className={`rr-card ${showAnswers ? "" : "print-hide"}`}>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm">Instructions (for the adult)</CardTitle>
                 </CardHeader>
@@ -269,7 +352,7 @@ const ReadingRecoveryActivityDialog = ({ day, gradeLevel, enrollmentId, onClose,
                 </CardContent>
               </Card>
 
-              <Separator />
+              <Separator className="print-hide" />
 
               <div>
                 <h3 className="font-semibold text-base mb-3">📝 Worksheet</h3>
@@ -280,7 +363,7 @@ const ReadingRecoveryActivityDialog = ({ day, gradeLevel, enrollmentId, onClose,
                     const isSoundBlock = /sound|phoneme|letter/.test(title);
                     const usePhonics = b.type === "word-list" && (isPhonicsCat || isSoundBlock);
                     return (
-                      <Card key={i}>
+                      <Card key={i} className="rr-card rr-block">
                         <CardContent className="pt-4">
                           <Block
                             block={b}
@@ -300,7 +383,7 @@ const ReadingRecoveryActivityDialog = ({ day, gradeLevel, enrollmentId, onClose,
               </div>
 
               {activity.extension && (
-                <Card className="border-amber-200 bg-amber-50">
+                <Card className="rr-card border-amber-200 bg-amber-50">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm">⭐ Extension Challenge</CardTitle>
                   </CardHeader>
@@ -308,6 +391,7 @@ const ReadingRecoveryActivityDialog = ({ day, gradeLevel, enrollmentId, onClose,
                 </Card>
               )}
             </div>
+
           </>
         ) : (
           <div className="py-8 text-center text-muted-foreground">

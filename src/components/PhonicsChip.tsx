@@ -126,7 +126,7 @@ const PhonicsChip = ({ text, mode = "word", dayNumber, enrollmentId, className }
   return (
     <div className={cn("rounded-md border p-2 flex flex-col items-center gap-1 transition-colors", borderColor, className)}>
       <div className="text-base font-semibold">{text}</div>
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1 rr-phonics-controls">
         <button
           type="button"
           onClick={play}

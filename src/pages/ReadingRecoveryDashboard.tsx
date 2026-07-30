@@ -122,6 +122,24 @@ const ReadingRecoveryDashboard = () => {
   const roadmapScrollRef = useRef<HTMLDivElement>(null);
   const currentTaskRef = useRef<HTMLDivElement>(null);
   const [openActivityDay, setOpenActivityDay] = useState<number | null>(null);
+  const [savingGrade, setSavingGrade] = useState(false);
+
+  const handleGradeChange = async (grade: number) => {
+    if (!enrollment) return;
+    setSavingGrade(true);
+    const { error } = await supabase
+      .from("reading_recovery_enrollments")
+      .update({ grade_level: grade })
+      .eq("id", enrollment.id);
+    setSavingGrade(false);
+    if (error) {
+      toast.error("Could not update grade level.");
+      return;
+    }
+    setEnrollment({ ...enrollment, grade_level: grade });
+    toast.success(`Plan now tailored for Grade ${grade}.`);
+  };
+
 
   const handleStartActivity = (day: number, title: string, category: string) => {
     if (category === "Assessment") {
@@ -268,7 +286,18 @@ const ReadingRecoveryDashboard = () => {
   const latestDiagnostic = diagnostics[0];
   const latestTier = latestDiagnostic ? getTierFromErrors(latestDiagnostic.final_error_count) : null;
 
+  // Grade resolution: enrollment grade -> latest diagnostic grade band -> default 2
+  const gradeFromBand = (band?: string | null): number | null => {
+    if (!band) return null;
+    const first = parseInt(band.split("-")[0], 10);
+    return Number.isFinite(first) ? first : null;
+  };
+  const resolvedGrade =
+    enrollment?.grade_level ?? gradeFromBand(latestDiagnostic?.grade_band) ?? 2;
+  const gradeIsInferred = enrollment?.grade_level == null;
+
   const roadmapActivities = get21DayRoadmap();
+
 
   // Determine which week we're in
   const currentWeek = Math.ceil((completedDays + 1) / 7);
@@ -468,7 +497,31 @@ const ReadingRecoveryDashboard = () => {
                     {progressPercent}% {rr.complete}
                   </Badge>
                 </div>
+                <div className="mt-3 flex flex-wrap items-center gap-2 rounded-md border bg-muted/30 px-3 py-2">
+                  <span className="text-xs font-medium text-muted-foreground">
+                    Plan tailored for grade:
+                  </span>
+                  <select
+                    value={resolvedGrade}
+                    onChange={(e) => handleGradeChange(parseInt(e.target.value, 10))}
+                    disabled={savingGrade}
+                    className="h-8 rounded-md border bg-background px-2 text-sm"
+                    aria-label="Student grade level"
+                  >
+                    {[1, 2, 3, 4, 5, 6, 7, 8].map((g) => (
+                      <option key={g} value={g}>
+                        Grade {g}
+                      </option>
+                    ))}
+                  </select>
+                  {gradeIsInferred && (
+                    <span className="text-xs text-amber-700">
+                      Estimated from the latest diagnostic — set it to tailor the daily worksheets.
+                    </span>
+                  )}
+                </div>
                 <Progress value={progressPercent} className="mt-2" />
+
               </CardHeader>
               <CardContent ref={roadmapScrollRef} className="max-h-[600px] overflow-y-auto scroll-smooth">
                 <div className="space-y-3">
@@ -674,8 +727,10 @@ const ReadingRecoveryDashboard = () => {
 
       <ReadingRecoveryActivityDialog
         day={openActivityDay}
-        gradeLevel={enrollment?.grade_level ?? null}
+        gradeLevel={resolvedGrade}
         enrollmentId={enrollment?.id ?? null}
+        studentName={enrollment?.student_name ?? null}
+
         onClose={() => setOpenActivityDay(null)}
         onComplete={handleMarkComplete}
       />
