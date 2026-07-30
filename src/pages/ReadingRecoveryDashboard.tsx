@@ -122,6 +122,24 @@ const ReadingRecoveryDashboard = () => {
   const roadmapScrollRef = useRef<HTMLDivElement>(null);
   const currentTaskRef = useRef<HTMLDivElement>(null);
   const [openActivityDay, setOpenActivityDay] = useState<number | null>(null);
+  const [savingGrade, setSavingGrade] = useState(false);
+
+  const handleGradeChange = async (grade: number) => {
+    if (!enrollment) return;
+    setSavingGrade(true);
+    const { error } = await supabase
+      .from("reading_recovery_enrollments")
+      .update({ grade_level: grade })
+      .eq("id", enrollment.id);
+    setSavingGrade(false);
+    if (error) {
+      toast.error("Could not update grade level.");
+      return;
+    }
+    setEnrollment({ ...enrollment, grade_level: grade });
+    toast.success(`Plan now tailored for Grade ${grade}.`);
+  };
+
 
   const handleStartActivity = (day: number, title: string, category: string) => {
     if (category === "Assessment") {
