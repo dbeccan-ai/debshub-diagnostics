@@ -236,6 +236,8 @@ body { margin: 0; padding: 40px; font-family: Georgia, serif; background: linear
     <div class="section-title">📊 Tier Summary</div>
     <p>${getTierDescription(tierInfo.tier)}</p>
   </div>
+  ${profileHTML}
+
   <div class="section">
     <div class="section-title">📚 Recommendations</div>
     <ul>
