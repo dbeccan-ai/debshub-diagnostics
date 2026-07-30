@@ -268,7 +268,18 @@ const ReadingRecoveryDashboard = () => {
   const latestDiagnostic = diagnostics[0];
   const latestTier = latestDiagnostic ? getTierFromErrors(latestDiagnostic.final_error_count) : null;
 
+  // Grade resolution: enrollment grade -> latest diagnostic grade band -> default 2
+  const gradeFromBand = (band?: string | null): number | null => {
+    if (!band) return null;
+    const first = parseInt(band.split("-")[0], 10);
+    return Number.isFinite(first) ? first : null;
+  };
+  const resolvedGrade =
+    enrollment?.grade_level ?? gradeFromBand(latestDiagnostic?.grade_band) ?? 2;
+  const gradeIsInferred = enrollment?.grade_level == null;
+
   const roadmapActivities = get21DayRoadmap();
+
 
   // Determine which week we're in
   const currentWeek = Math.ceil((completedDays + 1) / 7);
