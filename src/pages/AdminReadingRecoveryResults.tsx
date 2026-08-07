@@ -70,7 +70,7 @@ const AdminReadingRecoveryResults = () => {
   const fetchTranscripts = async () => {
     const { data, error } = await supabase
       .from("reading_diagnostic_transcripts")
-      .select("id, student_name, grade_band, passage_title, version, final_error_count, confirmed_errors, completion_status, assessment_duration_seconds, admin_name, admin_email, created_at, assessment_completed_at, user_id")
+      .select("id, student_name, grade_band, grade_level, passage_title, version, final_error_count, confirmed_errors, completion_status, assessment_duration_seconds, admin_name, admin_email, created_at, assessment_completed_at, user_id")
       .order("created_at", { ascending: false });
 
     if (error) { console.error(error); toast.error("Could not load results."); return; }
