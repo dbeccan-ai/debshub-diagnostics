@@ -806,9 +806,24 @@ body { margin: 0; padding: 40px; font-family: Georgia, serif; background: linear
                   </ul>
                 </div>
               )}
+
+              <Separator />
+
+              <p className="text-sm text-muted-foreground">
+                Day-by-day breakdown tailored for{" "}
+                <strong>{planGrade === 0 ? "Kindergarten" : `Grade ${planGrade}`}</strong>. Open any
+                day to view and print the worksheet.
+              </p>
+
+              <ReadingRecoveryPlanBreakdown
+                gradeLevel={planGrade}
+                studentName={result.student_name}
+                readOnly
+              />
             </div>
           </CardContent>
         </Card>
+
 
         {/* Actions */}
         <div className="flex flex-wrap gap-4 justify-center">
