@@ -1414,6 +1414,7 @@ export const getActivity = (day: number): DayActivity | null => activities[day] 
 // gets extra items and a stretch challenge. Fluency targets are per grade.
 
 export const WCPM_TARGETS: Record<number, number> = {
+  0: 30,
   1: 60,
   2: 90,
   3: 110,
@@ -1422,13 +1423,17 @@ export const WCPM_TARGETS: Record<number, number> = {
   6: 150,
   7: 155,
   8: 160,
+  9: 170,
+  10: 175,
+  11: 180,
+  12: 185,
 };
 
 export const gradeTargetWcpm = (grade: number | null | undefined): number =>
-  WCPM_TARGETS[Math.min(8, Math.max(1, grade ?? 2))] ?? 110;
+  WCPM_TARGETS[Math.min(12, Math.max(0, grade ?? 2))] ?? 110;
 
-/** True when the grade is the upper of its two-grade band (2, 4, 6, 8). */
-const isUpperOfBand = (grade: number) => grade % 2 === 0;
+/** True when the grade is the upper of its two-grade plan band (2, 4, 6, 8, 10, 12). */
+const isUpperOfBand = (grade: number) => grade > 0 && grade % 2 === 0;
 
 const takeItems = <T,>(items: T[], keepRatio: number, min: number): T[] => {
   const keep = Math.max(min, Math.round(items.length * keepRatio));
@@ -1451,7 +1456,7 @@ export const tuneForGrade = (
   blocks: WorksheetBlock[],
   grade: number | null | undefined
 ): WorksheetBlock[] => {
-  const g = Math.min(8, Math.max(1, grade ?? 2));
+  const g = Math.min(12, Math.max(0, grade ?? 2));
   const lighter = !isUpperOfBand(g);
   const target = gradeTargetWcpm(g);
 
@@ -1476,7 +1481,7 @@ export const tuneForGrade = (
       case "fluency-tracker":
         return {
           ...b,
-          instructions: `${b.instructions} Grade ${g} target: about ${target} words correct per minute (WCPM).`,
+          instructions: `${b.instructions} ${g === 0 ? "Kindergarten" : `Grade ${g}`} target: about ${target} words correct per minute (WCPM).`,
         };
       default:
         return b;

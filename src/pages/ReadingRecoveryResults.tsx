@@ -8,7 +8,9 @@ import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, BookOpen, Trophy, BarChart3, CheckCircle2, XCircle, Calendar, User, Download, Mail, Loader2, Target, MessageSquare, Brain } from "lucide-react";
 import { toast } from "sonner";
 import { 
-  getPassage, 
+  getPassageForGrade, 
+  bandToGrade,
+  formatGradeLabel,
   interpretationGuide, 
   type Passage 
 } from "@/data/reading-recovery-content";
@@ -108,7 +110,12 @@ const ReadingRecoveryResults = () => {
         setResult(data as DiagnosticResult);
 
         // Load the passage for context
-        const p = getPassage(data.grade_band, data.version as "A" | "B" | "C");
+        const p = getPassageForGrade(
+          (data as any).grade_level != null
+            ? String((data as any).grade_level) === "0" ? "K" : String((data as any).grade_level)
+            : bandToGrade(data.grade_band),
+          data.version as "A" | "B" | "C"
+        );
         setPassage(p || null);
       } catch (err) {
         console.error("Error fetching result:", err);
@@ -229,7 +236,7 @@ body { margin: 0; padding: 40px; font-family: Georgia, serif; background: linear
   <div class="title">Reading Assessment Results</div>
   <div class="name">${res.student_name}</div>
   <p style="text-align:center;font-size:18px;margin:30px 0;">
-    Passage: <strong>${res.passage_title}</strong> · Grade Band: <strong>${res.grade_band}</strong><br>
+    Passage: <strong>${res.passage_title}</strong> · ${formatGradeLabel(res.grade_band)}: <strong>on-grade-level passage</strong><br>
     Errors: <strong>${res.final_error_count ?? "N/A"}</strong> · Placement: <span class="tier-badge">${tierInfo.tier}</span>
   </p>
   <div class="section">
@@ -453,9 +460,9 @@ body { margin: 0; padding: 40px; font-family: Georgia, serif; background: linear
                 <div className="bg-white rounded-lg p-4 shadow-sm">
                   <div className="flex items-center gap-2 text-muted-foreground text-sm">
                     <BookOpen className="w-4 h-4" />
-                    Grade Band
+                    Grade Level
                   </div>
-                  <div className="font-semibold mt-1">Grades {result.grade_band}</div>
+                  <div className="font-semibold mt-1">{formatGradeLabel(result.grade_band)}</div>
                 </div>
                 <div className="bg-white rounded-lg p-4 shadow-sm">
                   <div className="flex items-center gap-2 text-muted-foreground text-sm">
@@ -620,7 +627,7 @@ body { margin: 0; padding: 40px; font-family: Georgia, serif; background: linear
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-4 text-sm">
-              <Badge variant="outline">Grade Band: {result.grade_band}</Badge>
+              <Badge variant="outline">{formatGradeLabel(result.grade_band)}</Badge>
               <Badge variant="outline">Assessment: {versionLabel}</Badge>
               {passage && (
                 <>

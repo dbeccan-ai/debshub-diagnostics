@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { formatGradeLabel } from "@/data/reading-recovery-content";
 import { ArrowLeft, Search, Filter, RefreshCw, Eye, BookOpen } from "lucide-react";
 
 interface ReadingTranscript {
@@ -161,10 +162,10 @@ const AdminReadingRecoveryResults = () => {
               </div>
               <div className="flex flex-wrap gap-2">
                 <Select value={gradeBandFilter} onValueChange={setGradeBandFilter}>
-                  <SelectTrigger className="w-[150px]"><Filter className="mr-1 h-4 w-4" /><SelectValue placeholder="Grade Band" /></SelectTrigger>
+                  <SelectTrigger className="w-[150px]"><Filter className="mr-1 h-4 w-4" /><SelectValue placeholder="Grade Level" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Grades</SelectItem>
-                    {uniqueGradeBands.map(gb => <SelectItem key={gb} value={gb}>{gb}</SelectItem>)}
+                    {uniqueGradeBands.map(gb => <SelectItem key={gb} value={gb}>{formatGradeLabel(gb)}</SelectItem>)}
                   </SelectContent>
                 </Select>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -196,7 +197,7 @@ const AdminReadingRecoveryResults = () => {
                     <tr className="border-b border-slate-200">
                       <th className="pb-3 text-left font-medium text-slate-600">Student</th>
                       <th className="pb-3 text-left font-medium text-slate-600">Passage</th>
-                      <th className="pb-3 text-left font-medium text-slate-600">Grade Band</th>
+                      <th className="pb-3 text-left font-medium text-slate-600">Grade</th>
                       <th className="pb-3 text-left font-medium text-slate-600">Version</th>
                       <th className="pb-3 text-left font-medium text-slate-600">Errors</th>
                       <th className="pb-3 text-left font-medium text-slate-600">Comprehension</th>
@@ -220,7 +221,7 @@ const AdminReadingRecoveryResults = () => {
                             {t.admin_name && <div className="text-xs text-slate-500">Admin: {t.admin_name}</div>}
                           </td>
                           <td className="py-3 text-slate-700">{t.passage_title}</td>
-                          <td className="py-3 text-slate-700">{t.grade_band}</td>
+                          <td className="py-3 text-slate-700">{formatGradeLabel(t.grade_band)}</td>
                           <td className="py-3 text-slate-700">{t.version === "A" ? "Pre-Test" : t.version === "B" ? "Mid-Test" : t.version === "C" ? "Post-Test" : t.version}</td>
                           <td className="py-3 font-medium text-slate-900">{t.final_error_count ?? "—"}</td>
                           <td className="py-3">
