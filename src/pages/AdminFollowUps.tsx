@@ -224,7 +224,7 @@ const AdminFollowUps = () => {
       <SEO
         title="Follow-Up Assessments | Admin"
         description="Schedule and manage free follow-up diagnostic retakes at Week 5 and Week 10 program checkpoints."
-        noindex
+
       />
       <header className="border-b bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
