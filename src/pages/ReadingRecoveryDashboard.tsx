@@ -206,7 +206,7 @@ const ReadingRecoveryDashboard = () => {
         // Fetch diagnostics
         const { data: diagnosticData } = await supabase
           .from("reading_diagnostic_transcripts")
-          .select("id, student_name, grade_band, passage_title, version, final_error_count, created_at")
+          .select("id, student_name, grade_band, passage_title, version, final_error_count, confirmed_errors, created_at")
           .eq("user_id", user.id)
           .order("created_at", { ascending: false });
 
