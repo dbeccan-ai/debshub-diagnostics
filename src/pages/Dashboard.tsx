@@ -114,6 +114,9 @@ const Dashboard = () => {
           .maybeSingle();
         
         setIsTeacher(!!teacherRoleData);
+        setUserId(user.id);
+
+
 
         const { data: attemptsData, error: attemptsError } = await supabase
           .from("test_attempts")
