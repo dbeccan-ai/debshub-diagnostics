@@ -289,8 +289,12 @@ const ReadingRecoveryDashboard = () => {
   // Grade resolution: enrollment grade -> latest diagnostic grade band -> default 2
   const gradeFromBand = (band?: string | null): number | null => {
     if (!band) return null;
-    const first = parseInt(band.split("-")[0], 10);
-    return Number.isFinite(first) ? first : null;
+    const raw = band.trim();
+    if (/^k/i.test(raw)) return 0;
+    // Exact grade records ("3"); legacy bands ("3-4") resolve to the upper grade
+    const parts = raw.split("-").map((v) => parseInt(v, 10)).filter(Number.isFinite);
+    if (parts.length === 0) return null;
+    return Math.max(...parts);
   };
   const resolvedGrade =
     enrollment?.grade_level ?? gradeFromBand(latestDiagnostic?.grade_band) ?? 2;
@@ -508,9 +512,9 @@ const ReadingRecoveryDashboard = () => {
                     className="h-8 rounded-md border bg-background px-2 text-sm"
                     aria-label="Student grade level"
                   >
-                    {[1, 2, 3, 4, 5, 6, 7, 8].map((g) => (
+                    {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((g) => (
                       <option key={g} value={g}>
-                        Grade {g}
+                        {g === 0 ? "Kindergarten" : `Grade ${g}`}
                       </option>
                     ))}
                   </select>
