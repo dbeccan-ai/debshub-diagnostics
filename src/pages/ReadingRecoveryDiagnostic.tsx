@@ -13,14 +13,17 @@ import { ArrowLeft, ArrowRight, BookOpen, CheckCircle2, XCircle, AlertTriangle, 
 import { OralReadingAutoAssist } from "@/components/OralReadingAutoAssist";
 import { OralQuestionAssist, type QuestionTranscript } from "@/components/OralQuestionAssist";
 import { 
-  getPassage, 
-  gradeBands, 
+  getPassageForGrade, 
+  gradeLevels, 
+  gradeLabel,
+  gradeToNumber,
   versions, 
   interpretationGuide, 
   celebrationMilestones,
   type Passage,
   type Question 
 } from "@/data/reading-recovery-content";
+import { errorBandsFor } from "@/data/reading-recovery-grade-builder";
 
 type Step = 1 | 2 | 3 | 4 | 5;
 
@@ -71,7 +74,7 @@ const ReadingRecoveryDiagnostic = () => {
     adminName: "",
     adminEmail: "",
   });
-  const [selectedGradeBand, setSelectedGradeBand] = useState<string>("");
+  const [selectedGrade, setSelectedGrade] = useState<string>("");
   const [selectedVersion, setSelectedVersion] = useState<"A" | "B" | "C" | "">("");
   const [passage, setPassage] = useState<Passage | null>(null);
   const [scores, setScores] = useState<Scores>({ oralReadingErrors: 0, questionResults: {}, questionTranscripts: {} });
@@ -200,8 +203,8 @@ const ReadingRecoveryDiagnostic = () => {
   }, [navigate]);
 
   const handleNext = () => {
-    if (step === 2 && selectedGradeBand && selectedVersion) {
-      const p = getPassage(selectedGradeBand, selectedVersion as "A" | "B" | "C");
+    if (step === 2 && selectedGrade && selectedVersion) {
+      const p = getPassageForGrade(selectedGrade, selectedVersion as "A" | "B" | "C");
       setPassage(p || null);
       // Start tracking assessment time when entering step 3
       if (!assessmentStartedAt) {
@@ -242,19 +245,15 @@ const ReadingRecoveryDiagnostic = () => {
     const sc = calculateScores();
     const thresholds = passage.scoringThresholds;
     
-    // Check decoding first (priority order)
-    const isElementary = ["1-2", "3-4"].includes(passage.gradeBand);
-    const decodingThreshold = isElementary ? 8 : 16;
-    if (scores.oralReadingErrors >= decodingThreshold) return "decoding";
-    
-    // Check comprehension gaps
-    const literalMax = thresholds.literal.total;
-    const inferentialMax = thresholds.inferential.total;
-    const analyticalMax = thresholds.analytical.total;
-    
-    const literalGap = passage.gradeBand === "1-2" ? sc.literal <= 1 : sc.literal <= (literalMax <= 3 ? 1 : 2);
-    const inferentialGap = passage.gradeBand === "1-2" ? sc.inferential === 0 : sc.inferential <= (inferentialMax <= 2 ? 0 : 1);
-    const analyticalGap = passage.gradeBand === "1-2" ? sc.analytical === 0 : sc.analytical <= (analyticalMax <= 1 ? 0 : 1);
+    // Decoding threshold scales with this grade's passage length (10% error rate)
+    const { supportMax } = errorBandsFor(passage.metadata.wordCount);
+    if (scores.oralReadingErrors > supportMax) return "decoding";
+
+    // Comprehension gap = below ~60% correct at that question level
+    const gapCutoff = (total: number) => (total === 0 ? -1 : Math.max(0, Math.ceil(total * 0.6) - 1));
+    const literalGap = thresholds.literal.total > 0 && sc.literal <= gapCutoff(thresholds.literal.total);
+    const inferentialGap = thresholds.inferential.total > 0 && sc.inferential <= gapCutoff(thresholds.inferential.total);
+    const analyticalGap = thresholds.analytical.total > 0 && sc.analytical <= gapCutoff(thresholds.analytical.total);
 
     if (literalGap) return "literal";
     if (inferentialGap) return "inferential";
@@ -298,7 +297,8 @@ const ReadingRecoveryDiagnostic = () => {
             user_id: userId,
             student_name: adminInfo.studentName,
             passage_title: passage.title,
-            grade_band: passage.gradeBand,
+            grade_band: passage.grade,
+            grade_level: gradeToNumber(passage.grade),
             version: passage.version,
             original_text: passage.text,
             transcript: scores.transcript || null,
@@ -441,14 +441,17 @@ const ReadingRecoveryDiagnostic = () => {
         {step === 2 && (
           <Card>
             <CardHeader>
-              <CardTitle>Select Grade Band & Version</CardTitle>
+              <CardTitle>Select Grade Level & Version</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
-                <Label className="text-base font-semibold mb-3 block">Grade Band</Label>
-                <RadioGroup value={selectedGradeBand} onValueChange={setSelectedGradeBand} className="grid md:grid-cols-2 gap-3">
-                  {gradeBands.map((gb) => (
-                    <Label key={gb.value} htmlFor={gb.value} className={`flex items-center gap-3 p-4 border rounded-lg cursor-pointer transition-colors ${selectedGradeBand === gb.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"}`}>
+                <Label className="text-base font-semibold mb-1 block">Student's Grade Level</Label>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Choose the student's actual grade. Each grade is assessed with its own on-grade-level passage and questions.
+                </p>
+                <RadioGroup value={selectedGrade} onValueChange={setSelectedGrade} className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {gradeLevels.map((gb) => (
+                    <Label key={gb.value} htmlFor={gb.value} className={`flex items-center gap-3 p-4 border rounded-lg cursor-pointer transition-colors ${selectedGrade === gb.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"}`}>
                       <RadioGroupItem value={gb.value} id={gb.value} />
                       <div>
                         <div className="font-medium">{gb.label}</div>
@@ -523,7 +526,7 @@ const ReadingRecoveryDiagnostic = () => {
               </div>
               <div className="flex justify-between pt-4">
                 <Button variant="outline" onClick={handleBack}><ArrowLeft className="mr-2 w-4 h-4" /> Back</Button>
-                <Button onClick={handleNext} disabled={!selectedGradeBand || !selectedVersion}>Begin Assessment <ArrowRight className="ml-2 w-4 h-4" /></Button>
+                <Button onClick={handleNext} disabled={!selectedGrade || !selectedVersion}>Begin Assessment <ArrowRight className="ml-2 w-4 h-4" /></Button>
               </div>
             </CardContent>
           </Card>
@@ -548,7 +551,7 @@ const ReadingRecoveryDiagnostic = () => {
             <OralReadingAutoAssist
               passageText={passage.text}
               passageTitle={passage.title}
-              gradeBand={passage.gradeBand}
+              gradeBand={gradeLabel(passage.grade)}
               version={passage.version}
               studentName={adminInfo.studentName}
               initialErrorCount={scores.oralReadingErrors}
@@ -813,7 +816,7 @@ const ReadingRecoveryDiagnostic = () => {
                           </h2>
                           <p className="text-muted-foreground">{tierDesc}</p>
                           <p className="text-sm text-muted-foreground mt-2">
-                            {passage.title} • Grade Band {passage.gradeBand} • Version {passage.version}
+                            {passage.title} • {gradeLabel(passage.grade)} • Version {passage.version}
                           </p>
                         </div>
                       </div>
