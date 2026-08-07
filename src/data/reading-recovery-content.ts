@@ -1061,3 +1061,94 @@ export const parentGuidelines = {
     }
   ]
 };
+
+// ---------------------------------------------------------------------------
+// Per-grade registry (K-12). Replaces the legacy grade-band selection.
+// ---------------------------------------------------------------------------
+
+import { buildPassage, gradeLabel as gradeLabelFn } from './reading-recovery-grade-builder';
+import { lowerGradeDrafts } from './reading-recovery-grades-lower';
+import { upperGradeDrafts } from './reading-recovery-grades-upper';
+
+export const gradeLabel = gradeLabelFn;
+
+const authoredPassages: Passage[] = [...lowerGradeDrafts, ...upperGradeDrafts].map(buildPassage);
+
+/** All passages keyed by exact grade level. */
+export const gradePassages: Record<string, Passage[]> = (() => {
+  const map: Record<string, Passage[]> = {};
+  const add = (p: Passage) => {
+    (map[p.grade] ||= []).push(p);
+  };
+  // Legacy band passages, now anchored to their exact grade (2, 4, 6, 8)
+  Object.values(passages).flat().forEach(add);
+  authoredPassages.forEach(add);
+  Object.values(map).forEach(list => list.sort((a, b) => a.version.localeCompare(b.version)));
+  return map;
+})();
+
+export const ALL_GRADES: GradeLevel[] = ['K', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
+
+const GRADE_FOCUS: Record<string, string> = {
+  K: 'Letter sounds, CVC blending, core sight words',
+  '1': 'CVCe words, digraphs, blends, grade-1 sight words',
+  '2': 'Two-syllable words, vowel teams, fluent phrasing',
+  '3': 'Multi-syllabic words, prefixes and suffixes',
+  '4': 'Chunking, affixes, phrasing across longer text',
+  '5': 'Academic vocabulary, informational reasoning',
+  '6': 'Content-area vocabulary, complex sentences',
+  '7': 'Argument, evidence evaluation, abstract terms',
+  '8': 'Dense narrative and expository analysis',
+  '9': 'Rhetorical analysis, abstract reasoning',
+  '10': 'Competing interpretations, irony, causation',
+  '11': 'Dense argumentation, ambiguity, synthesis',
+  '12': 'College-level abstraction and critique',
+};
+
+export const gradeLevels = ALL_GRADES.map(g => ({
+  value: g,
+  label: gradeLabel(g),
+  description: GRADE_FOCUS[g],
+  available: (gradePassages[g]?.length ?? 0) > 0,
+}));
+
+const gradeIndex = (grade: string) => ALL_GRADES.indexOf(grade as GradeLevel);
+
+/** Nearest grade that actually has authored content (used as a safe fallback). */
+export const nearestAvailableGrade = (grade: string): GradeLevel => {
+  if (gradePassages[grade]?.length) return grade as GradeLevel;
+  const idx = gradeIndex(grade);
+  if (idx === -1) return '2';
+  let best: GradeLevel = '2';
+  let bestDist = Infinity;
+  ALL_GRADES.forEach((g, i) => {
+    if (!gradePassages[g]?.length) return;
+    const d = Math.abs(i - idx);
+    if (d < bestDist) { bestDist = d; best = g; }
+  });
+  return best;
+};
+
+export const getPassageForGrade = (grade: string, version: 'A' | 'B' | 'C'): Passage | undefined =>
+  gradePassages[grade]?.find(p => p.version === version) ??
+  gradePassages[nearestAvailableGrade(grade)]?.find(p => p.version === version);
+
+/** Legacy band records ("1-2") map to the grade the band was pitched at. */
+export const bandToGrade = (value?: string | null): GradeLevel => {
+  if (!value) return '2';
+  const v = value.trim();
+  const legacy: Record<string, GradeLevel> = { '1-2': '2', '3-4': '4', '5-6': '6', '7-8': '8' };
+  if (legacy[v]) return legacy[v];
+  if (ALL_GRADES.includes(v as GradeLevel)) return v as GradeLevel;
+  const n = parseInt(v, 10);
+  if (!Number.isNaN(n) && n >= 0 && n <= 12) return (n === 0 ? 'K' : String(n)) as GradeLevel;
+  return '2';
+};
+
+/** Numeric grade for plan tuning; kindergarten is treated as 0. */
+export const gradeToNumber = (grade?: string | null): number => {
+  const g = bandToGrade(grade);
+  return g === 'K' ? 0 : parseInt(g, 10);
+};
+
+export const formatGradeLabel = (value?: string | null): string => gradeLabel(bandToGrade(value));
