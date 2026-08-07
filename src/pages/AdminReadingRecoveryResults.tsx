@@ -252,7 +252,10 @@ const AdminReadingRecoveryResults = () => {
                           </td>
                           <td className="py-3 text-slate-600">{formatDate(t.created_at)}</td>
                           <td className="py-3">
-                            <div className="flex justify-end">
+                            <div className="flex justify-end gap-1">
+                              <Button variant="ghost" size="sm" onClick={() => setPlanFor(t)} title="View 21-Day Plan">
+                                <CalendarDays className="h-4 w-4" />
+                              </Button>
                               <Button variant="ghost" size="sm" onClick={() => navigate(`/reading-recovery/results/${t.id}`)} title="View Full Results & Q&A">
                                 <Eye className="h-4 w-4" />
                               </Button>
@@ -268,8 +271,29 @@ const AdminReadingRecoveryResults = () => {
           </CardContent>
         </Card>
       </main>
+
+      <Dialog open={planFor !== null} onOpenChange={(open) => !open && setPlanFor(null)}>
+        <DialogContent className="max-w-4xl max-h-[92vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>21-Day Recovery Plan{planFor ? ` — ${planFor.student_name}` : ""}</DialogTitle>
+            <DialogDescription>
+              {planFor
+                ? `Tailored for ${resolvePlanGrade(planFor) === 0 ? "Kindergarten" : `Grade ${resolvePlanGrade(planFor)}`}. Open any day to view and print the worksheet.`
+                : ""}
+            </DialogDescription>
+          </DialogHeader>
+          {planFor && (
+            <ReadingRecoveryPlanBreakdown
+              gradeLevel={resolvePlanGrade(planFor)}
+              studentName={planFor.student_name}
+              readOnly
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
+
 
 export default AdminReadingRecoveryResults;
