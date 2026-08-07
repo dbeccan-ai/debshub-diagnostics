@@ -43,6 +43,8 @@ const AdminReadingRecoveryResults = () => {
   const [transcripts, setTranscripts] = useState<ReadingTranscript[]>([]);
   const [filtered, setFiltered] = useState<ReadingTranscript[]>([]);
   const [loading, setLoading] = useState(true);
+  const [planFor, setPlanFor] = useState<ReadingTranscript | null>(null);
+
 
   const [searchTerm, setSearchTerm] = useState("");
   const [gradeBandFilter, setGradeBandFilter] = useState("all");
