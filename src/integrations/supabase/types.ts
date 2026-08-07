@@ -455,6 +455,7 @@ export type Database = {
           detected_errors: Json | null
           final_error_count: number | null
           grade_band: string
+          grade_level: number | null
           id: string
           original_text: string
           passage_title: string
@@ -482,6 +483,7 @@ export type Database = {
           detected_errors?: Json | null
           final_error_count?: number | null
           grade_band: string
+          grade_level?: number | null
           id?: string
           original_text: string
           passage_title: string
@@ -509,6 +511,7 @@ export type Database = {
           detected_errors?: Json | null
           final_error_count?: number | null
           grade_band?: string
+          grade_level?: number | null
           id?: string
           original_text?: string
           passage_title?: string
