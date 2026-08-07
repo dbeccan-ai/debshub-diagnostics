@@ -31,7 +31,7 @@ interface DashboardAttempt {
   grade_level: number | null;
   completed_at: string | null;
   created_at: string | null;
-  payment_status: "pending" | "completed" | null;
+  payment_status: string | null;
   score: number | null;
   tier: string | null;
   total_questions: number | null;
