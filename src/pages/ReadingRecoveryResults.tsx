@@ -15,6 +15,8 @@ import {
   type Passage 
 } from "@/data/reading-recovery-content";
 import { computeReaderProfile } from "@/lib/readerProfile";
+import ReadingRecoveryPlanBreakdown from "@/components/ReadingRecoveryPlanBreakdown";
+
 
 
 interface QuestionResult {
