@@ -262,6 +262,107 @@ export type Database = {
         }
         Relationships: []
       }
+      follow_up_assessments: {
+        Row: {
+          checkpoint_label: string
+          created_at: string
+          created_by: string | null
+          grade_level: number | null
+          id: string
+          result_attempt_id: string | null
+          school_id: string | null
+          source_attempt_id: string | null
+          status: string
+          student_id: string
+          test_id: string
+          unlock_date: string
+          updated_at: string
+          week_number: number | null
+        }
+        Insert: {
+          checkpoint_label?: string
+          created_at?: string
+          created_by?: string | null
+          grade_level?: number | null
+          id?: string
+          result_attempt_id?: string | null
+          school_id?: string | null
+          source_attempt_id?: string | null
+          status?: string
+          student_id: string
+          test_id: string
+          unlock_date?: string
+          updated_at?: string
+          week_number?: number | null
+        }
+        Update: {
+          checkpoint_label?: string
+          created_at?: string
+          created_by?: string | null
+          grade_level?: number | null
+          id?: string
+          result_attempt_id?: string | null
+          school_id?: string | null
+          source_attempt_id?: string | null
+          status?: string
+          student_id?: string
+          test_id?: string
+          unlock_date?: string
+          updated_at?: string
+          week_number?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "follow_up_assessments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "follow_up_assessments_result_attempt_id_fkey"
+            columns: ["result_attempt_id"]
+            isOneToOne: false
+            referencedRelation: "test_attempts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "follow_up_assessments_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "follow_up_assessments_source_attempt_id_fkey"
+            columns: ["source_attempt_id"]
+            isOneToOne: false
+            referencedRelation: "test_attempts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "follow_up_assessments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "follow_up_assessments_test_id_fkey"
+            columns: ["test_id"]
+            isOneToOne: false
+            referencedRelation: "tests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "follow_up_assessments_test_id_fkey"
+            columns: ["test_id"]
+            isOneToOne: false
+            referencedRelation: "tests_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invitations: {
         Row: {
           accepted_at: string | null
@@ -644,6 +745,7 @@ export type Database = {
           correct_answers: number | null
           created_at: string
           email_status: string | null
+          follow_up_id: string | null
           grade_level: number | null
           id: string
           payment_status: string | null
@@ -665,6 +767,7 @@ export type Database = {
           correct_answers?: number | null
           created_at?: string
           email_status?: string | null
+          follow_up_id?: string | null
           grade_level?: number | null
           id?: string
           payment_status?: string | null
@@ -686,6 +789,7 @@ export type Database = {
           correct_answers?: number | null
           created_at?: string
           email_status?: string | null
+          follow_up_id?: string | null
           grade_level?: number | null
           id?: string
           payment_status?: string | null
@@ -702,6 +806,13 @@ export type Database = {
           weaknesses?: string[] | null
         }
         Relationships: [
+          {
+            foreignKeyName: "test_attempts_follow_up_id_fkey"
+            columns: ["follow_up_id"]
+            isOneToOne: false
+            referencedRelation: "follow_up_assessments"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "test_attempts_school_id_fkey"
             columns: ["school_id"]
