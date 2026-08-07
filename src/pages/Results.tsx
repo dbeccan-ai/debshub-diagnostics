@@ -43,6 +43,7 @@ interface TestAttempt {
   strengths: string[] | null;
   weaknesses: string[] | null;
   skill_analysis: SkillAnalysis | null;
+  follow_up_id: string | null;
   tests: {
     name: string;
     test_type: string;
@@ -58,6 +59,11 @@ const Results = () => {
   const [attempt, setAttempt] = useState<TestAttempt | null>(null);
   const [loading, setLoading] = useState(true);
   const [regrading, setRegrading] = useState(false);
+  const [followUpInfo, setFollowUpInfo] = useState<{
+    label: string;
+    baselineScore: number | null;
+    baselineDate: string | null;
+  } | null>(null);
 
   const fetchResults = async () => {
     try {
@@ -81,7 +87,7 @@ const Results = () => {
         .from("test_attempts")
         .select(`
           id, score, tier, total_questions, correct_answers, completed_at,
-          grade_level, strengths, weaknesses, skill_analysis,
+          grade_level, strengths, weaknesses, skill_analysis, follow_up_id,
           tests:test_id (name, test_type),
           profiles:user_id (full_name)
         `)
@@ -93,7 +99,24 @@ const Results = () => {
       
       const { data, error } = await query.single();
       if (error) throw error;
-      setAttempt(data as unknown as TestAttempt);
+      const loaded = data as unknown as TestAttempt;
+      setAttempt(loaded);
+
+      if (loaded.follow_up_id) {
+        const { data: fu } = await supabase
+          .from("follow_up_assessments")
+          .select("checkpoint_label, source:source_attempt_id (score, completed_at)")
+          .eq("id", loaded.follow_up_id)
+          .maybeSingle();
+        if (fu) {
+          const src = fu.source as unknown as { score: number | null; completed_at: string | null } | null;
+          setFollowUpInfo({
+            label: fu.checkpoint_label as string,
+            baselineScore: src?.score ?? null,
+            baselineDate: src?.completed_at ?? null,
+          });
+        }
+      }
     } catch (err) {
       console.error("Error fetching results:", err);
       toast.error("Could not load test results");
@@ -277,6 +300,40 @@ const Results = () => {
                 <p className="text-xs text-slate-500">Completed</p>
               </div>
             </div>
+
+            {followUpInfo && followUpInfo.baselineScore !== null && (
+              <div className="mt-4 rounded-lg border-2 border-sky-200 bg-sky-50 p-4">
+                <p className="text-sm font-bold text-sky-900">
+                  {followUpInfo.label} — Progress Comparison
+                </p>
+                <div className="mt-2 flex items-center justify-center gap-4 text-center">
+                  <div>
+                    <p className="text-2xl font-bold text-slate-700">{followUpInfo.baselineScore}%</p>
+                    <p className="text-xs text-slate-500">
+                      Baseline
+                      {followUpInfo.baselineDate
+                        ? ` · ${new Date(followUpInfo.baselineDate).toLocaleDateString()}`
+                        : ""}
+                    </p>
+                  </div>
+                  <span className="text-xl text-slate-400">→</span>
+                  <div>
+                    <p className="text-2xl font-bold text-sky-800">{overallScore}%</p>
+                    <p className="text-xs text-slate-500">This follow-up</p>
+                  </div>
+                  <div
+                    className={`rounded-md px-3 py-1 text-sm font-bold ${
+                      overallScore - followUpInfo.baselineScore >= 0
+                        ? "bg-emerald-100 text-emerald-800"
+                        : "bg-red-100 text-red-800"
+                    }`}
+                  >
+                    {overallScore - followUpInfo.baselineScore >= 0 ? "+" : ""}
+                    {Math.round((overallScore - followUpInfo.baselineScore) * 10) / 10} pts
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Insight box for overall score */}
             <InsightBox score={overallScore} />

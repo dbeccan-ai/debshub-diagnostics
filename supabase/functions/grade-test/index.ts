@@ -260,6 +260,56 @@ serve(async (req) => {
       );
     }
 
+    // Schedule free follow-up (progress retake) assessments for this attempt.
+    // Tier 1 => 5-week program (Week 5), Tier 2/3 => 10-week program (Week 5 + Week 10).
+    // Skipped when this attempt IS itself a follow-up retake.
+    try {
+      if (attempt.follow_up_id) {
+        await supabaseAdmin
+          .from('follow_up_assessments')
+          .update({ status: 'completed', result_attempt_id: attemptId })
+          .eq('id', attempt.follow_up_id);
+      } else {
+        const checkpoints = tier === 'Tier 1' ? [5] : [5, 10];
+        const { data: existingFollowUps } = await supabaseAdmin
+          .from('follow_up_assessments')
+          .select('week_number')
+          .eq('source_attempt_id', attemptId);
+
+        const have = new Set((existingFollowUps ?? []).map((r: { week_number: number | null }) => r.week_number));
+        const completedAt = new Date();
+        const rows = checkpoints
+          .filter((week) => !have.has(week))
+          .map((week) => {
+            const unlock = new Date(completedAt.getTime());
+            unlock.setDate(unlock.getDate() + week * 7);
+            return {
+              student_id: attempt.user_id,
+              source_attempt_id: attemptId,
+              test_id: attempt.test_id,
+              grade_level: attempt.grade_level,
+              school_id: attempt.school_id,
+              checkpoint_label: `Week ${week} Follow-Up`,
+              week_number: week,
+              unlock_date: unlock.toISOString().slice(0, 10),
+              status: 'scheduled',
+            };
+          });
+
+        if (rows.length > 0) {
+          const { error: followUpError } = await supabaseAdmin
+            .from('follow_up_assessments')
+            .insert(rows);
+          if (followUpError) console.error('Follow-up scheduling failed:', followUpError);
+          else console.log(`Scheduled ${rows.length} follow-up assessment(s) for attempt ${attemptId}`);
+        }
+      }
+    } catch (followUpErr) {
+      console.error('Follow-up scheduling error:', followUpErr);
+    }
+
+
+
     // Return detailed results
     return new Response(
       JSON.stringify({

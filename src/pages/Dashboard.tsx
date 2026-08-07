@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Activity, Target, Users, Shield, BookOpen, UserPlus, ClipboardList, XCircle, PlayCircle, AlertTriangle, Trophy, Eye, Plus, PauseCircle } from "lucide-react";
+import { Activity, Target, Users, Shield, BookOpen, UserPlus, ClipboardList, XCircle, PlayCircle, AlertTriangle, Trophy, Eye, Plus, PauseCircle, CalendarClock } from "lucide-react";
 import { useAccountStatus } from "@/hooks/useAccountStatus";
 import {
   AlertDialog,
@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useTranslation } from "@/hooks/useTranslation";
 import { LanguageSelector } from "@/components/LanguageSelector";
+import FollowUpAssessmentsCard from "@/components/FollowUpAssessmentsCard";
 
 type Tier = "Tier 1" | "Tier 2" | "Tier 3";
 type TestStatus = "In Progress" | "Completed" | "Payment Pending";
@@ -30,7 +31,7 @@ interface DashboardAttempt {
   grade_level: number | null;
   completed_at: string | null;
   created_at: string | null;
-  payment_status: "pending" | "completed" | null;
+  payment_status: string | null;
   score: number | null;
   tier: string | null;
   total_questions: number | null;
@@ -62,6 +63,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [isTeacher, setIsTeacher] = useState<boolean>(false);
+  const [userId, setUserId] = useState<string | null>(null);
   const { isPaused, pauseReason } = useAccountStatus();
 
   useEffect(() => {
@@ -114,6 +116,9 @@ const Dashboard = () => {
           .maybeSingle();
         
         setIsTeacher(!!teacherRoleData);
+        setUserId(user.id);
+
+
 
         const { data: attemptsData, error: attemptsError } = await supabase
           .from("test_attempts")
@@ -196,7 +201,9 @@ const Dashboard = () => {
   }, [navigate]);
 
   const completedAttempts = attempts.filter((a) => a.completed_at);
-  const inProgressAttempts = attempts.filter((a) => !a.completed_at && a.payment_status === "completed");
+  const inProgressAttempts = attempts.filter(
+    (a) => !a.completed_at && (a.payment_status === "completed" || a.payment_status === "not_required")
+  );
   const pendingPaymentAttempts = attempts.filter((a) => !a.completed_at && a.payment_status === "pending");
 
   const handleCancelTest = async (attemptId: string) => {
@@ -406,6 +413,17 @@ const Dashboard = () => {
                 All Users
               </Button>
             )}
+            {(isAdmin || isTeacher) && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-sky-300 bg-sky-50 text-xs font-semibold text-sky-700 hover:bg-sky-100"
+                onClick={() => navigate("/admin/follow-ups")}
+              >
+                <CalendarClock className="mr-1 h-3 w-3" />
+                Follow-Ups
+              </Button>
+            )}
             {isTeacher && (
               <Button
                 variant="outline"
@@ -445,6 +463,8 @@ const Dashboard = () => {
             </div>
           </div>
         )}
+        {userId && <FollowUpAssessmentsCard studentId={userId} />}
+
         {/* Greeting + quick actions */}
         <div className="mb-6 flex flex-col gap-3 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
           <div>
