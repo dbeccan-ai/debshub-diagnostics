@@ -264,7 +264,12 @@ serve(async (req) => {
     // Tier 1 => 5-week program (Week 5), Tier 2/3 => 10-week program (Week 5 + Week 10).
     // Skipped when this attempt IS itself a follow-up retake.
     try {
-      if (!attempt.follow_up_id) {
+      if (attempt.follow_up_id) {
+        await supabaseAdmin
+          .from('follow_up_assessments')
+          .update({ status: 'completed', result_attempt_id: attemptId })
+          .eq('id', attempt.follow_up_id);
+      } else {
         const checkpoints = tier === 'Tier 1' ? [5] : [5, 10];
         const { data: existingFollowUps } = await supabaseAdmin
           .from('follow_up_assessments')
