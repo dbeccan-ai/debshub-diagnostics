@@ -19,6 +19,7 @@ import AdminInvitations from "./pages/AdminInvitations";
 import AdminAllResults from "./pages/AdminAllResults";
 import AdminReadingRecoveryResults from "./pages/AdminReadingRecoveryResults";
 import AdminUserLogins from "./pages/AdminUserLogins";
+import AdminFollowUps from "./pages/AdminFollowUps";
 import Register from "./pages/Register";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import ManualGrading from "./pages/ManualGrading";
@@ -73,6 +74,7 @@ const App = () => (
             <Route path="/admin/all-results" element={<AdminAllResults />} />
             <Route path="/admin/reading-recovery-results" element={<AdminReadingRecoveryResults />} />
             <Route path="/admin/user-logins" element={<AdminUserLogins />} />
+            <Route path="/admin/follow-ups" element={<AdminFollowUps />} />
             <Route path="/register" element={<Register />} />
             <Route path="/school-setup" element={<SchoolSetup />} />
             <Route path="/teacher" element={<TeacherDashboard />} />
