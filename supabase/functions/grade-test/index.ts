@@ -270,7 +270,13 @@ serve(async (req) => {
           .update({ status: 'completed', result_attempt_id: attemptId })
           .eq('id', attempt.follow_up_id);
       } else {
-        const checkpoints = tier === 'Tier 1' ? [5] : [5, 10];
+        const tierKey = (tier || '').toLowerCase();
+        const checkpoints =
+          tierKey.includes('tier 1') || tierKey.includes('green') || tierKey.includes('mastery')
+            ? [5] // 5-week program
+            : tierKey.includes('tier 3') || tierKey.includes('red') || tierKey.includes('priority')
+              ? [5, 10, 15] // 15-week program
+              : [5, 10]; // Tier 2 — 10-week program
         const { data: existingFollowUps } = await supabaseAdmin
           .from('follow_up_assessments')
           .select('week_number')
