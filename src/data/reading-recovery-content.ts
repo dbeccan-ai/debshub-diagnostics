@@ -28,8 +28,13 @@ export interface ScoringThresholds {
   totalQuestions: number;
 }
 
+export type GradeLevel = 'K' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | '11' | '12';
+
 export interface Passage {
-  gradeBand: '1-2' | '3-4' | '5-6' | '7-8';
+  /** Exact grade level this passage is written for. */
+  grade: GradeLevel;
+  /** Legacy grade band (kept for historical records only). */
+  gradeBand?: '1-2' | '3-4' | '5-6' | '7-8';
   version: 'A' | 'B' | 'C';
   versionLabel: string;
   title: string;
@@ -48,6 +53,7 @@ export interface Passage {
 // Grade 1-2 Passages
 const grade12VersionA: Passage = {
   gradeBand: '1-2',
+  grade: '2',
   version: 'A',
   versionLabel: 'Pre-Assessment (Day 0/1)',
   title: "Max's New Friend",
@@ -102,6 +108,7 @@ Now Max and Chip were happy.`,
 
 const grade12VersionB: Passage = {
   gradeBand: '1-2',
+  grade: '2',
   version: 'B',
   versionLabel: 'Mid-Point Check (Day 10-11)',
   title: "Lily's Birthday Surprise",
@@ -158,6 +165,7 @@ Snowball purred and licked Lily's hand. It was the best birthday ever.`,
 
 const grade12VersionC: Passage = {
   gradeBand: '1-2',
+  grade: '2',
   version: 'C',
   versionLabel: 'Post-Assessment (Day 21)',
   title: "Ben Learns to Swim",
@@ -217,6 +225,7 @@ Kate was proud of her little brother.`,
 // Grade 3-4 Passages
 const grade34VersionA: Passage = {
   gradeBand: '3-4',
+  grade: '4',
   version: 'A',
   versionLabel: 'Pre-Assessment (Day 0/1)',
   title: "The Secret Garden Discovery",
@@ -278,6 +287,7 @@ Maya raced downstairs, journal in hand. She couldn't wait to share this discover
 
 const grade34VersionB: Passage = {
   gradeBand: '3-4',
+  grade: '4',
   version: 'B',
   versionLabel: 'Mid-Point Check (Day 10-11)',
   title: "The Science Fair Surprise",
@@ -349,6 +359,7 @@ Maybe he was better at science than he thought.`,
 
 const grade34VersionC: Passage = {
   gradeBand: '3-4',
+  grade: '4',
   version: 'C',
   versionLabel: 'Post-Assessment (Day 21)',
   title: "The Library Card",
@@ -417,6 +428,7 @@ She tucked her library card safely in her pocket. She would never lose it again.
 // Grade 5-6 Passages
 const grade56VersionA: Passage = {
   gradeBand: '5-6',
+  grade: '6',
   version: 'A',
   versionLabel: 'Pre-Assessment (Day 0/1)',
   title: "The Truth About Lightning",
@@ -482,6 +494,7 @@ Understanding how lightning works helps scientists predict strikes and develop b
 
 const grade56VersionB: Passage = {
   gradeBand: '5-6',
+  grade: '6',
   version: 'B',
   versionLabel: 'Mid-Point Check (Day 10-11)',
   title: "Why Leaves Change Color",
@@ -549,6 +562,7 @@ Understanding leaf color change reveals that autumn beauty isn't just decoration
 
 const grade56VersionC: Passage = {
   gradeBand: '5-6',
+  grade: '6',
   version: 'C',
   versionLabel: 'Post-Assessment (Day 21)',
   title: "The Secret Language of Bees",
@@ -615,6 +629,7 @@ The waggle dance represents one of nature's most sophisticated examples of symbo
 // Grade 7-8 Passages
 const grade78VersionA: Passage = {
   gradeBand: '7-8',
+  grade: '8',
   version: 'A',
   versionLabel: 'Pre-Assessment (Day 0/1)',
   title: "The Invisible Barrier",
@@ -699,6 +714,7 @@ As the lunch period ended, Kenji carefully packed his bento box, feeling lighter
 
 const grade78VersionB: Passage = {
   gradeBand: '7-8',
+  grade: '8',
   version: 'B',
   versionLabel: 'Mid-Point Check (Day 10-11)',
   title: "The Choice",
@@ -787,6 +803,7 @@ The acceptance letter still sat on her desk that night. But instead of an accusa
 
 const grade78VersionC: Passage = {
   gradeBand: '7-8',
+  grade: '8',
   version: 'C',
   versionLabel: 'Post-Assessment (Day 21)',
   title: "Breaking the Algorithm",
