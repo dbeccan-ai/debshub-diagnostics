@@ -62,6 +62,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [isTeacher, setIsTeacher] = useState<boolean>(false);
+  const [userId, setUserId] = useState<string | null>(null);
   const { isPaused, pauseReason } = useAccountStatus();
 
   useEffect(() => {
