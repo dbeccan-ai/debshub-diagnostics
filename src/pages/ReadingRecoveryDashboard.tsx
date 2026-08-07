@@ -32,6 +32,7 @@ import {
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { useTranslation } from "@/hooks/useTranslation";
 import ReadingRecoveryActivityDialog from "@/components/ReadingRecoveryActivityDialog";
+import ReadingProgressCharts from "@/components/ReadingProgressCharts";
 
 interface Enrollment {
   id: string;
@@ -48,8 +49,10 @@ interface DiagnosticResult {
   passage_title: string;
   version: string;
   final_error_count: number | null;
+  confirmed_errors?: any;
   created_at: string;
 }
+
 
 interface ProgressItem {
   day_number: number;
@@ -204,7 +207,7 @@ const ReadingRecoveryDashboard = () => {
         // Fetch diagnostics
         const { data: diagnosticData } = await supabase
           .from("reading_diagnostic_transcripts")
-          .select("id, student_name, grade_band, passage_title, version, final_error_count, created_at")
+          .select("id, student_name, grade_band, passage_title, version, final_error_count, confirmed_errors, created_at")
           .eq("user_id", user.id)
           .order("created_at", { ascending: false });
 
@@ -654,6 +657,11 @@ const ReadingRecoveryDashboard = () => {
                 )}
               </CardContent>
             </Card>
+
+            {/* Progress charts by grade level */}
+            <ReadingProgressCharts diagnostics={diagnostics} />
+
+
 
             {/* Celebration Milestones */}
             <Card>
