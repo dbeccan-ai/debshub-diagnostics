@@ -38,6 +38,8 @@ import Grade1ELADiagnostic from "./pages/Grade1ELADiagnostic";
 import Enroll from "./pages/Enroll";
 import SchoolDemo from "./pages/SchoolDemo";
 import DemoTest from "./pages/DemoTest";
+import ResetPassword from "./pages/ResetPassword";
+import RecoveryRedirect from "@/components/RecoveryRedirect";
 import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
@@ -48,6 +50,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <RecoveryRedirect />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/diagnostics/math/grade-2" element={<Grade2Diagnostic />} />
@@ -56,6 +59,7 @@ const App = () => (
             <Route path="/diagnostics/ela/grade-1" element={<Grade1ELADiagnostic />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/admin/login" element={<AdminAuth />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/tests" element={<Tests />} />
             <Route path="/test/:attemptId" element={<TakeTest />} />
