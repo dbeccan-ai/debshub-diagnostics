@@ -6,14 +6,17 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { formatGradeLabel } from "@/data/reading-recovery-content";
-import { ArrowLeft, Search, Filter, RefreshCw, Eye, BookOpen } from "lucide-react";
+import { formatGradeLabel, bandToGrade } from "@/data/reading-recovery-content";
+import ReadingRecoveryPlanBreakdown from "@/components/ReadingRecoveryPlanBreakdown";
+import { ArrowLeft, Search, Filter, RefreshCw, Eye, BookOpen, CalendarDays } from "lucide-react";
 
 interface ReadingTranscript {
   id: string;
   student_name: string;
   grade_band: string;
+  grade_level: number | null;
   passage_title: string;
   version: string;
   final_error_count: number | null;
@@ -26,6 +29,13 @@ interface ReadingTranscript {
   assessment_completed_at: string | null;
   user_id: string;
 }
+
+const resolvePlanGrade = (t: ReadingTranscript): number => {
+  if (t.grade_level != null) return Number(t.grade_level);
+  const g = bandToGrade(t.grade_band);
+  return g === "K" ? 0 : parseInt(String(g), 10) || 1;
+};
+
 
 const AdminReadingRecoveryResults = () => {
   const navigate = useNavigate();
