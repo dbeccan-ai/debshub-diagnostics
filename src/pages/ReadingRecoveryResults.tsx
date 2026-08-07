@@ -340,6 +340,17 @@ body { margin: 0; padding: 40px; font-family: Georgia, serif; background: linear
 
   const { tier, color } = calculateTier(result.final_error_count, result.confirmed_errors);
 
+  // Exact grade drives the tailored 21-day plan; legacy band rows fall back to their upper grade.
+  const rawGrade = (result as any).grade_level;
+  const planGrade =
+    rawGrade != null
+      ? Number(rawGrade)
+      : (() => {
+          const g = bandToGrade(result.grade_band);
+          return g === "K" ? 0 : parseInt(String(g), 10) || 1;
+        })();
+
+
   const readerProfile = computeReaderProfile({
     detectedErrors: result.confirmed_errors ?? result.detected_errors,
     finalErrorCount: result.final_error_count,
