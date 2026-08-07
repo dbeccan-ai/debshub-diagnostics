@@ -15,6 +15,8 @@ import {
   type Passage 
 } from "@/data/reading-recovery-content";
 import { computeReaderProfile } from "@/lib/readerProfile";
+import ReadingRecoveryPlanBreakdown from "@/components/ReadingRecoveryPlanBreakdown";
+
 
 
 interface QuestionResult {
@@ -339,6 +341,17 @@ body { margin: 0; padding: 40px; font-family: Georgia, serif; background: linear
   }
 
   const { tier, color } = calculateTier(result.final_error_count, result.confirmed_errors);
+
+  // Exact grade drives the tailored 21-day plan; legacy band rows fall back to their upper grade.
+  const rawGrade = (result as any).grade_level;
+  const planGrade =
+    rawGrade != null
+      ? Number(rawGrade)
+      : (() => {
+          const g = bandToGrade(result.grade_band);
+          return g === "K" ? 0 : parseInt(String(g), 10) || 1;
+        })();
+
 
   const readerProfile = computeReaderProfile({
     detectedErrors: result.confirmed_errors ?? result.detected_errors,
@@ -806,9 +819,24 @@ body { margin: 0; padding: 40px; font-family: Georgia, serif; background: linear
                   </ul>
                 </div>
               )}
+
+              <Separator />
+
+              <p className="text-sm text-muted-foreground">
+                Day-by-day breakdown tailored for{" "}
+                <strong>{planGrade === 0 ? "Kindergarten" : `Grade ${planGrade}`}</strong>. Open any
+                day to view and print the worksheet.
+              </p>
+
+              <ReadingRecoveryPlanBreakdown
+                gradeLevel={planGrade}
+                studentName={result.student_name}
+                readOnly
+              />
             </div>
           </CardContent>
         </Card>
+
 
         {/* Actions */}
         <div className="flex flex-wrap gap-4 justify-center">
