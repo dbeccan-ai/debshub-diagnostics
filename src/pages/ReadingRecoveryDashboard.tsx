@@ -658,6 +658,11 @@ const ReadingRecoveryDashboard = () => {
               </CardContent>
             </Card>
 
+            {/* Progress charts by grade level */}
+            <ReadingProgressCharts diagnostics={diagnostics} />
+
+
+
             {/* Celebration Milestones */}
             <Card>
               <CardHeader>
