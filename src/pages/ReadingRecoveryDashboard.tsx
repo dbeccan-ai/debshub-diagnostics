@@ -32,6 +32,7 @@ import {
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { useTranslation } from "@/hooks/useTranslation";
 import ReadingRecoveryActivityDialog from "@/components/ReadingRecoveryActivityDialog";
+import ReadingProgressCharts from "@/components/ReadingProgressCharts";
 
 interface Enrollment {
   id: string;
