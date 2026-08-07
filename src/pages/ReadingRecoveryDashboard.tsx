@@ -33,6 +33,8 @@ import { LanguageSelector } from "@/components/LanguageSelector";
 import { useTranslation } from "@/hooks/useTranslation";
 import ReadingRecoveryActivityDialog from "@/components/ReadingRecoveryActivityDialog";
 import ReadingProgressCharts from "@/components/ReadingProgressCharts";
+import { get21DayRoadmap, categoryConfig } from "@/data/reading-recovery-roadmap";
+
 
 interface Enrollment {
   id: string;
