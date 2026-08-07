@@ -48,8 +48,10 @@ interface DiagnosticResult {
   passage_title: string;
   version: string;
   final_error_count: number | null;
+  confirmed_errors?: any;
   created_at: string;
 }
+
 
 interface ProgressItem {
   day_number: number;
