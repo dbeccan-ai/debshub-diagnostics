@@ -28,8 +28,13 @@ export interface ScoringThresholds {
   totalQuestions: number;
 }
 
+export type GradeLevel = 'K' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | '11' | '12';
+
 export interface Passage {
-  gradeBand: '1-2' | '3-4' | '5-6' | '7-8';
+  /** Exact grade level this passage is written for. */
+  grade: GradeLevel;
+  /** Legacy grade band (kept for historical records only). */
+  gradeBand?: '1-2' | '3-4' | '5-6' | '7-8';
   version: 'A' | 'B' | 'C';
   versionLabel: string;
   title: string;
@@ -48,6 +53,7 @@ export interface Passage {
 // Grade 1-2 Passages
 const grade12VersionA: Passage = {
   gradeBand: '1-2',
+  grade: '2',
   version: 'A',
   versionLabel: 'Pre-Assessment (Day 0/1)',
   title: "Max's New Friend",
@@ -102,6 +108,7 @@ Now Max and Chip were happy.`,
 
 const grade12VersionB: Passage = {
   gradeBand: '1-2',
+  grade: '2',
   version: 'B',
   versionLabel: 'Mid-Point Check (Day 10-11)',
   title: "Lily's Birthday Surprise",
@@ -158,6 +165,7 @@ Snowball purred and licked Lily's hand. It was the best birthday ever.`,
 
 const grade12VersionC: Passage = {
   gradeBand: '1-2',
+  grade: '2',
   version: 'C',
   versionLabel: 'Post-Assessment (Day 21)',
   title: "Ben Learns to Swim",
@@ -217,6 +225,7 @@ Kate was proud of her little brother.`,
 // Grade 3-4 Passages
 const grade34VersionA: Passage = {
   gradeBand: '3-4',
+  grade: '4',
   version: 'A',
   versionLabel: 'Pre-Assessment (Day 0/1)',
   title: "The Secret Garden Discovery",
@@ -278,6 +287,7 @@ Maya raced downstairs, journal in hand. She couldn't wait to share this discover
 
 const grade34VersionB: Passage = {
   gradeBand: '3-4',
+  grade: '4',
   version: 'B',
   versionLabel: 'Mid-Point Check (Day 10-11)',
   title: "The Science Fair Surprise",
@@ -349,6 +359,7 @@ Maybe he was better at science than he thought.`,
 
 const grade34VersionC: Passage = {
   gradeBand: '3-4',
+  grade: '4',
   version: 'C',
   versionLabel: 'Post-Assessment (Day 21)',
   title: "The Library Card",
@@ -417,6 +428,7 @@ She tucked her library card safely in her pocket. She would never lose it again.
 // Grade 5-6 Passages
 const grade56VersionA: Passage = {
   gradeBand: '5-6',
+  grade: '6',
   version: 'A',
   versionLabel: 'Pre-Assessment (Day 0/1)',
   title: "The Truth About Lightning",
@@ -482,6 +494,7 @@ Understanding how lightning works helps scientists predict strikes and develop b
 
 const grade56VersionB: Passage = {
   gradeBand: '5-6',
+  grade: '6',
   version: 'B',
   versionLabel: 'Mid-Point Check (Day 10-11)',
   title: "Why Leaves Change Color",
@@ -549,6 +562,7 @@ Understanding leaf color change reveals that autumn beauty isn't just decoration
 
 const grade56VersionC: Passage = {
   gradeBand: '5-6',
+  grade: '6',
   version: 'C',
   versionLabel: 'Post-Assessment (Day 21)',
   title: "The Secret Language of Bees",
@@ -615,6 +629,7 @@ The waggle dance represents one of nature's most sophisticated examples of symbo
 // Grade 7-8 Passages
 const grade78VersionA: Passage = {
   gradeBand: '7-8',
+  grade: '8',
   version: 'A',
   versionLabel: 'Pre-Assessment (Day 0/1)',
   title: "The Invisible Barrier",
@@ -699,6 +714,7 @@ As the lunch period ended, Kenji carefully packed his bento box, feeling lighter
 
 const grade78VersionB: Passage = {
   gradeBand: '7-8',
+  grade: '8',
   version: 'B',
   versionLabel: 'Mid-Point Check (Day 10-11)',
   title: "The Choice",
@@ -787,6 +803,7 @@ The acceptance letter still sat on her desk that night. But instead of an accusa
 
 const grade78VersionC: Passage = {
   gradeBand: '7-8',
+  grade: '8',
   version: 'C',
   versionLabel: 'Post-Assessment (Day 21)',
   title: "Breaking the Algorithm",
@@ -1044,3 +1061,94 @@ export const parentGuidelines = {
     }
   ]
 };
+
+// ---------------------------------------------------------------------------
+// Per-grade registry (K-12). Replaces the legacy grade-band selection.
+// ---------------------------------------------------------------------------
+
+import { buildPassage, gradeLabel as gradeLabelFn } from './reading-recovery-grade-builder';
+import { lowerGradeDrafts } from './reading-recovery-grades-lower';
+import { upperGradeDrafts } from './reading-recovery-grades-upper';
+
+export const gradeLabel = gradeLabelFn;
+
+const authoredPassages: Passage[] = [...lowerGradeDrafts, ...upperGradeDrafts].map(buildPassage);
+
+/** All passages keyed by exact grade level. */
+export const gradePassages: Record<string, Passage[]> = (() => {
+  const map: Record<string, Passage[]> = {};
+  const add = (p: Passage) => {
+    (map[p.grade] ||= []).push(p);
+  };
+  // Legacy band passages, now anchored to their exact grade (2, 4, 6, 8)
+  Object.values(passages).flat().forEach(add);
+  authoredPassages.forEach(add);
+  Object.values(map).forEach(list => list.sort((a, b) => a.version.localeCompare(b.version)));
+  return map;
+})();
+
+export const ALL_GRADES: GradeLevel[] = ['K', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
+
+const GRADE_FOCUS: Record<string, string> = {
+  K: 'Letter sounds, CVC blending, core sight words',
+  '1': 'CVCe words, digraphs, blends, grade-1 sight words',
+  '2': 'Two-syllable words, vowel teams, fluent phrasing',
+  '3': 'Multi-syllabic words, prefixes and suffixes',
+  '4': 'Chunking, affixes, phrasing across longer text',
+  '5': 'Academic vocabulary, informational reasoning',
+  '6': 'Content-area vocabulary, complex sentences',
+  '7': 'Argument, evidence evaluation, abstract terms',
+  '8': 'Dense narrative and expository analysis',
+  '9': 'Rhetorical analysis, abstract reasoning',
+  '10': 'Competing interpretations, irony, causation',
+  '11': 'Dense argumentation, ambiguity, synthesis',
+  '12': 'College-level abstraction and critique',
+};
+
+export const gradeLevels = ALL_GRADES.map(g => ({
+  value: g,
+  label: gradeLabel(g),
+  description: GRADE_FOCUS[g],
+  available: (gradePassages[g]?.length ?? 0) > 0,
+}));
+
+const gradeIndex = (grade: string) => ALL_GRADES.indexOf(grade as GradeLevel);
+
+/** Nearest grade that actually has authored content (used as a safe fallback). */
+export const nearestAvailableGrade = (grade: string): GradeLevel => {
+  if (gradePassages[grade]?.length) return grade as GradeLevel;
+  const idx = gradeIndex(grade);
+  if (idx === -1) return '2';
+  let best: GradeLevel = '2';
+  let bestDist = Infinity;
+  ALL_GRADES.forEach((g, i) => {
+    if (!gradePassages[g]?.length) return;
+    const d = Math.abs(i - idx);
+    if (d < bestDist) { bestDist = d; best = g; }
+  });
+  return best;
+};
+
+export const getPassageForGrade = (grade: string, version: 'A' | 'B' | 'C'): Passage | undefined =>
+  gradePassages[grade]?.find(p => p.version === version) ??
+  gradePassages[nearestAvailableGrade(grade)]?.find(p => p.version === version);
+
+/** Legacy band records ("1-2") map to the grade the band was pitched at. */
+export const bandToGrade = (value?: string | null): GradeLevel => {
+  if (!value) return '2';
+  const v = value.trim();
+  const legacy: Record<string, GradeLevel> = { '1-2': '2', '3-4': '4', '5-6': '6', '7-8': '8' };
+  if (legacy[v]) return legacy[v];
+  if (ALL_GRADES.includes(v as GradeLevel)) return v as GradeLevel;
+  const n = parseInt(v, 10);
+  if (!Number.isNaN(n) && n >= 0 && n <= 12) return (n === 0 ? 'K' : String(n)) as GradeLevel;
+  return '2';
+};
+
+/** Numeric grade for plan tuning; kindergarten is treated as 0. */
+export const gradeToNumber = (grade?: string | null): number => {
+  const g = bandToGrade(grade);
+  return g === 'K' ? 0 : parseInt(g, 10);
+};
+
+export const formatGradeLabel = (value?: string | null): string => gradeLabel(bandToGrade(value));
