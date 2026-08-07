@@ -97,7 +97,6 @@ const AdminAuth = () => {
       if (type === 'recovery' && accessToken && refreshToken) {
         try {
           isRecoveryRef.current = true;
-          await supabase.auth.signOut();
           const { error } = await supabase.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken,

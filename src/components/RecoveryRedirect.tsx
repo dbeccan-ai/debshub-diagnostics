@@ -2,8 +2,9 @@ import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
-// Pages that already implement their own recovery handling
-const SELF_HANDLED = ["/reset-password", "/admin/login", "/auth"];
+// Recovery links must be handled in one place. Allowing the sign-in pages to
+// consume them can race with this redirect and invalidate the new session.
+const SELF_HANDLED = ["/reset-password"];
 
 /**
  * Catches password-recovery links that land on any other route
