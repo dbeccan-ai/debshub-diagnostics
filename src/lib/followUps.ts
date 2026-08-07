@@ -22,13 +22,15 @@ export interface FollowUpAssessment {
 export function getProgramWeeksForTier(tier: string | null | undefined): number {
   const t = (tier || "").toLowerCase();
   if (t.includes("green") || t.includes("tier 1") || t.includes("mastery")) return 5;
-  return 10; // Tier 2 & Tier 3 programs run 10 weeks
+  if (t.includes("red") || t.includes("tier 3") || t.includes("priority")) return 15;
+  return 10; // Tier 2 (Yellow / Strengthening) programs run 10 weeks
 }
 
 /** Checkpoints (week numbers) for a program length. */
 export function getCheckpointsForWeeks(weeks: number): number[] {
   if (weeks <= 5) return [5];
-  return [5, 10];
+  if (weeks <= 10) return [5, 10];
+  return [5, 10, 15];
 }
 
 export function addWeeks(dateISO: string | null | undefined, weeks: number): string {
