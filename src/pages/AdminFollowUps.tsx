@@ -383,6 +383,7 @@ const AdminFollowUps = () => {
                   <SelectContent>
                     <SelectItem value="5">Week 5</SelectItem>
                     <SelectItem value="10">Week 10</SelectItem>
+                    <SelectItem value="15">Week 15</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
