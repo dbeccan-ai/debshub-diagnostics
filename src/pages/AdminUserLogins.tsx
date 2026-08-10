@@ -336,6 +336,33 @@ const AdminUserLogins = () => {
           </CardContent>
         </Card>
       </main>
+
+      <Dialog open={!!emailEditUser} onOpenChange={(o) => { if (!o) setEmailEditUser(null); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Change account email</DialogTitle>
+            <DialogDescription>
+              Updates the login/parent email for {emailEditUser?.full_name} and marks it verified — no confirmation email needed.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Input
+              type="email"
+              value={newEmail}
+              onChange={(e) => setNewEmail(e.target.value)}
+              placeholder="parent@example.com"
+            />
+            <p className="text-xs text-slate-500">Current: {emailEditUser?.parent_email || "—"}</p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEmailEditUser(null)}>Cancel</Button>
+            <Button onClick={saveNewEmail} disabled={savingEmail || !newEmail.trim()}>
+              {savingEmail ? "Saving..." : "Save & verify"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 };
