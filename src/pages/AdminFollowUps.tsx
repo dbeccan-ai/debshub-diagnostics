@@ -416,9 +416,13 @@ const AdminFollowUps = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="5">Week 5</SelectItem>
-                    <SelectItem value="10">Week 10</SelectItem>
-                    <SelectItem value="15">Week 15</SelectItem>
+                    {["5", "10", "15"].map((w) => (
+                      <SelectItem key={w} value={w} disabled={takenWeeks.has(w)}>
+                        Week {w}
+                        {takenWeeks.has(w) ? " (already scheduled)" : ""}
+                      </SelectItem>
+                    ))}
+
                   </SelectContent>
                 </Select>
               </div>
