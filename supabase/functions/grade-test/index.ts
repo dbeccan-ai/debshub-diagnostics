@@ -90,14 +90,25 @@ serve(async (req) => {
       );
     }
 
-    // Verify ownership
+    // Verify ownership (admins/teachers may submit on a student's behalf)
+    let isStaff = false;
     if (attempt.user_id !== user.id) {
-      console.error(`User ${user.id} tried to grade attempt owned by ${attempt.user_id}`);
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized access to test attempt' }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      const { data: staffRoles } = await supabaseAdmin
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .in('role', ['admin', 'teacher']);
+      isStaff = !!staffRoles && staffRoles.length > 0;
+
+      if (!isStaff) {
+        console.error(`User ${user.id} tried to grade attempt owned by ${attempt.user_id}`);
+        return new Response(
+          JSON.stringify({ error: 'Unauthorized access to test attempt' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     }
+
 
     // Check if already completed
     if (attempt.completed_at) {
