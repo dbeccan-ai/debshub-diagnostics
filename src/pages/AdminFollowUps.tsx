@@ -130,6 +130,17 @@ const AdminFollowUps = () => {
 
   const selectedAttempt = attempts.find((a) => a.id === selectedAttemptId) || null;
 
+  const takenWeeks = useMemo(
+    () =>
+      new Set(
+        rows
+          .filter((r) => r.source_attempt_id === selectedAttemptId && r.status !== "cancelled")
+          .map((r) => String(r.week_number))
+      ),
+    [rows, selectedAttemptId]
+  );
+
+
   useEffect(() => {
     if (selectedAttempt) {
       setUnlockDate(addWeeks(selectedAttempt.completed_at, Number(checkpointWeek) || 5));
@@ -156,12 +167,25 @@ const AdminFollowUps = () => {
     try {
       setSaving(true);
       const week = Number(checkpointWeek) || null;
+
+      // Teachers can only write rows scoped to their own school, so fall back to
+      // the student's school when the source attempt has none recorded.
+      let schoolId = selectedAttempt.school_id;
+      if (!schoolId) {
+        const { data: prof } = await supabase
+          .from("profiles")
+          .select("school_id")
+          .eq("id", selectedAttempt.user_id)
+          .maybeSingle();
+        schoolId = prof?.school_id ?? null;
+      }
+
       const { error } = await supabase.from("follow_up_assessments").insert({
         student_id: selectedAttempt.user_id,
         source_attempt_id: selectedAttempt.id,
         test_id: selectedAttempt.test_id,
         grade_level: selectedAttempt.grade_level,
-        school_id: selectedAttempt.school_id,
+        school_id: schoolId,
         checkpoint_label: week ? `Week ${week} Follow-Up` : "Follow-Up",
         week_number: week,
         unlock_date: unlockDate || addWeeks(selectedAttempt.completed_at, week || 5),
@@ -174,12 +198,23 @@ const AdminFollowUps = () => {
       setSelectedAttemptId("");
       await loadAll();
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Could not schedule follow-up.";
-      toast.error(message.includes("duplicate") ? "That checkpoint already exists for this test." : message);
+      console.error("follow-up schedule failed", err);
+      const e = err as { code?: string; message?: string; details?: string; hint?: string };
+      const raw = e?.message || "Could not schedule follow-up.";
+      let message = raw;
+      if (e?.code === "23505" || raw.includes("duplicate")) {
+        message = "That checkpoint already exists for this student's test.";
+      } else if (e?.code === "42501" || raw.toLowerCase().includes("row-level security")) {
+        message = "You don't have permission to schedule a follow-up for this student.";
+      } else if (e?.code === "23503") {
+        message = "That student or test record is no longer available.";
+      }
+      toast.error(message);
     } finally {
       setSaving(false);
     }
   };
+
 
   const unlockNow = async (row: Row) => {
     const { error } = await supabase
@@ -381,9 +416,13 @@ const AdminFollowUps = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="5">Week 5</SelectItem>
-                    <SelectItem value="10">Week 10</SelectItem>
-                    <SelectItem value="15">Week 15</SelectItem>
+                    {["5", "10", "15"].map((w) => (
+                      <SelectItem key={w} value={w} disabled={takenWeeks.has(w)}>
+                        Week {w}
+                        {takenWeeks.has(w) ? " (already scheduled)" : ""}
+                      </SelectItem>
+                    ))}
+
                   </SelectContent>
                 </Select>
               </div>
