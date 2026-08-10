@@ -40,23 +40,29 @@ serve(async (req) => {
       );
     }
 
-    // Create client with user's auth token to verify identity
-    const supabaseUser = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {
-      global: { headers: { Authorization: authHeader } }
-    });
-
     // Create admin client for database operations
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Get the authenticated user
-    const { data: { user }, error: authError } = await supabaseUser.auth.getUser();
-    if (authError || !user) {
-      console.error('Auth error:', authError);
+    // Validate the bearer token explicitly (works with both legacy and signing-key JWTs)
+    const token = authHeader.replace(/^Bearer\s+/i, '').trim();
+    const anonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
+    if (!token || token === anonKey) {
+      console.error('Missing user session token (anon key or empty token received)');
       return new Response(
-        JSON.stringify({ error: 'Invalid authentication' }),
+        JSON.stringify({ error: 'Your session expired. Please sign in again and resubmit — your answers are saved.' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
+    if (authError || !user) {
+      console.error('Auth error:', authError);
+      return new Response(
+        JSON.stringify({ error: 'Your session expired. Please sign in again and resubmit — your answers are saved.' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
 
     const { attemptId, answers } = await req.json();
     
@@ -84,14 +90,25 @@ serve(async (req) => {
       );
     }
 
-    // Verify ownership
+    // Verify ownership (admins/teachers may submit on a student's behalf)
+    let isStaff = false;
     if (attempt.user_id !== user.id) {
-      console.error(`User ${user.id} tried to grade attempt owned by ${attempt.user_id}`);
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized access to test attempt' }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      const { data: staffRoles } = await supabaseAdmin
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .in('role', ['admin', 'teacher']);
+      isStaff = !!staffRoles && staffRoles.length > 0;
+
+      if (!isStaff) {
+        console.error(`User ${user.id} tried to grade attempt owned by ${attempt.user_id}`);
+        return new Response(
+          JSON.stringify({ error: 'Unauthorized access to test attempt' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     }
+
 
     // Check if already completed
     if (attempt.completed_at) {
