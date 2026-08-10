@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+
 import { toast } from "sonner";
 import { ArrowLeft, Search, RefreshCw, Users, Shield, BookOpen, GraduationCap, PauseCircle, PlayCircle } from "lucide-react";
 
@@ -172,6 +174,32 @@ const AdminUserLogins = () => {
     toast.success(`${email} verified — they can sign in now.`);
   };
 
+  const [emailEditUser, setEmailEditUser] = useState<UserProfile | null>(null);
+  const [newEmail, setNewEmail] = useState("");
+  const [savingEmail, setSavingEmail] = useState(false);
+
+  const saveNewEmail = async () => {
+    if (!emailEditUser) return;
+    setSavingEmail(true);
+    const { data, error } = await supabase.functions.invoke("admin-change-user-email", {
+      body: { userId: emailEditUser.id, newEmail },
+    });
+    setSavingEmail(false);
+    const errMsg = (data as any)?.error || (error as any)?.message;
+    if (errMsg) {
+      console.error(error || data);
+      toast.error(errMsg === "Failed to send a request to the Edge Function" ? "Could not update the email." : errMsg);
+      return;
+    }
+    const saved = (data as any).email as string;
+    toast.success(`Email updated to ${saved} and verified.`);
+    setUsers(prev => prev.map(u => u.id === emailEditUser.id ? { ...u, parent_email: saved } : u));
+    setEmailEditUser(null);
+    setNewEmail("");
+  };
+
+
+
 
   if (loading) return <div className="flex min-h-screen items-center justify-center bg-slate-50"><p className="text-sm font-medium text-slate-600">Loading...</p></div>;
   if (isAdmin === false) return (
@@ -287,6 +315,16 @@ const AdminUserLogins = () => {
                             >
                               Verify email
                             </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 px-2 text-xs text-slate-600"
+                              onClick={() => { setEmailEditUser(u); setNewEmail(u.parent_email || ""); }}
+                              title="Correct the email address on this account"
+                            >
+                              Change email
+                            </Button>
+
                           </div>
                         </td>
 
@@ -300,6 +338,33 @@ const AdminUserLogins = () => {
           </CardContent>
         </Card>
       </main>
+
+      <Dialog open={!!emailEditUser} onOpenChange={(o) => { if (!o) setEmailEditUser(null); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Change account email</DialogTitle>
+            <DialogDescription>
+              Updates the login/parent email for {emailEditUser?.full_name} and marks it verified — no confirmation email needed.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Input
+              type="email"
+              value={newEmail}
+              onChange={(e) => setNewEmail(e.target.value)}
+              placeholder="parent@example.com"
+            />
+            <p className="text-xs text-slate-500">Current: {emailEditUser?.parent_email || "—"}</p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEmailEditUser(null)}>Cancel</Button>
+            <Button onClick={saveNewEmail} disabled={savingEmail || !newEmail.trim()}>
+              {savingEmail ? "Saving..." : "Save & verify"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 };
