@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 
 import { toast } from "sonner";
-import { ArrowLeft, Search, RefreshCw, Users, Shield, BookOpen, GraduationCap, PauseCircle, PlayCircle } from "lucide-react";
+import { ArrowLeft, Search, RefreshCw, Users, Shield, BookOpen, GraduationCap, PauseCircle, PlayCircle, CheckCircle2, Pencil } from "lucide-react";
 
 interface UserProfile {
   id: string;
