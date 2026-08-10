@@ -130,6 +130,17 @@ const AdminFollowUps = () => {
 
   const selectedAttempt = attempts.find((a) => a.id === selectedAttemptId) || null;
 
+  const takenWeeks = useMemo(
+    () =>
+      new Set(
+        rows
+          .filter((r) => r.source_attempt_id === selectedAttemptId && r.status !== "cancelled")
+          .map((r) => String(r.week_number))
+      ),
+    [rows, selectedAttemptId]
+  );
+
+
   useEffect(() => {
     if (selectedAttempt) {
       setUnlockDate(addWeeks(selectedAttempt.completed_at, Number(checkpointWeek) || 5));
