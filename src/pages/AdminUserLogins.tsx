@@ -313,6 +313,16 @@ const AdminUserLogins = () => {
                             >
                               Verify email
                             </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 px-2 text-xs text-slate-600"
+                              onClick={() => { setEmailEditUser(u); setNewEmail(u.parent_email || ""); }}
+                              title="Correct the email address on this account"
+                            >
+                              Change email
+                            </Button>
+
                           </div>
                         </td>
 
