@@ -480,17 +480,42 @@ const TakeTest = () => {
     try {
       toast.loading("Submitting and grading test...");
 
-      // Submit answers to secure edge function for server-side grading
-      const { data: gradeResult, error: gradeError } = await supabase.functions.invoke(
-        "grade-test",
-        { body: { attemptId, answers } }
-      );
+      // Make sure we still have a valid session token before submitting
+      const ensureSession = async () => {
+        const { data } = await supabase.auth.getSession();
+        if (data.session) return data.session.access_token;
+        const { data: refreshed } = await supabase.auth.refreshSession();
+        return refreshed.session?.access_token ?? null;
+      };
+
+      const callGrade = async (accessToken: string | null) =>
+        supabase.functions.invoke("grade-test", {
+          body: { attemptId, answers },
+          headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+        });
+
+      let token = await ensureSession();
+      let { data: gradeResult, error: gradeError } = await callGrade(token);
+
+      // One retry with a forced token refresh if the session was stale
+      const looksAuthy = (msg?: string) =>
+        !!msg && /session|auth|jwt|401/i.test(msg);
+      if (
+        looksAuthy(gradeResult?.error) ||
+        looksAuthy(gradeError?.message) ||
+        (gradeError && !gradeResult)
+      ) {
+        const { data: refreshed } = await supabase.auth.refreshSession();
+        token = refreshed.session?.access_token ?? token;
+        ({ data: gradeResult, error: gradeError } = await callGrade(token));
+      }
 
       if (gradeError || gradeResult?.error) {
         const errorMsg = gradeResult?.error || gradeError?.message || "Failed to grade test";
         console.error("Grade error:", errorMsg);
         throw new Error(errorMsg);
       }
+
 
       console.log("Grade result:", gradeResult);
 
