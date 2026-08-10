@@ -560,9 +560,12 @@ const TakeTest = () => {
       navigate("/dashboard");
     } catch (error: any) {
       toast.dismiss();
-      toast.error("Failed to submit test");
+      toast.error(error?.message || "Failed to submit test", {
+        description: "Your answers are saved — you can resume and submit again.",
+      });
       console.error("Submit error:", error);
     }
+
   };
 
   const formatTime = (seconds: number) => {
