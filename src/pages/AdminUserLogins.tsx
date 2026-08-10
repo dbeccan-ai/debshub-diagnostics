@@ -172,6 +172,32 @@ const AdminUserLogins = () => {
     toast.success(`${email} verified — they can sign in now.`);
   };
 
+  const [emailEditUser, setEmailEditUser] = useState<UserProfile | null>(null);
+  const [newEmail, setNewEmail] = useState("");
+  const [savingEmail, setSavingEmail] = useState(false);
+
+  const saveNewEmail = async () => {
+    if (!emailEditUser) return;
+    setSavingEmail(true);
+    const { data, error } = await supabase.functions.invoke("admin-change-user-email", {
+      body: { userId: emailEditUser.id, newEmail },
+    });
+    setSavingEmail(false);
+    const errMsg = (data as any)?.error || (error as any)?.message;
+    if (errMsg) {
+      console.error(error || data);
+      toast.error(errMsg === "Failed to send a request to the Edge Function" ? "Could not update the email." : errMsg);
+      return;
+    }
+    const saved = (data as any).email as string;
+    toast.success(`Email updated to ${saved} and verified.`);
+    setUsers(prev => prev.map(u => u.id === emailEditUser.id ? { ...u, parent_email: saved } : u));
+    setEmailEditUser(null);
+    setNewEmail("");
+  };
+
+
+
 
   if (loading) return <div className="flex min-h-screen items-center justify-center bg-slate-50"><p className="text-sm font-medium text-slate-600">Loading...</p></div>;
   if (isAdmin === false) return (
