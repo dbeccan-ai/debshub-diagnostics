@@ -281,6 +281,7 @@ const AdminUserLogins = () => {
                       <th className="pb-3 text-left font-medium text-slate-600">Reading Assessments</th>
                       <th className="pb-3 text-left font-medium text-slate-600">Status</th>
                       <th className="pb-3 text-left font-medium text-slate-600">Joined</th>
+                      <th className="pb-3 text-left font-medium text-slate-600">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -306,31 +307,35 @@ const AdminUserLogins = () => {
                             >
                               {u.account_status === "paused" ? <PlayCircle className="h-4 w-4 text-emerald-600" /> : <PauseCircle className="h-4 w-4 text-red-500" />}
                             </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-7 px-2 text-xs text-indigo-600"
-                              onClick={() => confirmEmail(u.parent_email)}
-                              title="Mark this account's email as verified so the student can sign in"
-                            >
-                              Verify email
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-7 px-2 text-xs text-slate-600"
-                              onClick={() => { setEmailEditUser(u); setNewEmail(u.parent_email || ""); }}
-                              title="Correct the email address on this account"
-                            >
-                              Change email
-                            </Button>
-
                           </div>
                         </td>
 
                         <td className="py-3 text-slate-600">{formatDate(u.created_at)}</td>
+                        <td className="py-3">
+                          <div className="flex items-center gap-2 whitespace-nowrap">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 gap-1 px-2 text-xs"
+                              onClick={() => confirmEmail(u.parent_email)}
+                              title="Mark this account's email as verified so the student can sign in"
+                            >
+                              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> Verify email
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 gap-1 px-2 text-xs"
+                              onClick={() => { setEmailEditUser(u); setNewEmail(u.parent_email || ""); }}
+                              title="Correct the email address on this account"
+                            >
+                              <Pencil className="h-3.5 w-3.5 text-indigo-600" /> Change email
+                            </Button>
+                          </div>
+                        </td>
                       </tr>
                     ))}
+
                   </tbody>
                 </table>
               </div>
