@@ -7,6 +7,7 @@ interface SEOProps {
   description: string;
   path: string;
   jsonLd?: Record<string, unknown> | Record<string, unknown>[];
+  noIndex?: boolean;
 }
 
 /**
@@ -14,7 +15,7 @@ interface SEOProps {
  * self-referencing og:url/og:title/og:description so social crawlers and
  * search engines see route-specific tags instead of the sitewide fallback.
  */
-export function SEO({ title, description, path, jsonLd }: SEOProps) {
+export function SEO({ title, description, path, jsonLd, noIndex }: SEOProps) {
   const url = `${BASE_URL}${path}`;
   const trimmedTitle = title.length > 60 ? title.slice(0, 57).trimEnd() + "…" : title;
   const trimmedDesc =
@@ -25,6 +26,7 @@ export function SEO({ title, description, path, jsonLd }: SEOProps) {
       <title>{trimmedTitle}</title>
       <meta name="description" content={trimmedDesc} />
       <link rel="canonical" href={url} />
+      {noIndex && <meta name="robots" content="noindex, nofollow" />}
       <meta property="og:title" content={trimmedTitle} />
       <meta property="og:description" content={trimmedDesc} />
       <meta property="og:url" content={url} />
