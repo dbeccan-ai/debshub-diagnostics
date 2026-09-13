@@ -18,6 +18,7 @@ import { MATH } from "./bank-math.ts";
 import { MATH_V2_BANK } from "./bank-math-v2.ts";
 import { PAPER_FOLDING_V2 } from "./bank-paper-folding-v2.ts";
 import { FIGURE_MATRICES, PAPER_FOLDING, FIGURE_CLASSIFICATION } from "./bank-figures.ts";
+import { FIGURE_MATRICES_V2, FIGURE_CLASSIFICATION_V2 } from "./bank-figures-v2.ts";
 
 const KEYS = ["A", "B", "C", "D"] as const;
 // Deterministic, non-repeating key pattern (period 8) so no section has long runs or a lopsided key distribution.
@@ -53,9 +54,9 @@ export const BANK_V2: BankQuestion[] = [
   ...carry(balanceKeys(READING)),
   ...carry(balanceKeys(WRITTEN)),
   ...balanceKeys(MATH_V2_BANK),
-  ...carry(FIGURE_MATRICES),
+  ...FIGURE_MATRICES_V2,
   ...PAPER_FOLDING_V2,
-  ...carry(FIGURE_CLASSIFICATION),
+  ...FIGURE_CLASSIFICATION_V2,
 ];
 
 export const ACTIVE_BLUEPRINT: Blueprint = BLUEPRINT_V2;
@@ -73,4 +74,4 @@ export const STRAND_BY_CODE: Record<string, string> = Object.fromEntries(
 );
 
 export const TACHS_BANK = SAMPLE_BANK;
-export { READING, WRITTEN, MATH, MATH_V2_BANK, PAPER_FOLDING_V2, FIGURE_MATRICES, PAPER_FOLDING, FIGURE_CLASSIFICATION };
+export { READING, WRITTEN, MATH, MATH_V2_BANK, PAPER_FOLDING_V2, FIGURE_MATRICES_V2, FIGURE_CLASSIFICATION_V2, FIGURE_MATRICES, PAPER_FOLDING, FIGURE_CLASSIFICATION };

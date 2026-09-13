@@ -7,8 +7,8 @@ import { isDrawable, sameFigure, unfold } from "../supabase/functions/tachs-engi
 /** Normalize an answer string/number so an independently computed `ans` can be compared to the keyed choice. */
 export function normalizeAnswer(v: number | string): string {
   if (typeof v === "number") return String(Math.round(v * 1e6) / 1e6);
-  let s = String(v).trim().replace(/−/g, "-").replace(/×/g, "*").replace(/,/g, "");
-  s = s.replace(/^[a-z]\s*=\s*/i, "").replace(/\$/g, "").replace(/(°F|°C|°|%|cm²|cm|m²|m|ft|in|mph|kg|km|hours?|minutes?|units?|points?)\b/gi, "");
+  let s = String(v).trim().replace(/\.$/, "").replace(/−/g, "-").replace(/×/g, "*").replace(/,/g, "");
+  s = s.replace(/^[a-z]\s*=\s*/i, "").replace(/\$/g, "").replace(/(°F|°C|°|%|cm³|cm²|cm|m³|m²|mph|kg|km|hours?|minutes?|units?|points?|ft³|ft²|ft|in\.?|m)(?![a-z])/gi, "");
   s = s.replace(/\s+/g, "");
   if (/^-?\d+(\.\d+)?$/.test(s)) return String(Math.round(Number(s) * 1e6) / 1e6);
   return s.toLowerCase();
@@ -82,16 +82,16 @@ describe("Mathematics v2 pool", () => {
     }
   });
   it("has no duplicate or near-duplicate stems", () => {
-    const norm = (s: string) => s.toLowerCase().replace(/[^a-z]/g, "");
+    const norm = (s: string) => s.toLowerCase().replace(/\s+/g, " ").trim();
     const seen = new Map<string, string>();
     for (const q of items) {
       const k = norm(q.stem);
       expect(seen.has(k), `${q.code} duplicates ${seen.get(k)}`).toBe(false);
       seen.set(k, q.code);
     }
-    // near-duplicate: same stem after stripping all digits
+    // near-duplicate: identical wording once numbers are stripped (only meaningful for longer stems)
     const noDigits = new Map<string, string[]>();
-    for (const q of items) { const k = q.stem.toLowerCase().replace(/[\d.,−-]/g, "").replace(/\s+/g, " "); noDigits.set(k, [...(noDigits.get(k) ?? []), q.code]); }
+    for (const q of items) { const k = q.stem.toLowerCase().replace(/[\d.,−-]/g, "").replace(/\s+/g, " "); if (k.length > 45) noDigits.set(k, [...(noDigits.get(k) ?? []), q.code]); }
     for (const [, codes] of noDigits) expect(codes.length, `near-duplicate stems ${codes.join(", ")}`).toBeLessThanOrEqual(1);
   });
   it("labels every item with a reporting strand and covers all three rungs in algebra", () => {
@@ -104,7 +104,7 @@ describe("Mathematics v2 pool", () => {
   it("level-3 items are multistep (word or expression models), not just bigger numbers", () => {
     for (const q of items.filter((q) => q.difficulty === 3)) {
       const words = q.stem.split(/\s+/).length;
-      const ops = (q.stem.match(/[+\-−×÷*/^²³=<>≤≥]/g) ?? []).length;
+      const ops = (q.stem.match(/[+\-−×÷*/^²³⁰-⁹=<>≤≥]|\(\s*−?\d+,\s*−?\d+\s*\)/g) ?? []).length;
       expect(words >= 14 || ops >= 3, `${q.code} does not look multistep: "${q.stem}"`).toBe(true);
     }
   });

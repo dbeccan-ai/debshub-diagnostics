@@ -31,3 +31,17 @@
 - [x] /admin/tachs payment column, order table, detail payment block, Grant TACHS access dialog
 - [x] tests/tachs-entitlement.test.ts (14 tests); full suite 39 passing; typecheck clean
 - [ ] Publish — awaiting owner verification (do not publish yet)
+
+## TACHS Pilot v2 — full six-section rebuild (requested 2026-09-13)
+- [x] Phase 1: finish math/paper-folding v2 test run, fix all failures
+- [ ] Ability sections → 5 choices (A–E): bank types, renderer/UI, keyboard nav, validation, results/review, tests
+- [ ] Reading v2 pool ≥75 (original passages, ≥10–12 vocab-in-context administered)
+- [ ] Written Expression v2 pool ≥75 (passage editing + standalone conventions)
+- [ ] Figure Matrices v2 pool ≥36 (rule-model generated, 5 choices)
+- [ ] Figure Classification v2 pool ≥30 (rule-spec generated, 5 choices)
+- [ ] Paper Folding v2 → 5 choices, revalidate
+- [ ] Representative TEST MODE (every major skill incl. vocabulary)
+- [ ] Admin “TACHS Content Audit” page linked from /admin/tachs
+- [ ] Scoring evidence: accuracy/items by difficulty, ceiling, skill min-sample warnings, vocab row, conventions breakdown, ability subskills
+- [ ] Validators/tests for all of the above; typecheck + production build
+- [ ] Old-vs-v2 audit table; NO seed/deploy/publish (preview only)

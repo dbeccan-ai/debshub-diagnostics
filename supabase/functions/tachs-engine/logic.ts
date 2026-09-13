@@ -193,3 +193,103 @@ export function maskEmail(email: string | null | undefined): string | null {
   if (at <= 0) return null;
   return `${pe[0]}${"•".repeat(Math.max(2, at - 2))}${at > 1 ? pe[at - 1] : ""}@${pe.slice(at + 1)}`;
 }
+
+// ---------- representative TEST MODE ----------
+/**
+ * Admin TEST MODE administers a short but REPRESENTATIVE section: at least one item per skill quota
+ * (so vocabulary, conventions, overlay rules etc. all appear), capped by the active pool. Returns
+ * the per-skill quotas and the resulting item count. Skills with a larger administered quota get a
+ * second item when `perSkillCap` allows it, keeping proportions roughly intact.
+ */
+export function testModeQuotas(section: { skill_quotas: Record<string, number>; item_count: number }, available: number, perSkillCap = 1): { quotas: Record<string, number>; item_count: number } {
+  const quotas: Record<string, number> = {};
+  for (const [skill, q] of Object.entries(section.skill_quotas)) if (q > 0) quotas[skill] = Math.min(perSkillCap, q);
+  let total = Object.values(quotas).reduce((a, b) => a + b, 0);
+  total = Math.max(1, Math.min(total, section.item_count, available));
+  return { quotas, item_count: total };
+}
+
+// ---------- transparent scoring evidence ----------
+export interface EvidenceRow { section_key: string; skill: string; difficulty: number; is_correct: boolean | null; position?: number }
+export const MIN_SKILL_SAMPLE = 3;
+
+const pct = (c: number, n: number) => (n ? Math.round((c / n) * 100) : 0);
+
+/** Accuracy and item counts by difficulty level (1–3) for one section or the whole attempt. */
+export function accuracyByDifficulty(rows: EvidenceRow[]): { level: number; presented: number; correct: number; accuracy: number }[] {
+  return [1, 2, 3].map((level) => {
+    const r = rows.filter((x) => x.difficulty === level);
+    const correct = r.filter((x) => x.is_correct === true).length;
+    return { level, presented: r.length, correct, accuracy: pct(correct, r.length) };
+  });
+}
+
+/**
+ * Sustained-difficulty ceiling: the highest level at which the student answered at least 3 items with
+ * ≥ 60% accuracy. Returns null when no level meets the sample threshold. Not a scaled score.
+ */
+export function sustainedCeiling(rows: EvidenceRow[]): { level: number | null; basis: string } {
+  const byLevel = accuracyByDifficulty(rows);
+  let ceiling: number | null = null;
+  for (const l of byLevel) if (l.presented >= MIN_SKILL_SAMPLE && l.accuracy >= 60) ceiling = l.level;
+  const basis = ceiling
+    ? `Level ${ceiling}: ${byLevel[ceiling - 1].correct}/${byLevel[ceiling - 1].presented} correct (≥ 60% on at least ${MIN_SKILL_SAMPLE} items).`
+    : `No difficulty level reached ≥ 60% on at least ${MIN_SKILL_SAMPLE} items.`;
+  return { level: ceiling, basis };
+}
+
+/** Per-skill accuracy with an explicit low-sample warning so small counts are never over-read. */
+export function skillEvidence(rows: EvidenceRow[]): { section_key: string; skill: string; presented: number; correct: number; accuracy: number; low_sample: boolean }[] {
+  const map = new Map<string, { section_key: string; skill: string; presented: number; correct: number }>();
+  for (const r of rows) {
+    const k = `${r.section_key}|${r.skill}`;
+    const e = map.get(k) ?? { section_key: r.section_key, skill: r.skill, presented: 0, correct: 0 };
+    e.presented++; if (r.is_correct === true) e.correct++;
+    map.set(k, e);
+  }
+  return [...map.values()].map((e) => ({ ...e, accuracy: pct(e.correct, e.presented), low_sample: e.presented < MIN_SKILL_SAMPLE }))
+    .sort((a, b) => a.section_key.localeCompare(b.section_key) || a.skill.localeCompare(b.skill));
+}
+
+/** Named sub-scores reported alongside raw accuracy (all derived from the same responses). */
+export const EVIDENCE_GROUPS: { key: string; label: string; section_key: string; skills: string[] }[] = [
+  { key: "reading_vocabulary", label: "Reading — vocabulary in context", section_key: "reading", skills: ["vocabulary_in_context"] },
+  { key: "reading_comprehension", label: "Reading — comprehension & inference", section_key: "reading", skills: ["main_idea", "inference", "detail_evidence", "text_structure"] },
+  { key: "reading_rhetoric", label: "Reading — purpose, tone & rhetoric", section_key: "reading", skills: ["author_purpose_tone", "rhetorical_analysis"] },
+  { key: "written_conventions", label: "Written Expression — conventions (capitalization, punctuation, spelling)", section_key: "written_expression", skills: ["capitalization", "punctuation", "spelling", "punctuation_capitalization"] },
+  { key: "written_usage", label: "Written Expression — usage & agreement", section_key: "written_expression", skills: ["word_usage", "agreement", "grammar_usage"] },
+  { key: "written_structure", label: "Written Expression — sentence structure & modifiers", section_key: "written_expression", skills: ["sentence_structure", "parallelism_modifiers"] },
+  { key: "written_revision", label: "Written Expression — organization & revision", section_key: "written_expression", skills: ["organization_revision", "organization"] },
+  { key: "ability_transformation", label: "Ability — rotation, reflection & folding", section_key: "*", skills: ["rotation_reflection", "orientation_symmetry", "single_fold", "two_fold_reflection", "three_fold_sequence", "diagonal_reflection", "asymmetric_fold", "rotation", "single_fold", "double_fold"] },
+  { key: "ability_composition", label: "Ability — overlay, count & multiple punches", section_key: "*", skills: ["overlay_composition", "progression_count", "multiple_punches", "edge_notch", "count_shading", "count", "count_attribute"] },
+  { key: "ability_integration", label: "Ability — multi-attribute rule integration", section_key: "*", skills: ["two_rule_integration", "alternating_pattern", "shading_size_change", "shape_attribute_combo", "internal_structure", "size_position_partwhole", "shading", "size_change", "shape_attribute", "shading_attribute"] },
+];
+
+export function groupEvidence(rows: EvidenceRow[]): { key: string; label: string; presented: number; correct: number; accuracy: number; low_sample: boolean }[] {
+  return EVIDENCE_GROUPS.map((g) => {
+    const r = rows.filter((x) => (g.section_key === "*" || x.section_key === g.section_key) && g.skills.includes(x.skill));
+    const correct = r.filter((x) => x.is_correct === true).length;
+    return { key: g.key, label: g.label, presented: r.length, correct, accuracy: pct(correct, r.length), low_sample: r.length < MIN_SKILL_SAMPLE };
+  }).filter((g) => g.presented > 0);
+}
+
+export interface Evidence {
+  by_difficulty: ReturnType<typeof accuracyByDifficulty>;
+  sections: { section_key: string; by_difficulty: ReturnType<typeof accuracyByDifficulty>; ceiling: ReturnType<typeof sustainedCeiling> }[];
+  skills: ReturnType<typeof skillEvidence>;
+  groups: ReturnType<typeof groupEvidence>;
+  min_sample: number;
+  note: string;
+}
+
+export function buildEvidence(rows: EvidenceRow[]): Evidence {
+  const sectionKeys = [...new Set(rows.map((r) => r.section_key))];
+  return {
+    by_difficulty: accuracyByDifficulty(rows),
+    sections: sectionKeys.map((k) => { const r = rows.filter((x) => x.section_key === k); return { section_key: k, by_difficulty: accuracyByDifficulty(r), ceiling: sustainedCeiling(r) }; }),
+    skills: skillEvidence(rows),
+    groups: groupEvidence(rows),
+    min_sample: MIN_SKILL_SAMPLE,
+    note: "All figures are raw counts from this D.E.Bs readiness diagnostic. They are not official TACHS scaled scores, percentiles or admissions predictions, and have not been psychometrically validated.",
+  };
+}

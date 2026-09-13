@@ -14,7 +14,8 @@ const Q_BR = D([50, 100], [100, 50], [100, 100], "the folded quarter sheet is fo
 // Diagonal of a half sheet (after one horizontal fold)
 const HALF_D = D([0, 0], [50, 50], [100, 0], "the left corner of the folded strip is folded over along a diagonal from the top-left corner to the middle of the strip's lower edge");
 
-const idx = [0, 2, 1, 3, 3, 0, 2, 1, 1, 3, 0, 2, 2, 1, 3, 0, 0, 3, 1, 2, 3, 2, 0, 1, 1, 0, 2, 3, 2, 3, 1, 0];
+// Correct-answer positions 0..4 (A–E), balanced and non-patterned.
+const idx = [0, 2, 4, 1, 3, 3, 0, 4, 2, 1, 1, 4, 3, 0, 2, 2, 3, 1, 4, 0, 4, 2, 0, 3, 1, 1, 0, 4, 2, 3, 3, 4];
 const spec = (i: number, s: Omit<FoldItemSpec, "correctIndex">): FoldItemSpec => ({ ...s, correctIndex: idx[i] });
 
 export const PAPER_FOLDING_V2_SPECS: FoldItemSpec[] = [
@@ -38,7 +39,7 @@ export const PAPER_FOLDING_V2_SPECS: FoldItemSpec[] = [
   spec(14, { code: "PF2-15", difficulty: 3, skill: "three_fold_sequence", folds: [H(50, "bottom"), V(50, "right"), H(75, "bottom")], holes: [[80, 90]] }),
   spec(15, { code: "PF2-16", difficulty: 3, skill: "three_fold_sequence", folds: [V(50, "left"), H(50, "top"), V(25, "left")], holes: [[8, 42], [17, 14]] }),
   // ----- diagonal_reflection (5) -----
-  spec(16, { code: "PF2-17", difficulty: 2, skill: "diagonal_reflection", folds: [MAIN_UP], holes: [[70, 30]] }),
+  spec(16, { code: "PF2-17", difficulty: 2, skill: "diagonal_reflection", folds: [MAIN_UP], holes: [[70, 20]] }),
   spec(17, { code: "PF2-18", difficulty: 2, skill: "diagonal_reflection", folds: [ANTI_UP], holes: [[25, 40]] }),
   spec(18, { code: "PF2-19", difficulty: 2, skill: "diagonal_reflection", folds: [MAIN_DOWN], holes: [[30, 75]] }),
   spec(19, { code: "PF2-20", difficulty: 3, skill: "diagonal_reflection", folds: [MAIN_UP, V(50, "right")], holes: [[70, 20]] }),
