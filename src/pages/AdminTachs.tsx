@@ -7,7 +7,7 @@ import {
 } from "@/lib/tachs";
 import { PROGRAM_KEYS, TACHS_PROGRAMS, TACHS_TIERS, usd, usd2, pricingBreakdown, type TachsProgramKey } from "@/lib/tachsPrograms";
 import { defaultHomeSupportPlan, sectionScores } from "@/lib/tachsParentReport";
-import { TachsHomeSupportPlan } from "@/components/TachsHomeSupportPlan";
+import { TachsHomeSupportPlan as HomeSupportPlanView } from "@/components/TachsHomeSupportPlan";
 import { PINNED_ATTEMPTS, MODE_LABEL, countsByMode, filterByMode, type AttemptMode } from "@/lib/tachsAdminHelpers";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";

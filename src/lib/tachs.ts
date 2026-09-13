@@ -335,7 +335,7 @@ export const tachsAdminDirect = {
       // Older engine: derive the parent preview + editor defaults locally from the same shared pure module.
       parent_report_content: ((a as Record<string, unknown>).parent_report_content as TachsParentReportContent | null) ?? null,
       parent_report_defaults: a.results ? (defaultParentReportContent(a.results as Record<string, unknown>) as TachsParentReportContent) : null,
-      parent_preview: a.results ? (parentReportView(a.results as Record<string, unknown>, ((a as Record<string, unknown>).parent_report_content as TachsParentReportContent | null) ?? null, a.completed_at) as unknown as TachsParentReport) : null,
+      parent_preview: a.results ? (parentReportView(a.results as Record<string, unknown>, ((a as Record<string, unknown>).parent_report_content as Parameters<typeof parentReportView>[1]) ?? null, a.completed_at) as unknown as TachsParentReport) : null,
       source: "direct",
     };
   },
@@ -369,7 +369,7 @@ export async function loadAdminDetail(id: string): Promise<TachsAdminDetail> {
       ...d, source: "engine",
       parent_report_content: storedContent,
       parent_report_defaults: (d.parent_report_defaults?.home_support_plan ? d.parent_report_defaults : null) ?? (results ? (defaultParentReportContent(results) as TachsParentReportContent) : null),
-      parent_preview: stale ? (results ? (parentReportView(results, storedContent, d.attempt.completed_at) as unknown as TachsParentReport) : null) : d.parent_preview,
+      parent_preview: stale ? (results ? (parentReportView(results, storedContent as unknown as Parameters<typeof parentReportView>[1], d.attempt.completed_at) as unknown as TachsParentReport) : null) : d.parent_preview,
     };
   } catch (e) {
     // 404/500 from an older engine build: read the immutable snapshot directly.
