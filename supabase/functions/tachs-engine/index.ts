@@ -4,6 +4,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { ACTIVE_BANK, ACTIVE_BLUEPRINT, STRAND_BY_CODE, type BankQuestion, type BlueprintSection } from "./sample-bank.ts";
 import { advanceAdaptive, bandFor, buildEvidence, DISCLAIMER, maskEmail, mathReadiness, needsGrading, sectionsShortOfTarget, selectNextQuestion, testModeQuotas } from "./logic.ts";
+import { auditItems, buildContentAudit } from "./content-audit.ts";
 import { attemptIsEntitled, pendingOrder, tachsQuote, unconsumedEntitlement, TACHS_EXAM_TYPE } from "../_shared/tachs-payment.ts";
 
 const PAYMENT_REQUIRED_MSG = "Payment is required before starting the TACHS Readiness Diagnostic ($175 + processing fee).";
@@ -392,6 +393,13 @@ serve(async (req) => {
 
     const attemptId = String(body.attemptId ?? "");
     if (!attemptId) return json({ error: "attemptId required" }, 400);
+
+    if (action === "admin_content_audit") {
+      // Admin-only bank audit with answer keys and rationales; never reachable by students.
+      if (!admin) return json({ error: "Forbidden" }, 403);
+      const version = Number(body.version ?? ACTIVE_BLUEPRINT.version);
+      return json({ audit: buildContentAudit(), items: auditItems(version), version });
+    }
 
     if (action === "admin_list") {
       if (!admin) return json({ error: "Forbidden" }, 403);

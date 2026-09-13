@@ -1,0 +1,1116 @@
+{
+ "generated_at": "2026-09-13T16:39:29.468Z",
+ "versions": [
+  {
+   "version": 1,
+   "name": "D.E.Bs TACHS Readiness Diagnostic — Pilot v1",
+   "frozen": true,
+   "pool": 200,
+   "administered": 200,
+   "sections": [
+    {
+     "key": "reading",
+     "name": "Reading",
+     "administered": 50,
+     "pool": 50,
+     "pool_minimum": 50,
+     "choices": 4,
+     "time_minutes": 30,
+     "skills": [
+      {
+       "skill": "main_idea",
+       "quota": 12,
+       "pool": 12,
+       "ok": true
+      },
+      {
+       "skill": "inference",
+       "quota": 14,
+       "pool": 14,
+       "ok": true
+      },
+      {
+       "skill": "vocabulary_in_context",
+       "quota": 12,
+       "pool": 12,
+       "ok": true
+      },
+      {
+       "skill": "text_structure",
+       "quota": 12,
+       "pool": 12,
+       "ok": true
+      }
+     ],
+     "difficulty": [
+      {
+       "level": 1,
+       "count": 3,
+       "share": 0.06,
+       "target": null,
+       "ok": true
+      },
+      {
+       "level": 2,
+       "count": 29,
+       "share": 0.58,
+       "target": null,
+       "ok": true
+      },
+      {
+       "level": 3,
+       "count": 18,
+       "share": 0.36,
+       "target": null,
+       "ok": true
+      }
+     ],
+     "keys": {
+      "B": 13,
+      "D": 13,
+      "A": 12,
+      "C": 12
+     },
+     "test_mode": {
+      "item_count": 4,
+      "skills": [
+       "main_idea",
+       "inference",
+       "vocabulary_in_context",
+       "text_structure"
+      ]
+     },
+     "warnings": []
+    },
+    {
+     "key": "written_expression",
+     "name": "Written Expression",
+     "administered": 50,
+     "pool": 50,
+     "pool_minimum": 50,
+     "choices": 4,
+     "time_minutes": 25,
+     "skills": [
+      {
+       "skill": "grammar_usage",
+       "quota": 14,
+       "pool": 14,
+       "ok": true
+      },
+      {
+       "skill": "punctuation_capitalization",
+       "quota": 12,
+       "pool": 12,
+       "ok": true
+      },
+      {
+       "skill": "sentence_structure",
+       "quota": 12,
+       "pool": 12,
+       "ok": true
+      },
+      {
+       "skill": "organization",
+       "quota": 12,
+       "pool": 12,
+       "ok": true
+      }
+     ],
+     "difficulty": [
+      {
+       "level": 1,
+       "count": 10,
+       "share": 0.2,
+       "target": null,
+       "ok": true
+      },
+      {
+       "level": 2,
+       "count": 25,
+       "share": 0.5,
+       "target": null,
+       "ok": true
+      },
+      {
+       "level": 3,
+       "count": 15,
+       "share": 0.3,
+       "target": null,
+       "ok": true
+      }
+     ],
+     "keys": {
+      "B": 13,
+      "D": 13,
+      "A": 12,
+      "C": 12
+     },
+     "test_mode": {
+      "item_count": 4,
+      "skills": [
+       "grammar_usage",
+       "punctuation_capitalization",
+       "sentence_structure",
+       "organization"
+      ]
+     },
+     "warnings": []
+    },
+    {
+     "key": "mathematics",
+     "name": "Mathematics",
+     "administered": 50,
+     "pool": 50,
+     "pool_minimum": 50,
+     "choices": 4,
+     "time_minutes": 40,
+     "skills": [
+      {
+       "skill": "number_operations",
+       "quota": 12,
+       "pool": 12,
+       "ok": true
+      },
+      {
+       "skill": "fractions_decimals_percent",
+       "quota": 10,
+       "pool": 10,
+       "ok": true
+      },
+      {
+       "skill": "algebra_patterns",
+       "quota": 10,
+       "pool": 10,
+       "ok": true
+      },
+      {
+       "skill": "geometry_measurement",
+       "quota": 10,
+       "pool": 10,
+       "ok": true
+      },
+      {
+       "skill": "data_probability",
+       "quota": 8,
+       "pool": 8,
+       "ok": true
+      }
+     ],
+     "difficulty": [
+      {
+       "level": 1,
+       "count": 15,
+       "share": 0.3,
+       "target": null,
+       "ok": true
+      },
+      {
+       "level": 2,
+       "count": 23,
+       "share": 0.46,
+       "target": null,
+       "ok": true
+      },
+      {
+       "level": 3,
+       "count": 12,
+       "share": 0.24,
+       "target": null,
+       "ok": true
+      }
+     ],
+     "keys": {
+      "B": 13,
+      "D": 13,
+      "A": 12,
+      "C": 12
+     },
+     "test_mode": {
+      "item_count": 5,
+      "skills": [
+       "number_operations",
+       "fractions_decimals_percent",
+       "algebra_patterns",
+       "geometry_measurement",
+       "data_probability"
+      ]
+     },
+     "warnings": []
+    },
+    {
+     "key": "figure_matrices",
+     "name": "Figure Matrices",
+     "administered": 20,
+     "pool": 20,
+     "pool_minimum": 20,
+     "choices": 4,
+     "time_minutes": 12,
+     "skills": [
+      {
+       "skill": "rotation",
+       "quota": 5,
+       "pool": 5,
+       "ok": true
+      },
+      {
+       "skill": "shading",
+       "quota": 5,
+       "pool": 5,
+       "ok": true
+      },
+      {
+       "skill": "count",
+       "quota": 5,
+       "pool": 5,
+       "ok": true
+      },
+      {
+       "skill": "size_change",
+       "quota": 5,
+       "pool": 5,
+       "ok": true
+      }
+     ],
+     "difficulty": [
+      {
+       "level": 1,
+       "count": 4,
+       "share": 0.2,
+       "target": null,
+       "ok": true
+      },
+      {
+       "level": 2,
+       "count": 8,
+       "share": 0.4,
+       "target": null,
+       "ok": true
+      },
+      {
+       "level": 3,
+       "count": 8,
+       "share": 0.4,
+       "target": null,
+       "ok": true
+      }
+     ],
+     "keys": {
+      "B": 6,
+      "C": 6,
+      "A": 4,
+      "D": 4
+     },
+     "test_mode": {
+      "item_count": 4,
+      "skills": [
+       "rotation",
+       "shading",
+       "count",
+       "size_change"
+      ]
+     },
+     "warnings": []
+    },
+    {
+     "key": "paper_folding",
+     "name": "Paper Folding",
+     "administered": 15,
+     "pool": 15,
+     "pool_minimum": 15,
+     "choices": 4,
+     "time_minutes": 12,
+     "skills": [
+      {
+       "skill": "single_fold",
+       "quota": 8,
+       "pool": 8,
+       "ok": true
+      },
+      {
+       "skill": "double_fold",
+       "quota": 7,
+       "pool": 7,
+       "ok": true
+      }
+     ],
+     "difficulty": [
+      {
+       "level": 1,
+       "count": 3,
+       "share": 0.2,
+       "target": null,
+       "ok": true
+      },
+      {
+       "level": 2,
+       "count": 6,
+       "share": 0.4,
+       "target": null,
+       "ok": true
+      },
+      {
+       "level": 3,
+       "count": 6,
+       "share": 0.4,
+       "target": null,
+       "ok": true
+      }
+     ],
+     "keys": {
+      "A": 3,
+      "B": 4,
+      "C": 4,
+      "D": 4
+     },
+     "test_mode": {
+      "item_count": 2,
+      "skills": [
+       "single_fold",
+       "double_fold"
+      ]
+     },
+     "warnings": []
+    },
+    {
+     "key": "figure_classification",
+     "name": "Figure Classification",
+     "administered": 15,
+     "pool": 15,
+     "pool_minimum": 15,
+     "choices": 4,
+     "time_minutes": 11,
+     "skills": [
+      {
+       "skill": "shape_attribute",
+       "quota": 5,
+       "pool": 5,
+       "ok": true
+      },
+      {
+       "skill": "count_attribute",
+       "quota": 5,
+       "pool": 5,
+       "ok": true
+      },
+      {
+       "skill": "shading_attribute",
+       "quota": 5,
+       "pool": 5,
+       "ok": true
+      }
+     ],
+     "difficulty": [
+      {
+       "level": 1,
+       "count": 4,
+       "share": 0.26666666666666666,
+       "target": null,
+       "ok": true
+      },
+      {
+       "level": 2,
+       "count": 6,
+       "share": 0.4,
+       "target": null,
+       "ok": true
+      },
+      {
+       "level": 3,
+       "count": 5,
+       "share": 0.3333333333333333,
+       "target": null,
+       "ok": true
+      }
+     ],
+     "keys": {
+      "B": 3,
+      "C": 5,
+      "A": 4,
+      "D": 3
+     },
+     "test_mode": {
+      "item_count": 3,
+      "skills": [
+       "shape_attribute",
+       "count_attribute",
+       "shading_attribute"
+      ]
+     },
+     "warnings": []
+    }
+   ],
+   "passages": [],
+   "warnings": []
+  },
+  {
+   "version": 2,
+   "name": "D.E.Bs TACHS Readiness Diagnostic — Pilot v2",
+   "frozen": false,
+   "pool": 342,
+   "administered": 200,
+   "sections": [
+    {
+     "key": "reading",
+     "name": "Reading",
+     "administered": 50,
+     "pool": 80,
+     "pool_minimum": 75,
+     "choices": 4,
+     "time_minutes": 30,
+     "skills": [
+      {
+       "skill": "main_idea",
+       "quota": 6,
+       "pool": 10,
+       "ok": true
+      },
+      {
+       "skill": "inference",
+       "quota": 9,
+       "pool": 14,
+       "ok": true
+      },
+      {
+       "skill": "vocabulary_in_context",
+       "quota": 9,
+       "pool": 14,
+       "ok": true
+      },
+      {
+       "skill": "author_purpose_tone",
+       "quota": 8,
+       "pool": 12,
+       "ok": true
+      },
+      {
+       "skill": "text_structure",
+       "quota": 6,
+       "pool": 10,
+       "ok": true
+      },
+      {
+       "skill": "detail_evidence",
+       "quota": 6,
+       "pool": 10,
+       "ok": true
+      },
+      {
+       "skill": "rhetorical_analysis",
+       "quota": 6,
+       "pool": 10,
+       "ok": true
+      }
+     ],
+     "difficulty": [
+      {
+       "level": 1,
+       "count": 16,
+       "share": 0.2,
+       "target": 0.2,
+       "ok": true
+      },
+      {
+       "level": 2,
+       "count": 36,
+       "share": 0.45,
+       "target": 0.45,
+       "ok": true
+      },
+      {
+       "level": 3,
+       "count": 28,
+       "share": 0.35,
+       "target": 0.35,
+       "ok": true
+      }
+     ],
+     "keys": {
+      "B": 20,
+      "D": 20,
+      "A": 20,
+      "C": 20
+     },
+     "test_mode": {
+      "item_count": 7,
+      "skills": [
+       "main_idea",
+       "inference",
+       "vocabulary_in_context",
+       "author_purpose_tone",
+       "text_structure",
+       "detail_evidence",
+       "rhetorical_analysis"
+      ]
+     },
+     "warnings": []
+    },
+    {
+     "key": "written_expression",
+     "name": "Written Expression",
+     "administered": 50,
+     "pool": 80,
+     "pool_minimum": 75,
+     "choices": 4,
+     "time_minutes": 25,
+     "skills": [
+      {
+       "skill": "grammar_usage",
+       "quota": 10,
+       "pool": 16,
+       "ok": true
+      },
+      {
+       "skill": "punctuation_capitalization",
+       "quota": 10,
+       "pool": 16,
+       "ok": true
+      },
+      {
+       "skill": "sentence_structure",
+       "quota": 10,
+       "pool": 16,
+       "ok": true
+      },
+      {
+       "skill": "organization_coherence",
+       "quota": 8,
+       "pool": 12,
+       "ok": true
+      },
+      {
+       "skill": "revision_style",
+       "quota": 6,
+       "pool": 10,
+       "ok": true
+      },
+      {
+       "skill": "spelling_word_usage",
+       "quota": 6,
+       "pool": 10,
+       "ok": true
+      }
+     ],
+     "difficulty": [
+      {
+       "level": 1,
+       "count": 16,
+       "share": 0.2,
+       "target": 0.2,
+       "ok": true
+      },
+      {
+       "level": 2,
+       "count": 36,
+       "share": 0.45,
+       "target": 0.45,
+       "ok": true
+      },
+      {
+       "level": 3,
+       "count": 28,
+       "share": 0.35,
+       "target": 0.35,
+       "ok": true
+      }
+     ],
+     "keys": {
+      "B": 20,
+      "D": 20,
+      "A": 20,
+      "C": 20
+     },
+     "test_mode": {
+      "item_count": 6,
+      "skills": [
+       "grammar_usage",
+       "punctuation_capitalization",
+       "sentence_structure",
+       "organization_coherence",
+       "revision_style",
+       "spelling_word_usage"
+      ]
+     },
+     "warnings": []
+    },
+    {
+     "key": "mathematics",
+     "name": "Mathematics",
+     "administered": 50,
+     "pool": 80,
+     "pool_minimum": 75,
+     "choices": 4,
+     "time_minutes": 40,
+     "skills": [
+      {
+       "skill": "number_integer_fluency",
+       "quota": 6,
+       "pool": 10,
+       "ok": true
+      },
+      {
+       "skill": "ratio_proportion_percent",
+       "quota": 6,
+       "pool": 10,
+       "ok": true
+      },
+      {
+       "skill": "algebra_functions",
+       "quota": 20,
+       "pool": 32,
+       "ok": true
+      },
+      {
+       "skill": "geometry_measurement",
+       "quota": 8,
+       "pool": 12,
+       "ok": true
+      },
+      {
+       "skill": "data_probability_statistics",
+       "quota": 6,
+       "pool": 10,
+       "ok": true
+      },
+      {
+       "skill": "multistep_modeling",
+       "quota": 4,
+       "pool": 6,
+       "ok": true
+      }
+     ],
+     "difficulty": [
+      {
+       "level": 1,
+       "count": 16,
+       "share": 0.2,
+       "target": 0.2,
+       "ok": true
+      },
+      {
+       "level": 2,
+       "count": 39,
+       "share": 0.4875,
+       "target": 0.45,
+       "ok": true
+      },
+      {
+       "level": 3,
+       "count": 25,
+       "share": 0.3125,
+       "target": 0.35,
+       "ok": true
+      }
+     ],
+     "keys": {
+      "B": 20,
+      "D": 20,
+      "A": 20,
+      "C": 20
+     },
+     "test_mode": {
+      "item_count": 6,
+      "skills": [
+       "number_integer_fluency",
+       "ratio_proportion_percent",
+       "algebra_functions",
+       "geometry_measurement",
+       "data_probability_statistics",
+       "multistep_modeling"
+      ]
+     },
+     "warnings": []
+    },
+    {
+     "key": "figure_matrices",
+     "name": "Figure Matrices",
+     "administered": 20,
+     "pool": 38,
+     "pool_minimum": 36,
+     "choices": 5,
+     "time_minutes": 12,
+     "skills": [
+      {
+       "skill": "rotation_reflection",
+       "quota": 4,
+       "pool": 7,
+       "ok": true
+      },
+      {
+       "skill": "overlay_composition",
+       "quota": 3,
+       "pool": 6,
+       "ok": true
+      },
+      {
+       "skill": "progression_count",
+       "quota": 3,
+       "pool": 6,
+       "ok": true
+      },
+      {
+       "skill": "shading_size_change",
+       "quota": 3,
+       "pool": 6,
+       "ok": true
+      },
+      {
+       "skill": "two_rule_integration",
+       "quota": 5,
+       "pool": 9,
+       "ok": true
+      },
+      {
+       "skill": "alternating_pattern",
+       "quota": 2,
+       "pool": 4,
+       "ok": true
+      }
+     ],
+     "difficulty": [
+      {
+       "level": 1,
+       "count": 5,
+       "share": 0.13157894736842105,
+       "target": 0.13,
+       "ok": true
+      },
+      {
+       "level": 2,
+       "count": 16,
+       "share": 0.42105263157894735,
+       "target": 0.42,
+       "ok": true
+      },
+      {
+       "level": 3,
+       "count": 17,
+       "share": 0.4473684210526316,
+       "target": 0.45,
+       "ok": true
+      }
+     ],
+     "keys": {
+      "C": 8,
+      "A": 8,
+      "E": 7,
+      "B": 8,
+      "D": 7
+     },
+     "test_mode": {
+      "item_count": 6,
+      "skills": [
+       "rotation_reflection",
+       "overlay_composition",
+       "progression_count",
+       "shading_size_change",
+       "two_rule_integration",
+       "alternating_pattern"
+      ]
+     },
+     "warnings": []
+    },
+    {
+     "key": "paper_folding",
+     "name": "Paper Folding",
+     "administered": 15,
+     "pool": 32,
+     "pool_minimum": 30,
+     "choices": 5,
+     "time_minutes": 12,
+     "skills": [
+      {
+       "skill": "single_fold",
+       "quota": 2,
+       "pool": 4,
+       "ok": true
+      },
+      {
+       "skill": "two_fold_reflection",
+       "quota": 3,
+       "pool": 6,
+       "ok": true
+      },
+      {
+       "skill": "three_fold_sequence",
+       "quota": 3,
+       "pool": 6,
+       "ok": true
+      },
+      {
+       "skill": "diagonal_reflection",
+       "quota": 2,
+       "pool": 5,
+       "ok": true
+      },
+      {
+       "skill": "multiple_punches",
+       "quota": 2,
+       "pool": 4,
+       "ok": true
+      },
+      {
+       "skill": "edge_notch",
+       "quota": 1,
+       "pool": 3,
+       "ok": true
+      },
+      {
+       "skill": "asymmetric_fold",
+       "quota": 2,
+       "pool": 4,
+       "ok": true
+      }
+     ],
+     "difficulty": [
+      {
+       "level": 1,
+       "count": 4,
+       "share": 0.125,
+       "target": 0.125,
+       "ok": true
+      },
+      {
+       "level": 2,
+       "count": 15,
+       "share": 0.46875,
+       "target": 0.47,
+       "ok": true
+      },
+      {
+       "level": 3,
+       "count": 13,
+       "share": 0.40625,
+       "target": 0.405,
+       "ok": true
+      }
+     ],
+     "keys": {
+      "A": 6,
+      "C": 6,
+      "E": 7,
+      "B": 6,
+      "D": 7
+     },
+     "test_mode": {
+      "item_count": 7,
+      "skills": [
+       "single_fold",
+       "two_fold_reflection",
+       "three_fold_sequence",
+       "diagonal_reflection",
+       "multiple_punches",
+       "edge_notch",
+       "asymmetric_fold"
+      ]
+     },
+     "warnings": []
+    },
+    {
+     "key": "figure_classification",
+     "name": "Figure Classification",
+     "administered": 15,
+     "pool": 32,
+     "pool_minimum": 30,
+     "choices": 5,
+     "time_minutes": 11,
+     "skills": [
+      {
+       "skill": "shape_attribute_combo",
+       "quota": 3,
+       "pool": 7,
+       "ok": true
+      },
+      {
+       "skill": "count_shading",
+       "quota": 3,
+       "pool": 6,
+       "ok": true
+      },
+      {
+       "skill": "orientation_symmetry",
+       "quota": 3,
+       "pool": 6,
+       "ok": true
+      },
+      {
+       "skill": "internal_structure",
+       "quota": 3,
+       "pool": 7,
+       "ok": true
+      },
+      {
+       "skill": "size_position_partwhole",
+       "quota": 3,
+       "pool": 6,
+       "ok": true
+      }
+     ],
+     "difficulty": [
+      {
+       "level": 1,
+       "count": 8,
+       "share": 0.25,
+       "target": 0.25,
+       "ok": true
+      },
+      {
+       "level": 2,
+       "count": 14,
+       "share": 0.4375,
+       "target": 0.44,
+       "ok": true
+      },
+      {
+       "level": 3,
+       "count": 10,
+       "share": 0.3125,
+       "target": 0.31,
+       "ok": true
+      }
+     ],
+     "keys": {
+      "C": 6,
+      "A": 7,
+      "E": 6,
+      "B": 7,
+      "D": 6
+     },
+     "test_mode": {
+      "item_count": 5,
+      "skills": [
+       "shape_attribute_combo",
+       "count_shading",
+       "orientation_symmetry",
+       "internal_structure",
+       "size_position_partwhole"
+      ]
+     },
+     "warnings": []
+    }
+   ],
+   "passages": [
+    {
+     "id": "r2-orchard",
+     "title": "The Orchard Ledger",
+     "kind": "literary",
+     "words": 339,
+     "items": 8,
+     "section": "reading"
+    },
+    {
+     "id": "r2-relay",
+     "title": "The Fourth Leg",
+     "kind": "literary",
+     "words": 358,
+     "items": 8,
+     "section": "reading"
+    },
+    {
+     "id": "r2-clockmaker",
+     "title": "The Clockmaker's Apprentice",
+     "kind": "literary",
+     "words": 342,
+     "items": 8,
+     "section": "reading"
+    },
+    {
+     "id": "r2-bridge",
+     "title": "The Bridge at Harrow Ford",
+     "kind": "historical",
+     "words": 379,
+     "items": 8,
+     "section": "reading"
+    },
+    {
+     "id": "r2-cartographer",
+     "title": "Mapping the Unseen Coast",
+     "kind": "historical",
+     "words": 352,
+     "items": 8,
+     "section": "reading"
+    },
+    {
+     "id": "r2-permafrost",
+     "title": "The Ground That Remembers",
+     "kind": "informational",
+     "words": 343,
+     "items": 8,
+     "section": "reading"
+    },
+    {
+     "id": "r2-sleep",
+     "title": "Why the Brain Rehearses at Night",
+     "kind": "informational",
+     "words": 352,
+     "items": 8,
+     "section": "reading"
+    },
+    {
+     "id": "r2-glass",
+     "title": "The Ubiquitous Stranger",
+     "kind": "informational",
+     "words": 364,
+     "items": 8,
+     "section": "reading"
+    },
+    {
+     "id": "r2-homework",
+     "title": "The Case Against the Late Bell",
+     "kind": "argumentative",
+     "words": 361,
+     "items": 8,
+     "section": "reading"
+    },
+    {
+     "id": "r2-paired-libraries",
+     "title": "Two Views of the Public Library",
+     "kind": "paired",
+     "words": 352,
+     "items": 8,
+     "section": "reading"
+    },
+    {
+     "id": "w2-01",
+     "title": "A Report on the Willow Pond Ecosystem",
+     "kind": "editing",
+     "words": 198,
+     "items": 8,
+     "section": "written_expression"
+    },
+    {
+     "id": "w2-02",
+     "title": "My First Day at Riverside Animal Shelter",
+     "kind": "editing",
+     "words": 214,
+     "items": 8,
+     "section": "written_expression"
+    },
+    {
+     "id": "w2-03",
+     "title": "A Letter About Library Hours",
+     "kind": "editing",
+     "words": 200,
+     "items": 8,
+     "section": "written_expression"
+    },
+    {
+     "id": "w2-04",
+     "title": "The Transcontinental Railroad",
+     "kind": "editing",
+     "words": 198,
+     "items": 8,
+     "section": "written_expression"
+    },
+    {
+     "id": "w2-05",
+     "title": "How to Build a Simple Birdhouse",
+     "kind": "editing",
+     "words": 264,
+     "items": 8,
+     "section": "written_expression"
+    }
+   ],
+   "warnings": []
+  }
+ ]
+}

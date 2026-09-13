@@ -9,7 +9,8 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "bun run scripts/validate-tachs-bank.ts && vitest run",
+    "test": "bun run scripts/validate-tachs-bank.ts && bun run scripts/export-tachs-audit.ts && vitest run",
+    "audit:tachs": "bun run scripts/export-tachs-audit.ts",
     "test:watch": "vitest",
     "validate:tachs": "bun run scripts/validate-tachs-bank.ts"
   },
