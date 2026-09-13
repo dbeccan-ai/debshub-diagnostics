@@ -75,3 +75,5 @@
 - [x] Add regression tests and complete browser/read-only data verification
 - [x] Publish verified frontend; no backend deploy, email, event, or attempt mutation
 
+
+- [ ] TACHS At-Home Support Plan + admin-only curriculum (preview only; tests/typecheck/build; no publish/deploy/email/mutation)
