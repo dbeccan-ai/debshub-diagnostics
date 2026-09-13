@@ -7,7 +7,7 @@ import { advanceAdaptive, bandFor, buildEvidence, DISCLAIMER, maskEmail, mathRea
 import { auditItems, buildContentAudit } from "./content-audit.ts";
 import { attemptIsEntitled, pendingOrder, tachsQuote, unconsumedEntitlement, TACHS_EXAM_TYPE } from "../_shared/tachs-payment.ts";
 import {
-  canEditParentContent, canSendParentReport, canTransitionReport, carryoverSummary, defaultParentReportContent,
+  canEditParentContent, canSendParentReport, canTransitionReport, carryoverSummary, defaultCreditExpiry, defaultParentReportContent,
   findForbiddenParentKeys, findForbiddenParentPhrases, parentReportView, sanitizeParentReportContent, REPORT_PREPARING_MESSAGE,
 } from "../_shared/tachs-report.ts";
 
@@ -530,7 +530,9 @@ serve(async (req) => {
         // Snapshot the consultant content that is being approved (safe defaults if none was customized).
         const existing = sanitizeParentReportContent(a.parent_report_content ?? {}, a.results);
         const approvedContent = existing.ok ? existing.content : defaultParentReportContent(a.results);
-        patch.parent_report_content = { ...approvedContent, approved_for_parent_at: now().toISOString() };
+        const approvedAt = now().toISOString();
+        // Credit window defaults to 7 calendar days after release unless the consultant set a date.
+        patch.parent_report_content = { ...approvedContent, credit_expires_at: approvedContent.credit_expires_at ?? defaultCreditExpiry(approvedAt), approved_for_parent_at: approvedAt };
         patch.report_approved_at = now().toISOString(); patch.report_approved_by = user.id;
       }
       if (to === "draft") {

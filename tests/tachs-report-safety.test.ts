@@ -59,7 +59,7 @@ describe("released parent report email", () => {
     expect(html).toContain("80%");
     expect(html).toContain("Tier 3");
     expect(html).toContain("TACHS Intensive Readiness — Phase 1");
-    expect(html).toContain("$2,400");
+    expect(html).toContain("$2,400.00"); expect(html).toContain("$2,291.76");
     expect(html).toContain("Schedule Enrollment Call");
     expect(html).not.toMatch(ANSWER_LEAK);
     expect(html).not.toMatch(/inference|algebra:/i); // no skill/adaptive internals

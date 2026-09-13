@@ -60,9 +60,9 @@ describe("B. Diagnostic Hub tier system", () => {
 
 describe("D. TACHS program / pricing configuration", () => {
   it("maps each tier to the right program, duration, cadence and price", () => {
-    expect(TACHS_PROGRAMS[PROGRAM_FOR_TIER.green]).toMatchObject({ name: "TACHS Strategy & Acceleration", duration_weeks: 6, sessions_per_week: 2, total_cents: 90_000, installments: { count: 2, amount_cents: 45_000 } });
-    expect(TACHS_PROGRAMS[PROGRAM_FOR_TIER.yellow]).toMatchObject({ name: "TACHS Targeted Skill Builder", duration_weeks: 10, sessions_per_week: 2, total_cents: 150_000, installments: { count: 3, amount_cents: 50_000 } });
-    expect(TACHS_PROGRAMS[PROGRAM_FOR_TIER.red]).toMatchObject({ name: "TACHS Intensive Readiness — Phase 1", duration_weeks: 16, sessions_per_week: 2, total_cents: 240_000, installments: { count: 4, amount_cents: 60_000 } });
+    expect(TACHS_PROGRAMS[PROGRAM_FOR_TIER.green]).toMatchObject({ name: "TACHS Strategy & Acceleration", duration_weeks: 6, sessions_per_week: 2, total_cents: 100_000, installments: { count: 3 } });
+    expect(TACHS_PROGRAMS[PROGRAM_FOR_TIER.yellow]).toMatchObject({ name: "TACHS Targeted Skill Builder", duration_weeks: 10, sessions_per_week: 2, total_cents: 150_000, installments: { count: 5 } });
+    expect(TACHS_PROGRAMS[PROGRAM_FOR_TIER.red]).toMatchObject({ name: "TACHS Intensive Readiness — Phase 1", duration_weeks: 16, sessions_per_week: 2, total_cents: 240_000, installments: { count: 5 } });
     expect(programForAccuracy(92).name).toBe("TACHS Strategy & Acceleration");
     expect(programForAccuracy(85).name).toBe("TACHS Strategy & Acceleration");
     expect(programForAccuracy(84).name).toBe("TACHS Targeted Skill Builder");
@@ -107,13 +107,14 @@ describe("E. consultant-controlled content", () => {
     expect(canEditParentContent("approved")).toBe(false); expect(canEditParentContent("sent")).toBe(false);
   });
   it("the released view renders the saved content and price override, never internal notes", () => {
-    const content = { interpretation: "Custom interpretation.", priority_sections: ["mathematics"], recommended_program_key: "tachs_skill_builder" as const, customized_next_steps: ["A", "B"], price_override_cents: 120000, approved_for_parent_at: "2026-09-13T20:00:00Z" };
+    const content = { interpretation: "Custom interpretation.", priority_sections: ["mathematics"], recommended_program_key: "tachs_skill_builder" as const, customized_next_steps: ["A", "B"], price_override_cents: 120000, credit_expires_at: null, approved_for_parent_at: "2026-09-13T20:00:00Z" };
     const view = parentReportView({ ...STORED_RESULTS, report_notes: "INTERNAL NOTE" }, content, "2026-09-13T19:00:00Z")!;
     expect(view.title).toBe(PARENT_REPORT_TITLE);
     expect(view.interpretation).toBe("Custom interpretation.");
     expect(view.priority_sections).toEqual(["Mathematics"]);
     expect(view.plan).toEqual(["A", "B"]);
-    expect(view.program).toMatchObject({ name: "TACHS Targeted Skill Builder", total_cents: 120000, price_label: "$1,200", installments_label: "3 payments of $400" });
+    expect(view.program).toMatchObject({ name: "TACHS Targeted Skill Builder", total_cents: 120000, price_label: "$1,200" });
+    expect(view.program.pricing).toMatchObject({ balance_cents: 102500, total_full_cents: 105592, installments: { count: 5, net_each_cents: 20500 } });
     const html = parentReportEmailHtml({ firstName: "M", gradeLevel: 8, completedOn: "x", attemptId: "id", report: view });
     expect(JSON.stringify(view) + html).not.toMatch(/INTERNAL NOTE/);
     expect(findForbiddenParentKeys(view)).toEqual([]);
@@ -130,7 +131,7 @@ describe("F. engine contract: unapproved parent route withholds scores", () => {
     expect(block).not.toMatch(/blueprint_version|test_mode|user_id|started_at|email_status|report_status:/);
   });
   it("approval snapshots content with approved_for_parent_at and returning to draft clears it", () => {
-    expect(engine).toMatch(/approved_for_parent_at: now\(\)\.toISOString\(\)/);
+    expect(engine).toMatch(/approved_for_parent_at: approvedAt/);
     expect(engine).toMatch(/approved_for_parent_at: null/);
   });
 });

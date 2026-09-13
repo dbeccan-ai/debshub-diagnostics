@@ -875,6 +875,7 @@ export type Database = {
           id: string
           order_id: string | null
           parent_email: string | null
+          parent_report_content: Json | null
           reopened_at: string | null
           reopened_by: string | null
           report_approved_at: string | null
@@ -910,6 +911,7 @@ export type Database = {
           id?: string
           order_id?: string | null
           parent_email?: string | null
+          parent_report_content?: Json | null
           reopened_at?: string | null
           reopened_by?: string | null
           report_approved_at?: string | null
@@ -945,6 +947,7 @@ export type Database = {
           id?: string
           order_id?: string | null
           parent_email?: string | null
+          parent_report_content?: Json | null
           reopened_at?: string | null
           reopened_by?: string | null
           report_approved_at?: string | null

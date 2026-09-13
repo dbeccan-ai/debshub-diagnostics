@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import type { TachsProgramKey } from "@/lib/tachsPrograms";
+import type { TachsProgramKey, PricingBreakdown } from "@/lib/tachsPrograms";
 
 export type TachsSectionKey =
   | "reading" | "written_expression" | "mathematics"
@@ -104,6 +104,7 @@ export interface TachsParentProgramView {
   key: TachsProgramKey; name: string; duration_weeks: number; sessions_per_week: number; total_cents: number; price_label: string;
   installments_label: string; focus: string[]; included: string[]; progress_monitoring: string; honesty_note: string | null;
   payment_url: string | null; enrollment_call_url: string;
+  pricing?: PricingBreakdown;
 }
 export interface TachsParentReport {
   kind: "parent_released"; title: string; assessment_date: string | null;
@@ -114,7 +115,7 @@ export interface TachsParentReport {
 /** Consultant-controlled content edited at /admin/tachs/:attemptId (mirrors _shared ParentReportContent). */
 export interface TachsParentReportContent {
   interpretation: string; priority_sections: TachsSectionKey[]; recommended_program_key: TachsProgramKey;
-  customized_next_steps: string[]; price_override_cents: number | null; approved_for_parent_at: string | null;
+  customized_next_steps: string[]; price_override_cents: number | null; credit_expires_at: string | null; approved_for_parent_at: string | null;
 }
 export interface TachsCarryover { v2r: number; v2w: number; flagged: boolean; note: string | null }
 
@@ -343,7 +344,7 @@ export async function loadAdminDetail(id: string): Promise<TachsAdminDetail> {
     // defaults locally from the stored results with the same shared pure module.
     const stale = !d.parent_preview || (d.parent_preview as { kind?: string }).kind !== "parent_released";
     const results = d.attempt.results as unknown as Record<string, unknown> | null;
-    const storedContent = (d.parent_report_content ?? (d.attempt as Record<string, unknown>).parent_report_content ?? null) as TachsParentReportContent | null;
+    const storedContent = (d.parent_report_content ?? (d.attempt as unknown as Record<string, unknown>).parent_report_content ?? null) as TachsParentReportContent | null;
     return {
       ...d, source: "engine",
       parent_report_content: storedContent,
