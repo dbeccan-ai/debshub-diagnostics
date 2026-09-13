@@ -12,4 +12,4 @@
 - [x] Routes registered, build clean
 
 ## Pass 2 (later)
-- [x] Populate/validate final 200-item bank
+- [ ] Populate/validate final 200-item bank
