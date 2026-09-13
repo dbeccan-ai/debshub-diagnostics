@@ -385,10 +385,46 @@ serve(async (req) => {
 
     if (action === "admin_list") {
       if (!admin) return json({ error: "Forbidden" }, 403);
-      const { data } = await db.from("tachs_attempts")
-        .select("id, user_id, grade_level, status, test_mode, started_at, completed_at, results, blueprint_version, parent_email, email_status, email_sent_at, email_attempts, email_error, profiles(full_name, username)")
-        .order("created_at", { ascending: false }).limit(300);
-      return json({ attempts: data ?? [] });
+      const [{ data }, { data: orders }] = await Promise.all([
+        db.from("tachs_attempts")
+          .select("id, user_id, grade_level, status, test_mode, access_source, order_id, started_at, completed_at, results, blueprint_version, parent_email, email_status, email_sent_at, email_attempts, email_error, profiles(full_name, username)")
+          .order("created_at", { ascending: false }).limit(300),
+        db.from("tachs_orders").select("*, profiles(full_name, username, parent_email)").order("created_at", { ascending: false }).limit(500),
+      ]);
+      const byId = new Map((orders ?? []).map((o) => [o.id, o]));
+      const attempts = (data ?? []).map((a) => ({ ...a, order: a.order_id ? byId.get(a.order_id) ?? null : null }));
+      return json({ attempts, orders: orders ?? [] });
+    }
+
+    if (action === "admin_search_users") {
+      if (!admin) return json({ error: "Forbidden" }, 403);
+      const q = String(body.query ?? "").trim().slice(0, 100);
+      if (q.length < 2) return json({ users: [] });
+      const like = `%${q.replace(/[%_]/g, "")}%`;
+      const { data: users } = await db.from("profiles").select("id, full_name, username, parent_email")
+        .or(`full_name.ilike.${like},username.ilike.${like},parent_email.ilike.${like}`).limit(10);
+      return json({ users: users ?? [] });
+    }
+
+    if (action === "admin_grant_access") {
+      if (!admin) return json({ error: "Forbidden" }, 403);
+      const targetUserId = String(body.targetUserId ?? "");
+      const reason = String(body.reason ?? "").trim().slice(0, 500);
+      if (!/^[0-9a-f-]{36}$/i.test(targetUserId)) return json({ error: "A student must be selected." }, 400);
+      if (reason.length < 3) return json({ error: "Please give a short reason (e.g. scholarship, manual invoice #)." }, 400);
+      const { data: target } = await db.from("profiles").select("id, full_name").eq("id", targetUserId).maybeSingle();
+      if (!target) return json({ error: "Student not found." }, 404);
+      const { data: orders } = await db.from("tachs_orders").select("*").eq("user_id", targetUserId);
+      if (unconsumedEntitlement(orders ?? [])) return json({ error: "This student already has an unused TACHS access." }, 409);
+      // Close out any pending Stripe order so they are not asked to pay twice.
+      await db.from("tachs_orders").update({ payment_status: "failed" }).eq("user_id", targetUserId).eq("payment_status", "pending");
+      const { data: grant, error } = await db.from("tachs_orders").insert({
+        user_id: targetUserId, exam_type: TACHS_EXAM_TYPE, source: "admin_grant", payment_status: "granted",
+        net_amount_cents: 0, fee_cents: 0, total_cents: 0, amount_paid_cents: 0, currency: "usd",
+        granted_by: user.id, grant_reason: reason, verified_at: now().toISOString(),
+      }).select("*").single();
+      if (error || !grant) return json({ error: "Could not record the grant." }, 500);
+      return json({ ok: true, order: grant });
     }
 
     if (action === "admin_detail") {
@@ -454,6 +490,8 @@ serve(async (req) => {
 
     const attempt = await loadAttempt(db, attemptId, user.id, admin);
     if (!attempt) return json({ error: "Attempt not found" }, 404);
+    // Server-side entitlement gate for every attempt action (state/start_section/answer/next/submit_section/results).
+    if (!admin && !attemptIsEntitled(attempt)) return json({ error: PAYMENT_REQUIRED_MSG, payment_required: true }, 402);
     await enforceDeadlines(db, attempt.id);
     const { data: freshAttempt } = await db.from("tachs_attempts").select("*").eq("id", attempt.id).single();
 
