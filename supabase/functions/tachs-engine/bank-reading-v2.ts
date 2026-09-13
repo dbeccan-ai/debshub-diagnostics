@@ -190,7 +190,7 @@ export const READING_V2: BankQuestion[] = [
   r(3, "author_purpose_tone", R2_P7, "The author's phrase \"the field remains appropriately cautious\" reveals an attitude that is",
     ["skeptical of all sleep research", "respectful of scientists' restraint about unproven interpretations", "frustrated by slow progress", "certain that replay solves problems"], "B",
     "\"Appropriately\" approves of the caution about the offline problem-solving interpretation, which the author labels \"suggestive rather than conclusive.\""),
-  r(2, "text_structure", R2_P7, "The passage develops its explanation of replay by",
+  r(3, "text_structure", R2_P7, "The passage develops its explanation of replay by",
     ["presenting evidence, then describing two functions in order of increasing surprise", "listing objections and refuting each", "comparing sleep in several animal species", "narrating one scientist's career"], "A",
     "After the neuron evidence, the author labels consolidation \"the first\" function and the selective, recombining replay \"more surprising.\""),
   r(3, "main_idea", R2_P7, "Which statement best captures the passage's central claim?",
