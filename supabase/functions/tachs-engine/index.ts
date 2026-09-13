@@ -4,6 +4,9 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { BLUEPRINT_V1, SAMPLE_BANK, type BlueprintSection } from "./sample-bank.ts";
 import { advanceAdaptive, bandFor, DISCLAIMER, maskEmail, needsGrading, sectionsShortOfTarget } from "./logic.ts";
+import { attemptIsEntitled, pendingOrder, tachsQuote, unconsumedEntitlement, TACHS_EXAM_TYPE } from "../_shared/tachs-payment.ts";
+
+const PAYMENT_REQUIRED_MSG = "Payment is required before starting the TACHS Readiness Diagnostic ($175 + processing fee).";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -293,6 +296,24 @@ serve(async (req) => {
     const action = String(body.action ?? "");
     const admin = await isAdmin(db, user.id);
 
+    if (action === "access") {
+      // Payment-aware summary for the UI. Entitlement is TACHS-specific: other diagnostics never unlock it.
+      const [{ data: orders }, { data: inProg }] = await Promise.all([
+        db.from("tachs_orders").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+        db.from("tachs_attempts").select("id, test_mode, access_source, status, grade_level").eq("user_id", user.id).eq("status", "in_progress").maybeSingle(),
+      ]);
+      const ent = unconsumedEntitlement(orders ?? []);
+      const pend = pendingOrder(orders ?? []);
+      return json({
+        admin,
+        quote: tachsQuote(),
+        entitled: admin || !!ent,
+        entitlement_source: ent?.source ?? null,
+        pending_order_id: pend?.id ?? null,
+        in_progress: inProg ? { id: inProg.id, grade_level: inProg.grade_level, entitled: admin || attemptIsEntitled(inProg) } : null,
+      });
+    }
+
     if (action === "start") {
       await ensureSeed(db);
       const testMode = !!body.testMode && admin;
@@ -301,10 +322,20 @@ serve(async (req) => {
       if (parentEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(parentEmail)) return json({ error: "Please enter a valid parent email." }, 400);
       const { data: existing } = await db.from("tachs_attempts").select("*").eq("user_id", user.id).eq("status", "in_progress").maybeSingle();
       if (existing) {
+        if (!admin && !attemptIsEntitled(existing)) return json({ error: PAYMENT_REQUIRED_MSG, payment_required: true }, 402);
         await enforceDeadlines(db, existing.id);
         const { data: fresh } = await db.from("tachs_attempts").select("*").eq("id", existing.id).single();
         return json({ resumed: true, attemptId: existing.id, state: await buildState(db, fresh) });
       }
+      // Entitlement: admins bypass (server-verified role); students need an unconsumed paid/granted TACHS order.
+      let entitlement: { id: string; source: string } | null = null;
+      if (!admin) {
+        const { data: orders } = await db.from("tachs_orders").select("*").eq("user_id", user.id).eq("exam_type", TACHS_EXAM_TYPE);
+        const ent = unconsumedEntitlement(orders ?? []);
+        if (!ent) return json({ error: PAYMENT_REQUIRED_MSG, payment_required: true }, 402);
+        entitlement = { id: ent.id, source: ent.source ?? "stripe" };
+      }
+      const accessSource = testMode ? "test_mode" : entitlement ? (entitlement.source === "admin_grant" ? "admin_grant" : "paid") : "admin_grant";
       const { data: bp } = await db.from("tachs_blueprints").select("*").eq("is_active", true).order("version", { ascending: false }).limit(1).maybeSingle();
       if (!bp) return json({ error: "No active TACHS blueprint." }, 500);
       const { data: profile } = await db.from("profiles").select("school_id, parent_email").eq("id", user.id).maybeSingle();
@@ -327,8 +358,18 @@ serve(async (req) => {
       const { data: attempt, error: aErr } = await db.from("tachs_attempts").insert({
         user_id: user.id, school_id: profile?.school_id ?? null, blueprint_id: bp.id, blueprint_version: bp.version,
         grade_level: gradeLevel, parent_email: parentEmail ?? profile?.parent_email ?? null, test_mode: testMode, current_section_key: sections[0].key,
+        access_source: accessSource, order_id: entitlement?.id ?? null,
       }).select("*").single();
       if (aErr || !attempt) return json({ error: "Could not start the diagnostic." }, 500);
+      if (entitlement) {
+        // Consume the entitlement atomically (unique index on attempt_id guards double use).
+        const { data: consumed } = await db.from("tachs_orders").update({ attempt_id: attempt.id }).eq("id", entitlement.id).is("attempt_id", null).select("id").maybeSingle();
+        if (!consumed) {
+          await db.from("tachs_attempts").delete().eq("id", attempt.id);
+          return json({ error: PAYMENT_REQUIRED_MSG, payment_required: true }, 402);
+        }
+        await db.from("tachs_attempt_events").insert({ attempt_id: attempt.id, actor_id: user.id, event_type: "entitlement_consumed", detail: { order_id: entitlement.id, source: entitlement.source } });
+      }
       const rows = sections.map((s) => ({
         attempt_id: attempt.id, section_key: s.key, section_order: s.order,
         item_count: testMode ? Math.max(1, Math.min(s.item_count, availability[s.key], TEST_MODE_ITEMS)) : s.item_count,
