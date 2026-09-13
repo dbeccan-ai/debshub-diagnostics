@@ -194,10 +194,10 @@ export function distractorCandidates(spec: FoldItemSpec, correct: Unfolded): { l
   const out: { label: string; u: Unfolded }[] = [];
   const punched: Unfolded = { holes, cuts };
   // 1. Forgot the first (outermost) fold: one layer of reflection missing.
-  out.push({ label: "skipped the first fold", u: unfold(folds, holes, cuts, 0) });
+  const partial = unfold(folds, holes, cuts, 0); // everything undone except the first (outermost) fold
+  out.push({ label: "skipped the first fold", u: partial });
   // 2. Translated the punch instead of mirroring it across the first fold.
   const f0 = folds[0];
-  const partial = n > 1 ? unfold(folds.slice(1).map((f) => f), holes, cuts) : punched;
   // For axis folds, "translation" means sliding the copy across the line without mirroring the offset pattern:
   const slide = (p: Pt): Pt => {
     if (f0.short === "vertical") { const x = f0.p1[0]; const w = 100 - x >= x ? x : 100 - x; return [round(p[0] < x ? p[0] + w : p[0] - w), p[1]]; }
