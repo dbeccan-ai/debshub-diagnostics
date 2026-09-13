@@ -16,7 +16,7 @@ import { toast } from "sonner";
 import { ArrowLeft, Loader2, Mail, Printer, RotateCcw, Search } from "lucide-react";
 import SEO from "@/components/SEO";
 
-const BAND_KEYS = ["strong", "approaching", "developing", "building"] as const;
+const BAND_KEYS = ["strong", "approaching", "developing", "foundations"] as const;
 
 export default function AdminTachs() {
   const navigate = useNavigate();

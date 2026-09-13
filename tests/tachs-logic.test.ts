@@ -9,8 +9,8 @@ describe("readiness bands", () => {
     expect(bandFor(70).key).toBe("approaching");
     expect(bandFor(69).key).toBe("developing");
     expect(bandFor(55).key).toBe("developing");
-    expect(bandFor(54).key).toBe("building");
-    expect(bandFor(0).key).toBe("building");
+    expect(bandFor(54).key).toBe("foundations");
+    expect(bandFor(0).key).toBe("foundations");
   });
 
   it("always returns a labelled band with a next-step plan", () => {
