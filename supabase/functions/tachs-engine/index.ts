@@ -30,22 +30,35 @@ const publicQuestion = (q: QuestionRow) => ({
   visual: q.visual, visual_alt: q.visual_alt, choices: q.choices,
 });
 
+/** Stable fingerprint of the shipped bank so content edits reseed idempotently. */
+function bankFingerprint(): string {
+  const src = JSON.stringify(SAMPLE_BANK.map((b) => [b.code, b.section_key, b.skill, b.difficulty, b.stem, b.correct_key, b.choices, b.visual ?? null, b.rationale]));
+  let h = 2166136261;
+  for (let i = 0; i < src.length; i++) { h ^= src.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
+  return `bank:${h.toString(16)}:${SAMPLE_BANK.length}`;
+}
+
 async function ensureSeed(db: Client) {
-  // Keep the active blueprint and the item bank in sync with the shipped pilot content.
+  // Keep the active blueprint and the item bank in sync with the shipped pilot content (idempotent).
+  const fp = bankFingerprint();
+  const { data: bp } = await db.from("tachs_blueprints").select("notes").eq("version", BLUEPRINT_V1.version).maybeSingle();
   const { count } = await db.from("tachs_questions")
     .select("id", { count: "exact", head: true })
     .eq("blueprint_version", BLUEPRINT_V1.version).eq("is_active", true);
-  if ((count ?? 0) >= SAMPLE_BANK.length) return;
-  await db.from("tachs_blueprints").upsert({
-    version: BLUEPRINT_V1.version, name: BLUEPRINT_V1.name, is_active: true, sections: BLUEPRINT_V1.sections, notes: BLUEPRINT_V1.notes,
-  }, { onConflict: "version" });
+  if ((count ?? 0) === SAMPLE_BANK.length && (bp?.notes ?? "").includes(fp)) return;
   const rows = SAMPLE_BANK.map((b) => ({
     code: b.code, blueprint_version: BLUEPRINT_V1.version, section_key: b.section_key, skill: b.skill, difficulty: b.difficulty,
     stem: b.stem, passage_id: b.passage_id ?? null, passage_title: b.passage_title ?? null, passage_text: b.passage_text ?? null,
     visual: b.visual ?? null, visual_alt: b.visual_alt ?? null, choices: b.choices, correct_key: b.correct_key, rationale: b.rationale, is_active: true,
   }));
   const { error } = await db.from("tachs_questions").upsert(rows, { onConflict: "code" });
-  if (error) console.error("seed error", error);
+  if (error) { console.error("seed error", error); return; }
+  // Retire any stale items that are no longer part of the shipped bank so exactly 200 stay active.
+  const codes = SAMPLE_BANK.map((b) => b.code);
+  await db.from("tachs_questions").update({ is_active: false }).eq("blueprint_version", BLUEPRINT_V1.version).eq("is_active", true).not("code", "in", `(${codes.map((c) => `"${c}"`).join(",")})`);
+  await db.from("tachs_blueprints").upsert({
+    version: BLUEPRINT_V1.version, name: BLUEPRINT_V1.name, is_active: true, sections: BLUEPRINT_V1.sections, notes: `${BLUEPRINT_V1.notes ?? ""} [${fp}]`.trim(),
+  }, { onConflict: "version" });
 }
 
 async function isAdmin(db: Client, userId: string) {
