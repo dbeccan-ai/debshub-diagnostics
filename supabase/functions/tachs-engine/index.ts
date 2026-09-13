@@ -3,7 +3,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { BLUEPRINT_V1, SAMPLE_BANK, type BlueprintSection } from "./sample-bank.ts";
-import { advanceAdaptive, bandFor, DISCLAIMER } from "./logic.ts";
+import { advanceAdaptive, bandFor, DISCLAIMER, maskEmail, needsGrading, sectionsShortOfTarget } from "./logic.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -147,7 +147,7 @@ async function sendReportEmail(attemptId: string) {
 async function gradeAttempt(db: Client, attemptId: string) {
   const { data: attempt } = await db.from("tachs_attempts").select("*").eq("id", attemptId).maybeSingle();
   if (!attempt) return null;
-  if (attempt.status === "completed" && attempt.results) return attempt.results; // idempotent
+  if (!needsGrading(attempt)) return attempt.results; // idempotent
   const { data: sections } = await db.from("tachs_attempt_sections").select("*").eq("attempt_id", attemptId).order("section_order");
   const sectionSummaries = [];
   for (const s of sections ?? []) {
@@ -300,9 +300,9 @@ serve(async (req) => {
         availability[s.key] = count ?? 0;
       }
       if (!testMode) {
-        const short = sections.filter((s) => availability[s.key] < s.item_count);
+        const short = sectionsShortOfTarget(sections, availability);
         if (short.length) {
-          const detail = short.map((s) => `${s.key} (${availability[s.key]}/${s.item_count})`).join(", ");
+          const detail = short.map((s) => `${s.key} (${s.available}/${s.target})`).join(", ");
           console.error("tachs-engine configuration error: bank short for", detail);
           return json({ error: `Configuration error: the TACHS question bank is incomplete for ${detail}. Please contact D.E.Bs support before starting.` }, 503);
         }
@@ -415,9 +415,7 @@ serve(async (req) => {
         return { section_key: secMap.get(r.section_id), position: r.position, skill: r.skill, difficulty: r.difficulty, selected_key: r.selected_key, is_correct: r.is_correct, correct_key: q?.correct_key, rationale: q?.rationale, stem: q?.stem, choices: q?.choices, time_spent_seconds: r.time_spent_seconds };
       });
       // Email delivery status with a masked address (full address stays admin-only).
-      const pe = String(freshAttempt.parent_email ?? "");
-      const at = pe.indexOf("@");
-      const maskedEmail = at > 0 ? `${pe[0]}${"•".repeat(Math.max(2, at - 2))}${at > 1 ? pe[at - 1] : ""}@${pe.slice(at + 1)}` : null;
+      const maskedEmail = maskEmail(freshAttempt.parent_email);
       return json({
         results, review,
         attempt: { id: freshAttempt.id, grade_level: freshAttempt.grade_level, test_mode: freshAttempt.test_mode, completed_at: freshAttempt.completed_at, started_at: freshAttempt.started_at, user_id: freshAttempt.user_id },
