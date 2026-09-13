@@ -156,6 +156,7 @@ export const at = (it: VisualItem[], dx: number, dy: number): VisualItem[] =>
     if (i.t === "circle") return { ...i, cx: i.cx + dx, cy: i.cy + dy };
     if (i.t === "rect") return { ...i, x: i.x + dx, y: i.y + dy };
     if (i.t === "text") return { ...i, x: i.x + dx, y: i.y + dy };
+    if (i.t === "poly") return { ...i, pts: i.pts.map(([x, y]) => [x + dx, y + dy] as [number, number]) };
     return { ...i, x1: i.x1 + dx, y1: i.y1 + dy, x2: i.x2 + dx, y2: i.y2 + dy };
   });
 
