@@ -2,7 +2,7 @@
 // administered quotas sum to the working allocation (50/50/50/20/15/15 = 200), every skill has at least
 // its quota in the pool, pool minimums and difficulty mix hold, keys are balanced, codes/stems are unique,
 // rationales and visuals/alt text are complete, and paper-folding geometry is valid.
-import { BANK_VERSIONS, type BankQuestion, type Blueprint } from "../supabase/functions/tachs-engine/sample-bank.ts";
+import { BANK_VERSIONS, choiceCountFor, type BankQuestion, type Blueprint } from "../supabase/functions/tachs-engine/sample-bank.ts";
 import { PAPER_FOLDING_V2_MODELS } from "../supabase/functions/tachs-engine/bank-paper-folding-v2.ts";
 import { isDrawable, sameFigure } from "../supabase/functions/tachs-engine/fold-engine.ts";
 
@@ -31,11 +31,13 @@ function validateVersion(bp: Blueprint, bank: BankQuestion[], frozen: boolean) {
     if (stem.length < 8 || /\b(sample|placeholder|question \d+)\b/i.test(stem)) errors.push(`${id}: weak stem`);
     const stemKey = `${q.section_key}|${q.passage_id ?? ""}|${stem}|${JSON.stringify(q.visual ?? null)}|${JSON.stringify(q.choices)}`;
     if (stems.has(stemKey)) errors.push(`${id}: repeated stem`); stems.add(stemKey);
+    const n = choiceCountFor(q.section_key, bp.version);
+    const expectKeys = "ABCDE".slice(0, n);
     const keys = (q.choices ?? []).map((c: any) => c.key).join("");
-    if (keys !== "ABCD") errors.push(`${id}: choice keys ${keys}`);
+    if (keys !== expectKeys) errors.push(`${id}: choice keys ${keys} (expected ${expectKeys})`);
     const texts = (q.choices ?? []).map((c: any) => String(c.text ?? c.label ?? JSON.stringify(c.visual ?? "")).trim());
-    if (new Set(texts).size !== 4 || texts.some((t: string) => !t)) errors.push(`${id}: choices not 4 distinct non-empty`);
-    if (!["A", "B", "C", "D"].includes(q.correct_key)) errors.push(`${id}: correct_key ${q.correct_key}`);
+    if (new Set(texts).size !== n || texts.some((t: string) => !t)) errors.push(`${id}: choices not ${n} distinct non-empty`);
+    if (!expectKeys.includes(q.correct_key)) errors.push(`${id}: correct_key ${q.correct_key}`);
     if (!q.rationale || String(q.rationale).trim().length < 10) errors.push(`${id}: rationale`);
     if (VISUAL.has(q.section_key)) {
       if (!q.visual || typeof q.visual !== "object") errors.push(`${id}: visual JSON missing`);
@@ -66,7 +68,8 @@ function validateVersion(bp: Blueprint, bank: BankQuestion[], frozen: boolean) {
     const seq = (bank as any[]).filter((q) => q.section_key === s.key).map((q) => q.correct_key);
     let run = 1;
     for (let i = 1; i < seq.length; i++) { run = seq[i] === seq[i - 1] ? run + 1 : 1; if (run > 4) { errors.push(`${tag} ${s.key}: answer-key run > 4 at item ${i + 1}`); break; } }
-    const dist = "ABCD".split("").map((k) => seq.filter((x) => x === k).length);
+    const keyset = "ABCDE".slice(0, choiceCountFor(s.key, bp.version));
+    const dist = keyset.split("").map((k) => seq.filter((x) => x === k).length);
     if (Math.min(...dist) < Math.floor(seq.length * 0.1)) errors.push(`${tag} ${s.key}: unbalanced key distribution ${dist.join("/")}`);
   }
   const administered = bp.sections.reduce((a, s) => a + s.item_count, 0);
