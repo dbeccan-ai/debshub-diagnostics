@@ -7,6 +7,7 @@ export type VisualItem =
   | { t: "rect"; x: number; y: number; w: number; h: number; fill?: string; stroke?: string; rot?: number; dash?: boolean }
   | { t: "line"; x1: number; y1: number; x2: number; y2: number; stroke?: string; dash?: boolean; arrow?: boolean }
   | { t: "text"; x: number; y: number; s: string; size?: number }
+  | { t: "poly"; pts: [number, number][]; fill?: string; stroke?: string; dash?: boolean }
   | { t: "shape"; kind: ShapeKind; cx: number; cy: number; size: number; fill?: string; stroke?: string; rot?: number; dash?: boolean };
 
 export type ShapeKind = "triangle" | "diamond" | "star" | "hexagon" | "pentagon" | "arrow" | "plus" | "square" | "circle";
@@ -23,6 +24,9 @@ export type SectionKey =
   | "paper_folding"
   | "figure_classification";
 
+/** Mathematics reporting ladder (v2). */
+export type MathStrand = "foundation" | "grade8" | "algebra1";
+
 export interface BankQuestion {
   code: string;
   section_key: SectionKey;
@@ -37,6 +41,7 @@ export interface BankQuestion {
   choices: Choice[];
   correct_key: string;
   rationale: string;
+  strand?: MathStrand;
 }
 
 export interface BlueprintSection {
@@ -49,7 +54,13 @@ export interface BlueprintSection {
   break_after_minutes: number;
   skill_quotas: Record<string, number>;
   description: string;
+  /** v2: minimum active pool size required for meaningful adaptive selection (defaults to item_count). */
+  pool_minimum?: number;
+  /** v2: target share of the POOL at each difficulty level, e.g. { 1: 0.2, 2: 0.45, 3: 0.35 } (validated with tolerance). */
+  pool_difficulty_mix?: Record<string, number>;
 }
+
+export interface Blueprint { version: number; name: string; notes?: string; sections: BlueprintSection[] }
 
 export const BLUEPRINT_V1 = {
   version: 1,
