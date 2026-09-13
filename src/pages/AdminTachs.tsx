@@ -217,8 +217,9 @@ export default function AdminTachs() {
     return <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${tone}`}>{v}</span>;
   };
 
-  const printSurface = (surface: "parent" | "internal") => {
-    const bodyClass = surface === "parent" ? "printing-tachs-parent" : "printing-tachs-internal";
+  /** "parent" and "home-plan" print only family-safe surfaces; "internal" is the admin-only audit. */
+  const printSurface = (surface: "parent" | "internal" | "home-plan") => {
+    const bodyClass = `printing-tachs-${surface}`;
     document.body.classList.add(bodyClass);
     const cleanup = () => document.body.classList.remove(bodyClass);
     window.addEventListener("afterprint", cleanup, { once: true });
@@ -437,6 +438,10 @@ export default function AdminTachs() {
                 body.printing-tachs-internal [data-print-surface="internal"],
                 body.printing-tachs-internal [data-print-surface="internal"] * { visibility: visible !important; }
                 body.printing-tachs-internal [data-print-surface="internal"] { position: absolute; inset: 0; width: 100%; padding: 24px; background: white; }
+                body.printing-tachs-home-plan * { visibility: hidden !important; }
+                body.printing-tachs-home-plan [data-print-surface="home-plan"],
+                body.printing-tachs-home-plan [data-print-surface="home-plan"] * { visibility: visible !important; }
+                body.printing-tachs-home-plan [data-print-surface="home-plan"] { position: absolute; inset: 0; width: 100%; padding: 24px; background: white; }
                 .admin-no-print { display: none !important; }
               }`}</style>
 
