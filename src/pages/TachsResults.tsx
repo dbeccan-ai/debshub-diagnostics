@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { tachsApi, type TachsResultsResponse, type TachsTierKey } from "@/lib/tachs";
+import { TachsHomeSupportPlan } from "@/components/TachsHomeSupportPlan";
 import { TIER_LABELS } from "@/lib/tierConfig";
 import { usd2, pricingBreakdown, TACHS_PROGRAMS } from "@/lib/tachsPrograms";
 
@@ -28,10 +29,17 @@ export default function TachsResults() {
   const navigate = useNavigate();
   const [data, setData] = useState<TachsResultsResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [homePrint, setHomePrint] = useState(false);
 
   useEffect(() => {
     tachsApi.results(attemptId).then(setData).catch((e) => setError(e instanceof Error ? e.message : "Could not load the report."));
   }, [attemptId]);
+  useEffect(() => {
+    const reset = () => setHomePrint(false);
+    window.addEventListener("afterprint", reset);
+    return () => window.removeEventListener("afterprint", reset);
+  }, []);
+  const printHomePlan = () => { setHomePrint(true); setTimeout(() => window.print(), 50); };
 
   if (error) return <div className="min-h-screen flex items-center justify-center p-6"><Card className="max-w-md"><CardHeader><CardTitle>Report unavailable</CardTitle><CardDescription>{error}</CardDescription></CardHeader><CardContent><Button onClick={() => navigate("/dashboard")}>Dashboard</Button></CardContent></Card></div>;
   if (!data) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Loading…</div>;
@@ -68,7 +76,8 @@ export default function TachsResults() {
   return (
     <div className="min-h-screen bg-background print:bg-white">
       <SEO title="TACHS Diagnostic Results & Recommended Plan | D.E.Bs" description="TACHS diagnostic results, D.E.Bs tiers, consultant interpretation and recommended plan." path={`/tachs/results/${attemptId}`} noIndex />
-      <style>{`@media print { .no-print { display: none !important; } .print-break { break-inside: avoid; } body { font-size: 12px; } table { width: 100%; border-collapse: collapse; } th, td { border-bottom: 1px solid #cbd5e1; padding: 6px 8px; } }`}</style>
+      {/* "Print / Save At-Home Plan" prints only the family summary (section 1) + the plan + the note. */}
+      <style>{`@media print { .no-print { display: none !important; } .print-break { break-inside: avoid; } body { font-size: 12px; } table { width: 100%; border-collapse: collapse; } th, td { border-bottom: 1px solid #cbd5e1; padding: 6px 8px; } .print-home-only .print-break:not(.home-plan-keep) { display: none !important; } }`}</style>
 
       <header className="border-b bg-card no-print">
         <div className="container mx-auto flex flex-wrap items-center justify-between gap-2 py-4 px-4">
@@ -83,11 +92,11 @@ export default function TachsResults() {
         </div>
       </header>
 
-      <main className="container mx-auto max-w-4xl px-4 py-8 space-y-8">
-        <h1 className="hidden print:block text-2xl font-bold text-primary">{r.title}</h1>
+      <main className={`container mx-auto max-w-4xl px-4 py-8 space-y-8 ${homePrint ? "print-home-only" : ""}`}>
+        <h1 className="hidden print:block text-2xl font-bold text-primary">{homePrint && r.home_support ? r.home_support.title : r.title}</h1>
 
         {/* 1. Student summary */}
-        <section className="print-break" aria-labelledby="summary-h">
+        <section className="print-break home-plan-keep" aria-labelledby="summary-h">
           <h2 id="summary-h" className="text-lg font-bold mb-3">1. Student Summary</h2>
           <Card className={`${overallTier.borderClass} ${overallTier.bgClass}`}>
             <CardHeader className="pb-2">
@@ -144,9 +153,20 @@ export default function TachsResults() {
           </Card>
         </section>
 
-        {/* 5. Program & pricing */}
+        {/* 5. At-Home Support Plan (section-level only; server-whitelisted) */}
+        {r.home_support && (
+          <section className="print-break home-plan-keep" aria-labelledby="home-h">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+              <h2 id="home-h" className="text-lg font-bold">5. {r.home_support.title}</h2>
+              <Button variant="outline" size="sm" className="no-print" onClick={() => printHomePlan()}>Print / Save At-Home Plan</Button>
+            </div>
+            <TachsHomeSupportPlan plan={r.home_support} />
+          </section>
+        )}
+
+        {/* 6. Program & pricing */}
         <section className="print-break" aria-labelledby="program-h">
-          <h2 id="program-h" className="text-lg font-bold mb-3">5. Recommended Program &amp; Pricing</h2>
+          <h2 id="program-h" className="text-lg font-bold mb-3">6. Recommended Program &amp; Pricing</h2>
           <Card className="border-primary border-2">
             <CardHeader>
               <CardDescription className="uppercase tracking-wide text-xs">Recommended service option</CardDescription>
@@ -193,9 +213,9 @@ export default function TachsResults() {
           </Card>
         </section>
 
-        {/* 6. Disclaimer */}
-        <section className="print-break" aria-labelledby="disc-h">
-          <h2 id="disc-h" className="text-sm font-bold mb-2">6. Please note</h2>
+        {/* 7. Disclaimer */}
+        <section className="print-break home-plan-keep" aria-labelledby="disc-h">
+          <h2 id="disc-h" className="text-sm font-bold mb-2">7. Please note</h2>
           <p className="text-xs text-muted-foreground">{r.disclaimer}</p>
         </section>
       </main>

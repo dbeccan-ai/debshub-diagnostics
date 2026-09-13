@@ -22,6 +22,7 @@ import AdminUserLogins from "./pages/AdminUserLogins";
 import AdminFollowUps from "./pages/AdminFollowUps";
 import AdminTachs from "./pages/AdminTachs";
 import AdminTachsContentAudit from "./pages/AdminTachsContentAudit";
+import AdminTachsCurriculum from "./pages/AdminTachsCurriculum";
 import Register from "./pages/Register";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import ManualGrading from "./pages/ManualGrading";
@@ -86,6 +87,7 @@ const App = () => (
             {/* Static content-audit route is declared before the dynamic :attemptId route so it is never swallowed. */}
             <Route path="/admin/tachs/content-audit" element={<AdminTachsContentAudit />} />
             <Route path="/admin/tachs" element={<AdminTachs />} />
+            <Route path="/admin/tachs/:attemptId/curriculum" element={<AdminTachsCurriculum />} />
             <Route path="/admin/tachs/:attemptId" element={<AdminTachs />} />
             <Route path="/register" element={<Register />} />
             <Route path="/school-setup" element={<SchoolSetup />} />

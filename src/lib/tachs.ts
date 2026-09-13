@@ -106,16 +106,28 @@ export interface TachsParentProgramView {
   payment_url: string | null; enrollment_call_url: string;
   pricing?: PricingBreakdown;
 }
+/** Parent-safe At-Home Support Plan (section-level only; mirrors _shared HomeSupportView). */
+export interface TachsHomeSupportView {
+  title: string; cadence: string; sections: { label: string; actions: string[] }[];
+  weekly_routine: string[]; guidance: string[]; progress_check: string; strengths_note: string | null;
+}
 export interface TachsParentReport {
   kind: "parent_released"; title: string; assessment_date: string | null;
   overall: { accuracy: number; tier: TachsTierKey; tier_badge: string; tier_label: string };
   sections: TachsParentSectionScore[]; interpretation: string; priority_sections: string[]; plan: string[]; placement_note: string;
+  /** Optional only so an older server payload still renders; the current builder always includes it. */
+  home_support?: TachsHomeSupportView;
   program: TachsParentProgramView; disclaimer: string;
+}
+export interface TachsHomeSupportPlan {
+  cadence: string; section_actions: { section_key: TachsSectionKey; actions: string[] }[];
+  weekly_routine: string[]; guidance: string[]; progress_check: string; strengths_note: string | null;
 }
 /** Consultant-controlled content edited at /admin/tachs/:attemptId (mirrors _shared ParentReportContent). */
 export interface TachsParentReportContent {
   interpretation: string; priority_sections: TachsSectionKey[]; recommended_program_key: TachsProgramKey;
   customized_next_steps: string[]; price_override_cents: number | null; credit_expires_at: string | null; approved_for_parent_at: string | null;
+  home_support_plan?: TachsHomeSupportPlan;
 }
 export interface TachsCarryover { v2r: number; v2w: number; flagged: boolean; note: string | null }
 
@@ -212,6 +224,14 @@ async function paymentCall<T>(fn: string, body: Record<string, unknown>): Promis
   if (data?.error) throw new TachsError(data.error, 400);
   return data as T;
 }
+/**
+ * ADMIN-ONLY curriculum generation (dedicated `tachs-curriculum` function; admin role validated server-side).
+ * Never called from parent/student pages. The function is read-only.
+ */
+export const tachsCurriculumApi = {
+  generate: (attemptId: string, programKey?: TachsProgramKey) =>
+    paymentCall<{ curriculum: import("@/lib/tachsCurriculum").TachsCurriculum; source: "engine" }>("tachs-curriculum", { attemptId, programKey }),
+};
 export const tachsPayments = {
   quote: () => paymentCall<{ alreadyEntitled: boolean; quote: TachsQuote; order?: { id: string; payment_status: string; net_cents: number; fee_cents: number; total_cents: number; currency: string } }>("create-tachs-checkout", { mode: "quote" }),
   session: () => paymentCall<{ alreadyEntitled: boolean; url?: string; verifyPending?: boolean; sessionId?: string; order?: { id: string } }>("create-tachs-checkout", { mode: "session" }),
@@ -315,7 +335,7 @@ export const tachsAdminDirect = {
       // Older engine: derive the parent preview + editor defaults locally from the same shared pure module.
       parent_report_content: ((a as Record<string, unknown>).parent_report_content as TachsParentReportContent | null) ?? null,
       parent_report_defaults: a.results ? (defaultParentReportContent(a.results as Record<string, unknown>) as TachsParentReportContent) : null,
-      parent_preview: a.results ? (parentReportView(a.results as Record<string, unknown>, ((a as Record<string, unknown>).parent_report_content as TachsParentReportContent | null) ?? null, a.completed_at) as unknown as TachsParentReport) : null,
+      parent_preview: a.results ? (parentReportView(a.results as Record<string, unknown>, ((a as Record<string, unknown>).parent_report_content as Parameters<typeof parentReportView>[1]) ?? null, a.completed_at) as unknown as TachsParentReport) : null,
       source: "direct",
     };
   },
@@ -340,16 +360,16 @@ export async function loadAdminAttempts(): Promise<ListLoad<TachsAdminAttempt> &
 export async function loadAdminDetail(id: string): Promise<TachsAdminDetail> {
   try {
     const d = await tachsApi.adminDetail(id);
-    // Older engine builds return a pre-release preview shape; rebuild the parent preview + editor
-    // defaults locally from the stored results with the same shared pure module.
-    const stale = !d.parent_preview || (d.parent_preview as { kind?: string }).kind !== "parent_released";
+    // Older engine builds return a pre-release preview shape (or one without the At-Home Support Plan);
+    // rebuild the parent preview + editor defaults locally from the stored results with the same shared pure module.
+    const stale = !d.parent_preview || (d.parent_preview as { kind?: string }).kind !== "parent_released" || !d.parent_preview.home_support;
     const results = d.attempt.results as unknown as Record<string, unknown> | null;
     const storedContent = (d.parent_report_content ?? (d.attempt as unknown as Record<string, unknown>).parent_report_content ?? null) as TachsParentReportContent | null;
     return {
       ...d, source: "engine",
       parent_report_content: storedContent,
-      parent_report_defaults: d.parent_report_defaults ?? (results ? (defaultParentReportContent(results) as TachsParentReportContent) : null),
-      parent_preview: stale ? (results ? (parentReportView(results, storedContent, d.attempt.completed_at) as unknown as TachsParentReport) : null) : d.parent_preview,
+      parent_report_defaults: (d.parent_report_defaults?.home_support_plan ? d.parent_report_defaults : null) ?? (results ? (defaultParentReportContent(results) as TachsParentReportContent) : null),
+      parent_preview: stale ? (results ? (parentReportView(results, storedContent as unknown as Parameters<typeof parentReportView>[1], d.attempt.completed_at) as unknown as TachsParentReport) : null) : d.parent_preview,
     };
   } catch (e) {
     // 404/500 from an older engine build: read the immutable snapshot directly.
