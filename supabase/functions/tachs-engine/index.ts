@@ -542,6 +542,7 @@ serve(async (req) => {
       await db.from("tachs_attempts").update({
         status: "in_progress", completed_at: null, results: null, current_section_key: target.section_key,
         reopened_at: now().toISOString(), reopened_by: user.id, email_status: "pending", email_error: null,
+        report_status: "draft", report_reviewed_at: null, report_reviewed_by: null, report_approved_at: null, report_approved_by: null, ack_email_status: "pending",
       }).eq("id", id);
       await db.from("tachs_attempt_events").insert({
         attempt_id: id, actor_id: user.id, event_type: "attempt_reopened",
