@@ -169,7 +169,7 @@ const pfSingle = (code: string, difficulty: 1 | 2 | 3, fold: Fold, hole: [number
   return {
     code, section_key: "paper_folding", skill: "single_fold", difficulty,
     stem: "The paper is folded as shown and one hole is punched through it. How will the sheet look when it is unfolded?",
-    visual: foldVisual(fold, hole),
+    visual: foldVisual(fold, [hole]),
     visual_alt: `A square sheet ${FOLD_TEXT[fold]}. One hole is punched through the folded paper.`,
     choices, correct_key,
     rationale: `Unfolding reflects the punch across the fold line, so the sheet shows the original hole and its mirror image, two holes in all.`,
