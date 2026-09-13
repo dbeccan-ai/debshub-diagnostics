@@ -75,3 +75,5 @@
 - [x] Add regression tests and complete browser/read-only data verification
 - [x] Publish verified frontend; no backend deploy, email, event, or attempt mutation
 
+
+- [x] TACHS At-Home Support Plan + admin-only curriculum — preview verified; backend deploy of tachs-engine, send-tachs-results, tachs-curriculum still pending owner authorization

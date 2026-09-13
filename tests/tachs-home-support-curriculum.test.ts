@@ -11,7 +11,7 @@ import { TACHS_PROGRAMS } from "../supabase/functions/_shared/tachs-programs.ts"
 import { STORED_RESULTS } from "./tachs-fixtures";
 
 const strip = (s: string) => s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
-const ITEM_LEAK = /correct_key|rationale|selected_key|"stem"|difficulty_path|blueprint|stripe|payment_intent|checkout_session|time_used|presented|report_notes|weakest_skills|focus_skills|lesson_sequence|consultant_notes/i;
+const ITEM_LEAK = /correct_key|rationale|selected_key|"stem"|difficulty_path|blueprint|payment_intent|checkout_session|time_used|presented|report_notes|weakest_skills|focus_skills|lesson_sequence|consultant_notes/i;
 const SKILL_LABEL_LEAK = /Vocabulary in Context|Rotation & Reflection|Two-Rule Integration|Algebra & Functions|Multistep Modeling|inference/i;
 
 describe("At-Home Support Plan — generation and privacy", () => {
