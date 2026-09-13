@@ -49,7 +49,6 @@ export const SAMPLE_BANK: BankQuestion[] = [
   ...FIGURE_CLASSIFICATION,
 ];
 
-const carry = (items: BankQuestion[]): BankQuestion[] => items.map((q) => ({ ...q, code: `V2-${q.code}` }));
 
 /** Pilot v2 — active for new attempts. */
 export const BANK_V2: BankQuestion[] = [
