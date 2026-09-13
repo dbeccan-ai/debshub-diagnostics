@@ -6,6 +6,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { tachsApi, type TachsResultsResponse, type TachsTierKey } from "@/lib/tachs";
 import { TIER_LABELS } from "@/lib/tierConfig";
+import { usd2, pricingBreakdown, TACHS_PROGRAMS } from "@/lib/tachsPrograms";
+
+const longDate = (iso: string | null) => iso ? new Date(iso).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" }) : null;
 
 /**
  * Parent / student report: "TACHS Diagnostic Results & Recommended Plan".
@@ -59,6 +62,8 @@ export default function TachsResults() {
   const r = report;
   const overallTier = TIER_LABELS[r.overall.tier];
   const p = r.program;
+  // Pricing is computed from the same shared config; fall back locally if an older server payload lacks it.
+  const pricing = p.pricing ?? pricingBreakdown({ regular_tuition_cents: p.total_cents, installment_count: TACHS_PROGRAMS[p.key]?.installments.count ?? 3, credit_applied: true, credit_expires_at: null });
 
   return (
     <div className="min-h-screen bg-background print:bg-white">
@@ -146,10 +151,30 @@ export default function TachsResults() {
             <CardHeader>
               <CardDescription className="uppercase tracking-wide text-xs">Recommended service option</CardDescription>
               <CardTitle className="text-2xl">{p.name}</CardTitle>
-              <p className="text-sm">{p.duration_weeks} weeks · {p.sessions_per_week} sessions per week · <strong className="text-base">{p.price_label}</strong> total</p>
-              <p className="text-xs text-muted-foreground">Payment plan available: {p.installments_label}.</p>
+              <p className="text-sm">{p.duration_weeks} weeks · {p.sessions_per_week} sessions per week · regular tuition <strong className="text-base">{p.price_label}</strong></p>
             </CardHeader>
             <CardContent className="grid gap-4 text-sm md:grid-cols-2">
+              <div className="md:col-span-2 rounded-md border p-3" data-testid="pricing-panel">
+                <h3 className="font-semibold mb-2">Pricing</h3>
+                <Table>
+                  <TableCaption className="text-left px-0">Tuition, credit and processing fee are shown separately.</TableCaption>
+                  <TableBody>
+                    <TableRow><TableCell scope="row">Regular tuition</TableCell><TableCell className="text-right">{usd2(pricing.regular_tuition_cents)}</TableCell></TableRow>
+                    <TableRow><TableCell scope="row">Diagnostic Enrollment Credit{longDate(pricing.credit_expires_at) ? ` (enroll by ${longDate(pricing.credit_expires_at)})` : ""}</TableCell><TableCell className="text-right">− {usd2(pricing.credit_cents)}</TableCell></TableRow>
+                    <TableRow className="font-semibold"><TableCell scope="row">Tuition balance</TableCell><TableCell className="text-right">{usd2(pricing.balance_cents)}</TableCell></TableRow>
+                    <TableRow><TableCell scope="row">Stripe processing fee (pay in full)</TableCell><TableCell className="text-right">{usd2(pricing.fee_full_cents)}</TableCell></TableRow>
+                    <TableRow className="font-semibold"><TableCell scope="row">Total checkout charge (pay in full)</TableCell><TableCell className="text-right">{usd2(pricing.total_full_cents)}</TableCell></TableRow>
+                  </TableBody>
+                </Table>
+                <h4 className="font-semibold mt-3 mb-1">Payment choices</h4>
+                <ul className="list-disc pl-5 space-y-1">
+                  <li><strong>Pay in full:</strong> {usd2(pricing.total_full_cents)} including the processing fee (tuition balance {usd2(pricing.balance_cents)}).</li>
+                  <li><strong>Installments:</strong> {pricing.installments.count} payments of {usd2(pricing.installments.charge_each_cents)}, each including the processing fee (each covers {usd2(pricing.installments.net_each_cents)} of tuition; total charged {usd2(pricing.installments.total_charged_cents)}).</li>
+                </ul>
+                <p className="text-xs text-muted-foreground mt-2">{pricing.installment_fee_note}</p>
+                <p className="text-xs text-muted-foreground mt-1">{pricing.credit_terms}{longDate(pricing.credit_expires_at) ? ` Credit valid through ${longDate(pricing.credit_expires_at)}.` : ""}</p>
+                <p className="text-xs text-muted-foreground mt-1">{pricing.domestic_card_note}</p>
+              </div>
               <div>
                 <h3 className="font-semibold mb-1">Focus</h3>
                 <ul className="list-disc pl-5 space-y-1">{p.focus.map((f, i) => <li key={i}>{f}</li>)}</ul>
@@ -161,7 +186,7 @@ export default function TachsResults() {
               {p.honesty_note && <p className="md:col-span-2 text-muted-foreground">{p.honesty_note}</p>}
               <div className="md:col-span-2 flex flex-wrap gap-2 no-print">
                 <Button asChild><a href={p.enrollment_call_url} target="_blank" rel="noopener noreferrer">Schedule Enrollment Call</a></Button>
-                {p.payment_url ? <Button asChild variant="outline"><a href={p.payment_url}>Enroll now</a></Button> : <Button variant="outline" disabled title="Enrollment is completed with your consultant on the call">Enroll online — coming soon</Button>}
+                {p.payment_url ? <Button asChild variant="outline"><a href={p.payment_url}>Enroll now</a></Button> : <Button variant="outline" disabled title="Enrollment and payment are completed with your consultant on the call">Online payment — coming soon</Button>}
               </div>
               <p className="md:col-span-2 hidden print:block text-xs">Schedule your enrollment call: {p.enrollment_call_url}</p>
             </CardContent>

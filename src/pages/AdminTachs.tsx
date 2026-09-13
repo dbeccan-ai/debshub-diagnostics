@@ -5,7 +5,7 @@ import {
   tachsApi, SECTION_NAMES, skillLabel, formatClock, dollars, REPORT_STATUS_LABEL, loadAdminAttempts, loadAdminDetail,
   type TachsAdminAttempt, type TachsAdminDetail, type TachsOrder, type TachsReportStatus, type TachsParentReportContent,
 } from "@/lib/tachs";
-import { PROGRAM_KEYS, TACHS_PROGRAMS, TACHS_TIERS, usd, type TachsProgramKey } from "@/lib/tachsPrograms";
+import { PROGRAM_KEYS, TACHS_PROGRAMS, TACHS_TIERS, usd, usd2, pricingBreakdown, type TachsProgramKey } from "@/lib/tachsPrograms";
 import { PINNED_ATTEMPTS, MODE_LABEL, countsByMode, filterByMode, type AttemptMode } from "@/lib/tachsAdminHelpers";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -483,6 +483,11 @@ export default function AdminTachs() {
                           onChange={(e) => setParentForm({ ...parentForm, price_override_cents: e.target.value === "" ? null : Math.round(Number(e.target.value) * 100) })} />
                       </label>
                     </div>
+                    <label className="text-sm font-medium">Diagnostic Enrollment Credit expires (defaults to 7 days after release)
+                      <Input className="mt-1" type="date" disabled={!canEditParent}
+                        value={parentForm.credit_expires_at ? parentForm.credit_expires_at.slice(0, 10) : ""}
+                        onChange={(e) => setParentForm({ ...parentForm, credit_expires_at: e.target.value ? new Date(`${e.target.value}T23:59:59`).toISOString() : null })} />
+                    </label>
                     <label className="text-sm font-medium">Next-step plan (one step per line)
                       <Textarea className="mt-1 min-h-[120px]" value={parentForm.customized_next_steps.join("\n")} disabled={!canEditParent}
                         onChange={(e) => setParentForm({ ...parentForm, customized_next_steps: e.target.value.split("\n") })} />
@@ -513,7 +518,15 @@ export default function AdminTachs() {
                     </div>
                     <p className="text-muted-foreground">{detail.parent_preview.interpretation}</p>
                     <ol className="list-decimal pl-5">{detail.parent_preview.plan.map((s, i) => <li key={i}>{s}</li>)}</ol>
-                    <p><strong>{detail.parent_preview.program.name}</strong> — {detail.parent_preview.program.price_label} · {detail.parent_preview.program.installments_label}</p>
+                    {(() => { const pg = detail.parent_preview.program; const pr = pg.pricing ?? pricingBreakdown({ regular_tuition_cents: pg.total_cents, installment_count: TACHS_PROGRAMS[pg.key]?.installments.count ?? 3, credit_applied: true, credit_expires_at: null }); return (
+                    <div data-testid="admin-pricing-preview">
+                      <p><strong>{detail.parent_preview.program.name}</strong> — regular tuition {detail.parent_preview.program.price_label}</p>
+                      <ul className="mt-1 text-xs text-muted-foreground">
+                        <li>Diagnostic Enrollment Credit − {usd2(pr.credit_cents)}{pr.credit_expires_at ? ` (enroll by ${new Date(pr.credit_expires_at).toLocaleDateString()})` : " (date set at release: +7 days)"}</li>
+                        <li>Tuition balance {usd2(pr.balance_cents)} · fee {usd2(pr.fee_full_cents)} · pay in full {usd2(pr.total_full_cents)}</li>
+                        <li>{pr.installments.count} payments of {usd2(pr.installments.charge_each_cents)} · total {usd2(pr.installments.total_charged_cents)}</li>
+                      </ul>
+                    </div>); })()}
                   </div>
                 </section>
               )}

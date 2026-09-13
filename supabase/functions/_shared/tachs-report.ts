@@ -15,8 +15,8 @@
 // after an admin has moved it through draft -> reviewed -> approved (-> sent).
 
 import {
-  PROGRAM_FOR_TIER, PROGRAM_KEYS, TACHS_PROGRAMS, TACHS_TIERS, tachsTierFor, usd, installmentLabel, ENROLLMENT_CALL_URL,
-  type TachsProgram, type TachsProgramKey, type TachsTierKey,
+  PROGRAM_FOR_TIER, PROGRAM_KEYS, TACHS_PROGRAMS, TACHS_TIERS, tachsTierFor, usd, usd2, ENROLLMENT_CALL_URL,
+  pricingBreakdown, addDaysIso, DIAGNOSTIC_CREDIT_WINDOW_DAYS, type PricingBreakdown, type TachsProgram, type TachsProgramKey, type TachsTierKey,
 } from "./tachs-programs.ts";
 
 export const APP_URL = "https://debshub-diagnostics.lovable.app";
@@ -81,8 +81,11 @@ export interface ParentReportContent {
   recommended_program_key: TachsProgramKey;
   customized_next_steps: string[];
   price_override_cents: number | null;
+  /** Consultant-editable. Defaults to approval/release time + 7 calendar days when the report is approved. */
+  credit_expires_at: string | null;
   approved_for_parent_at: string | null;
 }
+export const defaultCreditExpiry = (approvedAtIso: string): string => addDaysIso(approvedAtIso, DIAGNOSTIC_CREDIT_WINDOW_DAYS);
 
 // ---------- released parent report ----------
 export interface ParentSectionScore { section_key: string; label: string; accuracy: number; tier: TachsTierKey; tier_badge: string; tier_label: string }
@@ -90,6 +93,8 @@ export interface ParentProgramView {
   key: TachsProgramKey; name: string; duration_weeks: number; sessions_per_week: number; total_cents: number; price_label: string;
   installments_label: string; focus: string[]; included: string[]; progress_monitoring: string; honesty_note: string | null;
   payment_url: string | null; enrollment_call_url: string;
+  /** Receipt-style pricing with the conditional credit applied; live checkout links stay null. */
+  pricing: PricingBreakdown;
 }
 export interface ParentReport {
   kind: "parent_released";
@@ -168,6 +173,7 @@ export function defaultParentReportContent(results: Record<string, any> | null |
     recommended_program_key: programKey,
     customized_next_steps: defaultNextSteps(TACHS_PROGRAMS[programKey], priority),
     price_override_cents: null,
+    credit_expires_at: null,
     approved_for_parent_at: null,
   };
 }
@@ -177,7 +183,7 @@ export function sanitizeParentReportContent(input: unknown, results: Record<stri
   if (!input || typeof input !== "object" || Array.isArray(input)) return { ok: false, error: "Content must be an object." };
   const defaults = defaultParentReportContent(results);
   const o = input as Record<string, unknown>;
-  const allowed = new Set(["interpretation", "priority_sections", "recommended_program_key", "customized_next_steps", "price_override_cents", "approved_for_parent_at"]);
+  const allowed = new Set(["interpretation", "priority_sections", "recommended_program_key", "customized_next_steps", "price_override_cents", "credit_expires_at", "approved_for_parent_at"]);
   const extra = Object.keys(o).filter((k) => !allowed.has(k));
   if (extra.length) return { ok: false, error: `Unexpected fields: ${extra.join(", ")}` };
   const interpretation = typeof o.interpretation === "string" ? o.interpretation.trim().slice(0, 4000) : defaults.interpretation;
@@ -195,24 +201,30 @@ export function sanitizeParentReportContent(input: unknown, results: Record<stri
     if (!Number.isInteger(n) || n < 0 || n > 5_000_000) return { ok: false, error: "price_override_cents must be a whole number of cents." };
     price = n;
   }
+  let creditExpires: string | null = null;
+  if (o.credit_expires_at != null && o.credit_expires_at !== "") {
+    const d = new Date(String(o.credit_expires_at));
+    if (Number.isNaN(d.getTime())) return { ok: false, error: "credit_expires_at must be a valid date." };
+    creditExpires = d.toISOString();
+  }
   const content: ParentReportContent = {
     interpretation, priority_sections: [...new Set(ps as string[])], recommended_program_key: pk as TachsProgramKey,
-    customized_next_steps: steps, price_override_cents: price, approved_for_parent_at: null, // approval stamp is set server-side only
+    customized_next_steps: steps, price_override_cents: price, credit_expires_at: creditExpires, approved_for_parent_at: null, // approval stamp is set server-side only
   };
   const leaked = findForbiddenParentKeys(content).concat(findForbiddenParentPhrases(JSON.stringify(content)));
   if (leaked.length) return { ok: false, error: `Parent content must not contain internal terms (${leaked.join(", ")}).` };
   return { ok: true, content };
 }
 
-export function programView(key: TachsProgramKey, priceOverrideCents: number | null): ParentProgramView {
+export function programView(key: TachsProgramKey, priceOverrideCents: number | null, creditExpiresAt: string | null = null): ParentProgramView {
   const p = TACHS_PROGRAMS[key];
   const total = priceOverrideCents ?? p.total_cents;
-  const perInstallment = priceOverrideCents != null ? Math.round(total / p.installments.count) : p.installments.amount_cents;
+  const pricing = pricingBreakdown({ regular_tuition_cents: total, installment_count: p.installments.count, credit_applied: true, credit_expires_at: creditExpiresAt });
   return {
     key: p.key, name: p.name, duration_weeks: p.duration_weeks, sessions_per_week: p.sessions_per_week, total_cents: total, price_label: usd(total),
-    installments_label: installmentLabel({ installments: { count: p.installments.count, amount_cents: perInstallment } }),
+    installments_label: `${pricing.installments.count} payments of ${usd2(pricing.installments.charge_each_cents)} (each includes the processing fee)`,
     focus: [...p.focus], included: [...p.included], progress_monitoring: p.progress_monitoring, honesty_note: p.honesty_note,
-    payment_url: p.payment_url, enrollment_call_url: ENROLLMENT_CALL_URL,
+    payment_url: p.payment_url, enrollment_call_url: ENROLLMENT_CALL_URL, pricing,
   };
 }
 
@@ -236,7 +248,7 @@ export function parentReportView(results: Record<string, any> | null | undefined
     priority_sections: c.priority_sections.map((k) => SECTION_LABELS[k] ?? k),
     plan: [...c.customized_next_steps],
     placement_note: PLACEMENT_NOTE,
-    program: programView(c.recommended_program_key, c.price_override_cents),
+    program: programView(c.recommended_program_key, c.price_override_cents, c.credit_expires_at ?? null),
     disclaimer: DISCLAIMER_SHORT,
   };
 }
@@ -329,6 +341,35 @@ export function acknowledgmentEmailHtml(input: { firstName: string; completedOn:
 const tierChip = (badge: string, label: string, color: string) =>
   `<span style="display:inline-block;border-radius:999px;padding:2px 10px;font-size:12px;font-weight:700;color:#ffffff;background:${esc(color)};">${esc(badge)} · ${esc(label)}</span>`;
 
+export const fmtLongDate = (iso: string | null) => iso ? new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric", timeZone: "America/New_York" }) : null;
+
+/** Receipt-style pricing lines + two payment choices (no live links). Shared by the email; the page mirrors it. */
+export function pricingHtml(pr: PricingBreakdown): string {
+  const row = (label: string, value: string, strong = false) =>
+    `<tr><td style="padding:5px 0;color:#334155;${strong ? "font-weight:700;" : ""}">${esc(label)}</td><td style="padding:5px 0;text-align:right;${strong ? "font-weight:700;" : ""}">${esc(value)}</td></tr>`;
+  const exp = fmtLongDate(pr.credit_expires_at);
+  return `
+        <table role="table" style="width:100%;border-collapse:collapse;font-size:14px;margin-top:10px;border-top:1px solid #e2e8f0;">
+          <caption style="text-align:left;font-size:12px;color:#64748b;padding:6px 0;">Tuition, credit and processing fee are shown separately.</caption>
+          <tbody>
+            ${row("Regular tuition", usd2(pr.regular_tuition_cents))}
+            ${row(`Diagnostic Enrollment Credit${exp ? ` (enroll by ${exp})` : ""}`, `− ${usd2(pr.credit_cents)}`)}
+            ${row("Tuition balance", usd2(pr.balance_cents), true)}
+            ${row("Stripe processing fee (pay in full)", usd2(pr.fee_full_cents))}
+            ${row("Total checkout charge (pay in full)", usd2(pr.total_full_cents), true)}
+          </tbody>
+        </table>
+        <div style="margin-top:10px;font-weight:600;">Payment choices</div>
+        <ul style="margin:4px 0 0 18px;padding:0;color:#334155;">
+          <li style="margin:0 0 6px;"><strong>Pay in full:</strong> ${esc(usd2(pr.total_full_cents))} including the processing fee (tuition balance ${esc(usd2(pr.balance_cents))}).</li>
+          <li style="margin:0 0 6px;"><strong>Installments:</strong> ${esc(pr.installments.count)} payments of ${esc(usd2(pr.installments.charge_each_cents))}, each including the processing fee (each covers ${esc(usd2(pr.installments.net_each_cents))} of tuition; total charged ${esc(usd2(pr.installments.total_charged_cents))}).</li>
+        </ul>
+        <p style="font-size:12px;color:#475569;margin:8px 0 0;">${esc(pr.installment_fee_note)}</p>
+        <p style="font-size:12px;color:#475569;margin:6px 0 0;">${esc(pr.credit_terms)}${exp ? ` Credit valid through ${esc(exp)}.` : ""}</p>
+        <p style="font-size:12px;color:#475569;margin:6px 0 0;">${esc(pr.domestic_card_note)}</p>
+        <p style="font-size:12px;color:#475569;margin:6px 0 0;">Enrollment and payment are completed with your consultant on the enrollment call.</p>`;
+}
+
 /** Released parent report: scores + tiers, interpretation, plan, program & price, disclaimer. Nothing else. */
 export function parentReportEmailHtml(input: { firstName: string; gradeLevel: number | null; completedOn: string; attemptId: string; report: ParentReport }): string {
   const r = input.report;
@@ -371,8 +412,8 @@ export function parentReportEmailHtml(input: { firstName: string; gradeLevel: nu
       <div style="border:2px solid #1C2D5A;border-radius:10px;padding:14px 16px;">
         <div style="font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#64748b;">Recommended service option</div>
         <div style="font-size:18px;font-weight:800;color:#1C2D5A;margin-top:2px;">${esc(p.name)}</div>
-        <div style="color:#334155;margin-top:4px;">${esc(p.duration_weeks)} weeks · ${esc(p.sessions_per_week)} sessions per week · <strong>${esc(p.price_label)}</strong> total</div>
-        <div style="font-size:13px;color:#475569;margin-top:2px;">Payment plan available: ${esc(p.installments_label)}.</div>
+        <div style="color:#334155;margin-top:4px;">${esc(p.duration_weeks)} weeks · ${esc(p.sessions_per_week)} sessions per week</div>
+        ${pricingHtml(p.pricing)}
         <div style="margin-top:10px;font-weight:600;">Focus</div><ul style="margin:4px 0 0 18px;padding:0;color:#334155;">${li(p.focus)}</ul>
         <div style="margin-top:10px;font-weight:600;">What is included</div><ul style="margin:4px 0 0 18px;padding:0;color:#334155;">${li(p.included)}</ul>
         ${p.honesty_note ? `<p style="font-size:13px;color:#475569;margin:10px 0 0;">${esc(p.honesty_note)}</p>` : ""}

@@ -64,10 +64,8 @@
 - [ ] Backend deploy of tachs-engine + send-tachs-results (awaiting owner approval)
 
 ## TACHS parent report architecture (preview-only, 2026-09-13 20:37)
-- [ ] A. Strict surface separation: parent page = scores/tiers/interpretation/plan/program only; "being prepared" before approval
-- [ ] B. Diagnostic Hub tier system (85/66) per section + overall; no working band parent-facing
-- [ ] C. Parent report structure (6 sections) — page + email
-- [ ] D. `tachs-programs` config (Tier 1/2/3 programs, prices, null payment URLs)
-- [ ] E. `parent_report_content` (additive migration, not applied) + admin editor + defaults + approval snapshot
-- [ ] F. Whitelist/forbidden keys expanded; tests; typecheck; build; browser check
-- [ ] Report: root cause, files, checks, URLs, what needs schema/backend deploy (NOT done this turn)
+- [x] A–F done: parent surface stripped, tier system, 6-section report, program config, parent_report_content (migration applied, additive/null), admin editor, tests 129 passing, build OK
+- [ ] Owner decision: `tachs-engine` appears auto-deployed with an intermediate build; `send-tachs-results` deploy still pending owner approval
+
+## TACHS pricing correction (20:52 follow-up, preview-only)
+- [x] All items done (tests/tachs-pricing.test.ts); payment URLs remain null
