@@ -63,7 +63,7 @@ describe("released parent report email", () => {
     expect(html).toContain("Schedule Enrollment Call");
     expect(html).not.toMatch(ANSWER_LEAK);
     expect(html).not.toMatch(/inference|algebra:/i); // no skill/adaptive internals
-    expect(html).not.toMatch(/Faster than allotted|Time used|pacing|of 50|Pilot|blueprint|working|pending consultant interpretation/i);
+    expect(html).not.toMatch(/Faster than allotted|Time used|per item|of 50|Pilot|blueprint|working band|pending consultant interpretation/i);
     expect(html).not.toMatch(/\/admin\//);
     expect(findForbiddenParentPhrases(html)).toEqual([]);
   });

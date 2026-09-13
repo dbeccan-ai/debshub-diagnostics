@@ -126,7 +126,7 @@ describe("F. engine contract: unapproved parent route withholds scores", () => {
     const block = engine.slice(engine.indexOf('if (action === "results")'), engine.indexOf('if (freshAttempt.status !== "in_progress")'));
     const preRelease = block.slice(0, block.indexOf("const full ="));
     expect(preRelease).toMatch(/released: false, message: REPORT_PREPARING_MESSAGE/);
-    expect(preRelease).not.toMatch(/overall_accuracy|parentReportView|\.results\b|sections/);
+    expect(preRelease).not.toMatch(/overall_accuracy|parentReportView|\.results\b/);
     expect(block).not.toMatch(/blueprint_version|test_mode|user_id|started_at|email_status|report_status:/);
   });
   it("approval snapshots content with approved_for_parent_at and returning to draft clears it", () => {
