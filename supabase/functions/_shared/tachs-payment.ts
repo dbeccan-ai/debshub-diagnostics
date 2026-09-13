@@ -1,6 +1,20 @@
 // Pure TACHS entitlement + payment verification logic (no Deno/Supabase imports so it is unit-testable).
 
 export const TACHS_EXAM_TYPE = "tachs";
+/** Non-secret: the only Stripe account the owner authorises for payment processing. */
+export const EXPECTED_STRIPE_ACCOUNT_ID = "acct_1SUg5a1qBeNCFEYA";
+
+export type AccountCheck = { ok: true; accountId: string } | { ok: false; reason: string };
+
+/** Verifies a retrieved Stripe account identity matches the owner-designated account. */
+export function checkStripeAccount(account: { id?: string | null } | null | undefined): AccountCheck {
+  const id = account?.id ?? "";
+  if (!id) return { ok: false, reason: "Payment configuration error: Stripe account identity could not be verified." };
+  if (id !== EXPECTED_STRIPE_ACCOUNT_ID) {
+    return { ok: false, reason: `Payment configuration error: Stripe account ${id} is not the authorised payment account.` };
+  }
+  return { ok: true, accountId: id };
+}
 export const TACHS_NET_CENTS = 17500; // $175.00 base price
 export const TACHS_CURRENCY = "usd";
 export const TACHS_PRODUCT_NAME = "D.E.Bs TACHS Readiness Diagnostic";
