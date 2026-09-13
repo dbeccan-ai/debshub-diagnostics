@@ -177,9 +177,16 @@ async function gradeAttempt(db: Client, attemptId: string) {
     sections: sectionSummaries,
     skills: skillRows,
     strengths, gaps,
-    disclaimer: "This is a D.E.Bs readiness estimate based on a pilot item bank. It is not an official TACHS score, percentile, or prediction and is not affiliated with or endorsed by the TACHS program or its publisher.",
+    disclaimer: DISCLAIMER,
   };
-  await db.from("tachs_attempts").update({ status: "completed", completed_at: now().toISOString(), results, current_section_key: null }).eq("id", attemptId);
+  // Idempotent: only the transition out of in_progress writes results and triggers the email.
+  const { data: finished } = await db.from("tachs_attempts")
+    .update({ status: "completed", completed_at: now().toISOString(), results, current_section_key: null })
+    .eq("id", attemptId).eq("status", "in_progress").select("id").maybeSingle();
+  if (finished) {
+    await db.from("tachs_attempt_events").insert({ attempt_id: attemptId, event_type: "graded", detail: { overall_accuracy: overall, band: band.key } });
+    if (!attempt.test_mode) await sendReportEmail(attemptId);
+  }
   return results;
 }
 
