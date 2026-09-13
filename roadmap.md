@@ -21,3 +21,13 @@
 - [x] Typecheck, build, and full end-to-end attempt verified
 
 - [x] Pass 2 audit: parent-only email, normal-mode refuses under-stocked bank (503), /admin/tachs/:attemptId deep link, masked email status on results, balanced answer keys, FM duplicates fixed, `bun run test` runs bank validation + vitest, fingerprint-based idempotent reseed (200 active).
+
+## TACHS sales & payment flow (done)
+- [x] tachs_orders model + tachs_attempts.order_id/access_source, RLS, legacy/test-mode backfill
+- [x] create-tachs-checkout / verify-tachs-payment edge functions ($175 + gross-up fee, metadata, idempotent verify)
+- [x] tachs-engine server-side entitlement gating, admin grant + audit events
+- [x] Homepage hero/tests/pricing/FAQ TACHS cards; /tests + dashboard payment-aware CTAs
+- [x] /tachs/checkout, /tachs/payment-success, payment-aware /tachs/start
+- [x] /admin/tachs payment column, order table, detail payment block, Grant TACHS access dialog
+- [x] tests/tachs-entitlement.test.ts (14 tests); full suite 39 passing; typecheck clean
+- [ ] Publish — awaiting owner verification (do not publish yet)
