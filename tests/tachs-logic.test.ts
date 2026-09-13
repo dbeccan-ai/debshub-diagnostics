@@ -73,3 +73,70 @@ describe("adaptive routing", () => {
     expect(s.transition).toBeNull();
   });
 });
+
+import { mathReadiness, selectNextQuestion, seededRng, simulateSection } from "../supabase/functions/tachs-engine/logic.ts";
+import { BLUEPRINT_V2, BANK_V2 } from "../supabase/functions/tachs-engine/sample-bank.ts";
+
+const poolFor = (key: string) => BANK_V2.filter((q) => q.section_key === key).map((q) => ({ id: q.code, skill: q.skill, difficulty: q.difficulty }));
+const sectionFor = (key: string) => BLUEPRINT_V2.sections.find((s) => s.key === key)!;
+
+describe("adaptive selection (v2 pools)", () => {
+  it("never repeats an item and never skips a required domain", () => {
+    for (const key of ["mathematics", "paper_folding"]) {
+      const sec = sectionFor(key);
+      for (const seed of [1, 7, 42]) {
+        const sim = simulateSection(poolFor(key), sec.skill_quotas, sec.item_count, () => 0.5, seededRng(seed));
+        expect(sim.presented.length).toBe(sec.item_count);
+        expect(new Set(sim.presented.map((p) => p.id)).size).toBe(sec.item_count);
+        expect(sim.skillCounts).toEqual(sec.skill_quotas);
+      }
+    }
+  });
+
+  it("starts at level 2", () => {
+    const sec = sectionFor("mathematics");
+    const sim = simulateSection(poolFor("mathematics"), sec.skill_quotas, sec.item_count, () => 0.5, seededRng(3));
+    expect(sim.path[0]).toBe(2);
+  });
+
+  it("gives high and low performers measurably different difficulty distributions while both meet quotas", () => {
+    for (const key of ["mathematics", "paper_folding"]) {
+      const sec = sectionFor(key);
+      const pool = poolFor(key);
+      const strong = simulateSection(pool, sec.skill_quotas, sec.item_count, () => 0.95, seededRng(11));
+      const weak = simulateSection(pool, sec.skill_quotas, sec.item_count, () => 0.1, seededRng(11));
+      expect(strong.skillCounts, key).toEqual(sec.skill_quotas);
+      expect(weak.skillCounts, key).toEqual(sec.skill_quotas);
+      expect(strong.meanDifficulty - weak.meanDifficulty, `${key} mean difficulty gap`).toBeGreaterThan(0.6);
+      expect(strong.difficultyCounts[3], `${key} strong L3`).toBeGreaterThan(weak.difficultyCounts[3]);
+      expect(weak.difficultyCounts[1], `${key} weak L1`).toBeGreaterThan(strong.difficultyCounts[1]);
+      // two different students should not see the same item sequence
+      expect(strong.presented.map((p) => p.id).join()).not.toBe(weak.presented.map((p) => p.id).join());
+    }
+  });
+
+  it("prefers the current difficulty inside open quotas, then the nearest level", () => {
+    const cands = [
+      { id: "a", skill: "x", difficulty: 1 }, { id: "b", skill: "x", difficulty: 3 }, { id: "c", skill: "y", difficulty: 2 },
+    ];
+    expect(selectNextQuestion(cands, { x: 1, y: 0 }, 3, () => 0)?.id).toBe("b");
+    expect(selectNextQuestion(cands, { x: 1, y: 0 }, 2, () => 0)?.id).toBe("a"); // no level-2 x → nearest (1 before 3)
+    expect(selectNextQuestion(cands, { x: 0, y: 1 }, 1, () => 0)?.id).toBe("c");
+    expect(selectNextQuestion([], { x: 1 }, 2)).toBeNull();
+  });
+});
+
+describe("mathematics readiness ladder", () => {
+  it("aggregates by strand in Foundation → Grade 8 → Algebra I order and skips unstranded rows", () => {
+    const rows = mathReadiness([
+      { strand: "algebra1", is_correct: true }, { strand: "algebra1", is_correct: false },
+      { strand: "foundation", is_correct: true }, { strand: null, is_correct: true }, { strand: "grade8", is_correct: null },
+    ]);
+    expect(rows.map((r) => r.key)).toEqual(["foundation", "grade8", "algebra1"]);
+    expect(rows[2]).toMatchObject({ presented: 2, correct: 1, accuracy: 50 });
+    expect(rows[0].accuracy).toBe(100);
+  });
+  it("returns an empty ladder for legacy v1 responses", () => {
+    expect(mathReadiness([{ strand: null, is_correct: true }])).toEqual([]);
+  });
+});
