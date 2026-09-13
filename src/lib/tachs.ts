@@ -62,9 +62,17 @@ export interface TachsAuditItem {
   code: string; section_key: TachsSectionKey; skill: string; difficulty: number; strand: string | null; stem: string;
   passage_id: string | null; passage_title: string | null; visual: unknown; visual_alt: string | null; choices: TachsChoice[]; correct_key: string; rationale: string;
 }
+export interface TachsResultsResponse {
+  viewer: "student" | "admin";
+  report: TachsParentReport | null;
+  report_status: TachsReportStatus;
+  results?: TachsResults; review?: TachsReviewItem[]; carryover?: TachsCarryover;
+  attempt: { id: string; grade_level: number | null; test_mode: boolean; completed_at: string; started_at: string; user_id: string; blueprint_version: number };
+  email?: { status: string; sent_at: string | null; masked_to: string | null; ack_status?: string };
+}
 export interface TachsReviewItem {
   section_key: TachsSectionKey; position: number; skill: string; difficulty: number; selected_key: string | null; is_correct: boolean | null;
-  correct_key?: string; rationale?: string; stem?: string; choices?: TachsChoice[]; time_spent_seconds: number;
+  correct_key?: string; rationale?: string; stem?: string; choices?: TachsChoice[]; time_spent_seconds: number; code?: string;
 }
 
 export const SECTION_NAMES: Record<TachsSectionKey, string> = {
@@ -72,7 +80,28 @@ export const SECTION_NAMES: Record<TachsSectionKey, string> = {
   figure_matrices: "Figure Matrices", paper_folding: "Paper Folding", figure_classification: "Figure Classification",
 };
 
-export const skillLabel = (s: string) => s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+const SKILL_LABEL_OVERRIDES: Record<string, string> = {
+  size_position_partwhole: "Size, Position & Part-Whole", partwhole: "Part-Whole", part_whole: "Part-Whole",
+  two_rule_integration: "Two-Rule Integration", vocabulary_in_context: "Vocabulary in Context", main_idea: "Main Idea",
+};
+export const skillLabel = (s: string) =>
+  SKILL_LABEL_OVERRIDES[s] ?? s.replace(/partwhole/g, "part-whole").replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()).replace(/\bPart-whole\b/g, "Part-Whole");
+
+export type TachsReportStatus = "draft" | "reviewed" | "approved" | "sent";
+export const REPORT_STATUS_LABEL: Record<TachsReportStatus, string> = { draft: "Draft — awaiting review", reviewed: "Reviewed — awaiting approval", approved: "Approved — ready to send", sent: "Sent to parent" };
+export interface TachsParentSection {
+  section_key: TachsSectionKey; label: string; item_count: number; presented: number; answered: number; correct: number; accuracy: number;
+  time_limit_seconds: number; time_used_seconds: number; pace_seconds_per_item: number; allotted_seconds_per_item: number;
+  pacing: "rushed" | "on_pace" | "slow"; ended_by: "student" | "timer";
+}
+export interface TachsParentReport {
+  kind: "parent_preliminary"; overall_accuracy: number; total_presented: number; total_correct: number; total_time_seconds: number;
+  sections: TachsParentSection[]; observations: string[];
+  working_band: { label: string; color: string; interpretation: string } | null;
+  pending_interpretation: string; disclaimer: string; blueprint_version: number | null; generated_at: string | null;
+}
+export interface TachsCarryover { v2r: number; v2w: number; flagged: boolean; note: string | null }
+export const PACING_LABEL: Record<TachsParentSection["pacing"], string> = { rushed: "Faster than allotted", on_pace: "Within allotted pace", slow: "Slower than allotted" };
 
 export class TachsError extends Error {
   status: number; state?: TachsState;
@@ -117,10 +146,12 @@ export const tachsApi = {
     call<{ ok: true; server_time: string }>({ action: "answer", attemptId, questionId, ...patch }),
   next: (attemptId: string) => call<{ done: boolean; state: TachsState }>({ action: "next", attemptId }),
   submitSection: (attemptId: string) => call<{ state: TachsState; completed: boolean }>({ action: "submit_section", attemptId }),
-  results: (attemptId: string) => call<{ results: TachsResults; review: TachsReviewItem[]; attempt: { id: string; grade_level: number | null; test_mode: boolean; completed_at: string; started_at: string; user_id: string }; email?: { status: string; sent_at: string | null; masked_to: string | null } }>({ action: "results", attemptId }),
+  results: (attemptId: string) => call<TachsResultsResponse>({ action: "results", attemptId }),
   adminList: () => call<{ attempts: TachsAdminAttempt[]; orders: TachsOrder[] }>({ action: "admin_list", attemptId: "admin" }),
   adminDetail: (attemptId: string) =>
-    call<{ attempt: TachsAdminAttempt; sections: TachsAdminSection[]; audit: TachsAuditRow[]; events: TachsAttemptEvent[] }>({ action: "admin_detail", attemptId }),
+    call<{ attempt: TachsAdminAttempt; sections: TachsAdminSection[]; audit: TachsAuditRow[]; events: TachsAttemptEvent[]; carryover: TachsCarryover; parent_preview: TachsParentReport | null }>({ action: "admin_detail", attemptId }),
+  adminReportTransition: (attemptId: string, to: TachsReportStatus, notes?: string) =>
+    call<{ ok: true; report: { report_status: TachsReportStatus; email_status?: string | null; email_error?: string | null; email_sent_at?: string | null; report_notes?: string | null } }>({ action: "admin_report_transition", attemptId, to, notes }),
   adminResendEmail: (attemptId: string) =>
     call<{ ok: true; email: { email_status: string | null; email_error: string | null; email_sent_at: string | null; email_attempts: number | null } }>({ action: "admin_resend_email", attemptId }),
   adminReopen: (attemptId: string, sectionKey?: string) =>
@@ -174,6 +205,8 @@ export interface TachsAdminAttempt {
   test_mode: boolean; started_at: string; completed_at: string | null; blueprint_version: number;
   parent_email: string | null; email_status: string | null; email_sent_at: string | null;
   email_attempts: number | null; email_error: string | null; results: TachsResults | null;
+  report_status?: TachsReportStatus | null; report_reviewed_at?: string | null; report_approved_at?: string | null; report_sent_at?: string | null; report_notes?: string | null;
+  ack_email_status?: string | null; ack_email_sent_at?: string | null;
   reopened_at?: string | null; access_source?: string; order_id?: string | null; order?: TachsOrder | null;
   profiles?: { full_name: string | null; username: string | null } | null;
 }
@@ -184,7 +217,7 @@ export interface TachsAdminSection {
 }
 export interface TachsAuditRow {
   section_key: TachsSectionKey; position: number; code?: string; stem?: string; skill: string; difficulty: number;
-  selected_key: string | null; correct_key?: string; is_correct: boolean | null; is_flagged: boolean;
+  selected_key: string | null; correct_key?: string; rationale?: string | null; is_correct: boolean | null; is_flagged: boolean;
   time_spent_seconds: number; presented_at: string; answered_at: string | null;
 }
 export interface TachsAttemptEvent {

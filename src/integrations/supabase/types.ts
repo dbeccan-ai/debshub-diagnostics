@@ -859,6 +859,9 @@ export type Database = {
       tachs_attempts: {
         Row: {
           access_source: string
+          ack_email_error: string | null
+          ack_email_sent_at: string | null
+          ack_email_status: string
           blueprint_id: string
           blueprint_version: number
           completed_at: string | null
@@ -874,6 +877,13 @@ export type Database = {
           parent_email: string | null
           reopened_at: string | null
           reopened_by: string | null
+          report_approved_at: string | null
+          report_approved_by: string | null
+          report_notes: string | null
+          report_reviewed_at: string | null
+          report_reviewed_by: string | null
+          report_sent_at: string | null
+          report_status: string
           results: Json | null
           school_id: string | null
           started_at: string
@@ -884,6 +894,9 @@ export type Database = {
         }
         Insert: {
           access_source?: string
+          ack_email_error?: string | null
+          ack_email_sent_at?: string | null
+          ack_email_status?: string
           blueprint_id: string
           blueprint_version: number
           completed_at?: string | null
@@ -899,6 +912,13 @@ export type Database = {
           parent_email?: string | null
           reopened_at?: string | null
           reopened_by?: string | null
+          report_approved_at?: string | null
+          report_approved_by?: string | null
+          report_notes?: string | null
+          report_reviewed_at?: string | null
+          report_reviewed_by?: string | null
+          report_sent_at?: string | null
+          report_status?: string
           results?: Json | null
           school_id?: string | null
           started_at?: string
@@ -909,6 +929,9 @@ export type Database = {
         }
         Update: {
           access_source?: string
+          ack_email_error?: string | null
+          ack_email_sent_at?: string | null
+          ack_email_status?: string
           blueprint_id?: string
           blueprint_version?: number
           completed_at?: string | null
@@ -924,6 +947,13 @@ export type Database = {
           parent_email?: string | null
           reopened_at?: string | null
           reopened_by?: string | null
+          report_approved_at?: string | null
+          report_approved_by?: string | null
+          report_notes?: string | null
+          report_reviewed_at?: string | null
+          report_reviewed_by?: string | null
+          report_sent_at?: string | null
+          report_status?: string
           results?: Json | null
           school_id?: string | null
           started_at?: string
@@ -945,6 +975,20 @@ export type Database = {
             columns: ["order_id"]
             isOneToOne: false
             referencedRelation: "tachs_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tachs_attempts_report_approved_by_fkey"
+            columns: ["report_approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tachs_attempts_report_reviewed_by_fkey"
+            columns: ["report_reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {

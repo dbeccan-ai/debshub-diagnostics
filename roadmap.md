@@ -47,3 +47,12 @@
 - [x] Old-vs-v2 audit table (Content Audit page, v1 vs v2 selector); NO seed/deploy/publish done
 - [ ] Deploy tachs-engine + publish — blocked: awaiting owner preview review/approval
 - [x] (16:29 request) Validate/wire Written v2; author Reading v2 directly; finish 5-choice Paper Folding, representative TEST MODE, admin Content Audit page, scoring UI, validators, tests, typecheck, build. Preview-only, v1 immutable.
+
+## TACHS report-safety patch (preview-only, 2026-09-13)
+- [x] Completion emails an acknowledgment only; report stays `draft` (`tachs-engine`, `send-tachs-results`)
+- [x] Admin workflow draft -> reviewed -> approved -> sent (`admin_report_transition`); legacy resend gated behind approval
+- [x] Parent/student API + email whitelisted via `_shared/tachs-report.ts` (no keys, rationales, stems, selected answers, adaptive path)
+- [x] Admin internal report keeps item audit + rationales; V2-R/V2-W carry-over flagged (Mackenzie's record untouched)
+- [x] SVG icon/placeholder tokens removed from parent report; accessible/printable tables; "Part-Whole" label
+- [x] Tests: `tests/tachs-report-safety.test.ts` (90 total passing)
+- [ ] BLOCKED on owner approval: deploy `tachs-engine` + `send-tachs-results`, then publish

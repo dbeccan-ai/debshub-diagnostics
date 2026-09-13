@@ -6,6 +6,7 @@ import { ACTIVE_BANK, ACTIVE_BLUEPRINT, STRAND_BY_CODE, type BankQuestion, type 
 import { advanceAdaptive, bandFor, buildEvidence, DISCLAIMER, maskEmail, mathReadiness, needsGrading, sectionsShortOfTarget, selectNextQuestion, testModeQuotas } from "./logic.ts";
 import { auditItems, buildContentAudit } from "./content-audit.ts";
 import { attemptIsEntitled, pendingOrder, tachsQuote, unconsumedEntitlement, TACHS_EXAM_TYPE } from "../_shared/tachs-payment.ts";
+import { canSendParentReport, canTransitionReport, carryoverSummary, findForbiddenParentKeys, parentReportView } from "../_shared/tachs-report.ts";
 
 const PAYMENT_REQUIRED_MSG = "Payment is required before starting the TACHS Readiness Diagnostic ($175 + processing fee).";
 
@@ -150,8 +151,12 @@ async function submitSection(db: Client, attemptId: string, section: any, reason
   return updated ?? section;
 }
 
-/** Fire-and-forget parent/admin report email. Never blocks or fails grading. */
-async function sendReportEmail(attemptId: string) {
+/**
+ * Fire-and-forget parent email. Never blocks or fails grading.
+ * kind "acknowledgment" carries no results; kind "parent_report" is only invoked by the
+ * admin approval workflow (admin_report_send) and is re-gated server-side by the sender.
+ */
+async function sendReportEmail(attemptId: string, kind: "acknowledgment" | "parent_report" = "acknowledgment") {
   try {
     const url = `${Deno.env.get("SUPABASE_URL")}/functions/v1/send-tachs-results`;
     const res = await fetch(url, {
@@ -160,9 +165,9 @@ async function sendReportEmail(attemptId: string) {
         "Content-Type": "application/json",
         Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
       },
-      body: JSON.stringify({ attemptId }),
+      body: JSON.stringify({ attemptId, kind }),
     });
-    if (!res.ok) console.error("tachs email failed", res.status, await res.text());
+    if (!res.ok) console.error("tachs email failed", kind, res.status, await res.text());
   } catch (e) {
     console.error("tachs email error", e);
   }
@@ -217,15 +222,17 @@ async function gradeAttempt(db: Client, attemptId: string) {
     disclaimer: DISCLAIMER,
   };
   // Idempotent: only the transition out of in_progress writes results and triggers the email.
+  // The report itself stays in "draft" until an admin reviews and approves it; completion sends
+  // ONLY the acknowledgment (no scores, band, answers or rationales).
   const { data: finished } = await db.from("tachs_attempts")
-    .update({ status: "completed", completed_at: now().toISOString(), results, current_section_key: null })
+    .update({ status: "completed", completed_at: now().toISOString(), results, current_section_key: null, report_status: "draft", email_status: "pending" })
     .eq("id", attemptId).eq("status", "in_progress").select("id").maybeSingle();
   if (finished) {
-    await db.from("tachs_attempt_events").insert({ attempt_id: attemptId, event_type: "graded", detail: { overall_accuracy: overall, band: band.key } });
+    await db.from("tachs_attempt_events").insert({ attempt_id: attemptId, event_type: "graded", detail: { overall_accuracy: overall, band: band.key, report_status: "draft" } });
     if (attempt.test_mode) {
-      await db.from("tachs_attempts").update({ email_status: "skipped", email_error: "TEST MODE attempt: no parent email is sent." }).eq("id", attemptId);
+      await db.from("tachs_attempts").update({ email_status: "skipped", email_error: "TEST MODE attempt: no parent email is sent.", ack_email_status: "skipped", ack_email_error: "TEST MODE attempt." }).eq("id", attemptId);
     } else {
-      await sendReportEmail(attemptId);
+      await sendReportEmail(attemptId, "acknowledgment");
     }
   }
   return results;
@@ -405,7 +412,7 @@ serve(async (req) => {
       if (!admin) return json({ error: "Forbidden" }, 403);
       const [{ data }, { data: orders }] = await Promise.all([
         db.from("tachs_attempts")
-          .select("id, user_id, grade_level, status, test_mode, access_source, order_id, started_at, completed_at, results, blueprint_version, parent_email, email_status, email_sent_at, email_attempts, email_error, profiles(full_name, username)")
+          .select("id, user_id, grade_level, status, test_mode, access_source, order_id, started_at, completed_at, results, blueprint_version, parent_email, email_status, email_sent_at, email_attempts, email_error, report_status, report_reviewed_at, report_approved_at, report_sent_at, report_notes, ack_email_status, ack_email_sent_at, profiles(full_name, username)")
           .order("created_at", { ascending: false }).limit(300),
         db.from("tachs_orders").select("*, profiles(full_name, username, parent_email)").order("created_at", { ascending: false }).limit(500),
       ]);
@@ -458,23 +465,60 @@ serve(async (req) => {
       const { data: order } = a.order_id ? await db.from("tachs_orders").select("*").eq("id", a.order_id).maybeSingle() : { data: null };
       const qMap = new Map((qs ?? []).map((q) => [q.id, q]));
       const secMap = new Map((secs ?? []).map((s) => [s.id, s.section_key]));
+      // Internal report: item-level detail incl. keys and rationales (admin-only by construction).
       const audit = (rs ?? []).map((r) => ({
         section_key: secMap.get(r.section_id), position: r.position, code: qMap.get(r.question_id)?.code,
         stem: qMap.get(r.question_id)?.stem, skill: r.skill, difficulty: r.difficulty,
         selected_key: r.selected_key, correct_key: qMap.get(r.question_id)?.correct_key, is_correct: r.is_correct,
+        rationale: qMap.get(r.question_id)?.rationale ?? null,
         is_flagged: r.is_flagged, time_spent_seconds: r.time_spent_seconds, presented_at: r.presented_at, answered_at: r.answered_at,
       }));
-      return json({ attempt: { ...a, order }, sections: secs ?? [], audit, events: events ?? [] });
+      const carryover = carryoverSummary((rs ?? []).map((r) => qMap.get(r.question_id)?.code));
+      return json({ attempt: { ...a, order }, sections: secs ?? [], audit, events: events ?? [], carryover, parent_preview: parentReportView(a.results) });
+    }
+
+    // ---- Report approval workflow: draft -> reviewed -> approved -> sent (admin only, audited) ----
+    if (action === "admin_report_transition") {
+      if (!admin) return json({ error: "Forbidden" }, 403);
+      const id = String(body.attemptId ?? "");
+      const to = String(body.to ?? "");
+      const notes = typeof body.notes === "string" ? body.notes.trim().slice(0, 2000) : null;
+      const { data: a } = await db.from("tachs_attempts").select("id, status, report_status, report_notes, test_mode").eq("id", id).maybeSingle();
+      if (!a) return json({ error: "Attempt not found" }, 404);
+      if (a.status !== "completed") return json({ error: "The report can only be reviewed after the diagnostic is completed." }, 409);
+      const from = a.report_status ?? "draft";
+      if (!canTransitionReport(from, to)) return json({ error: `A ${from} report cannot move to ${to}.` }, 409);
+      const patch: Record<string, unknown> = { report_status: to };
+      if (notes != null) patch.report_notes = notes;
+      if (to === "reviewed") { patch.report_reviewed_at = now().toISOString(); patch.report_reviewed_by = user.id; }
+      if (to === "approved") { patch.report_approved_at = now().toISOString(); patch.report_approved_by = user.id; }
+      if (to === "draft") { patch.report_approved_at = null; patch.report_approved_by = null; }
+      if (to === "sent") {
+        // Only an approved report can be emailed; the sender re-checks this server-side.
+        if (a.test_mode) return json({ error: "TEST MODE attempts never email parents." }, 409);
+        if (!canSendParentReport(from)) return json({ error: "Approve the report before sending it." }, 409);
+        await db.from("tachs_attempt_events").insert({ attempt_id: id, actor_id: user.id, event_type: "report_send_requested", detail: { from } });
+        await sendReportEmail(id, "parent_report");
+        const { data: after } = await db.from("tachs_attempts").select("report_status, email_status, email_error, email_sent_at, email_attempts, report_sent_at").eq("id", id).single();
+        return json({ ok: true, report: after });
+      }
+      await db.from("tachs_attempts").update(patch).eq("id", id);
+      await db.from("tachs_attempt_events").insert({ attempt_id: id, actor_id: user.id, event_type: `report_${to}`, detail: { from, to, notes: notes ?? undefined } });
+      const { data: after } = await db.from("tachs_attempts").select("report_status, report_notes, report_reviewed_at, report_approved_at, report_sent_at, email_status").eq("id", id).single();
+      return json({ ok: true, report: after });
     }
 
     if (action === "admin_resend_email") {
+      // Legacy alias: same approval gate as admin_report_transition(to: "sent").
       if (!admin) return json({ error: "Forbidden" }, 403);
       const id = String(body.attemptId ?? "");
-      const { data: a } = await db.from("tachs_attempts").select("id, status").eq("id", id).maybeSingle();
+      const { data: a } = await db.from("tachs_attempts").select("id, status, report_status, test_mode").eq("id", id).maybeSingle();
       if (!a) return json({ error: "Attempt not found" }, 404);
       if (a.status !== "completed") return json({ error: "The report can only be sent after the diagnostic is completed." }, 409);
+      if (a.test_mode) return json({ error: "TEST MODE attempts never email parents." }, 409);
+      if (!canSendParentReport(a.report_status ?? "draft")) return json({ error: "The parent report must be reviewed and approved before it can be sent." }, 409);
       await db.from("tachs_attempt_events").insert({ attempt_id: id, actor_id: user.id, event_type: "email_resend_requested", detail: {} });
-      await sendReportEmail(id);
+      await sendReportEmail(id, "parent_report");
       const { data: after } = await db.from("tachs_attempts").select("email_status, email_error, email_sent_at, email_attempts").eq("id", id).single();
       return json({ ok: true, email: after });
     }
@@ -498,6 +542,7 @@ serve(async (req) => {
       await db.from("tachs_attempts").update({
         status: "in_progress", completed_at: null, results: null, current_section_key: target.section_key,
         reopened_at: now().toISOString(), reopened_by: user.id, email_status: "pending", email_error: null,
+        report_status: "draft", report_reviewed_at: null, report_reviewed_by: null, report_approved_at: null, report_approved_by: null, ack_email_status: "pending",
       }).eq("id", id);
       await db.from("tachs_attempt_events").insert({
         attempt_id: id, actor_id: user.id, event_type: "attempt_reopened",
@@ -518,7 +563,21 @@ serve(async (req) => {
 
     if (action === "results") {
       if (freshAttempt.status !== "completed") return json({ error: "Results are available after all sections are submitted." }, 409);
-      const results = freshAttempt.results ?? (await gradeAttempt(db, attempt.id));
+      const full = freshAttempt.results ?? (await gradeAttempt(db, attempt.id));
+      const reportStatus: string = freshAttempt.report_status ?? "draft";
+      const base = {
+        attempt: { id: freshAttempt.id, grade_level: freshAttempt.grade_level, test_mode: freshAttempt.test_mode, completed_at: freshAttempt.completed_at, started_at: freshAttempt.started_at, user_id: freshAttempt.user_id, blueprint_version: freshAttempt.blueprint_version },
+        report_status: reportStatus,
+        // Delivery status with a masked address (full address stays admin-only).
+        email: { status: freshAttempt.email_status ?? "pending", sent_at: freshAttempt.email_sent_at ?? null, masked_to: maskEmail(freshAttempt.parent_email), ack_status: freshAttempt.ack_email_status ?? "pending" },
+      };
+      // Students/parents ALWAYS receive the sanitized preliminary view — never keys, rationales,
+      // question text, selected answers, evidence tables or adaptive paths. Enforced here, not in the UI.
+      const report = parentReportView(full);
+      const leaked = findForbiddenParentKeys(report);
+      if (leaked.length) return json({ error: "Report blocked by safety check." }, 500);
+      if (!admin) return json({ ...base, viewer: "student", report });
+      // Admin: internal view with the full stored results plus item review.
       const { data: rs } = await db.from("tachs_responses").select("question_id, section_id, position, selected_key, is_correct, difficulty, skill, time_spent_seconds").eq("attempt_id", attempt.id).order("position");
       const ids = (rs ?? []).map((r) => r.question_id);
       const { data: qs } = ids.length ? await db.from("tachs_questions").select("id, code, section_key, skill, difficulty, stem, correct_key, rationale, choices").in("id", ids) : { data: [] };
@@ -527,15 +586,9 @@ serve(async (req) => {
       const qMap = new Map((qs ?? []).map((q) => [q.id, q]));
       const review = (rs ?? []).map((r) => {
         const q = qMap.get(r.question_id);
-        return { section_key: secMap.get(r.section_id), position: r.position, skill: r.skill, difficulty: r.difficulty, selected_key: r.selected_key, is_correct: r.is_correct, correct_key: q?.correct_key, rationale: q?.rationale, stem: q?.stem, choices: q?.choices, time_spent_seconds: r.time_spent_seconds };
+        return { section_key: secMap.get(r.section_id), position: r.position, skill: r.skill, difficulty: r.difficulty, selected_key: r.selected_key, is_correct: r.is_correct, correct_key: q?.correct_key, rationale: q?.rationale, stem: q?.stem, choices: q?.choices, time_spent_seconds: r.time_spent_seconds, code: q?.code };
       });
-      // Email delivery status with a masked address (full address stays admin-only).
-      const maskedEmail = maskEmail(freshAttempt.parent_email);
-      return json({
-        results, review,
-        attempt: { id: freshAttempt.id, grade_level: freshAttempt.grade_level, test_mode: freshAttempt.test_mode, completed_at: freshAttempt.completed_at, started_at: freshAttempt.started_at, user_id: freshAttempt.user_id },
-        email: { status: freshAttempt.email_status ?? "pending", sent_at: freshAttempt.email_sent_at ?? null, masked_to: maskedEmail },
-      });
+      return json({ ...base, viewer: "admin", report, results: full, review, carryover: carryoverSummary(review.map((r) => r.code)) });
     }
 
     if (freshAttempt.status !== "in_progress") return json({ error: "This attempt is already completed.", state: await buildState(db, freshAttempt) }, 409);

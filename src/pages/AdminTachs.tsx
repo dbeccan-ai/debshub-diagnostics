@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  tachsApi, SECTION_NAMES, skillLabel, formatClock, dollars,
-  type TachsAdminAttempt, type TachsAdminSection, type TachsAuditRow, type TachsAttemptEvent, type TachsOrder,
+  tachsApi, SECTION_NAMES, skillLabel, formatClock, dollars, REPORT_STATUS_LABEL, PACING_LABEL,
+  type TachsAdminAttempt, type TachsAdminSection, type TachsAuditRow, type TachsAttemptEvent, type TachsOrder, type TachsReportStatus, type TachsCarryover, type TachsParentReport,
 } from "@/lib/tachs";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { ArrowLeft, ClipboardList, Loader2, Mail, Printer, RotateCcw, Search, KeyRound } from "lucide-react";
+import { ArrowLeft, ClipboardList, Loader2, Mail, Printer, RotateCcw, Search, KeyRound, ShieldCheck } from "lucide-react";
 import { SEO } from "@/components/SEO";
 
 const BAND_KEYS = ["strong", "approaching", "developing", "foundations"] as const;
@@ -30,8 +30,10 @@ export default function AdminTachs() {
   const [emailFilter, setEmailFilter] = useState("all");
   const [version, setVersion] = useState("all");
   const [detail, setDetail] = useState<{
-    attempt: TachsAdminAttempt; sections: TachsAdminSection[]; audit: TachsAuditRow[]; events: TachsAttemptEvent[];
+    attempt: TachsAdminAttempt; sections: TachsAdminSection[]; audit: TachsAuditRow[]; events: TachsAttemptEvent[]; carryover?: TachsCarryover; parent_preview?: TachsParentReport | null;
   } | null>(null);
+  const [reportNotes, setReportNotes] = useState("");
+  const [sendConfirm, setSendConfirm] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const [reopenTarget, setReopenTarget] = useState<TachsAdminAttempt | null>(null);
@@ -89,21 +91,32 @@ export default function AdminTachs() {
     setDetailLoading(true);
     if (routeAttemptId !== id) navigate(`/admin/tachs/${id}`, { replace: true });
     try {
-      setDetail(await tachsApi.adminDetail(id));
+      const d = await tachsApi.adminDetail(id);
+      setDetail(d); setReportNotes(d.attempt.report_notes ?? ""); setSendConfirm(false);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not load the attempt details.");
     } finally { setDetailLoading(false); }
   };
 
-  const resend = async (a: TachsAdminAttempt) => {
+  const reportStatusOf = (a: TachsAdminAttempt): TachsReportStatus => (a.report_status ?? "draft") as TachsReportStatus;
+  const canSend = (a: TachsAdminAttempt) => a.status === "completed" && !a.test_mode && (reportStatusOf(a) === "approved" || reportStatusOf(a) === "sent");
+
+  /** Report workflow: draft -> reviewed -> approved -> sent. Every step is server-checked and audited. */
+  const transition = async (a: TachsAdminAttempt, to: TachsReportStatus) => {
     setBusy(a.id);
     try {
-      const res = await tachsApi.adminResendEmail(a.id);
-      if (res.email?.email_status === "sent") toast.success("Report emailed to the parent or guardian.");
-      else toast.error(res.email?.email_error ?? "The email could not be sent. The result is still saved.");
+      const res = await tachsApi.adminReportTransition(a.id, to, to === "sent" ? undefined : reportNotes);
+      if (to === "sent") {
+        if (res.report?.email_status === "sent") toast.success("Reviewed parent report emailed to the parent or guardian.");
+        else toast.error(res.report?.email_error ?? "The email could not be sent. The result and approval are still saved.");
+      } else {
+        toast.success(`Report marked ${to}.`);
+      }
+      setSendConfirm(false);
       await load();
+      if (detail?.attempt.id === a.id) await openDetail(a.id);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "The email could not be sent.");
+      toast.error(e instanceof Error ? e.message : "Could not update the report.");
     } finally { setBusy(null); }
   };
 
@@ -147,6 +160,13 @@ export default function AdminTachs() {
     if (a.access_source === "legacy") return { text: "Legacy", tone: "bg-amber-100 text-amber-900" };
     if (o?.payment_status === "completed") return { text: `Paid ${dollars(o.amount_paid_cents ?? o.total_cents)}`, tone: "bg-green-100 text-green-800" };
     return { text: "Unpaid", tone: "bg-red-100 text-red-800" };
+  };
+
+  const reportBadge = (a: TachsAdminAttempt) => {
+    const v = reportStatusOf(a);
+    const tone = v === "sent" ? "bg-green-100 text-green-800" : v === "approved" ? "bg-sky-100 text-sky-800" : v === "reviewed" ? "bg-amber-100 text-amber-900" : "bg-muted text-muted-foreground";
+    const legacy = v === "draft" && a.email_status === "sent";
+    return <span className={`rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap ${tone}`} title={legacy ? "An earlier automatic email exists in the log; the report itself has not been reviewed." : undefined}>{v}{legacy ? " · auto-email on record" : ""}</span>;
   };
 
   const emailBadge = (s: string | null) => {
@@ -258,7 +278,7 @@ export default function AdminTachs() {
                   <TableRow>
                     <TableHead>Student</TableHead><TableHead>Grade</TableHead><TableHead>Status</TableHead>
                     <TableHead>Band</TableHead><TableHead>Accuracy</TableHead><TableHead>Blueprint</TableHead>
-                    <TableHead>Started</TableHead><TableHead>Payment</TableHead><TableHead>Email</TableHead>
+                    <TableHead>Started</TableHead><TableHead>Payment</TableHead><TableHead>Report</TableHead><TableHead>Email</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -277,13 +297,14 @@ export default function AdminTachs() {
                       <TableCell>v{a.blueprint_version}</TableCell>
                       <TableCell className="whitespace-nowrap">{new Date(a.started_at).toLocaleDateString()}</TableCell>
                       <TableCell>{(() => { const p = paymentLabel(a); return <span className={`rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap ${p.tone}`}>{p.text}</span>; })()}</TableCell>
+                      <TableCell>{reportBadge(a)}</TableCell>
                       <TableCell>{emailBadge(a.email_status)}</TableCell>
                       <TableCell className="whitespace-nowrap text-right">
                         <div className="flex justify-end gap-2">
-                          <Button size="sm" variant="outline" onClick={() => openDetail(a.id)}>Details</Button>
-                          <Button size="sm" variant="outline" disabled={a.status !== "completed" || busy === a.id} onClick={() => resend(a)}>
+                          <Button size="sm" variant="outline" onClick={() => openDetail(a.id)}>{a.status === "completed" && reportStatusOf(a) === "draft" ? "Review" : "Details"}</Button>
+                          <Button size="sm" variant="outline" disabled={!canSend(a) || busy === a.id} title={canSend(a) ? "Send the approved parent report" : "Review and approve the report first"} onClick={() => openDetail(a.id)}>
                             {busy === a.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
-                            <span className="ml-1 hidden lg:inline">Resend</span>
+                            <span className="ml-1 hidden lg:inline">Send</span>
                           </Button>
                           <Button size="sm" variant="outline" onClick={() => { setReopenTarget(a); setReopenSection(""); }}>
                             <RotateCcw className="h-4 w-4" /><span className="ml-1 hidden lg:inline">Reopen</span>
@@ -315,11 +336,64 @@ export default function AdminTachs() {
               </DialogHeader>
 
               <div className="mb-3 flex flex-wrap gap-2 print:hidden">
-                <Button size="sm" variant="outline" onClick={() => window.print()}><Printer className="mr-1 h-4 w-4" /> Print report</Button>
+                <Button size="sm" variant="outline" onClick={() => window.print()}><Printer className="mr-1 h-4 w-4" /> Print internal report</Button>
                 {detail.attempt.status === "completed" && (
-                  <Button size="sm" variant="outline" onClick={() => navigate(`/tachs/results/${detail.attempt.id}`)}>Open full report</Button>
+                  <Button size="sm" variant="outline" onClick={() => navigate(`/tachs/results/${detail.attempt.id}`)}>Preview parent report</Button>
                 )}
               </div>
+
+              {detail.carryover?.flagged && (
+                <p className="mb-4 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900" role="note">
+                  <strong>Bank note:</strong> {detail.carryover.note}
+                </p>
+              )}
+
+              {detail.attempt.status === "completed" && (
+                <section className="mb-5 rounded-md border border-primary/40 p-3">
+                  <h3 className="mb-1 flex items-center gap-2 font-semibold"><ShieldCheck className="h-4 w-4" /> Parent report approval</h3>
+                  <p className="mb-2 text-xs text-muted-foreground">
+                    Status: <strong>{REPORT_STATUS_LABEL[reportStatusOf(detail.attempt)]}</strong>
+                    {detail.attempt.report_reviewed_at ? ` · reviewed ${new Date(detail.attempt.report_reviewed_at).toLocaleString()}` : ""}
+                    {detail.attempt.report_approved_at ? ` · approved ${new Date(detail.attempt.report_approved_at).toLocaleString()}` : ""}
+                    {detail.attempt.report_sent_at ? ` · sent ${new Date(detail.attempt.report_sent_at).toLocaleString()}` : ""}
+                    {reportStatusOf(detail.attempt) === "draft" && detail.attempt.email_status === "sent" ? " · An earlier automatic email exists in the log below; it is preserved and the report still requires review." : ""}
+                    {" "}Acknowledgment email: {detail.attempt.ack_email_status ?? "pending"}.
+                  </p>
+                  <p className="mb-2 text-xs text-muted-foreground">The parent receives only section-level raw accuracy, pacing, observations and a working band labelled as pending consultant review — never answers, keys, rationales or adaptive paths. Completion sends an acknowledgment only.</p>
+                  <Textarea className="mb-2" placeholder="Consultant review notes (internal)" value={reportNotes} onChange={(e) => setReportNotes(e.target.value)} />
+                  <div className="flex flex-wrap gap-2">
+                    {reportStatusOf(detail.attempt) === "draft" && <Button size="sm" disabled={busy === detail.attempt.id} onClick={() => transition(detail.attempt, "reviewed")}>Mark reviewed</Button>}
+                    {reportStatusOf(detail.attempt) === "reviewed" && <Button size="sm" disabled={busy === detail.attempt.id} onClick={() => transition(detail.attempt, "approved")}>Approve parent report</Button>}
+                    {canSend(detail.attempt) && !sendConfirm && <Button size="sm" disabled={busy === detail.attempt.id} onClick={() => setSendConfirm(true)}><Mail className="mr-1 h-4 w-4" /> {reportStatusOf(detail.attempt) === "sent" ? "Re-send parent report" : "Send parent report"}</Button>}
+                    {canSend(detail.attempt) && sendConfirm && (
+                      <>
+                        <span className="self-center text-sm">Email the approved preliminary report to {detail.attempt.parent_email ?? "the parent on file"}?</span>
+                        <Button size="sm" disabled={busy === detail.attempt.id} onClick={() => transition(detail.attempt, "sent")}>{busy === detail.attempt.id ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}Confirm send</Button>
+                        <Button size="sm" variant="outline" onClick={() => setSendConfirm(false)}>Cancel</Button>
+                      </>
+                    )}
+                    {reportStatusOf(detail.attempt) !== "draft" && <Button size="sm" variant="ghost" disabled={busy === detail.attempt.id} onClick={() => transition(detail.attempt, "draft")}>Return to draft</Button>}
+                  </div>
+                </section>
+              )}
+
+              {detail.parent_preview && (
+                <section className="mb-5">
+                  <h3 className="mb-2 font-semibold">What the parent will see (section-level only)</h3>
+                  <div className="overflow-x-auto rounded-md border">
+                    <Table>
+                      <TableHeader><TableRow><TableHead>Section</TableHead><TableHead>Correct</TableHead><TableHead>Accuracy</TableHead><TableHead>Time</TableHead><TableHead>Pacing</TableHead></TableRow></TableHeader>
+                      <TableBody>
+                        {detail.parent_preview.sections.map((s) => (
+                          <TableRow key={s.section_key}><TableCell>{s.label}</TableCell><TableCell>{s.correct} of {s.presented}</TableCell><TableCell>{s.accuracy}%</TableCell><TableCell>{formatClock(s.time_used_seconds)} of {formatClock(s.time_limit_seconds)}</TableCell><TableCell>{PACING_LABEL[s.pacing]}</TableCell></TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                  <ul className="mt-2 list-disc pl-5 text-sm">{detail.parent_preview.observations.map((o, i) => <li key={i}>{o}</li>)}</ul>
+                  {detail.parent_preview.working_band && <p className="mt-2 text-xs text-muted-foreground">Working band shown to parent: <strong>{detail.parent_preview.working_band.label}</strong> — labelled "{detail.parent_preview.working_band.interpretation}".</p>}
+                </section>
+              )}
 
               <section className="mb-5">
                 <h3 className="mb-2 font-semibold">Payment</h3>
@@ -378,13 +452,13 @@ export default function AdminTachs() {
               )}
 
               <section className="mb-5">
-                <h3 className="mb-2 font-semibold">Answer audit ({detail.audit.length} items)</h3>
+                <h3 className="mb-2 font-semibold">Answer audit ({detail.audit.length} items) — internal only</h3>
                 <div className="max-h-80 overflow-y-auto rounded-md border">
                   <Table>
                     <TableHeader><TableRow>
                       <TableHead>#</TableHead><TableHead>Section</TableHead><TableHead>Item</TableHead><TableHead>Skill</TableHead>
                       <TableHead>Diff</TableHead><TableHead>Chosen</TableHead><TableHead>Key</TableHead><TableHead>Result</TableHead>
-                      <TableHead>Time</TableHead><TableHead>Flag</TableHead>
+                      <TableHead>Rationale</TableHead><TableHead>Time</TableHead><TableHead>Flag</TableHead>
                     </TableRow></TableHeader>
                     <TableBody>
                       {detail.audit.map((r, i) => (
@@ -397,6 +471,7 @@ export default function AdminTachs() {
                           <TableCell>{r.selected_key ?? "—"}</TableCell>
                           <TableCell>{r.correct_key ?? "—"}</TableCell>
                           <TableCell>{r.is_correct == null ? "—" : r.is_correct ? "Correct" : "Incorrect"}</TableCell>
+                          <TableCell className="max-w-[16rem] text-xs text-muted-foreground" title={r.rationale ?? ""}>{r.rationale ?? "—"}</TableCell>
                           <TableCell>{formatClock(r.time_spent_seconds ?? 0)}</TableCell>
                           <TableCell>{r.is_flagged ? "Yes" : ""}</TableCell>
                         </TableRow>

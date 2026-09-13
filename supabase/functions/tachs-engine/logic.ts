@@ -58,8 +58,7 @@ export const SECTION_LABELS: Record<string, string> = {
   figure_classification: "Figure Classification",
 };
 
-export const skillLabel = (skill: string) =>
-  skill.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+export { skillLabel } from "../_shared/tachs-report.ts";
 
 /** Sections whose active bank is smaller than the blueprint target (normal mode must refuse to start). */
 export function sectionsShortOfTarget(
