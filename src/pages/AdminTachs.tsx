@@ -15,6 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { ArrowLeft, ClipboardList, Loader2, Mail, Printer, RotateCcw, Search, KeyRound, ShieldCheck } from "lucide-react";
 import { SEO } from "@/components/SEO";
@@ -38,6 +39,8 @@ export default function AdminTachs() {
   const [reportNotes, setReportNotes] = useState("");
   const [parentForm, setParentForm] = useState<TachsParentReportContent | null>(null);
   const [sendConfirm, setSendConfirm] = useState(false);
+  const [approvalConfirm, setApprovalConfirm] = useState(false);
+  const [detailTab, setDetailTab] = useState<"parent" | "internal">("parent");
   const [detailLoading, setDetailLoading] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const [reopenTarget, setReopenTarget] = useState<TachsAdminAttempt | null>(null);
@@ -101,7 +104,7 @@ export default function AdminTachs() {
     if (routeAttemptId !== id) navigate(`/admin/tachs/${id}`, { replace: true });
     try {
       const d = await loadAdminDetail(id);
-      setDetail(d); setReportNotes(d.attempt.report_notes ?? ""); setSendConfirm(false);
+      setDetail(d); setReportNotes(d.attempt.report_notes ?? ""); setSendConfirm(false); setApprovalConfirm(false); setDetailTab("parent");
       const base = d.parent_report_content ?? d.parent_report_defaults ?? null;
       setParentForm(base ? { ...base, customized_next_steps: [...base.customized_next_steps], priority_sections: [...base.priority_sections] } : null);
     } catch (e) {
@@ -135,10 +138,13 @@ export default function AdminTachs() {
       if (to === "sent") {
         if (res.report?.email_status === "sent") toast.success("Reviewed parent report emailed to the parent or guardian.");
         else toast.error(res.report?.email_error ?? "The email could not be sent. The result and approval are still saved.");
+      } else if (to === "approved") {
+        toast.success("Approved. No email has been sent. Review the parent preview, then choose Send Parent Report.", { duration: 8000 });
       } else {
         toast.success(`Report marked ${to}.`);
       }
-      setSendConfirm(false);
+      setSendConfirm(false); setApprovalConfirm(false);
+      if (to === "approved") setDetailTab("parent");
       await load();
       if (detail?.attempt.id === a.id) await openDetail(a.id);
     } catch (e) {
@@ -199,6 +205,15 @@ export default function AdminTachs() {
     const v = s ?? "pending";
     const tone = v === "sent" ? "bg-green-100 text-green-800" : v === "failed" ? "bg-red-100 text-red-800" : v === "skipped" ? "bg-amber-100 text-amber-900" : "bg-muted text-muted-foreground";
     return <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${tone}`}>{v}</span>;
+  };
+
+  const printSurface = (surface: "parent" | "internal") => {
+    const bodyClass = surface === "parent" ? "printing-tachs-parent" : "printing-tachs-internal";
+    document.body.classList.add(bodyClass);
+    const cleanup = () => document.body.classList.remove(bodyClass);
+    window.addEventListener("afterprint", cleanup, { once: true });
+    window.print();
+    window.setTimeout(cleanup, 1000);
   };
 
   return (
