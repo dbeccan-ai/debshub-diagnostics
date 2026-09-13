@@ -1,12 +1,15 @@
 // D.E.Bs TACHS Readiness Diagnostic — secure test engine.
-// Actions: access, start, state, start_section, answer, next, submit_section, results, admin_list, admin_detail, admin_resend_email, admin_reopen, admin_search_users, admin_grant_access
+// Actions: access, start, state, start_section, answer, next, submit_section, results (parent-safe only), admin_list, admin_detail, admin_parent_report_content, admin_report_transition, admin_resend_email, admin_reopen, admin_search_users, admin_grant_access, admin_content_audit
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { ACTIVE_BANK, ACTIVE_BLUEPRINT, STRAND_BY_CODE, type BankQuestion, type BlueprintSection } from "./sample-bank.ts";
 import { advanceAdaptive, bandFor, buildEvidence, DISCLAIMER, maskEmail, mathReadiness, needsGrading, sectionsShortOfTarget, selectNextQuestion, testModeQuotas } from "./logic.ts";
 import { auditItems, buildContentAudit } from "./content-audit.ts";
 import { attemptIsEntitled, pendingOrder, tachsQuote, unconsumedEntitlement, TACHS_EXAM_TYPE } from "../_shared/tachs-payment.ts";
-import { canSendParentReport, canTransitionReport, carryoverSummary, findForbiddenParentKeys, parentReportView } from "../_shared/tachs-report.ts";
+import {
+  canEditParentContent, canSendParentReport, canTransitionReport, carryoverSummary, defaultParentReportContent,
+  findForbiddenParentKeys, findForbiddenParentPhrases, parentReportView, sanitizeParentReportContent, REPORT_PREPARING_MESSAGE,
+} from "../_shared/tachs-report.ts";
 
 const PAYMENT_REQUIRED_MSG = "Payment is required before starting the TACHS Readiness Diagnostic ($175 + processing fee).";
 
@@ -479,7 +482,34 @@ serve(async (req) => {
         is_flagged: r.is_flagged, time_spent_seconds: r.time_spent_seconds, presented_at: r.presented_at, answered_at: r.answered_at,
       }));
       const carryover = carryoverSummary((rs ?? []).map((r) => qMap.get(r.question_id)?.code));
-      return json({ attempt: { ...a, order }, sections: secs ?? [], audit, events: events ?? [], carryover, parent_preview: parentReportView(a.results) });
+      // Consultant-controlled parent content: stored value if any, else safe generated defaults (never auto-released).
+      const storedContent = sanitizeParentReportContent(a.parent_report_content ?? {}, a.results);
+      const parentContent = a.parent_report_content && storedContent.ok
+        ? { ...storedContent.content, approved_for_parent_at: (a.parent_report_content as Record<string, unknown>).approved_for_parent_at as string | null ?? null }
+        : null;
+      const parentDefaults = a.results ? defaultParentReportContent(a.results) : null;
+      return json({
+        attempt: { ...a, order }, sections: secs ?? [], audit, events: events ?? [], carryover,
+        parent_report_content: parentContent, parent_report_defaults: parentDefaults,
+        parent_preview: parentReportView(a.results, parentContent ?? parentDefaults, a.completed_at),
+      });
+    }
+
+    // ---- Report approval workflow: draft -> reviewed -> approved -> sent (admin only, audited) ----
+    // ---- Consultant-controlled parent content (interpretation, priorities, program, plan, price). Never item-level. ----
+    if (action === "admin_parent_report_content") {
+      if (!admin) return json({ error: "Forbidden" }, 403);
+      const id = String(body.attemptId ?? "");
+      const { data: a } = await db.from("tachs_attempts").select("id, status, report_status, results").eq("id", id).maybeSingle();
+      if (!a) return json({ error: "Attempt not found" }, 404);
+      if (a.status !== "completed") return json({ error: "Parent content can be edited only after the diagnostic is completed." }, 409);
+      if (!canEditParentContent(a.report_status ?? "draft")) return json({ error: "Return the report to draft before editing the parent content." }, 409);
+      const safe = sanitizeParentReportContent(body.content, a.results);
+      if (!safe.ok) return json({ error: safe.error }, 400);
+      const { error: uErr } = await db.from("tachs_attempts").update({ parent_report_content: safe.content }).eq("id", id);
+      if (uErr) return json({ error: `Could not save the parent content: ${uErr.message}` }, 500);
+      await db.from("tachs_attempt_events").insert({ attempt_id: id, actor_id: user.id, event_type: "parent_content_saved", detail: { program: safe.content.recommended_program_key, price_override_cents: safe.content.price_override_cents } });
+      return json({ ok: true, content: safe.content, parent_preview: parentReportView(a.results, safe.content, null) });
     }
 
     // ---- Report approval workflow: draft -> reviewed -> approved -> sent (admin only, audited) ----
@@ -488,16 +518,25 @@ serve(async (req) => {
       const id = String(body.attemptId ?? "");
       const to = String(body.to ?? "");
       const notes = typeof body.notes === "string" ? body.notes.trim().slice(0, 2000) : null;
-      const { data: a } = await db.from("tachs_attempts").select("id, status, report_status, report_notes, test_mode").eq("id", id).maybeSingle();
+      const { data: a } = await db.from("tachs_attempts").select("id, status, report_status, report_notes, test_mode, results, parent_report_content").eq("id", id).maybeSingle();
       if (!a) return json({ error: "Attempt not found" }, 404);
       if (a.status !== "completed") return json({ error: "The report can only be reviewed after the diagnostic is completed." }, 409);
       const from = a.report_status ?? "draft";
       if (!canTransitionReport(from, to)) return json({ error: `A ${from} report cannot move to ${to}.` }, 409);
       const patch: Record<string, unknown> = { report_status: to };
-      if (notes != null) patch.report_notes = notes;
+      if (notes != null) patch.report_notes = notes; // internal only — never rendered to parents
       if (to === "reviewed") { patch.report_reviewed_at = now().toISOString(); patch.report_reviewed_by = user.id; }
-      if (to === "approved") { patch.report_approved_at = now().toISOString(); patch.report_approved_by = user.id; }
-      if (to === "draft") { patch.report_approved_at = null; patch.report_approved_by = null; }
+      if (to === "approved") {
+        // Snapshot the consultant content that is being approved (safe defaults if none was customized).
+        const existing = sanitizeParentReportContent(a.parent_report_content ?? {}, a.results);
+        const approvedContent = existing.ok ? existing.content : defaultParentReportContent(a.results);
+        patch.parent_report_content = { ...approvedContent, approved_for_parent_at: now().toISOString() };
+        patch.report_approved_at = now().toISOString(); patch.report_approved_by = user.id;
+      }
+      if (to === "draft") {
+        patch.report_approved_at = null; patch.report_approved_by = null;
+        if (a.parent_report_content) patch.parent_report_content = { ...(a.parent_report_content as Record<string, unknown>), approved_for_parent_at: null };
+      }
       if (to === "sent") {
         // Only an approved report can be emailed; the sender re-checks this server-side.
         if (a.test_mode) return json({ error: "TEST MODE attempts never email parents." }, 409);
@@ -567,33 +606,22 @@ serve(async (req) => {
     if (action === "state") return json({ state: await buildState(db, freshAttempt) });
 
     if (action === "results") {
+      // PARENT/STUDENT SURFACE ONLY. Internal detail (item audit, keys, rationales, adaptive path,
+      // bank notes, workflow) is served exclusively by admin_detail to /admin/tachs/:attemptId.
+      // Admins calling this action get the identical parent-safe view (a preview), nothing more.
       if (freshAttempt.status !== "completed") return json({ error: "Results are available after all sections are submitted." }, 409);
-      const full = freshAttempt.results ?? (await gradeAttempt(db, attempt.id));
       const reportStatus: string = freshAttempt.report_status ?? "draft";
-      const base = {
-        attempt: { id: freshAttempt.id, grade_level: freshAttempt.grade_level, test_mode: freshAttempt.test_mode, completed_at: freshAttempt.completed_at, started_at: freshAttempt.started_at, user_id: freshAttempt.user_id, blueprint_version: freshAttempt.blueprint_version },
-        report_status: reportStatus,
-        // Delivery status with a masked address (full address stays admin-only).
-        email: { status: freshAttempt.email_status ?? "pending", sent_at: freshAttempt.email_sent_at ?? null, masked_to: maskEmail(freshAttempt.parent_email), ack_status: freshAttempt.ack_email_status ?? "pending" },
-      };
-      // Students/parents ALWAYS receive the sanitized preliminary view — never keys, rationales,
-      // question text, selected answers, evidence tables or adaptive paths. Enforced here, not in the UI.
-      const report = parentReportView(full);
-      const leaked = findForbiddenParentKeys(report);
+      const released = canSendParentReport(reportStatus);
+      const base = { viewer: admin ? "admin" : "student", attempt: { id: freshAttempt.id, grade_level: freshAttempt.grade_level, completed_at: freshAttempt.completed_at } };
+      // Before approval a parent sees no scores at all — only that the reviewed report is being prepared.
+      if (!released && !admin) return json({ ...base, released: false, message: REPORT_PREPARING_MESSAGE });
+      const full = freshAttempt.results ?? (await gradeAttempt(db, attempt.id));
+      const content = (freshAttempt.parent_report_content as Record<string, unknown> | null) ?? null;
+      const safe = content ? sanitizeParentReportContent(content, full) : null;
+      const report = parentReportView(full, safe && safe.ok ? { ...safe.content, approved_for_parent_at: String(content?.approved_for_parent_at ?? "") || null } : null, freshAttempt.completed_at);
+      const leaked = findForbiddenParentKeys(report).concat(findForbiddenParentPhrases(JSON.stringify(report)));
       if (leaked.length) return json({ error: "Report blocked by safety check." }, 500);
-      if (!admin) return json({ ...base, viewer: "student", report });
-      // Admin: internal view with the full stored results plus item review.
-      const { data: rs } = await db.from("tachs_responses").select("question_id, section_id, position, selected_key, is_correct, difficulty, skill, time_spent_seconds").eq("attempt_id", attempt.id).order("position");
-      const ids = (rs ?? []).map((r) => r.question_id);
-      const { data: qs } = ids.length ? await db.from("tachs_questions").select("id, code, section_key, skill, difficulty, stem, correct_key, rationale, choices").in("id", ids) : { data: [] };
-      const { data: secs } = await db.from("tachs_attempt_sections").select("id, section_key").eq("attempt_id", attempt.id);
-      const secMap = new Map((secs ?? []).map((s) => [s.id, s.section_key]));
-      const qMap = new Map((qs ?? []).map((q) => [q.id, q]));
-      const review = (rs ?? []).map((r) => {
-        const q = qMap.get(r.question_id);
-        return { section_key: secMap.get(r.section_id), position: r.position, skill: r.skill, difficulty: r.difficulty, selected_key: r.selected_key, is_correct: r.is_correct, correct_key: q?.correct_key, rationale: q?.rationale, stem: q?.stem, choices: q?.choices, time_spent_seconds: r.time_spent_seconds, code: q?.code };
-      });
-      return json({ ...base, viewer: "admin", report, results: full, review, carryover: carryoverSummary(review.map((r) => r.code)) });
+      return json({ ...base, released, preview: admin && !released, report });
     }
 
     if (freshAttempt.status !== "in_progress") return json({ error: "This attempt is already completed.", state: await buildState(db, freshAttempt) }, 409);

@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { TachsProgramKey } from "@/lib/tachsPrograms";
 
 export type TachsSectionKey =
   | "reading" | "written_expression" | "mathematics"
@@ -62,13 +63,19 @@ export interface TachsAuditItem {
   code: string; section_key: TachsSectionKey; skill: string; difficulty: number; strand: string | null; stem: string;
   passage_id: string | null; passage_title: string | null; visual: unknown; visual_alt: string | null; choices: TachsChoice[]; correct_key: string; rationale: string;
 }
+/**
+ * Parent/student results payload. Deliberately tiny: before approval only `message`; after approval
+ * the released parent report (scores, tiers, interpretation, plan, program). No internal fields exist
+ * on this type — item review, keys, rationales, bank notes and workflow live only in TachsAdminDetail.
+ */
 export interface TachsResultsResponse {
   viewer: "student" | "admin";
-  report: TachsParentReport | null;
-  report_status: TachsReportStatus;
-  results?: TachsResults; review?: TachsReviewItem[]; carryover?: TachsCarryover;
-  attempt: { id: string; grade_level: number | null; test_mode: boolean; completed_at: string; started_at: string; user_id: string; blueprint_version: number };
-  email?: { status: string; sent_at: string | null; masked_to: string | null; ack_status?: string };
+  released: boolean;
+  /** True when an admin is previewing a not-yet-released report (admins only; never sent to parents). */
+  preview?: boolean;
+  message?: string;
+  report?: TachsParentReport | null;
+  attempt: { id: string; grade_level: number | null; completed_at: string };
 }
 export interface TachsReviewItem {
   section_key: TachsSectionKey; position: number; skill: string; difficulty: number; selected_key: string | null; is_correct: boolean | null;
@@ -88,20 +95,28 @@ export const skillLabel = (s: string) =>
   SKILL_LABEL_OVERRIDES[s] ?? s.replace(/partwhole/g, "part-whole").replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()).replace(/\bPart-whole\b/g, "Part-Whole");
 
 export type TachsReportStatus = "draft" | "reviewed" | "approved" | "sent";
-export const REPORT_STATUS_LABEL: Record<TachsReportStatus, string> = { draft: "Draft — awaiting review", reviewed: "Reviewed — awaiting approval", approved: "Approved — ready to send", sent: "Sent to parent" };
-export interface TachsParentSection {
-  section_key: TachsSectionKey; label: string; item_count: number; presented: number; answered: number; correct: number; accuracy: number;
-  time_limit_seconds: number; time_used_seconds: number; pace_seconds_per_item: number; allotted_seconds_per_item: number;
-  pacing: "rushed" | "on_pace" | "slow"; ended_by: "student" | "timer";
+export const REPORT_STATUS_LABEL: Record<TachsReportStatus, string> = { draft: "Draft — awaiting review", reviewed: "Reviewed — awaiting approval", approved: "Approved — released to parent", sent: "Sent to parent" };
+
+/** Released parent report (mirrors _shared/tachs-report.ts ParentReport). */
+export type TachsTierKey = "green" | "yellow" | "red";
+export interface TachsParentSectionScore { section_key: TachsSectionKey; label: string; accuracy: number; tier: TachsTierKey; tier_badge: string; tier_label: string }
+export interface TachsParentProgramView {
+  key: TachsProgramKey; name: string; duration_weeks: number; sessions_per_week: number; total_cents: number; price_label: string;
+  installments_label: string; focus: string[]; included: string[]; progress_monitoring: string; honesty_note: string | null;
+  payment_url: string | null; enrollment_call_url: string;
 }
 export interface TachsParentReport {
-  kind: "parent_preliminary"; overall_accuracy: number; total_presented: number; total_correct: number; total_time_seconds: number;
-  sections: TachsParentSection[]; observations: string[];
-  working_band: { label: string; color: string; interpretation: string } | null;
-  pending_interpretation: string; disclaimer: string; blueprint_version: number | null; generated_at: string | null;
+  kind: "parent_released"; title: string; assessment_date: string | null;
+  overall: { accuracy: number; tier: TachsTierKey; tier_badge: string; tier_label: string };
+  sections: TachsParentSectionScore[]; interpretation: string; priority_sections: string[]; plan: string[]; placement_note: string;
+  program: TachsParentProgramView; disclaimer: string;
+}
+/** Consultant-controlled content edited at /admin/tachs/:attemptId (mirrors _shared ParentReportContent). */
+export interface TachsParentReportContent {
+  interpretation: string; priority_sections: TachsSectionKey[]; recommended_program_key: TachsProgramKey;
+  customized_next_steps: string[]; price_override_cents: number | null; approved_for_parent_at: string | null;
 }
 export interface TachsCarryover { v2r: number; v2w: number; flagged: boolean; note: string | null }
-export const PACING_LABEL: Record<TachsParentSection["pacing"], string> = { rushed: "Faster than allotted", on_pace: "Within allotted pace", slow: "Slower than allotted" };
 
 export class TachsError extends Error {
   status: number; state?: TachsState;
@@ -149,7 +164,10 @@ export const tachsApi = {
   results: (attemptId: string) => call<TachsResultsResponse>({ action: "results", attemptId }),
   adminList: () => call<{ attempts: TachsAdminAttempt[]; orders: TachsOrder[] }>({ action: "admin_list", attemptId: "admin" }),
   adminDetail: (attemptId: string) =>
-    call<{ attempt: TachsAdminAttempt; sections: TachsAdminSection[]; audit: TachsAuditRow[]; events: TachsAttemptEvent[]; carryover: TachsCarryover; parent_preview: TachsParentReport | null }>({ action: "admin_detail", attemptId }),
+    call<{ attempt: TachsAdminAttempt; sections: TachsAdminSection[]; audit: TachsAuditRow[]; events: TachsAttemptEvent[]; carryover: TachsCarryover; parent_preview: TachsParentReport | null; parent_report_content?: TachsParentReportContent | null; parent_report_defaults?: TachsParentReportContent | null }>({ action: "admin_detail", attemptId }),
+  /** Save the consultant-controlled parent content (draft/reviewed only). Server-validated; never item-level. */
+  adminSaveParentReport: (attemptId: string, content: Omit<TachsParentReportContent, "approved_for_parent_at">) =>
+    call<{ ok: true; content: TachsParentReportContent; parent_preview: TachsParentReport | null }>({ action: "admin_parent_report_content", attemptId, content }),
   adminReportTransition: (attemptId: string, to: TachsReportStatus, notes?: string) =>
     call<{ ok: true; report: { report_status: TachsReportStatus; email_status?: string | null; email_error?: string | null; email_sent_at?: string | null; report_notes?: string | null } }>({ action: "admin_report_transition", attemptId, to, notes }),
   adminResendEmail: (attemptId: string) =>
@@ -206,6 +224,7 @@ export interface TachsAdminAttempt {
   parent_email: string | null; email_status: string | null; email_sent_at: string | null;
   email_attempts: number | null; email_error: string | null; results: TachsResults | null;
   report_status?: TachsReportStatus | null; report_reviewed_at?: string | null; report_approved_at?: string | null; report_sent_at?: string | null; report_notes?: string | null;
+  parent_report_content?: TachsParentReportContent | null;
   ack_email_status?: string | null; ack_email_sent_at?: string | null;
   reopened_at?: string | null; access_source?: string; order_id?: string | null; order?: TachsOrder | null;
   profiles?: { full_name: string | null; username: string | null } | null;
@@ -236,10 +255,13 @@ export const formatClock = (seconds: number) => {
 // report-workflow migration). These read the same immutable rows straight from the database under the
 // admin-only RLS policies; non-admins get zero rows. Nothing here writes.
 import { buildAuditRows, carryoverSummary, type ListLoad } from "@/lib/tachsAdminHelpers";
+import { defaultParentReportContent, parentReportView } from "@/lib/tachsParentReport";
 
 export interface TachsAdminDetail {
   attempt: TachsAdminAttempt; sections: TachsAdminSection[]; audit: TachsAuditRow[]; events: TachsAttemptEvent[];
-  carryover?: TachsCarryover; parent_preview?: TachsParentReport | null; source: "engine" | "direct";
+  carryover?: TachsCarryover; parent_preview?: TachsParentReport | null;
+  parent_report_content?: TachsParentReportContent | null; parent_report_defaults?: TachsParentReportContent | null;
+  source: "engine" | "direct";
 }
 
 async function profilesById(ids: string[]) {
@@ -288,7 +310,12 @@ export const tachsAdminDirect = {
       attempt: { ...(a as unknown as TachsAdminAttempt), profiles: prof.get(a.user_id) ?? null, order: (order as TachsOrder | null) ?? null },
       sections: (secs ?? []) as unknown as TachsAdminSection[],
       audit, events: (events ?? []) as unknown as TachsAttemptEvent[],
-      carryover: carryoverSummary(audit.map((r) => r.code)), parent_preview: null, source: "direct",
+      carryover: carryoverSummary(audit.map((r) => r.code)),
+      // Older engine: derive the parent preview + editor defaults locally from the same shared pure module.
+      parent_report_content: ((a as Record<string, unknown>).parent_report_content as TachsParentReportContent | null) ?? null,
+      parent_report_defaults: a.results ? (defaultParentReportContent(a.results as Record<string, unknown>) as TachsParentReportContent) : null,
+      parent_preview: a.results ? (parentReportView(a.results as Record<string, unknown>, ((a as Record<string, unknown>).parent_report_content as TachsParentReportContent | null) ?? null, a.completed_at) as unknown as TachsParentReport) : null,
+      source: "direct",
     };
   },
 };
@@ -312,7 +339,17 @@ export async function loadAdminAttempts(): Promise<ListLoad<TachsAdminAttempt> &
 export async function loadAdminDetail(id: string): Promise<TachsAdminDetail> {
   try {
     const d = await tachsApi.adminDetail(id);
-    return { ...d, source: "engine" };
+    // Older engine builds return a pre-release preview shape; rebuild the parent preview + editor
+    // defaults locally from the stored results with the same shared pure module.
+    const stale = !d.parent_preview || (d.parent_preview as { kind?: string }).kind !== "parent_released";
+    const results = d.attempt.results as unknown as Record<string, unknown> | null;
+    const storedContent = (d.parent_report_content ?? (d.attempt as Record<string, unknown>).parent_report_content ?? null) as TachsParentReportContent | null;
+    return {
+      ...d, source: "engine",
+      parent_report_content: storedContent,
+      parent_report_defaults: d.parent_report_defaults ?? (results ? (defaultParentReportContent(results) as TachsParentReportContent) : null),
+      parent_preview: stale ? (results ? (parentReportView(results, storedContent, d.attempt.completed_at) as unknown as TachsParentReport) : null) : d.parent_preview,
+    };
   } catch (e) {
     // 404/500 from an older engine build: read the immutable snapshot directly.
     if (e instanceof TachsError && e.status === 403) throw e;
