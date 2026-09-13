@@ -738,6 +738,337 @@ export type Database = {
         }
         Relationships: []
       }
+      tachs_attempt_sections: {
+        Row: {
+          attempt_id: string
+          break_after_seconds: number
+          created_at: string
+          current_difficulty: number
+          deadline_at: string | null
+          difficulty_path: Json
+          id: string
+          item_count: number
+          presented_question_ids: Json
+          quotas_remaining: Json
+          section_key: string
+          section_order: number
+          started_at: string | null
+          status: string
+          streak_correct: number
+          streak_incorrect: number
+          submit_reason: string | null
+          submitted_at: string | null
+          summary: Json | null
+          time_limit_seconds: number
+          time_used_seconds: number | null
+          updated_at: string
+        }
+        Insert: {
+          attempt_id: string
+          break_after_seconds?: number
+          created_at?: string
+          current_difficulty?: number
+          deadline_at?: string | null
+          difficulty_path?: Json
+          id?: string
+          item_count: number
+          presented_question_ids?: Json
+          quotas_remaining?: Json
+          section_key: string
+          section_order: number
+          started_at?: string | null
+          status?: string
+          streak_correct?: number
+          streak_incorrect?: number
+          submit_reason?: string | null
+          submitted_at?: string | null
+          summary?: Json | null
+          time_limit_seconds: number
+          time_used_seconds?: number | null
+          updated_at?: string
+        }
+        Update: {
+          attempt_id?: string
+          break_after_seconds?: number
+          created_at?: string
+          current_difficulty?: number
+          deadline_at?: string | null
+          difficulty_path?: Json
+          id?: string
+          item_count?: number
+          presented_question_ids?: Json
+          quotas_remaining?: Json
+          section_key?: string
+          section_order?: number
+          started_at?: string | null
+          status?: string
+          streak_correct?: number
+          streak_incorrect?: number
+          submit_reason?: string | null
+          submitted_at?: string | null
+          summary?: Json | null
+          time_limit_seconds?: number
+          time_used_seconds?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tachs_attempt_sections_attempt_id_fkey"
+            columns: ["attempt_id"]
+            isOneToOne: false
+            referencedRelation: "tachs_attempts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tachs_attempts: {
+        Row: {
+          blueprint_id: string
+          blueprint_version: number
+          completed_at: string | null
+          created_at: string
+          current_section_key: string | null
+          grade_level: number | null
+          id: string
+          parent_email: string | null
+          results: Json | null
+          school_id: string | null
+          started_at: string
+          status: string
+          test_mode: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          blueprint_id: string
+          blueprint_version: number
+          completed_at?: string | null
+          created_at?: string
+          current_section_key?: string | null
+          grade_level?: number | null
+          id?: string
+          parent_email?: string | null
+          results?: Json | null
+          school_id?: string | null
+          started_at?: string
+          status?: string
+          test_mode?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          blueprint_id?: string
+          blueprint_version?: number
+          completed_at?: string | null
+          created_at?: string
+          current_section_key?: string | null
+          grade_level?: number | null
+          id?: string
+          parent_email?: string | null
+          results?: Json | null
+          school_id?: string | null
+          started_at?: string
+          status?: string
+          test_mode?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tachs_attempts_blueprint_id_fkey"
+            columns: ["blueprint_id"]
+            isOneToOne: false
+            referencedRelation: "tachs_blueprints"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tachs_attempts_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tachs_attempts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tachs_blueprints: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          notes: string | null
+          sections: Json
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          notes?: string | null
+          sections: Json
+          updated_at?: string
+          version: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          notes?: string | null
+          sections?: Json
+          updated_at?: string
+          version?: number
+        }
+        Relationships: []
+      }
+      tachs_questions: {
+        Row: {
+          blueprint_version: number
+          choices: Json
+          code: string
+          correct_key: string
+          created_at: string
+          difficulty: number
+          id: string
+          is_active: boolean
+          passage_id: string | null
+          passage_text: string | null
+          passage_title: string | null
+          rationale: string | null
+          section_key: string
+          skill: string
+          stem: string
+          updated_at: string
+          visual: Json | null
+          visual_alt: string | null
+        }
+        Insert: {
+          blueprint_version: number
+          choices: Json
+          code: string
+          correct_key: string
+          created_at?: string
+          difficulty: number
+          id?: string
+          is_active?: boolean
+          passage_id?: string | null
+          passage_text?: string | null
+          passage_title?: string | null
+          rationale?: string | null
+          section_key: string
+          skill: string
+          stem: string
+          updated_at?: string
+          visual?: Json | null
+          visual_alt?: string | null
+        }
+        Update: {
+          blueprint_version?: number
+          choices?: Json
+          code?: string
+          correct_key?: string
+          created_at?: string
+          difficulty?: number
+          id?: string
+          is_active?: boolean
+          passage_id?: string | null
+          passage_text?: string | null
+          passage_title?: string | null
+          rationale?: string | null
+          section_key?: string
+          skill?: string
+          stem?: string
+          updated_at?: string
+          visual?: Json | null
+          visual_alt?: string | null
+        }
+        Relationships: []
+      }
+      tachs_responses: {
+        Row: {
+          answered_at: string | null
+          attempt_id: string
+          created_at: string
+          difficulty: number
+          id: string
+          is_correct: boolean | null
+          is_flagged: boolean
+          position: number
+          presented_at: string
+          question_id: string
+          section_id: string
+          selected_key: string | null
+          skill: string
+          time_spent_seconds: number
+          updated_at: string
+        }
+        Insert: {
+          answered_at?: string | null
+          attempt_id: string
+          created_at?: string
+          difficulty: number
+          id?: string
+          is_correct?: boolean | null
+          is_flagged?: boolean
+          position: number
+          presented_at?: string
+          question_id: string
+          section_id: string
+          selected_key?: string | null
+          skill: string
+          time_spent_seconds?: number
+          updated_at?: string
+        }
+        Update: {
+          answered_at?: string | null
+          attempt_id?: string
+          created_at?: string
+          difficulty?: number
+          id?: string
+          is_correct?: boolean | null
+          is_flagged?: boolean
+          position?: number
+          presented_at?: string
+          question_id?: string
+          section_id?: string
+          selected_key?: string | null
+          skill?: string
+          time_spent_seconds?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tachs_responses_attempt_id_fkey"
+            columns: ["attempt_id"]
+            isOneToOne: false
+            referencedRelation: "tachs_attempts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tachs_responses_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "tachs_questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tachs_responses_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "tachs_attempt_sections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       test_attempts: {
         Row: {
           amount_paid: number | null
