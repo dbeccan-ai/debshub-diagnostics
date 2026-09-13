@@ -50,11 +50,11 @@ export const PAPER_FOLDING_V2_SPECS: FoldItemSpec[] = [
   spec(24, { code: "PF2-25", difficulty: 3, skill: "multiple_punches", folds: [H(50, "top"), V(50, "right")], holes: [[60, 15], [90, 40], [75, 30]] }),
   // ----- edge_notch (3) -----
   spec(25, { code: "PF2-26", difficulty: 2, skill: "edge_notch", folds: [V(50, "left")], holes: [[30, 60]], cuts: [[[15, 0], [25, 0], [20, 8]]] }),
-  spec(26, { code: "PF2-27", difficulty: 3, skill: "edge_notch", folds: [V(50, "left"), H(50, "top")], holes: [[35, 15]], cuts: [[[0, 25], [0, 35], [8, 30]]] }),
+  spec(26, { code: "PF2-27", difficulty: 2, skill: "edge_notch", folds: [V(50, "left"), H(50, "top")], holes: [[35, 15]], cuts: [[[0, 25], [0, 35], [8, 30]]] }),
   spec(27, { code: "PF2-28", difficulty: 3, skill: "edge_notch", folds: [H(50, "bottom"), V(50, "right")], holes: [[60, 85]], cuts: [[[65, 100], [75, 100], [70, 92]]] }),
   // ----- asymmetric_fold (4) -----
-  spec(28, { code: "PF2-29", difficulty: 2, skill: "asymmetric_fold", folds: [V(30, "right")], holes: [[45, 50]] }),
-  spec(29, { code: "PF2-30", difficulty: 2, skill: "asymmetric_fold", folds: [H(70, "top")], holes: [[50, 55]] }),
+  spec(28, { code: "PF2-29", difficulty: 2, skill: "asymmetric_fold", folds: [V(30, "right")], holes: [[40, 50]] }),
+  spec(29, { code: "PF2-30", difficulty: 2, skill: "asymmetric_fold", folds: [H(70, "top")], holes: [[50, 62]] }),
   spec(30, { code: "PF2-31", difficulty: 3, skill: "asymmetric_fold", folds: [V(30, "right"), H(50, "top")], holes: [[40, 20], [80, 35]] }),
   spec(31, { code: "PF2-32", difficulty: 3, skill: "asymmetric_fold", folds: [H(50, "top"), V(75, "left")], holes: [[60, 30], [15, 10]] }),
 ];
