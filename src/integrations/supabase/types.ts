@@ -858,6 +858,7 @@ export type Database = {
       }
       tachs_attempts: {
         Row: {
+          access_source: string
           blueprint_id: string
           blueprint_version: number
           completed_at: string | null
@@ -869,6 +870,7 @@ export type Database = {
           email_status: string
           grade_level: number | null
           id: string
+          order_id: string | null
           parent_email: string | null
           reopened_at: string | null
           reopened_by: string | null
@@ -881,6 +883,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          access_source?: string
           blueprint_id: string
           blueprint_version: number
           completed_at?: string | null
@@ -892,6 +895,7 @@ export type Database = {
           email_status?: string
           grade_level?: number | null
           id?: string
+          order_id?: string | null
           parent_email?: string | null
           reopened_at?: string | null
           reopened_by?: string | null
@@ -904,6 +908,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          access_source?: string
           blueprint_id?: string
           blueprint_version?: number
           completed_at?: string | null
@@ -915,6 +920,7 @@ export type Database = {
           email_status?: string
           grade_level?: number | null
           id?: string
+          order_id?: string | null
           parent_email?: string | null
           reopened_at?: string | null
           reopened_by?: string | null
@@ -932,6 +938,13 @@ export type Database = {
             columns: ["blueprint_id"]
             isOneToOne: false
             referencedRelation: "tachs_blueprints"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tachs_attempts_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "tachs_orders"
             referencedColumns: ["id"]
           },
           {
@@ -982,6 +995,94 @@ export type Database = {
           version?: number
         }
         Relationships: []
+      }
+      tachs_orders: {
+        Row: {
+          amount_paid_cents: number | null
+          attempt_id: string | null
+          created_at: string
+          currency: string
+          exam_type: string
+          fee_cents: number
+          grant_reason: string | null
+          granted_by: string | null
+          id: string
+          integration_identifier: string | null
+          net_amount_cents: number
+          payment_status: string
+          source: string
+          stripe_checkout_session_id: string | null
+          stripe_payment_intent_id: string | null
+          total_cents: number
+          updated_at: string
+          user_id: string
+          verified_at: string | null
+        }
+        Insert: {
+          amount_paid_cents?: number | null
+          attempt_id?: string | null
+          created_at?: string
+          currency?: string
+          exam_type?: string
+          fee_cents?: number
+          grant_reason?: string | null
+          granted_by?: string | null
+          id?: string
+          integration_identifier?: string | null
+          net_amount_cents?: number
+          payment_status?: string
+          source?: string
+          stripe_checkout_session_id?: string | null
+          stripe_payment_intent_id?: string | null
+          total_cents?: number
+          updated_at?: string
+          user_id: string
+          verified_at?: string | null
+        }
+        Update: {
+          amount_paid_cents?: number | null
+          attempt_id?: string | null
+          created_at?: string
+          currency?: string
+          exam_type?: string
+          fee_cents?: number
+          grant_reason?: string | null
+          granted_by?: string | null
+          id?: string
+          integration_identifier?: string | null
+          net_amount_cents?: number
+          payment_status?: string
+          source?: string
+          stripe_checkout_session_id?: string | null
+          stripe_payment_intent_id?: string | null
+          total_cents?: number
+          updated_at?: string
+          user_id?: string
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tachs_orders_attempt_id_fkey"
+            columns: ["attempt_id"]
+            isOneToOne: false
+            referencedRelation: "tachs_attempts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tachs_orders_granted_by_fkey"
+            columns: ["granted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tachs_orders_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tachs_questions: {
         Row: {
