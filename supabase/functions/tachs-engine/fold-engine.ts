@@ -271,7 +271,7 @@ function notchItems(c: Cut, dx: number, dy: number): VisualItem[] {
   const ext: Pt = [(nrm[0] / len) * 3, (nrm[1] / len) * 3];
   const cover: Poly = [[b1[0] + ext[0], b1[1] + ext[1]], [b2[0] + ext[0], b2[1] + ext[1]], apex];
   return [
-    { ...polyItem(off(cover, dx, dy), "#fff", "none"), stroke: "none" },
+    polyItem(off(cover, dx, dy), "#fff", "none"),
     { t: "line", x1: b1[0] + dx, y1: b1[1] + dy, x2: apex[0] + dx, y2: apex[1] + dy, stroke: NAVY },
     { t: "line", x1: b2[0] + dx, y1: b2[1] + dy, x2: apex[0] + dx, y2: apex[1] + dy, stroke: NAVY },
   ];
