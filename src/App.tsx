@@ -20,6 +20,7 @@ import AdminAllResults from "./pages/AdminAllResults";
 import AdminReadingRecoveryResults from "./pages/AdminReadingRecoveryResults";
 import AdminUserLogins from "./pages/AdminUserLogins";
 import AdminFollowUps from "./pages/AdminFollowUps";
+import AdminTachs from "./pages/AdminTachs";
 import Register from "./pages/Register";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import ManualGrading from "./pages/ManualGrading";
@@ -79,6 +80,7 @@ const App = () => (
             <Route path="/admin/reading-recovery-results" element={<AdminReadingRecoveryResults />} />
             <Route path="/admin/user-logins" element={<AdminUserLogins />} />
             <Route path="/admin/follow-ups" element={<AdminFollowUps />} />
+            <Route path="/admin/tachs" element={<AdminTachs />} />
             <Route path="/register" element={<Register />} />
             <Route path="/school-setup" element={<SchoolSetup />} />
             <Route path="/teacher" element={<TeacherDashboard />} />
