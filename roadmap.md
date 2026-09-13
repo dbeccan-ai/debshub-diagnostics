@@ -62,3 +62,12 @@
 - [x] Admin page: error+retry state, All/Student/TEST MODE tabs, resettable filters, pinned Mckenzie link, direct DB fallback
 - [x] Content Audit: v1 frozen vs v2 revised compare, carry-over notice
 - [ ] Backend deploy of tachs-engine + send-tachs-results (awaiting owner approval)
+
+## TACHS parent report architecture (preview-only, 2026-09-13 20:37)
+- [ ] A. Strict surface separation: parent page = scores/tiers/interpretation/plan/program only; "being prepared" before approval
+- [ ] B. Diagnostic Hub tier system (85/66) per section + overall; no working band parent-facing
+- [ ] C. Parent report structure (6 sections) — page + email
+- [ ] D. `tachs-programs` config (Tier 1/2/3 programs, prices, null payment URLs)
+- [ ] E. `parent_report_content` (additive migration, not applied) + admin editor + defaults + approval snapshot
+- [ ] F. Whitelist/forbidden keys expanded; tests; typecheck; build; browser check
+- [ ] Report: root cause, files, checks, URLs, what needs schema/backend deploy (NOT done this turn)
