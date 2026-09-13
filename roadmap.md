@@ -33,7 +33,7 @@
 - [ ] Publish — awaiting owner verification (do not publish yet)
 
 ## TACHS Pilot v2 — full six-section rebuild (requested 2026-09-13)
-- [ ] Phase 1: finish math/paper-folding v2 test run, fix all failures
+- [x] Phase 1: finish math/paper-folding v2 test run, fix all failures
 - [ ] Ability sections → 5 choices (A–E): bank types, renderer/UI, keyboard nav, validation, results/review, tests
 - [ ] Reading v2 pool ≥75 (original passages, ≥10–12 vocab-in-context administered)
 - [ ] Written Expression v2 pool ≥75 (passage editing + standalone conventions)
