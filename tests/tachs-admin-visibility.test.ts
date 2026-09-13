@@ -89,7 +89,8 @@ describe("immutable snapshot audit rows", () => {
     const co = carryoverSummary(rows.map((r) => r.code));
     expect(co).toMatchObject({ v2r: 2, v2w: 0, flagged: true });
     expect(co.note).toMatch(/not the revised RD2\/WR2/);
-    expect(codesNotInBank(rows.map((r) => r.code), [{ code: "RD2-001" }])).toEqual(["V2-R-002", "V2-R-001"].sort().reverse().length ? ["V2-R-002", "V2-R-001"] : []);
+    expect(codesNotInBank(rows.map((r) => r.code), [{ code: "RD2-001" }]).sort()).toEqual(["V2-R-001", "V2-R-002"]);
+    expect(codesNotInBank(["RD2-001"], [{ code: "RD2-001" }])).toEqual([]);
   });
 });
 

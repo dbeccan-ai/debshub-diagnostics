@@ -83,8 +83,9 @@ const App = () => (
             <Route path="/admin/reading-recovery-results" element={<AdminReadingRecoveryResults />} />
             <Route path="/admin/user-logins" element={<AdminUserLogins />} />
             <Route path="/admin/follow-ups" element={<AdminFollowUps />} />
-            <Route path="/admin/tachs" element={<AdminTachs />} />
+            {/* Static content-audit route is declared before the dynamic :attemptId route so it is never swallowed. */}
             <Route path="/admin/tachs/content-audit" element={<AdminTachsContentAudit />} />
+            <Route path="/admin/tachs" element={<AdminTachs />} />
             <Route path="/admin/tachs/:attemptId" element={<AdminTachs />} />
             <Route path="/register" element={<Register />} />
             <Route path="/school-setup" element={<SchoolSetup />} />
