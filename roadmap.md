@@ -11,5 +11,11 @@
 - [x] Admin TEST MODE (watermark, short timers)
 - [x] Routes registered, build clean
 
-## Pass 2 (later)
-- [ ] Populate/validate final 200-item bank
+## Pass 2 — complete
+- [x] Full 200-item original bank (50/50/50/20/15/15), seeded and live
+- [x] Shared pure logic module (readiness bands, adaptive routing, disclaimer)
+- [x] Email tracking columns + `tachs_attempt_events` audit table
+- [x] `send-tachs-results` edge function (parent + admin BCC, HTML-escaped, retry-safe)
+- [x] Admin TACHS page `/admin/tachs`: filters, detail, answer audit, events, resend, reopen, print
+- [x] Automated tests (`bun run test`): bank validation + bands/adaptive routing
+- [x] Typecheck, build, and full end-to-end attempt verified
