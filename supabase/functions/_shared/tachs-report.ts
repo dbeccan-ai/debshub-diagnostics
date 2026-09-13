@@ -75,6 +75,18 @@ export const PLACEMENT_NOTE =
   "Placement is based on this diagnostic and finalized after consultant review with your family.";
 
 // ---------- consultant-controlled content (no item-level data by construction) ----------
+/**
+ * At-Home Support Plan — section-level only. Generated from the consultant-approved priority
+ * sections and the six section tiers; never from raw skill metrics or item data.
+ */
+export interface HomeSupportPlan {
+  cadence: string;
+  section_actions: { section_key: string; actions: string[] }[];
+  weekly_routine: string[];
+  guidance: string[];
+  progress_check: string;
+  strengths_note: string | null;
+}
 export interface ParentReportContent {
   interpretation: string;
   priority_sections: string[];
@@ -84,8 +96,118 @@ export interface ParentReportContent {
   /** Consultant-editable. Defaults to approval/release time + 7 calendar days when the report is approved. */
   credit_expires_at: string | null;
   approved_for_parent_at: string | null;
+  /** Consultant-editable At-Home Support Plan (defaults regenerate from the priorities + program). */
+  home_support_plan: HomeSupportPlan;
 }
 export const defaultCreditExpiry = (approvedAtIso: string): string => addDaysIso(approvedAtIso, DIAGNOSTIC_CREDIT_WINDOW_DAYS);
+
+export const HOME_SUPPORT_TITLE = "At-Home Support Plan";
+/** Parent-friendly, section-level home activities. Deliberately free of internal vocabulary. */
+const HOME_ACTIONS: Record<string, string[]> = {
+  reading: [
+    "Read one short article or story passage (about a page) and, without looking back, state its main idea in one sentence.",
+    "Keep a vocabulary notebook: record five unfamiliar words each week from reading, guessing the meaning from context before checking.",
+    "After reading, answer two 'why' questions about the author's purpose or a character's choice, pointing to a line in the text.",
+    "Once a week, complete a short timed comprehension set on a fresh passage and record the finish time.",
+  ],
+  written_expression: [
+    "Edit one paragraph a day for grammar, punctuation and capitalization, then explain each change aloud.",
+    "Rewrite two awkward or run-on sentences so that each is clear and complete.",
+    "Put a scrambled short paragraph back in logical order and point out the topic sentence.",
+    "Keep a personal list of commonly confused words (their/there, its/it's) and check written work against it.",
+  ],
+  mathematics: [
+    "Complete a 20-minute mixed set of grade 8 and introductory Algebra I problems (equations, ratios, percents, fractions), showing every step.",
+    "Solve two multistep word problems by writing what is known, what is asked and the plan before calculating.",
+    "Answer three questions from one table or graph to practice reading data accurately.",
+    "Do five quick estimation problems and check each estimate against the exact result.",
+  ],
+  figure_matrices: [
+    "Work through 8–10 figure-matrix puzzles, saying the rule (turn, flip, shading, count, size) before choosing.",
+    "Sketch how a simple shape looks after a quarter turn and after a flip, then compare with the original.",
+    "For any missed puzzle, describe the two changes that happen across the row and down the column.",
+  ],
+  paper_folding: [
+    "Fold a square of paper once or twice, punch a hole, predict where the holes will be, then unfold to check.",
+    "On grid paper, draw the fold line and mirror the punched hole across it before unfolding.",
+    "Complete 6–8 paper-folding puzzles, always predicting first and checking second.",
+  ],
+  figure_classification: [
+    "Sort a set of drawn shapes by one attribute (sides, shading, size), then re-sort by a second attribute.",
+    "For 8–10 classification puzzles, say in words what all the given figures share before picking the one that belongs.",
+    "Play 'odd one out' with household objects or drawn figures, explaining the shared rule each time.",
+  ],
+};
+const HOME_SESSION: Record<TachsTierKey, { minutes: number; days: number }> = {
+  green: { minutes: 20, days: 3 }, yellow: { minutes: 25, days: 3 }, red: { minutes: 30, days: 4 },
+};
+
+/**
+ * Generated At-Home Support Plan. Inputs are limited to the program, the consultant-approved
+ * priority section keys and the six whitelisted section scores/tiers.
+ */
+export function defaultHomeSupportPlan(programKey: TachsProgramKey, prioritySections: string[], sections: ParentSectionScore[]): HomeSupportPlan {
+  const program = TACHS_PROGRAMS[programKey];
+  const { minutes, days } = HOME_SESSION[program.tier];
+  const ordered = [...sections].sort((a, b) => a.accuracy - b.accuracy);
+  let targets = SECTION_ORDER.filter((k) => prioritySections.includes(k)) as string[];
+  if (!targets.length) targets = ordered.filter((s) => s.tier !== "green").slice(0, 3).map((s) => s.section_key);
+  if (!targets.length) targets = ordered.slice(0, 2).map((s) => s.section_key);
+  const strong = sections.filter((s) => s.tier === "green" && !targets.includes(s.section_key)).map((s) => s.label);
+  return {
+    cadence: `${program.sessions_per_week} consultant-led sessions each week for ${program.duration_weeks} weeks (${program.name}), plus ${days} short independent practice blocks of about ${minutes} minutes at home.`,
+    section_actions: targets.map((k) => ({ section_key: k, actions: (HOME_ACTIONS[k] ?? []).slice(0, program.tier === "green" ? 2 : 4) })),
+    weekly_routine: [
+      "Days 1 and 2: attend the two scheduled sessions and finish the short assignment given in each.",
+      `Days 3 to ${2 + days}: one ${minutes}-minute independent practice block, rotating through the sections listed above.`,
+      "Day 6: one timed mini-set (10–15 minutes) in a single section; the student works alone and records the time.",
+      "Day 7: rest, or a light 10-minute vocabulary or mental-math refresher. Parent looks over the week's completed work with the student.",
+    ].slice(0, days >= 4 ? 4 : 4),
+    guidance: [
+      "The student should complete the practice independently; the goal is confident, unassisted work.",
+      "Parents encourage a steady routine, protect the practice time, and check that each block was completed.",
+      "Please do not coach or prompt during timed practice — timed sets are most useful when they show what the student can do alone.",
+      "If a block feels too hard, stop at the planned time and note it for the consultant rather than pushing through.",
+    ],
+    progress_check: `Progress checks: ${program.progress_monitoring} Bring the completed home-practice log to each check so the consultant can adjust this plan.`,
+    strengths_note: strong.length ? `Keep ${joinNames(strong)} sharp with one short practice set every other week.` : null,
+  };
+}
+
+const HOME_PLAN_KEYS = new Set(["cadence", "section_actions", "weekly_routine", "guidance", "progress_check", "strengths_note"]);
+const strList = (v: unknown, max: number, maxLen: number): string[] | null =>
+  Array.isArray(v) ? v.filter((s): s is string => typeof s === "string").map((s) => s.trim().slice(0, maxLen)).filter(Boolean).slice(0, max) : null;
+
+/** Validates a consultant-edited home plan against the typed, section-level shape. */
+export function sanitizeHomeSupportPlan(input: unknown, fallback: HomeSupportPlan): { ok: true; plan: HomeSupportPlan } | { ok: false; error: string } {
+  if (input == null) return { ok: true, plan: fallback };
+  if (typeof input !== "object" || Array.isArray(input)) return { ok: false, error: "home_support_plan must be an object." };
+  const o = input as Record<string, unknown>;
+  const extra = Object.keys(o).filter((k) => !HOME_PLAN_KEYS.has(k));
+  if (extra.length) return { ok: false, error: `Unexpected home plan fields: ${extra.join(", ")}` };
+  const cadence = typeof o.cadence === "string" ? o.cadence.trim().slice(0, 400) : fallback.cadence;
+  if (!cadence) return { ok: false, error: "The home plan cadence cannot be empty." };
+  const rawSections = Array.isArray(o.section_actions) ? o.section_actions : fallback.section_actions;
+  const section_actions: HomeSupportPlan["section_actions"] = [];
+  for (const s of rawSections.slice(0, 6)) {
+    if (!s || typeof s !== "object" || Array.isArray(s)) return { ok: false, error: "Each home plan section must be an object." };
+    const so = s as Record<string, unknown>;
+    const bad = Object.keys(so).filter((k) => k !== "section_key" && k !== "actions");
+    if (bad.length) return { ok: false, error: `Unexpected home plan section fields: ${bad.join(", ")}` };
+    if (typeof so.section_key !== "string" || !(SECTION_ORDER as readonly string[]).includes(so.section_key)) return { ok: false, error: "Home plan sections must be TACHS section keys." };
+    const actions = strList(so.actions, 4, 300) ?? [];
+    if (!actions.length) return { ok: false, error: `Add at least one at-home action for ${SECTION_LABELS[so.section_key]}.` };
+    section_actions.push({ section_key: so.section_key, actions });
+  }
+  if (!section_actions.length) return { ok: false, error: "The home plan needs at least one section." };
+  const weekly_routine = strList(o.weekly_routine, 7, 300) ?? fallback.weekly_routine;
+  const guidance = strList(o.guidance, 6, 300) ?? fallback.guidance;
+  if (!weekly_routine.length || !guidance.length) return { ok: false, error: "The weekly routine and guidance cannot be empty." };
+  const progress_check = typeof o.progress_check === "string" ? o.progress_check.trim().slice(0, 500) : fallback.progress_check;
+  if (!progress_check) return { ok: false, error: "The progress-check reminder cannot be empty." };
+  const strengths_note = o.strengths_note == null || o.strengths_note === "" ? null : typeof o.strengths_note === "string" ? o.strengths_note.trim().slice(0, 300) : fallback.strengths_note;
+  return { ok: true, plan: { cadence, section_actions, weekly_routine, guidance, progress_check, strengths_note } };
+}
 
 // ---------- released parent report ----------
 export interface ParentSectionScore { section_key: string; label: string; accuracy: number; tier: TachsTierKey; tier_badge: string; tier_label: string }
@@ -95,6 +217,10 @@ export interface ParentProgramView {
   payment_url: string | null; enrollment_call_url: string;
   /** Receipt-style pricing with the conditional credit applied; live checkout links stay null. */
   pricing: PricingBreakdown;
+}
+export interface HomeSupportView {
+  title: string; cadence: string; sections: { label: string; actions: string[] }[];
+  weekly_routine: string[]; guidance: string[]; progress_check: string; strengths_note: string | null;
 }
 export interface ParentReport {
   kind: "parent_released";
@@ -106,6 +232,7 @@ export interface ParentReport {
   priority_sections: string[];
   plan: string[];
   placement_note: string;
+  home_support: HomeSupportView;
   program: ParentProgramView;
   disclaimer: string;
 }
@@ -175,6 +302,7 @@ export function defaultParentReportContent(results: Record<string, any> | null |
     price_override_cents: null,
     credit_expires_at: null,
     approved_for_parent_at: null,
+    home_support_plan: defaultHomeSupportPlan(programKey, priority, sections),
   };
 }
 
@@ -183,7 +311,7 @@ export function sanitizeParentReportContent(input: unknown, results: Record<stri
   if (!input || typeof input !== "object" || Array.isArray(input)) return { ok: false, error: "Content must be an object." };
   const defaults = defaultParentReportContent(results);
   const o = input as Record<string, unknown>;
-  const allowed = new Set(["interpretation", "priority_sections", "recommended_program_key", "customized_next_steps", "price_override_cents", "credit_expires_at", "approved_for_parent_at"]);
+  const allowed = new Set(["interpretation", "priority_sections", "recommended_program_key", "customized_next_steps", "price_override_cents", "credit_expires_at", "approved_for_parent_at", "home_support_plan"]);
   const extra = Object.keys(o).filter((k) => !allowed.has(k));
   if (extra.length) return { ok: false, error: `Unexpected fields: ${extra.join(", ")}` };
   const interpretation = typeof o.interpretation === "string" ? o.interpretation.trim().slice(0, 4000) : defaults.interpretation;
@@ -207,9 +335,13 @@ export function sanitizeParentReportContent(input: unknown, results: Record<stri
     if (Number.isNaN(d.getTime())) return { ok: false, error: "credit_expires_at must be a valid date." };
     creditExpires = d.toISOString();
   }
+  const prioritySet = [...new Set(ps as string[])];
+  const homePlan = sanitizeHomeSupportPlan(o.home_support_plan, defaultHomeSupportPlan(pk as TachsProgramKey, prioritySet, sectionScores(results)));
+  if (!homePlan.ok) return homePlan;
   const content: ParentReportContent = {
-    interpretation, priority_sections: [...new Set(ps as string[])], recommended_program_key: pk as TachsProgramKey,
+    interpretation, priority_sections: prioritySet, recommended_program_key: pk as TachsProgramKey,
     customized_next_steps: steps, price_override_cents: price, credit_expires_at: creditExpires, approved_for_parent_at: null, // approval stamp is set server-side only
+    home_support_plan: homePlan.plan,
   };
   const leaked = findForbiddenParentKeys(content).concat(findForbiddenParentPhrases(JSON.stringify(content)));
   if (leaked.length) return { ok: false, error: `Parent content must not contain internal terms (${leaked.join(", ")}).` };
@@ -238,16 +370,24 @@ export function parentReportView(results: Record<string, any> | null | undefined
   if (!results) return null;
   const c = content ?? defaultParentReportContent(results);
   const overall = Math.max(0, Math.min(100, Math.round(Number(results.overall_accuracy ?? 0))));
+  const sections = sectionScores(results);
+  // Older saved content (before the home plan existed) gets a generated plan from its own priorities/program.
+  const hp = c.home_support_plan ?? defaultHomeSupportPlan(c.recommended_program_key, c.priority_sections, sections);
   return {
     kind: "parent_released",
     title: PARENT_REPORT_TITLE,
     assessment_date: assessmentDate ?? null,
     overall: { accuracy: overall, ...tierView(overall) },
-    sections: sectionScores(results),
+    sections,
     interpretation: c.interpretation,
     priority_sections: c.priority_sections.map((k) => SECTION_LABELS[k] ?? k),
     plan: [...c.customized_next_steps],
     placement_note: PLACEMENT_NOTE,
+    home_support: {
+      title: HOME_SUPPORT_TITLE, cadence: hp.cadence,
+      sections: hp.section_actions.map((s) => ({ label: SECTION_LABELS[s.section_key] ?? s.section_key, actions: [...s.actions] })),
+      weekly_routine: [...hp.weekly_routine], guidance: [...hp.guidance], progress_check: hp.progress_check, strengths_note: hp.strengths_note,
+    },
     program: programView(c.recommended_program_key, c.price_override_cents, c.credit_expires_at ?? null),
     disclaimer: DISCLAIMER_SHORT,
   };
@@ -408,7 +548,10 @@ export function parentReportEmailHtml(input: { firstName: string; gradeLevel: nu
       <ul style="margin:0 0 8px 18px;padding:0;color:#334155;">${li(r.plan)}</ul>
       <p style="font-size:13px;color:#475569;margin:0;">${esc(r.placement_note)}</p>
 
-      <h2 style="font-size:16px;color:#1C2D5A;margin:22px 0 8px;">5. Recommended program &amp; pricing</h2>
+      <h2 style="font-size:16px;color:#1C2D5A;margin:22px 0 8px;">5. ${esc(r.home_support.title)}</h2>
+      ${homeSupportHtml(r.home_support)}
+
+      <h2 style="font-size:16px;color:#1C2D5A;margin:22px 0 8px;">6. Recommended program &amp; pricing</h2>
       <div style="border:2px solid #1C2D5A;border-radius:10px;padding:14px 16px;">
         <div style="font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#64748b;">Recommended service option</div>
         <div style="font-size:18px;font-weight:800;color:#1C2D5A;margin-top:2px;">${esc(p.name)}</div>
@@ -421,6 +564,20 @@ export function parentReportEmailHtml(input: { firstName: string; gradeLevel: nu
       </div>
 
       <p style="margin:22px 0;"><a href="${APP_URL}/tachs/results/${esc(input.attemptId)}" style="color:#1C2D5A;font-weight:700;">Open the report online</a></p>
-      <h2 style="font-size:14px;color:#1C2D5A;margin:22px 0 6px;">6. Please note</h2>
+      <h2 style="font-size:14px;color:#1C2D5A;margin:22px 0 6px;">7. Please note</h2>
       <p style="font-size:12px;color:#64748b;border-top:1px solid #e2e8f0;padding-top:14px;margin:0;">${esc(r.disclaimer)}</p>`);
+}
+
+/** At-Home Support Plan block (email + print). Section-level actions only. */
+export function homeSupportHtml(h: HomeSupportView): string {
+  const li = (xs: string[]) => xs.map((x) => `<li style="margin:0 0 6px;">${esc(x)}</li>`).join("");
+  return `
+      <div style="border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px;">
+        <p style="margin:0 0 10px;color:#334155;"><strong>Weekly cadence:</strong> ${esc(h.cadence)}</p>
+        ${h.sections.map((s) => `<div style="margin-top:8px;font-weight:600;">${esc(s.label)}</div><ul style="margin:4px 0 0 18px;padding:0;color:#334155;">${li(s.actions)}</ul>`).join("")}
+        ${h.strengths_note ? `<p style="font-size:13px;color:#475569;margin:10px 0 0;">${esc(h.strengths_note)}</p>` : ""}
+        <div style="margin-top:12px;font-weight:600;">Simple weekly routine</div><ol style="margin:4px 0 0 18px;padding:0;color:#334155;">${li(h.weekly_routine)}</ol>
+        <div style="margin-top:12px;font-weight:600;">How families can help</div><ul style="margin:4px 0 0 18px;padding:0;color:#334155;">${li(h.guidance)}</ul>
+        <p style="margin:12px 0 0;color:#334155;"><strong>Progress check:</strong> ${esc(h.progress_check)}</p>
+      </div>`;
 }
