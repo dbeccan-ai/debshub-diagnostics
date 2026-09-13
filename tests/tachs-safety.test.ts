@@ -49,7 +49,7 @@ describe("email privacy", () => {
     const sender = readFileSync("supabase/functions/send-tachs-results/index.ts", "utf8");
     expect(sender).not.toMatch(/bcc\s*:/i);
     expect(sender).not.toMatch(/dbeccan@/);
-    expect(sender).toMatch(/email_status: "failed"/);
+    expect(sender).toMatch(/\[statusCol\]: "failed"/); // ack/report failures recorded, never thrown
     const engine = readFileSync("supabase/functions/tachs-engine/index.ts", "utf8");
     // The email call is wrapped in try/catch and only logs on failure.
     expect(engine).toMatch(/async function sendReportEmail[\s\S]*?try \{[\s\S]*?\} catch/);

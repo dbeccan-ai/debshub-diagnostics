@@ -110,7 +110,9 @@ describe("server-side enforcement (source contracts)", () => {
     expect(engine).toMatch(/if \(!admin\) return json\(\{ \.\.\.base, viewer: "student", report \}\)/);
     const resultsBlock = engine.slice(engine.indexOf('if (action === "results")'), engine.indexOf('viewer: "admin"'));
     const beforeAdmin = resultsBlock.slice(0, resultsBlock.indexOf('viewer: "student"'));
-    expect(beforeAdmin).not.toMatch(/correct_key|rationale/);
+    // The student payload is exactly { ...base, viewer, report } where report passed the forbidden-key scan.
+    expect(beforeAdmin).toMatch(/const leaked = findForbiddenParentKeys\(report\)/);
+    expect(beforeAdmin.replace(/\/\/.*$/gm, "")).not.toMatch(/correct_key|rationale/);
     expect(engine).toMatch(/action === "admin_report_transition"/);
     expect(engine).toMatch(/if \(!canSendParentReport\(from\)\) return json/);
   });
@@ -118,7 +120,7 @@ describe("server-side enforcement (source contracts)", () => {
     expect(engine).toMatch(/admin_resend_email[\s\S]*?canSendParentReport\(a\.report_status \?\? "draft"\)/);
     expect(sender).toMatch(/if \(!canSendParentReport\(attempt\.report_status \?\? "draft"\)\)/);
     expect(sender).toMatch(/findForbiddenParentKeys\(report\)/);
-    expect(sender).not.toMatch(/results\.strengths|results\.gaps|results\.next_steps|rationale|correct_key/);
+    expect(sender.replace(/\/\/.*$/gm, "")).not.toMatch(/results\.strengths|results\.gaps|results\.next_steps|rationale|correct_key/);
     expect(sender).not.toMatch(/bcc\s*:/i);
   });
 });
@@ -136,7 +138,7 @@ describe("labels and screen/print output", () => {
     expect(page).not.toMatch(/from "lucide-react"/);
     expect(page).not.toMatch(/svgPrint|svgStrengths|svgGaps/);
     const parentView = page.slice(0, page.indexOf('viewer === "admin" && data.results'));
-    expect(parentView).not.toMatch(/correct_key|rationale|difficulty_path|review\./);
+    expect(parentView.replace(/^\s*\*.*$/gm, "")).not.toMatch(/correct_key|rationale|difficulty_path|review\./);
     expect(page).toMatch(/TableCaption/);
   });
   it("no literal SVG placeholder strings remain in TACHS source or templates", () => {
@@ -150,7 +152,7 @@ describe("carry-over bank flag", () => {
   it("flags V2-R / V2-W attempts and leaves revised-bank attempts clean", () => {
     const f = carryoverSummary(["V2-R-01", "V2-W-07", "MA2-10", null]);
     expect(f.flagged).toBe(true); expect(f.v2r).toBe(1); expect(f.v2w).toBe(1);
-    expect(f.note).toMatch(/not be treated as the final revised-bank baseline/);
+    expect(f.note).toMatch(/Do not treat it as the final revised-bank baseline/);
     expect(carryoverSummary(["RD2-01", "WR2-02"]).flagged).toBe(false);
   });
 });
