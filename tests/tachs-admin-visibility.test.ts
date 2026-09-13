@@ -139,3 +139,47 @@ describe("keys and rationales stay admin-only", () => {
     }
   });
 });
+
+describe("admin report workspace separation", () => {
+  const page = readFileSync("src/pages/AdminTachs.tsx", "utf8");
+  const parent = page.slice(page.indexOf('<TabsContent value="parent"'), page.indexOf('<TabsContent value="internal"'));
+  const internal = page.slice(page.indexOf('<TabsContent value="internal"'), page.indexOf("{/* Grant access */"));
+
+  it("defaults to the parent report and gives both surfaces unmistakable labels", () => {
+    expect(page).toMatch(/useState<"parent" \| "internal">\("parent"\)/);
+    expect(page).toContain("Parent Report — Edit &amp; Preview");
+    expect(page).toContain("Internal Diagnostic Audit — Never Sent");
+    expect(parent).toContain("This tab shows exactly what Kecha will receive. Nothing in the Internal Diagnostic Audit tab is included.");
+    expect(internal).toContain("ADMIN ONLY — this information is never included in the parent page, printable parent report, or parent email.");
+  });
+
+  it("keeps internal records and controls out of the parent tab", () => {
+    for (const text of ["Bank note:", "Historical payment details", "Stripe Session:", "Difficulty path", "Skill metrics", "Answer audit, keys and rationales", "Activity and email log", "Reopen section"]) {
+      expect(parent).not.toContain(text);
+      expect(internal).toContain(text);
+    }
+  });
+
+  it("has distinct safe and internal print boundaries", () => {
+    expect(parent).toContain("Print Parent Report");
+    expect(parent).toContain('data-print-surface="parent"');
+    expect(parent).not.toMatch(/Print internal report|Print Internal Audit/);
+    expect(internal).toContain("Print Internal Audit — not for families");
+    expect(internal).toContain('data-print-surface="internal"');
+    expect(page).toMatch(/body\.printing-tachs-parent \[data-print-surface="parent"\]/);
+  });
+
+  it("separates approval from sending and requires an explicit safe-content confirmation", () => {
+    expect(parent).toContain("Confirm approval — do not send");
+    expect(page).toContain("Approved. No email has been sent. Review the parent preview, then choose Send Parent Report.");
+    expect(parent).toContain("Send Parent Report to Kecha’s saved email:");
+    expect(parent).toContain("overall score and tier; six section scores and tiers; consultant interpretation; next-step plan; approved program and pricing; disclaimer");
+    expect(parent).toContain("Confirm Send Parent Report");
+  });
+
+  it("shows delivery state outside the printable family report", () => {
+    expect(parent).toContain('data-testid="delivery-status"');
+    expect(parent).toContain("Email sent:");
+    expect(parent.indexOf('data-testid="delivery-status"')).toBeLessThan(parent.indexOf('data-print-surface="parent"'));
+  });
+});

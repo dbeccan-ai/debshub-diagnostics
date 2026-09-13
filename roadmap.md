@@ -69,3 +69,9 @@
 
 ## TACHS pricing correction (20:52 follow-up, preview-only)
 - [x] All items done (tests/tachs-pricing.test.ts); payment URLs remain null
+## TACHS admin report tab separation and frontend publication (authorized 2026-09-13)
+- [x] Separate parent-safe edit/preview and internal diagnostic audit tabs
+- [x] Enforce safe print, approval, and explicit send confirmation UX
+- [x] Add regression tests and complete browser/read-only data verification
+- [x] Publish verified frontend; no backend deploy, email, event, or attempt mutation
+
