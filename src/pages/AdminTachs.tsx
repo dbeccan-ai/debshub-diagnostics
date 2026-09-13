@@ -3,9 +3,11 @@ import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import {
   tachsApi, SECTION_NAMES, skillLabel, formatClock, dollars, REPORT_STATUS_LABEL, loadAdminAttempts, loadAdminDetail,
-  type TachsAdminAttempt, type TachsAdminDetail, type TachsOrder, type TachsReportStatus, type TachsParentReportContent,
+  type TachsAdminAttempt, type TachsAdminDetail, type TachsOrder, type TachsReportStatus, type TachsParentReportContent, type TachsHomeSupportPlan,
 } from "@/lib/tachs";
 import { PROGRAM_KEYS, TACHS_PROGRAMS, TACHS_TIERS, usd, usd2, pricingBreakdown, type TachsProgramKey } from "@/lib/tachsPrograms";
+import { defaultHomeSupportPlan, sectionScores } from "@/lib/tachsParentReport";
+import { TachsHomeSupportPlan } from "@/components/TachsHomeSupportPlan";
 import { PINNED_ATTEMPTS, MODE_LABEL, countsByMode, filterByMode, type AttemptMode } from "@/lib/tachsAdminHelpers";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -17,7 +19,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { ArrowLeft, ClipboardList, Loader2, Mail, Printer, RotateCcw, Search, KeyRound, ShieldCheck } from "lucide-react";
+import { ArrowLeft, BookOpen, ClipboardList, Loader2, Mail, Printer, RotateCcw, Search, KeyRound, ShieldCheck } from "lucide-react";
 import { SEO } from "@/components/SEO";
 
 const BAND_KEYS = ["strong", "approaching", "developing", "foundations"] as const;
