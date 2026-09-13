@@ -414,15 +414,15 @@ export default function AdminTachs() {
                     {reportStatusOf(detail.attempt) === "draft" && detail.attempt.email_status === "sent" ? " · An earlier automatic email exists in the log below; it is preserved and the report still requires review." : ""}
                     {" "}Acknowledgment email: {detail.attempt.ack_email_status ?? "pending"}.
                   </p>
-                  <p className="mb-2 text-xs text-muted-foreground">The parent receives only section-level raw accuracy, pacing, observations and a working band labelled as pending consultant review — never answers, keys, rationales or adaptive paths. Completion sends an acknowledgment only.</p>
-                  <Textarea className="mb-2" placeholder="Consultant review notes (internal)" value={reportNotes} onChange={(e) => setReportNotes(e.target.value)} />
+                  <p className="mb-2 text-xs text-muted-foreground">Until the report is approved, the family's page shows only "Your reviewed report is being prepared" — no scores. Once approved they see exactly the parent report below: six section scores with D.E.Bs Tiers, the overall tier, the consultant interpretation, the next-step plan and the recommended program. Never answers, keys, rationales, bank notes, timing or workflow. These review notes stay internal and are never sent.</p>
+                  <Textarea className="mb-2" placeholder="Consultant review notes (internal only — never shown to parents)" value={reportNotes} onChange={(e) => setReportNotes(e.target.value)} />
                   <div className="flex flex-wrap gap-2">
                     {reportStatusOf(detail.attempt) === "draft" && <Button size="sm" disabled={busy === detail.attempt.id} onClick={() => transition(detail.attempt, "reviewed")}>Mark reviewed</Button>}
-                    {reportStatusOf(detail.attempt) === "reviewed" && <Button size="sm" disabled={busy === detail.attempt.id} onClick={() => transition(detail.attempt, "approved")}>Approve parent report</Button>}
-                    {canSend(detail.attempt) && !sendConfirm && <Button size="sm" disabled={busy === detail.attempt.id} onClick={() => setSendConfirm(true)}><Mail className="mr-1 h-4 w-4" /> {reportStatusOf(detail.attempt) === "sent" ? "Re-send parent report" : "Send parent report"}</Button>}
+                    {reportStatusOf(detail.attempt) === "reviewed" && <Button size="sm" disabled={busy === detail.attempt.id} onClick={() => transition(detail.attempt, "approved")}>Approve &amp; release parent report</Button>}
+                    {canSend(detail.attempt) && !sendConfirm && <Button size="sm" disabled={busy === detail.attempt.id} onClick={() => setSendConfirm(true)}><Mail className="mr-1 h-4 w-4" /> {reportStatusOf(detail.attempt) === "sent" ? "Re-send parent report" : "Email parent report"}</Button>}
                     {canSend(detail.attempt) && sendConfirm && (
                       <>
-                        <span className="self-center text-sm">Email the approved preliminary report to {detail.attempt.parent_email ?? "the parent on file"}?</span>
+                        <span className="self-center text-sm">Email the released report to {detail.attempt.parent_email ?? "the parent on file"}?</span>
                         <Button size="sm" disabled={busy === detail.attempt.id} onClick={() => transition(detail.attempt, "sent")}>{busy === detail.attempt.id ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}Confirm send</Button>
                         <Button size="sm" variant="outline" onClick={() => setSendConfirm(false)}>Cancel</Button>
                       </>
@@ -432,21 +432,70 @@ export default function AdminTachs() {
                 </section>
               )}
 
-              {detail.parent_preview && (
-                <section className="mb-5">
-                  <h3 className="mb-2 font-semibold">What the parent will see (section-level only)</h3>
-                  <div className="overflow-x-auto rounded-md border">
-                    <Table>
-                      <TableHeader><TableRow><TableHead>Section</TableHead><TableHead>Correct</TableHead><TableHead>Accuracy</TableHead><TableHead>Time</TableHead><TableHead>Pacing</TableHead></TableRow></TableHeader>
-                      <TableBody>
-                        {detail.parent_preview.sections.map((s) => (
-                          <TableRow key={s.section_key}><TableCell>{s.label}</TableCell><TableCell>{s.correct} of {s.presented}</TableCell><TableCell>{s.accuracy}%</TableCell><TableCell>{formatClock(s.time_used_seconds)} of {formatClock(s.time_limit_seconds)}</TableCell><TableCell>{PACING_LABEL[s.pacing]}</TableCell></TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+              {detail.attempt.status === "completed" && parentForm && (
+                <section className="mb-5 rounded-md border p-3" data-testid="parent-content-editor">
+                  <h3 className="mb-1 font-semibold">Parent report content (consultant-controlled)</h3>
+                  <p className="mb-3 text-xs text-muted-foreground">
+                    {detail.parent_report_content ? "Saved content." : "Generated defaults — nothing has been saved or released."} Editable while the report is in draft or reviewed. Internal review notes above never appear here.
+                  </p>
+                  <div className="grid gap-3">
+                    <label className="text-sm font-medium">Interpretation (parent-facing)
+                      <Textarea className="mt-1 min-h-[120px]" value={parentForm.interpretation} disabled={!canEditParent} onChange={(e) => setParentForm({ ...parentForm, interpretation: e.target.value })} />
+                    </label>
+                    <div className="text-sm font-medium">Priority sections
+                      <div className="mt-1 flex flex-wrap gap-2">
+                        {(Object.keys(SECTION_NAMES) as (keyof typeof SECTION_NAMES)[]).map((k) => {
+                          const on = parentForm.priority_sections.includes(k);
+                          return <Button key={k} type="button" size="sm" variant={on ? "default" : "outline"} disabled={!canEditParent} aria-pressed={on}
+                            onClick={() => setParentForm({ ...parentForm, priority_sections: on ? parentForm.priority_sections.filter((x) => x !== k) : [...parentForm.priority_sections, k] })}>{SECTION_NAMES[k]}</Button>;
+                        })}
+                      </div>
+                    </div>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <label className="text-sm font-medium">Recommended program
+                        <Select value={parentForm.recommended_program_key} disabled={!canEditParent} onValueChange={(v) => setParentForm({ ...parentForm, recommended_program_key: v as TachsProgramKey })}>
+                          <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                          <SelectContent>{PROGRAM_KEYS.map((k) => <SelectItem key={k} value={k}>{TACHS_PROGRAMS[k].name} — {usd(TACHS_PROGRAMS[k].total_cents)} ({TACHS_TIERS[TACHS_PROGRAMS[k].tier].badge})</SelectItem>)}</SelectContent>
+                        </Select>
+                      </label>
+                      <label className="text-sm font-medium">Price override (USD, optional)
+                        <Input className="mt-1" type="number" min={0} step="1" placeholder={String(TACHS_PROGRAMS[parentForm.recommended_program_key].total_cents / 100)} disabled={!canEditParent}
+                          value={parentForm.price_override_cents == null ? "" : String(parentForm.price_override_cents / 100)}
+                          onChange={(e) => setParentForm({ ...parentForm, price_override_cents: e.target.value === "" ? null : Math.round(Number(e.target.value) * 100) })} />
+                      </label>
+                    </div>
+                    <label className="text-sm font-medium">Next-step plan (one step per line)
+                      <Textarea className="mt-1 min-h-[120px]" value={parentForm.customized_next_steps.join("\n")} disabled={!canEditParent}
+                        onChange={(e) => setParentForm({ ...parentForm, customized_next_steps: e.target.value.split("\n") })} />
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      <Button size="sm" disabled={!canEditParent || busy === "parent-content"} onClick={saveParentContent}>{busy === "parent-content" ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}Save parent content</Button>
+                      {detail.parent_report_defaults && <Button size="sm" variant="outline" disabled={!canEditParent} onClick={() => setParentForm({ ...detail.parent_report_defaults! })}>Reset to generated defaults</Button>}
+                      {!canEditParent && <span className="self-center text-xs text-muted-foreground">Return the report to draft to edit.</span>}
+                    </div>
                   </div>
-                  <ul className="mt-2 list-disc pl-5 text-sm">{detail.parent_preview.observations.map((o, i) => <li key={i}>{o}</li>)}</ul>
-                  {detail.parent_preview.working_band && <p className="mt-2 text-xs text-muted-foreground">Working band shown to parent: <strong>{detail.parent_preview.working_band.label}</strong> — labelled "{detail.parent_preview.working_band.interpretation}".</p>}
+                </section>
+              )}
+
+              {detail.parent_preview && (
+                <section className="mb-5" data-testid="parent-preview">
+                  <h3 className="mb-2 font-semibold">What the parent will see (exactly this — nothing else)</h3>
+                  <div className="rounded-md border p-3 text-sm space-y-3">
+                    <p>Overall <strong>{detail.parent_preview.overall.accuracy}%</strong> · {detail.parent_preview.overall.tier_badge} {detail.parent_preview.overall.tier_label}</p>
+                    <div className="overflow-x-auto rounded-md border">
+                      <Table>
+                        <TableHeader><TableRow><TableHead>Section</TableHead><TableHead>Score</TableHead><TableHead>D.E.Bs Tier</TableHead></TableRow></TableHeader>
+                        <TableBody>
+                          {detail.parent_preview.sections.map((s) => (
+                            <TableRow key={s.section_key}><TableCell>{s.label}</TableCell><TableCell>{s.accuracy}%</TableCell><TableCell>{s.tier_badge} · {s.tier_label}</TableCell></TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                    <p className="text-muted-foreground">{detail.parent_preview.interpretation}</p>
+                    <ol className="list-decimal pl-5">{detail.parent_preview.plan.map((s, i) => <li key={i}>{s}</li>)}</ol>
+                    <p><strong>{detail.parent_preview.program.name}</strong> — {detail.parent_preview.program.price_label} · {detail.parent_preview.program.installments_label}</p>
+                  </div>
                 </section>
               )}
 
