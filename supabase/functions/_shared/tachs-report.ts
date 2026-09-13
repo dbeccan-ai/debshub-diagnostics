@@ -162,14 +162,14 @@ export function defaultHomeSupportPlan(programKey: TachsProgramKey, prioritySect
       `Days 3 to ${2 + days}: one ${minutes}-minute independent practice block, rotating through the sections listed above.`,
       "Day 6: one timed mini-set (10–15 minutes) in a single section; the student works alone and records the time.",
       "Day 7: rest, or a light 10-minute vocabulary or mental-math refresher. Parent looks over the week's completed work with the student.",
-    ].slice(0, days >= 4 ? 4 : 4),
+    ],
     guidance: [
       "The student should complete the practice independently; the goal is confident, unassisted work.",
       "Parents encourage a steady routine, protect the practice time, and check that each block was completed.",
       "Please do not coach or prompt during timed practice — timed sets are most useful when they show what the student can do alone.",
       "If a block feels too hard, stop at the planned time and note it for the consultant rather than pushing through.",
     ],
-    progress_check: `Progress checks: ${program.progress_monitoring} Bring the completed home-practice log to each check so the consultant can adjust this plan.`,
+    progress_check: `${program.progress_monitoring} Bring the completed home-practice log to each check so the consultant can adjust this plan.`,
     strengths_note: strong.length ? `Keep ${joinNames(strong)} sharp with one short practice set every other week.` : null,
   };
 }
