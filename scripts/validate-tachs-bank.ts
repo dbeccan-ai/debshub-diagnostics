@@ -85,7 +85,7 @@ for (const [code, model] of Object.entries(PAPER_FOLDING_V2_MODELS)) {
   if (!isDrawable(model.correct)) errors.push(`${code}: correct figure not drawable`);
   const all = [model.correct, ...model.distractors.map((d) => d.u)];
   for (let i = 0; i < all.length; i++) for (let j = i + 1; j < all.length; j++) if (sameFigure(all[i], all[j])) errors.push(`${code}: choices ${i} and ${j} are the same figure`);
-  if (model.distractors.length !== 3) errors.push(`${code}: ${model.distractors.length} distractors`);
+  if (model.distractors.length !== 4) errors.push(`${code}: ${model.distractors.length} distractors`);
 }
 const v2 = BANK_VERSIONS.find((v) => v.blueprint.version === 2)!;
 const pfSingleQuota = v2.blueprint.sections.find((s) => s.key === "paper_folding")!.skill_quotas.single_fold ?? 0;
