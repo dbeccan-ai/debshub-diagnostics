@@ -106,7 +106,10 @@ export default function AdminTachs() {
       const d = await loadAdminDetail(id);
       setDetail(d); setReportNotes(d.attempt.report_notes ?? ""); setSendConfirm(false); setApprovalConfirm(false); setDetailTab("parent");
       const base = d.parent_report_content ?? d.parent_report_defaults ?? null;
-      setParentForm(base ? { ...base, customized_next_steps: [...base.customized_next_steps], priority_sections: [...base.priority_sections] } : null);
+      // Older saved content (before the home plan existed) gets the generated plan for its own priorities/program.
+      const results = d.attempt.results as unknown as Record<string, unknown> | null;
+      const hp = base?.home_support_plan ?? (base && results ? (defaultHomeSupportPlan(base.recommended_program_key, base.priority_sections, sectionScores(results)) as TachsHomeSupportPlan) : undefined);
+      setParentForm(base ? { ...base, customized_next_steps: [...base.customized_next_steps], priority_sections: [...base.priority_sections], home_support_plan: hp ? JSON.parse(JSON.stringify(hp)) : undefined } : null);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not load the attempt details.");
     } finally { setDetailLoading(false); }
@@ -122,7 +125,12 @@ export default function AdminTachs() {
     setBusy("parent-content");
     try {
       const { approved_for_parent_at: _ignored, ...content } = parentForm;
-      await tachsApi.adminSaveParentReport(detail.attempt.id, { ...content, customized_next_steps: content.customized_next_steps.map((s) => s.trim()).filter(Boolean) });
+      const clean = (xs: string[]) => xs.map((s) => s.trim()).filter(Boolean);
+      const hp = content.home_support_plan;
+      await tachsApi.adminSaveParentReport(detail.attempt.id, {
+        ...content, customized_next_steps: clean(content.customized_next_steps),
+        home_support_plan: hp ? { ...hp, section_actions: hp.section_actions.map((s) => ({ ...s, actions: clean(s.actions) })), weekly_routine: clean(hp.weekly_routine), guidance: clean(hp.guidance) } : undefined,
+      });
       toast.success("Parent report content saved. It is released only when you approve the report.");
       await openDetail(detail.attempt.id);
     } catch (e) {
@@ -498,6 +506,22 @@ export default function AdminTachs() {
                           <Textarea className="mt-1 min-h-[120px]" value={parentForm.customized_next_steps.join("\n")} disabled={!canEditParent}
                             onChange={(e) => setParentForm({ ...parentForm, customized_next_steps: e.target.value.split("\n") })} />
                         </label>
+                        {parentForm.home_support_plan && (() => { const hp = parentForm.home_support_plan; const setHp = (patch: Partial<typeof hp>) => setParentForm({ ...parentForm, home_support_plan: { ...hp, ...patch } }); return (
+                          <fieldset className="rounded-md border p-3 space-y-3" data-testid="home-plan-editor">
+                            <legend className="px-1 text-sm font-semibold">At-Home Support Plan (section-level only)</legend>
+                            <label className="block text-sm font-medium">Weekly cadence<Textarea className="mt-1 min-h-[60px]" value={hp.cadence} disabled={!canEditParent} onChange={(e) => setHp({ cadence: e.target.value })} /></label>
+                            {hp.section_actions.map((s, i) => (
+                              <label key={s.section_key} className="block text-sm font-medium">{SECTION_NAMES[s.section_key]} — parent-friendly actions (one per line, up to 4)
+                                <Textarea className="mt-1 min-h-[90px]" value={s.actions.join("\n")} disabled={!canEditParent}
+                                  onChange={(e) => setHp({ section_actions: hp.section_actions.map((x, j) => j === i ? { ...x, actions: e.target.value.split("\n") } : x) })} />
+                              </label>
+                            ))}
+                            <label className="block text-sm font-medium">Simple weekly routine (one line per item)<Textarea className="mt-1 min-h-[90px]" value={hp.weekly_routine.join("\n")} disabled={!canEditParent} onChange={(e) => setHp({ weekly_routine: e.target.value.split("\n") })} /></label>
+                            <label className="block text-sm font-medium">Family guidance (one line per item)<Textarea className="mt-1 min-h-[90px]" value={hp.guidance.join("\n")} disabled={!canEditParent} onChange={(e) => setHp({ guidance: e.target.value.split("\n") })} /></label>
+                            <label className="block text-sm font-medium">Progress-check reminder<Textarea className="mt-1 min-h-[60px]" value={hp.progress_check} disabled={!canEditParent} onChange={(e) => setHp({ progress_check: e.target.value })} /></label>
+                            <label className="block text-sm font-medium">Strengths note (optional)<Input className="mt-1" value={hp.strengths_note ?? ""} disabled={!canEditParent} onChange={(e) => setHp({ strengths_note: e.target.value || null })} /></label>
+                            <Button size="sm" variant="outline" disabled={!canEditParent} onClick={() => setParentForm({ ...parentForm, home_support_plan: defaultHomeSupportPlan(parentForm.recommended_program_key, parentForm.priority_sections, sectionScores(detail.attempt.results as unknown as Record<string, unknown>)) as TachsHomeSupportPlan })}>Regenerate home plan from priorities</Button>
+                          </fieldset>); })()}
                         <div className="flex flex-wrap gap-2">
                           <Button size="sm" disabled={!canEditParent || busy === "parent-content"} onClick={saveParentContent}>{busy === "parent-content" ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}Save parent content</Button>
                           {detail.parent_report_defaults && <Button size="sm" variant="outline" disabled={!canEditParent} onClick={() => setParentForm({ ...detail.parent_report_defaults! })}>Reset to generated defaults</Button>}
@@ -522,8 +546,14 @@ export default function AdminTachs() {
                       </section>
                       <section aria-labelledby="admin-parent-interpretation"><h3 id="admin-parent-interpretation" className="font-semibold">3. D.E.Bs Consultant Interpretation</h3><p className="mt-1 leading-relaxed">{detail.parent_preview.interpretation}</p></section>
                       <section aria-labelledby="admin-parent-plan"><h3 id="admin-parent-plan" className="font-semibold">4. Recommended Next-Step Plan</h3><ol className="mt-1 list-decimal space-y-1 pl-5">{detail.parent_preview.plan.map((step, i) => <li key={i}>{step}</li>)}</ol><p className="mt-2 text-muted-foreground">{detail.parent_preview.placement_note}</p></section>
+                      {detail.parent_preview.home_support && (
+                        <section aria-labelledby="admin-parent-home" data-testid="admin-home-plan-preview" data-print-surface="home-plan">
+                          <div className="flex flex-wrap items-center justify-between gap-2"><h3 id="admin-parent-home" className="font-semibold">5. {detail.parent_preview.home_support.title}</h3><Button size="sm" variant="outline" className="print:hidden" onClick={() => printSurface("home-plan")}><Printer className="mr-1 h-4 w-4" /> Print / Save At-Home Plan</Button></div>
+                          <div className="mt-2"><TachsHomeSupportPlan plan={detail.parent_preview.home_support} /></div>
+                        </section>
+                      )}
                       {(() => { const pg = detail.parent_preview.program; const pr = pg.pricing ?? pricingBreakdown({ regular_tuition_cents: pg.total_cents, installment_count: TACHS_PROGRAMS[pg.key]?.installments.count ?? 3, credit_applied: true, credit_expires_at: null }); return (
-                        <section aria-labelledby="admin-parent-program" data-testid="admin-pricing-preview"><h3 id="admin-parent-program" className="font-semibold">5. Recommended Program &amp; Pricing</h3>
+                        <section aria-labelledby="admin-parent-program" data-testid="admin-pricing-preview"><h3 id="admin-parent-program" className="font-semibold">6. Recommended Program &amp; Pricing</h3>
                           <p className="mt-1"><strong>{pg.name}</strong> · {pg.duration_weeks} weeks · {pg.sessions_per_week} sessions per week</p>
                           <div className="mt-2 overflow-x-auto rounded-md border"><Table><TableBody>
                             <TableRow><TableCell>Regular tuition</TableCell><TableCell className="text-right">{usd2(pr.regular_tuition_cents)}</TableCell></TableRow>
@@ -535,7 +565,7 @@ export default function AdminTachs() {
                           <p className="mt-2">Payment choices: pay in full {usd2(pr.total_full_cents)}, or {pr.installments.count} payments of {usd2(pr.installments.charge_each_cents)} (total {usd2(pr.installments.total_charged_cents)}).</p>
                           <div className="mt-3 grid gap-2 sm:grid-cols-2"><div><strong>Focus</strong><ul className="list-disc pl-5">{pg.focus.map((item, i) => <li key={i}>{item}</li>)}</ul></div><div><strong>What is included</strong><ul className="list-disc pl-5">{pg.included.map((item, i) => <li key={i}>{item}</li>)}</ul></div></div>
                         </section>); })()}
-                      <section aria-labelledby="admin-parent-disclaimer"><h3 id="admin-parent-disclaimer" className="font-semibold">6. Please note</h3><p className="mt-1 text-xs text-muted-foreground">{detail.parent_preview.disclaimer}</p></section>
+                      <section aria-labelledby="admin-parent-disclaimer"><h3 id="admin-parent-disclaimer" className="font-semibold">7. Please note</h3><p className="mt-1 text-xs text-muted-foreground">{detail.parent_preview.disclaimer}</p></section>
                     </section>
                   )}
 
@@ -550,7 +580,7 @@ export default function AdminTachs() {
                         {canSend(detail.attempt) && sendConfirm && (
                           <div className="w-full rounded-md border border-primary/40 bg-primary/5 p-3 text-sm" data-testid="send-parent-confirmation">
                             <p><strong>Send Parent Report to Kecha’s saved email: {detail.attempt.parent_email ?? "No saved email"}?</strong></p>
-                            <p className="mt-1 text-muted-foreground">The email contains only: overall score and tier; six section scores and tiers; consultant interpretation; next-step plan; approved program and pricing; disclaimer.</p>
+                            <p className="mt-1 text-muted-foreground">The email contains only: overall score and tier; six section scores and tiers; consultant interpretation; next-step plan; At-Home Support Plan; approved program and pricing; disclaimer.</p>
                             <div className="mt-2 flex gap-2"><Button size="sm" disabled={busy === detail.attempt.id || !detail.attempt.parent_email} onClick={() => transition(detail.attempt, "sent")}>{busy === detail.attempt.id ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}Confirm Send Parent Report</Button><Button size="sm" variant="outline" onClick={() => setSendConfirm(false)}>Cancel</Button></div>
                           </div>
                         )}
@@ -567,6 +597,14 @@ export default function AdminTachs() {
                   <div className="flex justify-end print:hidden"><Button size="sm" variant="outline" onClick={() => printSurface("internal")}><Printer className="mr-1 h-4 w-4" /> Print Internal Audit — not for families</Button></div>
                   <div data-print-surface="internal" className="space-y-5">
                     <div><h2 className="text-xl font-bold">Internal Diagnostic Audit — Never Sent</h2><p className="text-sm text-muted-foreground">{detail.attempt.profiles?.full_name ?? "Student"} · Blueprint v{detail.attempt.blueprint_version} · started {new Date(detail.attempt.started_at).toLocaleString()}{detail.attempt.completed_at ? ` · completed ${new Date(detail.attempt.completed_at).toLocaleString()}` : ""}</p></div>
+                    {detail.attempt.status === "completed" && (
+                      <section className="rounded-md border-2 border-primary bg-primary/5 p-4 print:hidden" data-testid="curriculum-action">
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <div><h3 className="font-semibold">Personalized TACHS Curriculum (consultant only)</h3><p className="text-sm text-muted-foreground">Builds the {TACHS_PROGRAMS[parentForm?.recommended_program_key ?? "tachs_skill_builder"].duration_weeks}-week, 2-sessions/week plan from internal section and skill metrics. Admin-only — no parent link is ever created.</p></div>
+                          <Button onClick={() => navigate(`/admin/tachs/${detail.attempt.id}/curriculum`)}><BookOpen className="mr-1 h-4 w-4" /> Generate Personalized TACHS Curriculum</Button>
+                        </div>
+                      </section>
+                    )}
                     {detail.source === "direct" && <p className="rounded-md border bg-muted/40 p-2 text-xs text-muted-foreground">Read directly from the stored attempt snapshot (engine detail unavailable on this deployment). Report actions require the current engine.</p>}
                     {detail.carryover?.flagged && <p className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900" role="note"><strong>Bank note:</strong> {detail.carryover.note}</p>}
                     <section><h3 className="mb-2 font-semibold">Historical payment details</h3>{detail.attempt.order ? <div className="grid gap-1 rounded-md border p-3 text-sm sm:grid-cols-2"><div>Status: <strong>{detail.attempt.order.payment_status}</strong> ({detail.attempt.order.source})</div><div>Base: {dollars(detail.attempt.order.net_amount_cents)} · Fee: {dollars(detail.attempt.order.fee_cents)} · Total: {dollars(detail.attempt.order.total_cents)}</div><div>Paid: {detail.attempt.order.amount_paid_cents != null ? dollars(detail.attempt.order.amount_paid_cents) : "—"} {detail.attempt.order.currency.toUpperCase()}</div><div>Payment time: {detail.attempt.order.verified_at ? new Date(detail.attempt.order.verified_at).toLocaleString() : "—"}</div><div className="sm:col-span-2 break-all text-xs text-muted-foreground">Stripe Session: {detail.attempt.order.stripe_checkout_session_id ?? "—"} · Stripe Payment Intent: {detail.attempt.order.stripe_payment_intent_id ?? "—"}</div>{detail.attempt.order.grant_reason && <div className="sm:col-span-2 text-xs">Grant reason: {detail.attempt.order.grant_reason}</div>}</div> : <p className="text-sm text-muted-foreground">No order linked — access source: {detail.attempt.access_source ?? "unknown"}{detail.attempt.test_mode ? " (admin TEST MODE)" : ""}.</p>}</section>
