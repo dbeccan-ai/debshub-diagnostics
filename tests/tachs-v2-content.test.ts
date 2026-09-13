@@ -142,9 +142,9 @@ describe("Paper Folding v2 pool", () => {
   it("every choice is a distinct, drawable, unambiguous figure", () => {
     for (const [code, model] of Object.entries(PAPER_FOLDING_V2_MODELS)) {
       const figs = [model.correct, ...model.distractors.map((d) => d.u)];
-      expect(figs.length, code).toBe(4);
+      expect(figs.length, code).toBe(5);
       expect(isDrawable(model.correct), code).toBe(true);
-      for (let i = 0; i < 4; i++) for (let j = i + 1; j < 4; j++) expect(sameFigure(figs[i], figs[j]), `${code} choices ${i}/${j} identical`).toBe(false);
+      for (let i = 0; i < 5; i++) for (let j = i + 1; j < 5; j++) expect(sameFigure(figs[i], figs[j]), `${code} choices ${i}/${j} identical`).toBe(false);
     }
   });
   it("distractors differ by reflection order / orientation / layer count rather than only hole count", () => {
