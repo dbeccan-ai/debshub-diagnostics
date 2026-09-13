@@ -35,7 +35,9 @@ export default function TachsResults() {
 
   const completedOn = new Date(data.attempt.completed_at).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
 
-  if (!data.released && !data.report) {
+  // Render only a released-shape report; anything else (including an older server payload) shows the waiting state.
+  const report = data.report && data.report.kind === "parent_released" ? data.report : null;
+  if (!report || (!data.released && !data.preview)) {
     return (
       <div className="min-h-screen flex items-center justify-center p-6 bg-background">
         <SEO title="TACHS Diagnostic Report | D.E.Bs" description="Your TACHS diagnostic report." path={`/tachs/results/${attemptId}`} noIndex />
@@ -45,7 +47,7 @@ export default function TachsResults() {
             <CardTitle className="text-2xl">Your reviewed report is being prepared</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
-            <p>{data.message}</p>
+            <p>{data.message ?? "A D.E.Bs consultant reviews every diagnostic before results and the recommended plan are released."}</p>
             <p className="text-muted-foreground">Assessment completed {completedOn}.</p>
             <Button onClick={() => navigate("/dashboard")}>Back to dashboard</Button>
           </CardContent>
@@ -54,7 +56,7 @@ export default function TachsResults() {
     );
   }
 
-  const r = data.report!;
+  const r = report;
   const overallTier = TIER_LABELS[r.overall.tier];
   const p = r.program;
 
