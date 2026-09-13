@@ -51,7 +51,7 @@ function fm(spec: FmSpec): BankQuestion {
     visual: grid((i) => (i === 8 ? null : renderCell(gen(Math.floor(i / 3), i % 3)))),
     visual_alt: `A 3 by 3 grid. Row 1: ${rows[0]}. Row 2: ${rows[1]}. Row 3: ${rows[2]}.`,
     choices, correct_key,
-    rationale: `${spec.rule} The missing figure is therefore a ${describeCell(correct)}. Wrong options: ${ds.map((d, i) => `${choices.findIndex((c) => c.visual === choiceFig(renderCell(d.c))) >= 0 ? "" : ""}one ${d.label}`).join("; ")}.`,
+    rationale: `${spec.rule} The missing figure is therefore a ${describeCell(correct)}. Wrong options: ${ds.map((d) => `one ${d.label}`).join("; ")}.`,
   };
 }
 
@@ -323,7 +323,7 @@ export const FIGURE_CLASSIFICATION_V2_SPECS: FcSpec[] = [
     distractors: [c({ kind: "arrow", rot: 270 }), c({ kind: "arrow", rot: 0, fill: "black" }), c({ kind: "arrow", rot: 180, fill: "gray" }), c({ kind: "triangle", rot: 90 })],
     distractorNotes: ["points up", "points right", "points left", "is a triangle, not an arrow"] },
   { code: "FC2-15", difficulty: 2, skill: "orientation_symmetry", correctIndex: 0, ruleText: "Each figure has a vertical line of symmetry as drawn: an upright shape with a vertical inner line or no inner line, and any dot pattern is mirrored left-right.",
-    rule: (x) => normRotOk(x) && (x.inner === "none" || x.inner === "v" || x.inner === "plus") && mirroredLR(x.dots),
+    rule: (x) => normRotOk(x) && x.kind !== "arrow" && (x.inner === "none" || x.inner === "v" || x.inner === "plus") && mirroredLR(x.dots),
     exemplars: [c({ kind: "triangle", inner: "v" }), c({ kind: "hexagon", dots: ["tl", "tr"] }), c({ kind: "circle", inner: "plus", dots: ["bl", "br"] })],
     correct: c({ kind: "pentagon", inner: "v", dots: CORNERS }),
     distractors: [c({ kind: "pentagon", inner: "v", dots: ["tl"] }), c({ kind: "triangle", inner: "h" }), c({ kind: "arrow" }), c({ kind: "hexagon", dots: ["tl", "br"] })],
