@@ -426,7 +426,7 @@ export default function Page() {
               </a>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
               {/* Reading Recovery Diagnostic */}
               <div className="rounded-2xl bg-slate-800/80 border border-slate-700 p-5">
                 <div className="text-xs font-semibold text-amber-300 uppercase mb-1">{t.dashboard.readingRecovery}</div>
@@ -485,7 +485,7 @@ export default function Page() {
               </div>
 
               {/* TACHS Readiness Diagnostic */}
-              <div className="rounded-2xl bg-slate-800/80 border border-purple-500/60 p-5 md:col-span-3 lg:col-span-1 flex flex-col">
+              <div className="rounded-2xl bg-slate-800/80 border border-purple-500/60 p-5 flex flex-col">
                 <div className="text-xs font-semibold text-purple-300 uppercase mb-1">TACHS · Specialized high-school admissions</div>
                 <h3 className="font-semibold mb-2">TACHS Readiness Diagnostic</h3>
                 <p className="text-xs text-slate-300 mb-3">
@@ -560,7 +560,7 @@ export default function Page() {
               </p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-6 text-sm">
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 text-sm">
               {/* Grades 1–6 */}
               <div className="bg-white/90 backdrop-blur rounded-2xl border border-slate-200 p-6 flex flex-col">
                 <div className="text-xs font-semibold text-emerald-600 uppercase mb-1">{t.pricing.grades16}</div>
@@ -701,6 +701,18 @@ export default function Page() {
                 </summary>
                 <p className="mt-2 text-xs text-slate-600">
                   {t.faq.a4}
+                </p>
+              </details>
+
+              <details className="rounded-xl border border-slate-200 p-4">
+                <summary className="font-semibold text-slate-900 cursor-pointer">
+                  Do you offer a specialized high-school admissions (TACHS) diagnostic?
+                </summary>
+                <p className="mt-2 text-xs text-slate-600">
+                  Yes. The D.E.Bs TACHS Readiness Diagnostic is $175 plus a processing fee and covers six timed, adaptive sections: Reading, Written
+                  Expression, Mathematics, Figure Matrices, Paper Folding, and Figure Classification (200 questions, 130 testing minutes) with an immediate
+                  parent report. It is an independent, TACHS-aligned readiness tool — not the official exam and not affiliated with the TACHS program.{" "}
+                  <a href="/tachs" className="underline text-purple-700">Learn more</a>
                 </p>
               </details>
             </div>
