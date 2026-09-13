@@ -31,8 +31,11 @@ const publicQuestion = (q: QuestionRow) => ({
 });
 
 async function ensureSeed(db: Client) {
-  const { data: bp } = await db.from("tachs_blueprints").select("id").eq("is_active", true).limit(1).maybeSingle();
-  if (bp) return;
+  // Keep the active blueprint and the item bank in sync with the shipped pilot content.
+  const { count } = await db.from("tachs_questions")
+    .select("id", { count: "exact", head: true })
+    .eq("blueprint_version", BLUEPRINT_V1.version).eq("is_active", true);
+  if ((count ?? 0) >= SAMPLE_BANK.length) return;
   await db.from("tachs_blueprints").upsert({
     version: BLUEPRINT_V1.version, name: BLUEPRINT_V1.name, is_active: true, sections: BLUEPRINT_V1.sections, notes: BLUEPRINT_V1.notes,
   }, { onConflict: "version" });
