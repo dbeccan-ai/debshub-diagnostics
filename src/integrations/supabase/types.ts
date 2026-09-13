@@ -738,6 +738,41 @@ export type Database = {
         }
         Relationships: []
       }
+      tachs_attempt_events: {
+        Row: {
+          actor_id: string | null
+          attempt_id: string
+          created_at: string
+          detail: Json
+          event_type: string
+          id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          attempt_id: string
+          created_at?: string
+          detail?: Json
+          event_type: string
+          id?: string
+        }
+        Update: {
+          actor_id?: string | null
+          attempt_id?: string
+          created_at?: string
+          detail?: Json
+          event_type?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tachs_attempt_events_attempt_id_fkey"
+            columns: ["attempt_id"]
+            isOneToOne: false
+            referencedRelation: "tachs_attempts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tachs_attempt_sections: {
         Row: {
           attempt_id: string
@@ -828,9 +863,15 @@ export type Database = {
           completed_at: string | null
           created_at: string
           current_section_key: string | null
+          email_attempts: number
+          email_error: string | null
+          email_sent_at: string | null
+          email_status: string
           grade_level: number | null
           id: string
           parent_email: string | null
+          reopened_at: string | null
+          reopened_by: string | null
           results: Json | null
           school_id: string | null
           started_at: string
@@ -845,9 +886,15 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           current_section_key?: string | null
+          email_attempts?: number
+          email_error?: string | null
+          email_sent_at?: string | null
+          email_status?: string
           grade_level?: number | null
           id?: string
           parent_email?: string | null
+          reopened_at?: string | null
+          reopened_by?: string | null
           results?: Json | null
           school_id?: string | null
           started_at?: string
@@ -862,9 +909,15 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           current_section_key?: string | null
+          email_attempts?: number
+          email_error?: string | null
+          email_sent_at?: string | null
+          email_status?: string
           grade_level?: number | null
           id?: string
           parent_email?: string | null
+          reopened_at?: string | null
+          reopened_by?: string | null
           results?: Json | null
           school_id?: string | null
           started_at?: string
