@@ -302,7 +302,7 @@ export async function loadAdminAttempts(): Promise<ListLoad<TachsAdminAttempt> &
   } catch (e) { engineErr = e instanceof Error ? e.message : "Engine request failed"; }
   try {
     const d = await tachsAdminDirect.list();
-    return { kind: "ok", source: d.attempts.length > 0 || !engineErr ? "direct" : "direct", attempts: d.attempts, orders: d.orders };
+    return { kind: "ok", source: "direct", attempts: d.attempts, orders: d.orders };
   } catch (e) {
     const direct = e instanceof Error ? e.message : "Direct read failed";
     return { kind: "error", message: engineErr ? `${engineErr} · ${direct}` : direct, orders: [] };
