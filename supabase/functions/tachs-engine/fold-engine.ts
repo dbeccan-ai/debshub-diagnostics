@@ -236,7 +236,7 @@ export function buildDistractors(spec: FoldItemSpec, correct: Unfolded): { label
     if (sameFigure(c.u, correct)) continue;
     if (chosen.some((k) => sameFigure(k.u, c.u))) continue;
     chosen.push(c);
-    if (chosen.length === 3) break;
+    if (chosen.length === CHOICE_COUNT - 1) break;
   }
   return chosen;
 }
@@ -362,7 +362,8 @@ export function rationaleText(spec: FoldItemSpec, correct: Unfolded, distractors
 }
 
 // ---------- item builder ----------
-const KEYS = ["A", "B", "C", "D"];
+export const CHOICE_COUNT = 5;
+const KEYS = ["A", "B", "C", "D", "E"];
 
 export function buildFoldItem(spec: FoldItemSpec): BankQuestion & { model: { correct: Unfolded; distractors: { label: string; u: Unfolded }[] } } {
   const steps = foldSteps(spec.folds);
@@ -375,7 +376,7 @@ export function buildFoldItem(spec: FoldItemSpec): BankQuestion & { model: { cor
   const correct = unfold(spec.folds, spec.holes, spec.cuts ?? []);
   if (!isDrawable(correct)) throw new Error(`${spec.code}: correct unfolded sheet is not drawable (overlapping or edge holes)`);
   const distractors = buildDistractors(spec, correct);
-  if (distractors.length < 3) throw new Error(`${spec.code}: only ${distractors.length} distinct distractors available`);
+  if (distractors.length < CHOICE_COUNT - 1) throw new Error(`${spec.code}: only ${distractors.length} distinct distractors available`);
   const visuals = distractors.map((d) => unfoldedSheet(d.u));
   visuals.splice(spec.correctIndex, 0, unfoldedSheet(correct));
   const choices: Choice[] = visuals.map((v, i) => ({ key: KEYS[i], visual: v }));

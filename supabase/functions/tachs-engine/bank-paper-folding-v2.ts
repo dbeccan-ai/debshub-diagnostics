@@ -14,7 +14,8 @@ const Q_BR = D([50, 100], [100, 50], [100, 100], "the folded quarter sheet is fo
 // Diagonal of a half sheet (after one horizontal fold)
 const HALF_D = D([0, 0], [50, 50], [100, 0], "the left corner of the folded strip is folded over along a diagonal from the top-left corner to the middle of the strip's lower edge");
 
-const idx = [0, 2, 1, 3, 3, 0, 2, 1, 1, 3, 0, 2, 2, 1, 3, 0, 0, 3, 1, 2, 3, 2, 0, 1, 1, 0, 2, 3, 2, 3, 1, 0];
+// Correct-answer positions 0..4 (A–E), balanced and non-patterned.
+const idx = [0, 2, 4, 1, 3, 3, 0, 4, 2, 1, 1, 4, 3, 0, 2, 2, 3, 1, 4, 0, 4, 2, 0, 3, 1, 1, 0, 4, 2, 3, 3, 4];
 const spec = (i: number, s: Omit<FoldItemSpec, "correctIndex">): FoldItemSpec => ({ ...s, correctIndex: idx[i] });
 
 export const PAPER_FOLDING_V2_SPECS: FoldItemSpec[] = [
