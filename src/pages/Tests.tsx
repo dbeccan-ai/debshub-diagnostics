@@ -279,7 +279,7 @@ const Tests = () => {
 
             {/* TACHS Readiness Card */}
             <Card
-              className="cursor-pointer hover:shadow-lg transition-all hover:border-primary group"
+              className="cursor-pointer hover:shadow-lg transition-all hover:border-primary group relative"
               onClick={() => navigate("/tachs/start")}
             >
               <div className="absolute -top-3 left-1/2 -translate-x-1/2">
