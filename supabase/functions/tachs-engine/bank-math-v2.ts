@@ -92,8 +92,8 @@ export const MATH_V2: MathItem[] = [
     "A negative exponent moves the decimal 3 places left: 0.0048. 0.00048 moves 4 places; 0.048 moves 2; 4,800 moves right."),
   m("MA2-34", 2, ALG, "algebra1", "What is the solution of the system y = 2x − 5 and y = −x + 1?", ["(2, −1)", "(2, 1)", "(−2, −9)", "(4, 3)"], "A", "(2, −1)",
     "Set 2x − 5 = −x + 1, so 3x = 6 and x = 2; then y = 2(2) − 5 = −1: (2, −1). (2, 1) has a sign error in y; (−2, −9) and (4, 3) satisfy only one equation."),
-  m("MA2-35", 2, ALG, "algebra1", "What is the value of √144 + √81?", ["21", "15", "225", "33"], "A", Math.sqrt(144) + Math.sqrt(81),
-    "√144 = 12 and √81 = 9, so the sum is 21. 15 is √(144 + 81) = √225; 225 adds without taking roots; 33 uses √81 = 21? no — it adds 12 + 21, a misread of 81 ÷ 4."),
+  m("MA2-35", 2, ALG, "algebra1", "What is the value of √144 + √81?", ["21", "15", "225", "23"], "A", Math.sqrt(144) + Math.sqrt(81),
+    "√144 = 12 and √81 = 9, so the sum is 21. 15 is √(144 + 81) = √225 (roots do not distribute over addition); 225 adds without taking roots; 23 pairs 12 with √121 = 11, misreading 81."),
   m("MA2-36", 2, ALG, "algebra1", "A right triangle has legs of 9 cm and 12 cm. What is the length of its hypotenuse?", ["15 cm", "21 cm", "10.5 cm", "225 cm"], "A", Math.hypot(9, 12),
     "9² + 12² = 81 + 144 = 225, and √225 = 15 cm. 21 adds the legs; 10.5 averages them; 225 forgets the square root."),
   m("MA2-37", 2, ALG, "algebra1", "What is the 15th term of the arithmetic sequence 4, 11, 18, 25, ...?", ["102", "109", "105", "95"], "A", 4 + 14 * 7,
@@ -175,7 +175,7 @@ export const MATH_V2: MathItem[] = [
   m("MA2-73", 3, DAT, "algebra1", "The line of best fit for a scatter plot is y = 2.5x + 40, where x is hours studied and y is the test score. According to the model, how many hours of study predict a score of 90?", ["20", "265", "36", "32"], "A", (90 - 40) / 2.5,
     "Solve 90 = 2.5x + 40: 2.5x = 50, so x = 20 hours. 265 substitutes 90 for x; 36 divides 90 by 2.5; 32 subtracts 40 after dividing."),
   m("MA2-74", 3, DAT, "grade8", "A committee of 2 students is chosen at random from 3 girls and 2 boys. What is the probability that both are girls?", ["3/10", "9/25", "3/5", "2/5"], "A", "3/10",
-    "P = 3/5 × 2/4 = 6/20 = 3/10 (3 girl-pairs out of 10 possible pairs). 9/25 assumes the first student can be chosen again; 3/5 is only the first pick; 2/5 is the chance the pair contains no girls' complement misread."),
+    "P = 3/5 × 2/4 = 6/20 = 3/10 (3 girl-pairs out of 10 possible pairs). 9/25 assumes the first student can be chosen again; 3/5 is only the first pick; 2/5 is the probability that the first student chosen is a boy."),
 
   // ===== multistep_modeling (6): L2 3, L3 3 =====
   m("MA2-75", 2, MOD, "grade8", "A school orders 15 boxes of markers at $12.40 each and receives a $25 discount on the order. Shipping is 8% of the discounted total. What is the total cost?", ["$173.88", "$175.88", "$161.00", "$200.88"], "A", (15 * 12.4 - 25) * 1.08,

@@ -198,14 +198,12 @@ export function distractorCandidates(spec: FoldItemSpec, correct: Unfolded): { l
   // 2. Translated the punch instead of mirroring it across the first fold.
   const f0 = folds[0];
   const partial = n > 1 ? unfold(folds.slice(1).map((f) => f), holes, cuts) : punched;
-  const shift = (p: Pt): Pt => { const r = reflect(f0, p); const foot: Pt = [(p[0] + r[0]) / 2, (p[1] + r[1]) / 2]; const d = sub(foot, p); return [round(p[0] + 2 * d[0] + (f0.short === "vertical" ? 0 : 0)), round(p[1] + 2 * d[1])]; };
   // For axis folds, "translation" means sliding the copy across the line without mirroring the offset pattern:
   const slide = (p: Pt): Pt => {
     if (f0.short === "vertical") { const x = f0.p1[0]; const w = 100 - x >= x ? x : 100 - x; return [round(p[0] < x ? p[0] + w : p[0] - w), p[1]]; }
     if (f0.short === "horizontal") { const y = f0.p1[1]; const w = 100 - y >= y ? y : 100 - y; return [p[0], round(p[1] < y ? p[1] + w : p[1] - w)]; }
     return [round(100 - p[0]), round(100 - p[1])]; // diagonal: rotate 180° instead of transposing
   };
-  void shift;
   out.push({ label: "slid the copy instead of mirroring it", u: unionU(partial, mapU(partial, slide)) });
   // 3. Skipped the most recent fold (only for 2+ folds).
   if (n > 1) out.push({ label: "skipped the last fold", u: unfold(folds, holes, cuts, n - 1) });
