@@ -24,7 +24,7 @@ describe("A. strict surface separation", () => {
   });
   it("parent page shows the six-section structure and the 'being prepared' state", () => {
     expect(page).toContain("Your reviewed report is being prepared");
-    for (const h of ["1. Student Summary", "2. Section Results", "3. D.E.Bs Consultant Interpretation", "4. Recommended Next-Step Plan", "5. Recommended Program &amp; Pricing", "Schedule Enrollment Call"]) expect(page).toContain(h);
+    for (const h of ["1. Student Summary", "2. Section Results", "3. D.E.Bs Consultant Interpretation", "4. Recommended Next-Step Plan", "5. {r.home_support.title}", "6. Recommended Program &amp; Pricing", "Schedule Enrollment Call"]) expect(page).toContain(h);
     expect(page).toMatch(/TableCaption/);
   });
   it("the parent results type carries no internal fields", () => {

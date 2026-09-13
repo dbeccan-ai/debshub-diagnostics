@@ -173,7 +173,7 @@ describe("admin report workspace separation", () => {
     expect(parent).toContain("Confirm approval — do not send");
     expect(page).toContain("Approved. No email has been sent. Review the parent preview, then choose Send Parent Report.");
     expect(parent).toContain("Send Parent Report to Kecha’s saved email:");
-    expect(parent).toContain("overall score and tier; six section scores and tiers; consultant interpretation; next-step plan; approved program and pricing; disclaimer");
+    expect(parent).toContain("overall score and tier; six section scores and tiers; consultant interpretation; next-step plan; At-Home Support Plan; approved program and pricing; disclaimer");
     expect(parent).toContain("Confirm Send Parent Report");
   });
 
