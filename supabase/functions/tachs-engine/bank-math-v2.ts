@@ -38,7 +38,7 @@ export const MATH_V2: MathItem[] = [
     "2³ × 3² = 72; 5 × (−4) ÷ 2 = −10; 72 − (−10) = 82. Subtracting 10 instead of −10 gives 62; dividing the whole difference by 2 gives 26; using 2³ = 6 and 3² = 6 gives 46."),
   m("MA2-09", 3, NUM, "grade8", "A number is divided by 4, and then 7 is subtracted from the quotient. The result is −3. What is the number?", ["16", "−16", "40", "−40"], "A", (-3 + 7) * 4,
     "Undo the steps in reverse: −3 + 7 = 4, then 4 × 4 = 16. −40 and 40 come from subtracting 7 instead of adding it back; −16 is a sign slip."),
-  m("MA2-10", 3, NUM, "grade8", "What is the least common multiple of 8, 12, and 20?", ["120", "60", "240", "40"], "A", 120,
+  m("MA2-10", 2, NUM, "grade8", "What is the least common multiple of 8, 12, and 20?", ["120", "60", "240", "40"], "A", 120,
     "8 = 2³, 12 = 2² × 3, 20 = 2² × 5, so the LCM is 2³ × 3 × 5 = 120. 60 misses the extra factor of 2 needed for 8; 40 misses the 3; 240 doubles unnecessarily."),
 
   // ===== ratio_proportion_percent (10): L1 2, L2 5, L3 3 =====
