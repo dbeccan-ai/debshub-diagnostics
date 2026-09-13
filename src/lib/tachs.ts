@@ -47,6 +47,20 @@ export interface TachsResults {
   sections: TachsSectionSummary[]; skills: TachsSkillRow[]; strengths: TachsSkillRow[]; gaps: TachsSkillRow[]; disclaimer: string; generated_at: string;
   blueprint_version?: number;
   math_readiness?: { key: "foundation" | "grade8" | "algebra1"; label: string; presented: number; correct: number; accuracy: number }[] | null;
+  evidence?: TachsEvidence | null;
+}
+export interface TachsDifficultyRow { level: number; presented: number; correct: number; accuracy: number }
+export interface TachsEvidence {
+  by_difficulty: TachsDifficultyRow[];
+  sections: { section_key: TachsSectionKey; by_difficulty: TachsDifficultyRow[]; ceiling: { level: number | null; basis: string } }[];
+  skills: { section_key: TachsSectionKey; skill: string; presented: number; correct: number; accuracy: number; low_sample: boolean }[];
+  groups: { key: string; label: string; presented: number; correct: number; accuracy: number; low_sample: boolean }[];
+  min_sample: number;
+  note: string;
+}
+export interface TachsAuditItem {
+  code: string; section_key: TachsSectionKey; skill: string; difficulty: number; strand: string | null; stem: string;
+  passage_id: string | null; passage_title: string | null; visual: unknown; visual_alt: string | null; choices: TachsChoice[]; correct_key: string; rationale: string;
 }
 export interface TachsReviewItem {
   section_key: TachsSectionKey; position: number; skill: string; difficulty: number; selected_key: string | null; is_correct: boolean | null;
@@ -113,6 +127,8 @@ export const tachsApi = {
     call<{ ok: true; section_key: string }>({ action: "admin_reopen", attemptId, sectionKey }),
   adminSearchUsers: (query: string) =>
     call<{ users: { id: string; full_name: string | null; username: string | null; parent_email: string | null }[] }>({ action: "admin_search_users", attemptId: "admin", query }),
+  adminContentAudit: (version?: number) =>
+    call<{ items: TachsAuditItem[]; version: number }>({ action: "admin_content_audit", attemptId: "admin", version }),
   adminGrantAccess: (targetUserId: string, reason: string) =>
     call<{ ok: true; order: TachsOrder }>({ action: "admin_grant_access", attemptId: "admin", targetUserId, reason }),
 };

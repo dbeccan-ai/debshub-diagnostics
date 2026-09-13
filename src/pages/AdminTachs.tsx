@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { ArrowLeft, Loader2, Mail, Printer, RotateCcw, Search, KeyRound } from "lucide-react";
+import { ArrowLeft, ClipboardList, Loader2, Mail, Printer, RotateCcw, Search, KeyRound } from "lucide-react";
 import { SEO } from "@/components/SEO";
 
 const BAND_KEYS = ["strong", "approaching", "developing", "foundations"] as const;
@@ -168,6 +168,7 @@ export default function AdminTachs() {
             <p className="text-sm text-muted-foreground">All pilot attempts, section metrics, answer audit, and report delivery.</p>
           </div>
           <div className="flex items-center gap-2">
+            <Button size="sm" variant="outline" onClick={() => navigate("/admin/tachs/content-audit")}><ClipboardList className="mr-1 h-4 w-4" /> Content audit</Button>
             <Button size="sm" variant="outline" onClick={() => setGrantOpen(true)}><KeyRound className="mr-1 h-4 w-4" /> Grant TACHS access</Button>
             <Badge className="bg-secondary text-secondary-foreground">Pilot</Badge>
           </div>

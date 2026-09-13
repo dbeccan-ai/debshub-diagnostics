@@ -34,14 +34,16 @@
 
 ## TACHS Pilot v2 — full six-section rebuild (requested 2026-09-13)
 - [x] Phase 1: finish math/paper-folding v2 test run, fix all failures
-- [ ] Ability sections → 5 choices (A–E): bank types, renderer/UI, keyboard nav, validation, results/review, tests
-- [ ] Reading v2 pool ≥75 (original passages, ≥10–12 vocab-in-context administered)
-- [ ] Written Expression v2 pool ≥75 (passage editing + standalone conventions)
-- [ ] Figure Matrices v2 pool ≥36 (rule-model generated, 5 choices)
-- [ ] Figure Classification v2 pool ≥30 (rule-spec generated, 5 choices)
-- [ ] Paper Folding v2 → 5 choices, revalidate
-- [ ] Representative TEST MODE (every major skill incl. vocabulary)
-- [ ] Admin “TACHS Content Audit” page linked from /admin/tachs
-- [ ] Scoring evidence: accuracy/items by difficulty, ceiling, skill min-sample warnings, vocab row, conventions breakdown, ability subskills
-- [ ] Validators/tests for all of the above; typecheck + production build
-- [ ] Old-vs-v2 audit table; NO seed/deploy/publish (preview only)
+- [x] Ability sections → 5 choices (A–E): bank types, renderer/UI, keyboard nav, validation, results/review, tests
+- [x] Reading v2 pool ≥75 (original passages, ≥10–12 vocab-in-context administered)
+- [x] Written Expression v2 pool ≥75 (passage editing + standalone conventions)
+- [x] Figure Matrices v2 pool ≥36 (rule-model generated, 5 choices)
+- [x] Figure Classification v2 pool ≥30 (rule-spec generated, 5 choices)
+- [x] Paper Folding v2 → 5 choices, revalidate
+- [x] Representative TEST MODE (every major skill incl. vocabulary)
+- [x] Admin “TACHS Content Audit” page linked from /admin/tachs
+- [x] Scoring evidence: accuracy/items by difficulty, ceiling, skill min-sample warnings, vocab row, conventions breakdown, ability subskills
+- [x] Validators/tests for all of the above; typecheck + production build
+- [x] Old-vs-v2 audit table (Content Audit page, v1 vs v2 selector); NO seed/deploy/publish done
+- [ ] Deploy tachs-engine + publish — blocked: awaiting owner preview review/approval
+- [x] (16:29 request) Validate/wire Written v2; author Reading v2 directly; finish 5-choice Paper Folding, representative TEST MODE, admin Content Audit page, scoring UI, validators, tests, typecheck, build. Preview-only, v1 immutable.

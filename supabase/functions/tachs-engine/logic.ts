@@ -205,8 +205,11 @@ export function testModeQuotas(section: { skill_quotas: Record<string, number>; 
   const quotas: Record<string, number> = {};
   for (const [skill, q] of Object.entries(section.skill_quotas)) if (q > 0) quotas[skill] = Math.min(perSkillCap, q);
   let total = Object.values(quotas).reduce((a, b) => a + b, 0);
-  total = Math.max(1, Math.min(total, section.item_count, available));
-  return { quotas, item_count: total };
+  const cap = Math.max(1, Math.min(total, section.item_count, available));
+  // Deterministically drop the smallest-quota skills until the representative set fits the cap.
+  const order = Object.entries(section.skill_quotas).filter(([s]) => s in quotas).sort((a, b) => a[1] - b[1] || a[0].localeCompare(b[0]));
+  for (const [skill] of order) { if (total <= cap) break; total -= quotas[skill]; delete quotas[skill]; }
+  return { quotas, item_count: Math.max(1, total) };
 }
 
 // ---------- transparent scoring evidence ----------
@@ -256,10 +259,10 @@ export const EVIDENCE_GROUPS: { key: string; label: string; section_key: string;
   { key: "reading_vocabulary", label: "Reading — vocabulary in context", section_key: "reading", skills: ["vocabulary_in_context"] },
   { key: "reading_comprehension", label: "Reading — comprehension & inference", section_key: "reading", skills: ["main_idea", "inference", "detail_evidence", "text_structure"] },
   { key: "reading_rhetoric", label: "Reading — purpose, tone & rhetoric", section_key: "reading", skills: ["author_purpose_tone", "rhetorical_analysis"] },
-  { key: "written_conventions", label: "Written Expression — conventions (capitalization, punctuation, spelling)", section_key: "written_expression", skills: ["capitalization", "punctuation", "spelling", "punctuation_capitalization"] },
+  { key: "written_conventions", label: "Written Expression — conventions (capitalization, punctuation, spelling)", section_key: "written_expression", skills: ["capitalization", "punctuation", "spelling", "punctuation_capitalization", "spelling_word_usage"] },
   { key: "written_usage", label: "Written Expression — usage & agreement", section_key: "written_expression", skills: ["word_usage", "agreement", "grammar_usage"] },
   { key: "written_structure", label: "Written Expression — sentence structure & modifiers", section_key: "written_expression", skills: ["sentence_structure", "parallelism_modifiers"] },
-  { key: "written_revision", label: "Written Expression — organization & revision", section_key: "written_expression", skills: ["organization_revision", "organization"] },
+  { key: "written_revision", label: "Written Expression — organization & revision", section_key: "written_expression", skills: ["organization_revision", "organization", "organization_coherence", "revision_style"] },
   { key: "ability_transformation", label: "Ability — rotation, reflection & folding", section_key: "*", skills: ["rotation_reflection", "orientation_symmetry", "single_fold", "two_fold_reflection", "three_fold_sequence", "diagonal_reflection", "asymmetric_fold", "rotation", "single_fold", "double_fold"] },
   { key: "ability_composition", label: "Ability — overlay, count & multiple punches", section_key: "*", skills: ["overlay_composition", "progression_count", "multiple_punches", "edge_notch", "count_shading", "count", "count_attribute"] },
   { key: "ability_integration", label: "Ability — multi-attribute rule integration", section_key: "*", skills: ["two_rule_integration", "alternating_pattern", "shading_size_change", "shape_attribute_combo", "internal_structure", "size_position_partwhole", "shading", "size_change", "shape_attribute", "shading_attribute"] },

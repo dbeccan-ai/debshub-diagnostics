@@ -4,9 +4,9 @@
 // these exact question codes. Do not edit v1 content; author changes go into the active version.
 //
 // Pilot v2 (BANK_V2) is the active bank for all NEW attempts: Reading 50, Written Expression 50,
-// Figure Matrices 20 and Figure Classification 15 are carried over unchanged under "V2-" codes;
-// Mathematics (80-item pool for 50 administered) and Paper Folding (32-item pool for 15 administered)
-// are new original content built for adaptive selection.
+// every section is a new original pool larger than its administered count (Reading 80, Written 80,
+// Mathematics 80, Figure Matrices 38, Paper Folding 32, Figure Classification 32) for adaptive selection;
+// ability sections use five choices (A–E).
 //
 // Original content authored for the D.E.Bs pilot. Not affiliated with, sponsored by,
 // or endorsed by the TACHS program or its publisher.
@@ -16,6 +16,8 @@ import { READING } from "./bank-reading.ts";
 import { WRITTEN } from "./bank-written.ts";
 import { MATH } from "./bank-math.ts";
 import { MATH_V2_BANK } from "./bank-math-v2.ts";
+import { READING_V2 } from "./bank-reading-v2.ts";
+import { WRITTEN_V2 } from "./bank-written-v2.ts";
 import { PAPER_FOLDING_V2 } from "./bank-paper-folding-v2.ts";
 import { FIGURE_MATRICES, PAPER_FOLDING, FIGURE_CLASSIFICATION } from "./bank-figures.ts";
 import { FIGURE_MATRICES_V2, FIGURE_CLASSIFICATION_V2 } from "./bank-figures-v2.ts";
@@ -47,12 +49,11 @@ export const SAMPLE_BANK: BankQuestion[] = [
   ...FIGURE_CLASSIFICATION,
 ];
 
-const carry = (items: BankQuestion[]): BankQuestion[] => items.map((q) => ({ ...q, code: `V2-${q.code}` }));
 
 /** Pilot v2 — active for new attempts. */
 export const BANK_V2: BankQuestion[] = [
-  ...carry(balanceKeys(READING)),
-  ...carry(balanceKeys(WRITTEN)),
+  ...balanceKeys(READING_V2),
+  ...balanceKeys(WRITTEN_V2),
   ...balanceKeys(MATH_V2_BANK),
   ...FIGURE_MATRICES_V2,
   ...PAPER_FOLDING_V2,
@@ -74,4 +75,4 @@ export const STRAND_BY_CODE: Record<string, string> = Object.fromEntries(
 );
 
 export const TACHS_BANK = SAMPLE_BANK;
-export { READING, WRITTEN, MATH, MATH_V2_BANK, PAPER_FOLDING_V2, FIGURE_MATRICES_V2, FIGURE_CLASSIFICATION_V2, FIGURE_MATRICES, PAPER_FOLDING, FIGURE_CLASSIFICATION };
+export { READING, WRITTEN, MATH, MATH_V2_BANK, READING_V2, WRITTEN_V2, PAPER_FOLDING_V2, FIGURE_MATRICES_V2, FIGURE_CLASSIFICATION_V2, FIGURE_MATRICES, PAPER_FOLDING, FIGURE_CLASSIFICATION };

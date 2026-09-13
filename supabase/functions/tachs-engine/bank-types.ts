@@ -128,7 +128,7 @@ export const BLUEPRINT_V2: Blueprint = {
     {
       key: "written_expression", name: "Written Expression", order: 2, item_count: 50, time_minutes: 25, calculator: false, break_after_minutes: 0,
       description: "Passage editing and revision plus standalone conventions: capitalization, punctuation, spelling, word usage, agreement, sentence structure (fragments, run-ons, compound/complex), parallelism, modifiers, and organization.",
-      skill_quotas: { capitalization: 4, punctuation: 8, spelling: 4, word_usage: 6, agreement: 6, sentence_structure: 8, parallelism_modifiers: 6, organization_revision: 8 },
+      skill_quotas: { grammar_usage: 10, punctuation_capitalization: 10, sentence_structure: 10, organization_coherence: 8, revision_style: 6, spelling_word_usage: 6 },
       pool_minimum: 75,
       pool_difficulty_mix: { "1": 0.2, "2": 0.45, "3": 0.35 },
     },
