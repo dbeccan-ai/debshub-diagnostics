@@ -3,6 +3,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { BLUEPRINT_V1, SAMPLE_BANK, type BlueprintSection } from "./sample-bank.ts";
+import { advanceAdaptive, bandFor, DISCLAIMER } from "./logic.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
