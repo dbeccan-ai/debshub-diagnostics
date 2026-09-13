@@ -150,8 +150,12 @@ async function submitSection(db: Client, attemptId: string, section: any, reason
   return updated ?? section;
 }
 
-/** Fire-and-forget parent/admin report email. Never blocks or fails grading. */
-async function sendReportEmail(attemptId: string) {
+/**
+ * Fire-and-forget parent email. Never blocks or fails grading.
+ * kind "acknowledgment" carries no results; kind "parent_report" is only invoked by the
+ * admin approval workflow (admin_report_send) and is re-gated server-side by the sender.
+ */
+async function sendReportEmail(attemptId: string, kind: "acknowledgment" | "parent_report" = "acknowledgment") {
   try {
     const url = `${Deno.env.get("SUPABASE_URL")}/functions/v1/send-tachs-results`;
     const res = await fetch(url, {
@@ -160,9 +164,9 @@ async function sendReportEmail(attemptId: string) {
         "Content-Type": "application/json",
         Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
       },
-      body: JSON.stringify({ attemptId }),
+      body: JSON.stringify({ attemptId, kind }),
     });
-    if (!res.ok) console.error("tachs email failed", res.status, await res.text());
+    if (!res.ok) console.error("tachs email failed", kind, res.status, await res.text());
   } catch (e) {
     console.error("tachs email error", e);
   }
@@ -217,15 +221,17 @@ async function gradeAttempt(db: Client, attemptId: string) {
     disclaimer: DISCLAIMER,
   };
   // Idempotent: only the transition out of in_progress writes results and triggers the email.
+  // The report itself stays in "draft" until an admin reviews and approves it; completion sends
+  // ONLY the acknowledgment (no scores, band, answers or rationales).
   const { data: finished } = await db.from("tachs_attempts")
-    .update({ status: "completed", completed_at: now().toISOString(), results, current_section_key: null })
+    .update({ status: "completed", completed_at: now().toISOString(), results, current_section_key: null, report_status: "draft", email_status: "pending" })
     .eq("id", attemptId).eq("status", "in_progress").select("id").maybeSingle();
   if (finished) {
-    await db.from("tachs_attempt_events").insert({ attempt_id: attemptId, event_type: "graded", detail: { overall_accuracy: overall, band: band.key } });
+    await db.from("tachs_attempt_events").insert({ attempt_id: attemptId, event_type: "graded", detail: { overall_accuracy: overall, band: band.key, report_status: "draft" } });
     if (attempt.test_mode) {
-      await db.from("tachs_attempts").update({ email_status: "skipped", email_error: "TEST MODE attempt: no parent email is sent." }).eq("id", attemptId);
+      await db.from("tachs_attempts").update({ email_status: "skipped", email_error: "TEST MODE attempt: no parent email is sent.", ack_email_status: "skipped", ack_email_error: "TEST MODE attempt." }).eq("id", attemptId);
     } else {
-      await sendReportEmail(attemptId);
+      await sendReportEmail(attemptId, "acknowledgment");
     }
   }
   return results;
