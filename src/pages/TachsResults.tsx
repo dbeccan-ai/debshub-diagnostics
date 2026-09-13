@@ -140,6 +140,44 @@ export default function TachsResults() {
           </section>
         )}
 
+        {r.evidence && (
+          <section className="print-break space-y-4">
+            <h2 className="text-xl font-bold">How this score was built</h2>
+            <p className="text-sm text-muted-foreground">{r.evidence.note}</p>
+            <Card>
+              <CardHeader className="pb-2"><CardTitle className="text-base">Accuracy by difficulty level</CardTitle></CardHeader>
+              <CardContent className="space-y-2 text-sm">
+                {r.evidence.by_difficulty.map((d) => (
+                  <div key={d.level} className="flex items-center gap-3">
+                    <span className="w-40 shrink-0 font-medium">Level {d.level} {d.level === 1 ? "(foundation)" : d.level === 2 ? "(on-level)" : "(stretch)"}</span>
+                    <Progress value={d.accuracy} className="h-2 flex-1" />
+                    <span className="w-28 text-right">{d.presented ? `${d.accuracy}% (${d.correct}/${d.presented})` : "not presented"}</span>
+                  </div>
+                ))}
+                <div className="grid gap-1 pt-2 sm:grid-cols-2">
+                  {r.evidence.sections.map((s) => (
+                    <p key={s.section_key} className="text-xs text-muted-foreground"><span className="font-medium text-foreground">{SECTION_NAMES[s.section_key]}</span> — sustained level: {s.ceiling.level ?? "none yet"}. {s.ceiling.basis}</p>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+            {r.evidence.groups.length > 0 && (
+              <Card>
+                <CardHeader className="pb-2"><CardTitle className="text-base">Named sub-scores</CardTitle></CardHeader>
+                <CardContent className="space-y-2 text-sm">
+                  {r.evidence.groups.map((g) => (
+                    <div key={g.key} className="flex items-center gap-3">
+                      <span className="w-72 shrink-0">{g.label}{g.low_sample && <span className="ml-1 text-xs text-muted-foreground">(few items — read with caution)</span>}</span>
+                      <Progress value={g.accuracy} className="h-2 flex-1" />
+                      <span className="w-24 text-right">{g.accuracy}% ({g.correct}/{g.presented})</span>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+          </section>
+        )}
+
         <section className="print-break">
           <h2 className="text-xl font-bold mb-3">Skill metrics</h2>
           <Card>
