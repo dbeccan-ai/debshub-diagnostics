@@ -141,9 +141,9 @@ describe("mathematics readiness ladder", () => {
   });
 });
 
-import { testModeQuotas, buildEvidence, sustainedCeiling } from "../supabase/functions/tachs-engine/logic";
-import { BLUEPRINT_V2 } from "../supabase/functions/tachs-engine/bank-types";
-import { BANK_V2, SAMPLE_BANK } from "../supabase/functions/tachs-engine/sample-bank";
+import { testModeQuotas, buildEvidence, sustainedCeiling } from "../supabase/functions/tachs-engine/logic.ts";
+import { BLUEPRINT_V2 } from "../supabase/functions/tachs-engine/bank-types.ts";
+import { BANK_V2, SAMPLE_BANK } from "../supabase/functions/tachs-engine/sample-bank.ts";
 
 describe("representative TEST MODE", () => {
   it("presents one item per skill for every v2 section", () => {
