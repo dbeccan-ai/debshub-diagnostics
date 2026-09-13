@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import {
   tachsApi, SECTION_NAMES, skillLabel, formatClock,
@@ -20,6 +20,7 @@ const BAND_KEYS = ["strong", "approaching", "developing", "foundations"] as cons
 
 export default function AdminTachs() {
   const navigate = useNavigate();
+  const { attemptId: routeAttemptId } = useParams();
   const [loading, setLoading] = useState(true);
   const [attempts, setAttempts] = useState<TachsAdminAttempt[]>([]);
   const [search, setSearch] = useState("");
@@ -42,6 +43,7 @@ export default function AdminTachs() {
       const { data: role } = await supabase.from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").maybeSingle();
       if (!role) { toast.error("This page is for administrators only."); navigate("/dashboard"); return; }
       await load();
+      if (routeAttemptId) await openDetail(routeAttemptId);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -76,6 +78,7 @@ export default function AdminTachs() {
 
   const openDetail = async (id: string) => {
     setDetailLoading(true);
+    if (routeAttemptId !== id) navigate(`/admin/tachs/${id}`, { replace: true });
     try {
       setDetail(await tachsApi.adminDetail(id));
     } catch (e) {
@@ -225,7 +228,7 @@ export default function AdminTachs() {
       </div>
 
       {/* Detail */}
-      <Dialog open={!!detail || detailLoading} onOpenChange={(o) => { if (!o) setDetail(null); }}>
+      <Dialog open={!!detail || detailLoading} onOpenChange={(o) => { if (!o) { setDetail(null); navigate("/admin/tachs", { replace: true }); } }}>
         <DialogContent className="max-h-[88vh] max-w-5xl overflow-y-auto">
           {detailLoading || !detail ? (
             <div className="flex items-center gap-2 py-10 text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Loading…</div>

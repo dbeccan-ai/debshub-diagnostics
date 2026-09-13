@@ -293,23 +293,31 @@ serve(async (req) => {
       const { data: profile } = await db.from("profiles").select("school_id, parent_email").eq("id", user.id).maybeSingle();
       if (parentEmail && profile && profile.parent_email !== parentEmail) await db.from("profiles").update({ parent_email: parentEmail }).eq("id", user.id);
       const sections = (bp.sections as BlueprintSection[]).sort((a, b) => a.order - b.order);
+      // Normal mode never silently shrinks a section: verify the active bank covers every target first.
+      const availability: Record<string, number> = {};
+      for (const s of sections) {
+        const { count } = await db.from("tachs_questions").select("id", { count: "exact", head: true }).eq("blueprint_version", bp.version).eq("section_key", s.key).eq("is_active", true);
+        availability[s.key] = count ?? 0;
+      }
+      if (!testMode) {
+        const short = sections.filter((s) => availability[s.key] < s.item_count);
+        if (short.length) {
+          const detail = short.map((s) => `${s.key} (${availability[s.key]}/${s.item_count})`).join(", ");
+          console.error("tachs-engine configuration error: bank short for", detail);
+          return json({ error: `Configuration error: the TACHS question bank is incomplete for ${detail}. Please contact D.E.Bs support before starting.` }, 503);
+        }
+      }
       const { data: attempt, error: aErr } = await db.from("tachs_attempts").insert({
         user_id: user.id, school_id: profile?.school_id ?? null, blueprint_id: bp.id, blueprint_version: bp.version,
         grade_level: gradeLevel, parent_email: parentEmail ?? profile?.parent_email ?? null, test_mode: testMode, current_section_key: sections[0].key,
       }).select("*").single();
       if (aErr || !attempt) return json({ error: "Could not start the diagnostic." }, 500);
-      // Available items per section (bank may be smaller than the blueprint during the pilot)
-      const rows = [];
-      for (const s of sections) {
-        const { count } = await db.from("tachs_questions").select("id", { count: "exact", head: true }).eq("blueprint_version", bp.version).eq("section_key", s.key).eq("is_active", true);
-        const available = count ?? 0;
-        const itemCount = Math.max(1, Math.min(s.item_count, available, testMode ? TEST_MODE_ITEMS : s.item_count));
-        rows.push({
-          attempt_id: attempt.id, section_key: s.key, section_order: s.order, item_count: itemCount,
-          time_limit_seconds: testMode ? TEST_MODE_SECONDS : s.time_minutes * 60,
-          quotas_remaining: s.skill_quotas, break_after_seconds: (testMode ? Math.min(1, s.break_after_minutes) : s.break_after_minutes) * 60,
-        });
-      }
+      const rows = sections.map((s) => ({
+        attempt_id: attempt.id, section_key: s.key, section_order: s.order,
+        item_count: testMode ? Math.max(1, Math.min(s.item_count, availability[s.key], TEST_MODE_ITEMS)) : s.item_count,
+        time_limit_seconds: testMode ? TEST_MODE_SECONDS : s.time_minutes * 60,
+        quotas_remaining: s.skill_quotas, break_after_seconds: (testMode ? Math.min(1, s.break_after_minutes) : s.break_after_minutes) * 60,
+      }));
       await db.from("tachs_attempt_sections").insert(rows);
       return json({ resumed: false, attemptId: attempt.id, state: await buildState(db, attempt) });
     }
@@ -406,7 +414,15 @@ serve(async (req) => {
         const q = qMap.get(r.question_id);
         return { section_key: secMap.get(r.section_id), position: r.position, skill: r.skill, difficulty: r.difficulty, selected_key: r.selected_key, is_correct: r.is_correct, correct_key: q?.correct_key, rationale: q?.rationale, stem: q?.stem, choices: q?.choices, time_spent_seconds: r.time_spent_seconds };
       });
-      return json({ results, review, attempt: { id: freshAttempt.id, grade_level: freshAttempt.grade_level, test_mode: freshAttempt.test_mode, completed_at: freshAttempt.completed_at, started_at: freshAttempt.started_at, user_id: freshAttempt.user_id } });
+      // Email delivery status with a masked address (full address stays admin-only).
+      const pe = String(freshAttempt.parent_email ?? "");
+      const at = pe.indexOf("@");
+      const maskedEmail = at > 0 ? `${pe[0]}${"•".repeat(Math.max(2, at - 2))}${at > 1 ? pe[at - 1] : ""}@${pe.slice(at + 1)}` : null;
+      return json({
+        results, review,
+        attempt: { id: freshAttempt.id, grade_level: freshAttempt.grade_level, test_mode: freshAttempt.test_mode, completed_at: freshAttempt.completed_at, started_at: freshAttempt.started_at, user_id: freshAttempt.user_id },
+        email: { status: freshAttempt.email_status ?? "pending", sent_at: freshAttempt.email_sent_at ?? null, masked_to: maskedEmail },
+      });
     }
 
     if (freshAttempt.status !== "in_progress") return json({ error: "This attempt is already completed.", state: await buildState(db, freshAttempt) }, 409);

@@ -19,7 +19,7 @@ const BAND_ORDER = [
 export default function TachsResults() {
   const { attemptId = "" } = useParams();
   const navigate = useNavigate();
-  const [data, setData] = useState<{ results: Results; review: TachsReviewItem[]; attempt: { test_mode: boolean; grade_level: number | null; completed_at: string } } | null>(null);
+  const [data, setData] = useState<{ results: Results; review: TachsReviewItem[]; attempt: { test_mode: boolean; grade_level: number | null; completed_at: string }; email?: { status: string; sent_at: string | null; masked_to: string | null } } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -29,7 +29,12 @@ export default function TachsResults() {
   if (error) return <div className="min-h-screen flex items-center justify-center p-6"><Card className="max-w-md"><CardHeader><CardTitle>Results unavailable</CardTitle><CardDescription>{error}</CardDescription></CardHeader><CardContent><Button onClick={() => navigate("/dashboard")}>Dashboard</Button></CardContent></Card></div>;
   if (!data) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Preparing your report…</div>;
 
-  const { results: r, review, attempt } = data;
+  const { results: r, review, attempt, email } = data;
+  const emailNote = !email || attempt.test_mode ? null
+    : email.status === "sent" ? `A copy of this preliminary report was emailed to ${email.masked_to ?? "the parent/guardian on file"}${email.sent_at ? ` on ${new Date(email.sent_at).toLocaleDateString()}` : ""}.`
+    : email.status === "failed" ? "The parent/guardian email could not be delivered yet. Your results are saved; D.E.Bs can resend it."
+    : email.status === "skipped" ? "No parent/guardian email was on file, so no copy was sent. Your results are saved here."
+    : "The parent/guardian copy of this report is being sent.";
   const pace = (s: { pace_seconds_per_item: number; allotted_seconds_per_item: number }) =>
     s.pace_seconds_per_item > s.allotted_seconds_per_item * 1.15 ? "Slow" : s.pace_seconds_per_item < s.allotted_seconds_per_item * 0.6 ? "Rushed" : "On pace";
 
@@ -54,6 +59,7 @@ export default function TachsResults() {
         <section className="rounded-lg border p-4 text-sm bg-muted/40 print-break">
           <strong>Preliminary, non-official results.</strong> {r.disclaimer}
         </section>
+        {emailNote && <p className="text-sm text-muted-foreground no-print" role="status">{emailNote}</p>}
 
         <section className="grid gap-4 md:grid-cols-3 print-break">
           <Card className="md:col-span-1">
