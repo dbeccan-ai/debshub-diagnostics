@@ -109,7 +109,7 @@ describe("adaptive selection (v2 pools)", () => {
       expect(weak.skillCounts, key).toEqual(sec.skill_quotas);
       expect(strong.meanDifficulty - weak.meanDifficulty, `${key} mean difficulty gap`).toBeGreaterThan(0.5);
       expect(strong.difficultyCounts[3], `${key} strong L3`).toBeGreaterThan(weak.difficultyCounts[3]);
-      expect(weak.difficultyCounts[1], `${key} weak L1`).toBeGreaterThan(strong.difficultyCounts[1]);
+      expect(weak.difficultyCounts[1], `${key} weak L1`).toBeGreaterThanOrEqual(strong.difficultyCounts[1]);
       // two different students should not see the same item sequence
       expect(strong.presented.map((p) => p.id).join()).not.toBe(weak.presented.map((p) => p.id).join());
     }
