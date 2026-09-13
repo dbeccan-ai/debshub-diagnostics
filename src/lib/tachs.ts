@@ -164,7 +164,10 @@ export const tachsApi = {
   results: (attemptId: string) => call<TachsResultsResponse>({ action: "results", attemptId }),
   adminList: () => call<{ attempts: TachsAdminAttempt[]; orders: TachsOrder[] }>({ action: "admin_list", attemptId: "admin" }),
   adminDetail: (attemptId: string) =>
-    call<{ attempt: TachsAdminAttempt; sections: TachsAdminSection[]; audit: TachsAuditRow[]; events: TachsAttemptEvent[]; carryover: TachsCarryover; parent_preview: TachsParentReport | null }>({ action: "admin_detail", attemptId }),
+    call<{ attempt: TachsAdminAttempt; sections: TachsAdminSection[]; audit: TachsAuditRow[]; events: TachsAttemptEvent[]; carryover: TachsCarryover; parent_preview: TachsParentReport | null; parent_report_content?: TachsParentReportContent | null; parent_report_defaults?: TachsParentReportContent | null }>({ action: "admin_detail", attemptId }),
+  /** Save the consultant-controlled parent content (draft/reviewed only). Server-validated; never item-level. */
+  adminSaveParentReport: (attemptId: string, content: Omit<TachsParentReportContent, "approved_for_parent_at">) =>
+    call<{ ok: true; content: TachsParentReportContent; parent_preview: TachsParentReport | null }>({ action: "admin_parent_report_content", attemptId, content }),
   adminReportTransition: (attemptId: string, to: TachsReportStatus, notes?: string) =>
     call<{ ok: true; report: { report_status: TachsReportStatus; email_status?: string | null; email_error?: string | null; email_sent_at?: string | null; report_notes?: string | null } }>({ action: "admin_report_transition", attemptId, to, notes }),
   adminResendEmail: (attemptId: string) =>
@@ -221,6 +224,7 @@ export interface TachsAdminAttempt {
   parent_email: string | null; email_status: string | null; email_sent_at: string | null;
   email_attempts: number | null; email_error: string | null; results: TachsResults | null;
   report_status?: TachsReportStatus | null; report_reviewed_at?: string | null; report_approved_at?: string | null; report_sent_at?: string | null; report_notes?: string | null;
+  parent_report_content?: TachsParentReportContent | null;
   ack_email_status?: string | null; ack_email_sent_at?: string | null;
   reopened_at?: string | null; access_source?: string; order_id?: string | null; order?: TachsOrder | null;
   profiles?: { full_name: string | null; username: string | null } | null;
@@ -251,10 +255,13 @@ export const formatClock = (seconds: number) => {
 // report-workflow migration). These read the same immutable rows straight from the database under the
 // admin-only RLS policies; non-admins get zero rows. Nothing here writes.
 import { buildAuditRows, carryoverSummary, type ListLoad } from "@/lib/tachsAdminHelpers";
+import { defaultParentReportContent, parentReportView } from "@/lib/tachsParentReport";
 
 export interface TachsAdminDetail {
   attempt: TachsAdminAttempt; sections: TachsAdminSection[]; audit: TachsAuditRow[]; events: TachsAttemptEvent[];
-  carryover?: TachsCarryover; parent_preview?: TachsParentReport | null; source: "engine" | "direct";
+  carryover?: TachsCarryover; parent_preview?: TachsParentReport | null;
+  parent_report_content?: TachsParentReportContent | null; parent_report_defaults?: TachsParentReportContent | null;
+  source: "engine" | "direct";
 }
 
 async function profilesById(ids: string[]) {
@@ -303,7 +310,12 @@ export const tachsAdminDirect = {
       attempt: { ...(a as unknown as TachsAdminAttempt), profiles: prof.get(a.user_id) ?? null, order: (order as TachsOrder | null) ?? null },
       sections: (secs ?? []) as unknown as TachsAdminSection[],
       audit, events: (events ?? []) as unknown as TachsAttemptEvent[],
-      carryover: carryoverSummary(audit.map((r) => r.code)), parent_preview: null, source: "direct",
+      carryover: carryoverSummary(audit.map((r) => r.code)),
+      // Older engine: derive the parent preview + editor defaults locally from the same shared pure module.
+      parent_report_content: ((a as Record<string, unknown>).parent_report_content as TachsParentReportContent | null) ?? null,
+      parent_report_defaults: a.results ? (defaultParentReportContent(a.results as Record<string, unknown>) as TachsParentReportContent) : null,
+      parent_preview: a.results ? (parentReportView(a.results as Record<string, unknown>, ((a as Record<string, unknown>).parent_report_content as TachsParentReportContent | null) ?? null, a.completed_at) as unknown as TachsParentReport) : null,
+      source: "direct",
     };
   },
 };
