@@ -421,235 +421,167 @@ export default function AdminTachs() {
                 </DialogDescription>
               </DialogHeader>
 
-              <div className="mb-3 flex flex-wrap gap-2 print:hidden">
-                <Button size="sm" variant="outline" onClick={() => window.print()}><Printer className="mr-1 h-4 w-4" /> Print internal report</Button>
-                {detail.attempt.status === "completed" && (
-                  <Button size="sm" variant="outline" onClick={() => navigate(`/tachs/results/${detail.attempt.id}`)}>Preview parent report</Button>
-                )}
-              </div>
+              <style>{`@media print {
+                body.printing-tachs-parent * { visibility: hidden !important; }
+                body.printing-tachs-parent [data-print-surface="parent"],
+                body.printing-tachs-parent [data-print-surface="parent"] * { visibility: visible !important; }
+                body.printing-tachs-parent [data-print-surface="parent"] { position: absolute; inset: 0; width: 100%; padding: 24px; background: white; }
+                body.printing-tachs-internal * { visibility: hidden !important; }
+                body.printing-tachs-internal [data-print-surface="internal"],
+                body.printing-tachs-internal [data-print-surface="internal"] * { visibility: visible !important; }
+                body.printing-tachs-internal [data-print-surface="internal"] { position: absolute; inset: 0; width: 100%; padding: 24px; background: white; }
+                .admin-no-print { display: none !important; }
+              }`}</style>
 
-              {detail.source === "direct" && (
-                <p className="mb-3 rounded-md border bg-muted/40 p-2 text-xs text-muted-foreground">Read directly from the stored attempt snapshot (engine detail unavailable on this deployment). Report-approval actions require the updated engine.</p>
-              )}
-              {detail.carryover?.flagged && (
-                <p className="mb-4 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900" role="note">
-                  <strong>Bank note:</strong> {detail.carryover.note}
-                </p>
-              )}
+              <Tabs value={detailTab} onValueChange={(value) => { setDetailTab(value as "parent" | "internal"); setSendConfirm(false); setApprovalConfirm(false); }}>
+                <TabsList className="mb-4 grid h-auto w-full grid-cols-1 gap-1 p-1 sm:grid-cols-2 print:hidden" aria-label="TACHS attempt detail views">
+                  <TabsTrigger value="parent" className="min-h-11 whitespace-normal" data-testid="parent-report-tab">Parent Report — Edit &amp; Preview</TabsTrigger>
+                  <TabsTrigger value="internal" className="min-h-11 whitespace-normal" data-testid="internal-audit-tab">Internal Diagnostic Audit — Never Sent</TabsTrigger>
+                </TabsList>
 
-              {detail.attempt.status === "completed" && (
-                <section className="mb-5 rounded-md border border-primary/40 p-3">
-                  <h3 className="mb-1 flex items-center gap-2 font-semibold"><ShieldCheck className="h-4 w-4" /> Parent report approval</h3>
-                  <p className="mb-2 text-xs text-muted-foreground">
-                    Status: <strong>{REPORT_STATUS_LABEL[reportStatusOf(detail.attempt)]}</strong>
-                    {detail.attempt.report_reviewed_at ? ` · reviewed ${new Date(detail.attempt.report_reviewed_at).toLocaleString()}` : ""}
-                    {detail.attempt.report_approved_at ? ` · approved ${new Date(detail.attempt.report_approved_at).toLocaleString()}` : ""}
-                    {detail.attempt.report_sent_at ? ` · sent ${new Date(detail.attempt.report_sent_at).toLocaleString()}` : ""}
-                    {reportStatusOf(detail.attempt) === "draft" && detail.attempt.email_status === "sent" ? " · An earlier automatic email exists in the log below; it is preserved and the report still requires review." : ""}
-                    {" "}Acknowledgment email: {detail.attempt.ack_email_status ?? "pending"}.
-                  </p>
-                  <p className="mb-2 text-xs text-muted-foreground">Until the report is approved, the family's page shows only "Your reviewed report is being prepared" — no scores. Once approved they see exactly the parent report below: six section scores with D.E.Bs Tiers, the overall tier, the consultant interpretation, the next-step plan and the recommended program. Never answers, keys, rationales, bank notes, timing or workflow. These review notes stay internal and are never sent.</p>
-                  <Textarea className="mb-2" placeholder="Consultant review notes (internal only — never shown to parents)" value={reportNotes} onChange={(e) => setReportNotes(e.target.value)} />
-                  <div className="flex flex-wrap gap-2">
-                    {reportStatusOf(detail.attempt) === "draft" && <Button size="sm" disabled={busy === detail.attempt.id} onClick={() => transition(detail.attempt, "reviewed")}>Mark reviewed</Button>}
-                    {reportStatusOf(detail.attempt) === "reviewed" && <Button size="sm" disabled={busy === detail.attempt.id} onClick={() => transition(detail.attempt, "approved")}>Approve &amp; release parent report</Button>}
-                    {canSend(detail.attempt) && !sendConfirm && <Button size="sm" disabled={busy === detail.attempt.id} onClick={() => setSendConfirm(true)}><Mail className="mr-1 h-4 w-4" /> {reportStatusOf(detail.attempt) === "sent" ? "Re-send parent report" : "Email parent report"}</Button>}
-                    {canSend(detail.attempt) && sendConfirm && (
-                      <>
-                        <span className="self-center text-sm">Email the released report to {detail.attempt.parent_email ?? "the parent on file"}?</span>
-                        <Button size="sm" disabled={busy === detail.attempt.id} onClick={() => transition(detail.attempt, "sent")}>{busy === detail.attempt.id ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}Confirm send</Button>
-                        <Button size="sm" variant="outline" onClick={() => setSendConfirm(false)}>Cancel</Button>
-                      </>
-                    )}
-                    {reportStatusOf(detail.attempt) !== "draft" && <Button size="sm" variant="ghost" disabled={busy === detail.attempt.id} onClick={() => transition(detail.attempt, "draft")}>Return to draft</Button>}
+                <TabsContent value="parent" data-testid="parent-report-panel" className="space-y-5">
+                  <div className="rounded-md border-2 border-primary bg-primary/5 p-4 text-sm font-semibold print:hidden" role="note">
+                    This tab shows exactly what Kecha will receive. Nothing in the Internal Diagnostic Audit tab is included.
                   </div>
-                </section>
-              )}
 
-              {detail.attempt.status === "completed" && parentForm && (
-                <section className="mb-5 rounded-md border p-3" data-testid="parent-content-editor">
-                  <h3 className="mb-1 font-semibold">Parent report content (consultant-controlled)</h3>
-                  <p className="mb-3 text-xs text-muted-foreground">
-                    {detail.parent_report_content ? "Saved content." : "Generated defaults — nothing has been saved or released."} Editable while the report is in draft or reviewed. Internal review notes above never appear here.
-                  </p>
-                  <div className="grid gap-3">
-                    <label className="text-sm font-medium">Interpretation (parent-facing)
-                      <Textarea className="mt-1 min-h-[120px]" value={parentForm.interpretation} disabled={!canEditParent} onChange={(e) => setParentForm({ ...parentForm, interpretation: e.target.value })} />
-                    </label>
-                    <div className="text-sm font-medium">Priority sections
-                      <div className="mt-1 flex flex-wrap gap-2">
-                        {(Object.keys(SECTION_NAMES) as (keyof typeof SECTION_NAMES)[]).map((k) => {
-                          const on = parentForm.priority_sections.includes(k);
-                          return <Button key={k} type="button" size="sm" variant={on ? "default" : "outline"} disabled={!canEditParent} aria-pressed={on}
-                            onClick={() => setParentForm({ ...parentForm, priority_sections: on ? parentForm.priority_sections.filter((x) => x !== k) : [...parentForm.priority_sections, k] })}>{SECTION_NAMES[k]}</Button>;
-                        })}
+                  <div className="grid gap-3 md:grid-cols-[1fr_auto] print:hidden">
+                    <section className="rounded-md border p-3" data-testid="delivery-status">
+                      <h3 className="font-semibold">Delivery status</h3>
+                      <div className="mt-2 flex flex-wrap items-center gap-3 text-sm">
+                        <span>Report: <strong>{REPORT_STATUS_LABEL[reportStatusOf(detail.attempt)]}</strong></span>
+                        <span>Email sent: <strong>{detail.attempt.report_sent_at ? "Yes" : "No"}</strong></span>
                       </div>
-                    </div>
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <label className="text-sm font-medium">Recommended program
-                        <Select value={parentForm.recommended_program_key} disabled={!canEditParent} onValueChange={(v) => setParentForm({ ...parentForm, recommended_program_key: v as TachsProgramKey })}>
-                          <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
-                          <SelectContent>{PROGRAM_KEYS.map((k) => <SelectItem key={k} value={k}>{TACHS_PROGRAMS[k].name} — {usd(TACHS_PROGRAMS[k].total_cents)} ({TACHS_TIERS[TACHS_PROGRAMS[k].tier].badge})</SelectItem>)}</SelectContent>
-                        </Select>
-                      </label>
-                      <label className="text-sm font-medium">Price override (USD, optional)
-                        <Input className="mt-1" type="number" min={0} step="1" placeholder={String(TACHS_PROGRAMS[parentForm.recommended_program_key].total_cents / 100)} disabled={!canEditParent}
-                          value={parentForm.price_override_cents == null ? "" : String(parentForm.price_override_cents / 100)}
-                          onChange={(e) => setParentForm({ ...parentForm, price_override_cents: e.target.value === "" ? null : Math.round(Number(e.target.value) * 100) })} />
-                      </label>
-                    </div>
-                    <label className="text-sm font-medium">Diagnostic Enrollment Credit expires (defaults to 7 days after release)
-                      <Input className="mt-1" type="date" disabled={!canEditParent}
-                        value={parentForm.credit_expires_at ? parentForm.credit_expires_at.slice(0, 10) : ""}
-                        onChange={(e) => setParentForm({ ...parentForm, credit_expires_at: e.target.value ? new Date(`${e.target.value}T23:59:59`).toISOString() : null })} />
-                    </label>
-                    <label className="text-sm font-medium">Next-step plan (one step per line)
-                      <Textarea className="mt-1 min-h-[120px]" value={parentForm.customized_next_steps.join("\n")} disabled={!canEditParent}
-                        onChange={(e) => setParentForm({ ...parentForm, customized_next_steps: e.target.value.split("\n") })} />
-                    </label>
-                    <div className="flex flex-wrap gap-2">
-                      <Button size="sm" disabled={!canEditParent || busy === "parent-content"} onClick={saveParentContent}>{busy === "parent-content" ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}Save parent content</Button>
-                      {detail.parent_report_defaults && <Button size="sm" variant="outline" disabled={!canEditParent} onClick={() => setParentForm({ ...detail.parent_report_defaults! })}>Reset to generated defaults</Button>}
-                      {!canEditParent && <span className="self-center text-xs text-muted-foreground">Return the report to draft to edit.</span>}
+                    </section>
+                    <div className="flex flex-wrap content-start gap-2">
+                      <Button size="sm" variant="outline" onClick={() => window.open(`/tachs/results/${detail.attempt.id}`, "_blank", "noopener,noreferrer")}>
+                        Preview Parent Report
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => printSurface("parent")}><Printer className="mr-1 h-4 w-4" /> Print Parent Report</Button>
                     </div>
                   </div>
-                </section>
-              )}
 
-              {detail.parent_preview && (
-                <section className="mb-5" data-testid="parent-preview">
-                  <h3 className="mb-2 font-semibold">What the parent will see (exactly this — nothing else)</h3>
-                  <div className="rounded-md border p-3 text-sm space-y-3">
-                    <p>Overall <strong>{detail.parent_preview.overall.accuracy}%</strong> · {detail.parent_preview.overall.tier_badge} {detail.parent_preview.overall.tier_label}</p>
-                    <div className="overflow-x-auto rounded-md border">
-                      <Table>
-                        <TableHeader><TableRow><TableHead>Section</TableHead><TableHead>Score</TableHead><TableHead>D.E.Bs Tier</TableHead></TableRow></TableHeader>
-                        <TableBody>
-                          {detail.parent_preview.sections.map((s) => (
-                            <TableRow key={s.section_key}><TableCell>{s.label}</TableCell><TableCell>{s.accuracy}%</TableCell><TableCell>{s.tier_badge} · {s.tier_label}</TableCell></TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
-                    <p className="text-muted-foreground">{detail.parent_preview.interpretation}</p>
-                    <ol className="list-decimal pl-5">{detail.parent_preview.plan.map((s, i) => <li key={i}>{s}</li>)}</ol>
-                    {(() => { const pg = detail.parent_preview.program; const pr = pg.pricing ?? pricingBreakdown({ regular_tuition_cents: pg.total_cents, installment_count: TACHS_PROGRAMS[pg.key]?.installments.count ?? 3, credit_applied: true, credit_expires_at: null }); return (
-                    <div data-testid="admin-pricing-preview">
-                      <p><strong>{detail.parent_preview.program.name}</strong> — regular tuition {detail.parent_preview.program.price_label}</p>
-                      <ul className="mt-1 text-xs text-muted-foreground">
-                        <li>Diagnostic Enrollment Credit − {usd2(pr.credit_cents)}{pr.credit_expires_at ? ` (enroll by ${new Date(pr.credit_expires_at).toLocaleDateString()})` : " (date set at release: +7 days)"}</li>
-                        <li>Tuition balance {usd2(pr.balance_cents)} · fee {usd2(pr.fee_full_cents)} · pay in full {usd2(pr.total_full_cents)}</li>
-                        <li>{pr.installments.count} payments of {usd2(pr.installments.charge_each_cents)} · total {usd2(pr.installments.total_charged_cents)}</li>
-                      </ul>
-                    </div>); })()}
-                  </div>
-                </section>
-              )}
-
-              <section className="mb-5">
-                <h3 className="mb-2 font-semibold">Payment</h3>
-                {detail.attempt.order ? (
-                  <div className="grid gap-1 rounded-md border p-3 text-sm sm:grid-cols-2">
-                    <div>Status: <strong>{detail.attempt.order.payment_status}</strong> ({detail.attempt.order.source})</div>
-                    <div>Base: {dollars(detail.attempt.order.net_amount_cents)} · Fee: {dollars(detail.attempt.order.fee_cents)} · Total: {dollars(detail.attempt.order.total_cents)}</div>
-                    <div>Paid: {detail.attempt.order.amount_paid_cents != null ? dollars(detail.attempt.order.amount_paid_cents) : "—"} {detail.attempt.order.currency.toUpperCase()}</div>
-                    <div>Payment time: {detail.attempt.order.verified_at ? new Date(detail.attempt.order.verified_at).toLocaleString() : "—"}</div>
-                    <div className="sm:col-span-2 break-all text-xs text-muted-foreground">Session: {detail.attempt.order.stripe_checkout_session_id ?? "—"} · Intent: {detail.attempt.order.stripe_payment_intent_id ?? "—"}</div>
-                    {detail.attempt.order.grant_reason && <div className="sm:col-span-2 text-xs">Grant reason: {detail.attempt.order.grant_reason}</div>}
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground">No order linked — access source: {detail.attempt.access_source ?? "unknown"}{detail.attempt.test_mode ? " (admin TEST MODE)" : ""}.</p>
-                )}
-              </section>
-
-              <section className="mb-5">
-                <h3 className="mb-2 font-semibold">Section metrics</h3>
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader><TableRow>
-                      <TableHead>Section</TableHead><TableHead>Status</TableHead><TableHead>Items</TableHead>
-                      <TableHead>Time used</TableHead><TableHead>Submit reason</TableHead><TableHead>Difficulty path</TableHead>
-                    </TableRow></TableHeader>
-                    <TableBody>
-                      {detail.sections.map((s) => (
-                        <TableRow key={s.id}>
-                          <TableCell className="whitespace-nowrap">{SECTION_NAMES[s.section_key]}</TableCell>
-                          <TableCell>{s.status.replace(/_/g, " ")}</TableCell>
-                          <TableCell>{s.item_count}</TableCell>
-                          <TableCell>{s.time_used_seconds != null ? formatClock(s.time_used_seconds) : "—"}</TableCell>
-                          <TableCell>{s.submit_reason ?? "—"}</TableCell>
-                          <TableCell className="text-xs">
-                            {(s.difficulty_path ?? []).map((p) => p.difficulty).join(" → ") || "—"}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </section>
-
-              {detail.attempt.results && (
-                <section className="mb-5">
-                  <h3 className="mb-2 font-semibold">Skill metrics</h3>
-                  <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                    {detail.attempt.results.skills.map((k) => (
-                      <div key={`${k.section_key}-${k.skill}`} className="rounded-md border p-2 text-sm">
-                        <div className="font-medium">{skillLabel(k.skill)}</div>
-                        <div className="text-xs text-muted-foreground">{SECTION_NAMES[k.section_key]} · {k.correct}/{k.presented} · {k.accuracy}%</div>
+                  {detail.attempt.status === "completed" && parentForm && (
+                    <section className="rounded-md border p-3 print:hidden" data-testid="parent-content-editor">
+                      <h3 className="mb-1 font-semibold">Parent report content</h3>
+                      <p className="mb-3 text-xs text-muted-foreground">
+                        {detail.parent_report_content ? "Saved content." : "Generated defaults — nothing has been saved or released."} Editable while the report is in draft or reviewed.
+                      </p>
+                      <div className="grid gap-3">
+                        <label className="text-sm font-medium">Interpretation
+                          <Textarea className="mt-1 min-h-[120px]" value={parentForm.interpretation} disabled={!canEditParent} onChange={(e) => setParentForm({ ...parentForm, interpretation: e.target.value })} />
+                        </label>
+                        <div className="text-sm font-medium">Priority sections
+                          <div className="mt-1 flex flex-wrap gap-2">
+                            {(Object.keys(SECTION_NAMES) as (keyof typeof SECTION_NAMES)[]).map((k) => {
+                              const on = parentForm.priority_sections.includes(k);
+                              return <Button key={k} type="button" size="sm" variant={on ? "default" : "outline"} disabled={!canEditParent} aria-pressed={on}
+                                onClick={() => setParentForm({ ...parentForm, priority_sections: on ? parentForm.priority_sections.filter((x) => x !== k) : [...parentForm.priority_sections, k] })}>{SECTION_NAMES[k]}</Button>;
+                            })}
+                          </div>
+                        </div>
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          <label className="text-sm font-medium">Recommended program
+                            <Select value={parentForm.recommended_program_key} disabled={!canEditParent} onValueChange={(v) => setParentForm({ ...parentForm, recommended_program_key: v as TachsProgramKey })}>
+                              <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                              <SelectContent>{PROGRAM_KEYS.map((k) => <SelectItem key={k} value={k}>{TACHS_PROGRAMS[k].name} — {usd(TACHS_PROGRAMS[k].total_cents)} ({TACHS_TIERS[TACHS_PROGRAMS[k].tier].badge})</SelectItem>)}</SelectContent>
+                            </Select>
+                          </label>
+                          <label className="text-sm font-medium">Price override (USD, optional)
+                            <Input className="mt-1" type="number" min={0} step="1" placeholder={String(TACHS_PROGRAMS[parentForm.recommended_program_key].total_cents / 100)} disabled={!canEditParent}
+                              value={parentForm.price_override_cents == null ? "" : String(parentForm.price_override_cents / 100)}
+                              onChange={(e) => setParentForm({ ...parentForm, price_override_cents: e.target.value === "" ? null : Math.round(Number(e.target.value) * 100) })} />
+                          </label>
+                        </div>
+                        <label className="text-sm font-medium">Diagnostic Enrollment Credit expires (defaults to 7 days after release)
+                          <Input className="mt-1" type="date" disabled={!canEditParent}
+                            value={parentForm.credit_expires_at ? parentForm.credit_expires_at.slice(0, 10) : ""}
+                            onChange={(e) => setParentForm({ ...parentForm, credit_expires_at: e.target.value ? new Date(`${e.target.value}T23:59:59`).toISOString() : null })} />
+                        </label>
+                        <label className="text-sm font-medium">Next-step plan (one step per line)
+                          <Textarea className="mt-1 min-h-[120px]" value={parentForm.customized_next_steps.join("\n")} disabled={!canEditParent}
+                            onChange={(e) => setParentForm({ ...parentForm, customized_next_steps: e.target.value.split("\n") })} />
+                        </label>
+                        <div className="flex flex-wrap gap-2">
+                          <Button size="sm" disabled={!canEditParent || busy === "parent-content"} onClick={saveParentContent}>{busy === "parent-content" ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}Save parent content</Button>
+                          {detail.parent_report_defaults && <Button size="sm" variant="outline" disabled={!canEditParent} onClick={() => setParentForm({ ...detail.parent_report_defaults! })}>Reset to generated defaults</Button>}
+                          {!canEditParent && <span className="self-center text-xs text-muted-foreground">Return the report to draft to edit.</span>}
+                        </div>
                       </div>
-                    ))}
-                  </div>
-                </section>
-              )}
+                    </section>
+                  )}
 
-              <section className="mb-5">
-                <h3 className="mb-2 font-semibold">Answer audit ({detail.audit.length} items) — internal only</h3>
-                <div className="max-h-80 overflow-y-auto rounded-md border">
-                  <Table>
-                    <TableHeader><TableRow>
-                      <TableHead>#</TableHead><TableHead>Section</TableHead><TableHead>Item</TableHead><TableHead>Skill</TableHead>
-                      <TableHead>Diff</TableHead><TableHead>Chosen</TableHead><TableHead>Key</TableHead><TableHead>Result</TableHead>
-                      <TableHead>Rationale</TableHead><TableHead>Time</TableHead><TableHead>Flag</TableHead>
-                    </TableRow></TableHeader>
-                    <TableBody>
-                      {detail.audit.map((r, i) => (
-                        <TableRow key={`${r.section_key}-${r.position}-${i}`}>
-                          <TableCell>{r.position}</TableCell>
-                          <TableCell className="whitespace-nowrap">{SECTION_NAMES[r.section_key]}</TableCell>
-                          <TableCell className="max-w-[18rem] truncate text-xs">{r.code} — {r.stem}</TableCell>
-                          <TableCell className="whitespace-nowrap text-xs">{skillLabel(r.skill)}</TableCell>
-                          <TableCell>{r.difficulty}</TableCell>
-                          <TableCell>{r.selected_key ?? "—"}</TableCell>
-                          <TableCell>{r.correct_key ?? "—"}</TableCell>
-                          <TableCell>{r.is_correct == null ? "—" : r.is_correct ? "Correct" : "Incorrect"}</TableCell>
-                          <TableCell className="max-w-[16rem] text-xs text-muted-foreground" title={r.rationale ?? ""}>{r.rationale ?? "—"}</TableCell>
-                          <TableCell>{formatClock(r.time_spent_seconds ?? 0)}</TableCell>
-                          <TableCell>{r.is_flagged ? "Yes" : ""}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </section>
+                  {detail.parent_preview && (
+                    <section data-testid="parent-preview" data-print-surface="parent" className="rounded-md border p-4 text-sm space-y-5">
+                      <div>
+                        <p className="text-xs font-semibold uppercase text-muted-foreground">D.E.Bs Diagnostic Hub</p>
+                        <h2 className="text-xl font-bold">{detail.parent_preview.title}</h2>
+                        <p className="text-muted-foreground">{detail.attempt.profiles?.full_name ?? "Student"}{detail.attempt.grade_level ? ` · Grade ${detail.attempt.grade_level}` : ""}{detail.parent_preview.assessment_date ? ` · ${new Date(detail.parent_preview.assessment_date).toLocaleDateString()}` : ""}</p>
+                      </div>
+                      <section aria-labelledby="admin-parent-summary"><h3 id="admin-parent-summary" className="font-semibold">1. Student Summary</h3><p className="mt-1">Overall <strong>{detail.parent_preview.overall.accuracy}%</strong> · {detail.parent_preview.overall.tier_badge} · {detail.parent_preview.overall.tier_label}</p></section>
+                      <section aria-labelledby="admin-parent-sections"><h3 id="admin-parent-sections" className="mb-2 font-semibold">2. Section Results</h3>
+                        <div className="overflow-x-auto rounded-md border"><Table><TableHeader><TableRow><TableHead>Section</TableHead><TableHead>Score</TableHead><TableHead>D.E.Bs Tier</TableHead></TableRow></TableHeader><TableBody>
+                          {detail.parent_preview.sections.map((s) => <TableRow key={s.section_key}><TableCell>{s.label}</TableCell><TableCell>{s.accuracy}%</TableCell><TableCell>{s.tier_badge} · {s.tier_label}</TableCell></TableRow>)}
+                        </TableBody></Table></div>
+                      </section>
+                      <section aria-labelledby="admin-parent-interpretation"><h3 id="admin-parent-interpretation" className="font-semibold">3. D.E.Bs Consultant Interpretation</h3><p className="mt-1 leading-relaxed">{detail.parent_preview.interpretation}</p></section>
+                      <section aria-labelledby="admin-parent-plan"><h3 id="admin-parent-plan" className="font-semibold">4. Recommended Next-Step Plan</h3><ol className="mt-1 list-decimal space-y-1 pl-5">{detail.parent_preview.plan.map((step, i) => <li key={i}>{step}</li>)}</ol><p className="mt-2 text-muted-foreground">{detail.parent_preview.placement_note}</p></section>
+                      {(() => { const pg = detail.parent_preview.program; const pr = pg.pricing ?? pricingBreakdown({ regular_tuition_cents: pg.total_cents, installment_count: TACHS_PROGRAMS[pg.key]?.installments.count ?? 3, credit_applied: true, credit_expires_at: null }); return (
+                        <section aria-labelledby="admin-parent-program" data-testid="admin-pricing-preview"><h3 id="admin-parent-program" className="font-semibold">5. Recommended Program &amp; Pricing</h3>
+                          <p className="mt-1"><strong>{pg.name}</strong> · {pg.duration_weeks} weeks · {pg.sessions_per_week} sessions per week</p>
+                          <div className="mt-2 overflow-x-auto rounded-md border"><Table><TableBody>
+                            <TableRow><TableCell>Regular tuition</TableCell><TableCell className="text-right">{usd2(pr.regular_tuition_cents)}</TableCell></TableRow>
+                            <TableRow><TableCell>Diagnostic Enrollment Credit{pr.credit_expires_at ? ` (enroll by ${new Date(pr.credit_expires_at).toLocaleDateString()})` : ""}</TableCell><TableCell className="text-right">− {usd2(pr.credit_cents)}</TableCell></TableRow>
+                            <TableRow><TableCell>Tuition balance</TableCell><TableCell className="text-right">{usd2(pr.balance_cents)}</TableCell></TableRow>
+                            <TableRow><TableCell>Stripe processing fee</TableCell><TableCell className="text-right">{usd2(pr.fee_full_cents)}</TableCell></TableRow>
+                            <TableRow><TableCell>Total checkout charge</TableCell><TableCell className="text-right">{usd2(pr.total_full_cents)}</TableCell></TableRow>
+                          </TableBody></Table></div>
+                          <p className="mt-2">Payment choices: pay in full {usd2(pr.total_full_cents)}, or {pr.installments.count} payments of {usd2(pr.installments.charge_each_cents)} (total {usd2(pr.installments.total_charged_cents)}).</p>
+                          <div className="mt-3 grid gap-2 sm:grid-cols-2"><div><strong>Focus</strong><ul className="list-disc pl-5">{pg.focus.map((item, i) => <li key={i}>{item}</li>)}</ul></div><div><strong>What is included</strong><ul className="list-disc pl-5">{pg.included.map((item, i) => <li key={i}>{item}</li>)}</ul></div></div>
+                        </section>); })()}
+                      <section aria-labelledby="admin-parent-disclaimer"><h3 id="admin-parent-disclaimer" className="font-semibold">6. Please note</h3><p className="mt-1 text-xs text-muted-foreground">{detail.parent_preview.disclaimer}</p></section>
+                    </section>
+                  )}
 
-              <section>
-                <h3 className="mb-2 font-semibold">Activity and email log</h3>
-                {detail.events.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No recorded events yet.</p>
-                ) : (
-                  <ul className="space-y-1 text-sm">
-                    {detail.events.map((e) => (
-                      <li key={e.id} className="rounded border p-2">
-                        <span className="font-medium">{e.event_type.replace(/_/g, " ")}</span>
-                        <span className="text-muted-foreground"> · {new Date(e.created_at).toLocaleString()}</span>
-                        {e.detail && Object.keys(e.detail).length > 0 && (
-                          <div className="mt-1 text-xs text-muted-foreground break-all">{JSON.stringify(e.detail)}</div>
+                  {detail.attempt.status === "completed" && (
+                    <section className="rounded-md border border-primary/40 p-3 print:hidden" data-testid="parent-delivery-controls">
+                      <h3 className="mb-2 flex items-center gap-2 font-semibold"><ShieldCheck className="h-4 w-4" /> Approval and delivery</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {reportStatusOf(detail.attempt) === "draft" && <Button size="sm" disabled={busy === detail.attempt.id} onClick={() => transition(detail.attempt, "reviewed")}>Mark reviewed</Button>}
+                        {reportStatusOf(detail.attempt) === "reviewed" && !approvalConfirm && <Button size="sm" disabled={busy === detail.attempt.id} onClick={() => setApprovalConfirm(true)}>Approve Parent Report</Button>}
+                        {reportStatusOf(detail.attempt) === "reviewed" && approvalConfirm && <div className="w-full rounded-md border bg-muted/30 p-3 text-sm"><p><strong>Approve this exact parent report?</strong> Approval releases the parent page but does not send an email.</p><div className="mt-2 flex gap-2"><Button size="sm" disabled={busy === detail.attempt.id} onClick={() => transition(detail.attempt, "approved")}>Confirm approval — do not send</Button><Button size="sm" variant="outline" onClick={() => setApprovalConfirm(false)}>Cancel</Button></div></div>}
+                        {canSend(detail.attempt) && !sendConfirm && <Button size="sm" disabled={busy === detail.attempt.id} onClick={() => setSendConfirm(true)}><Mail className="mr-1 h-4 w-4" /> {reportStatusOf(detail.attempt) === "sent" ? "Re-send Parent Report" : "Send Parent Report"}</Button>}
+                        {canSend(detail.attempt) && sendConfirm && (
+                          <div className="w-full rounded-md border border-primary/40 bg-primary/5 p-3 text-sm" data-testid="send-parent-confirmation">
+                            <p><strong>Send Parent Report to Kecha’s saved email: {detail.attempt.parent_email ?? "No saved email"}?</strong></p>
+                            <p className="mt-1 text-muted-foreground">The email contains only: overall score and tier; six section scores and tiers; consultant interpretation; next-step plan; approved program and pricing; disclaimer.</p>
+                            <div className="mt-2 flex gap-2"><Button size="sm" disabled={busy === detail.attempt.id || !detail.attempt.parent_email} onClick={() => transition(detail.attempt, "sent")}>{busy === detail.attempt.id ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}Confirm Send Parent Report</Button><Button size="sm" variant="outline" onClick={() => setSendConfirm(false)}>Cancel</Button></div>
+                          </div>
                         )}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </section>
+                        {reportStatusOf(detail.attempt) !== "draft" && <Button size="sm" variant="ghost" disabled={busy === detail.attempt.id} onClick={() => transition(detail.attempt, "draft")}>Return to draft</Button>}
+                      </div>
+                    </section>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="internal" data-testid="internal-audit-panel" className="space-y-5">
+                  <div className="rounded-md border-2 border-destructive bg-destructive/5 p-4 text-sm font-bold print:hidden" role="note">
+                    ADMIN ONLY — this information is never included in the parent page, printable parent report, or parent email.
+                  </div>
+                  <div className="flex justify-end print:hidden"><Button size="sm" variant="outline" onClick={() => printSurface("internal")}><Printer className="mr-1 h-4 w-4" /> Print Internal Audit — not for families</Button></div>
+                  <div data-print-surface="internal" className="space-y-5">
+                    <div><h2 className="text-xl font-bold">Internal Diagnostic Audit — Never Sent</h2><p className="text-sm text-muted-foreground">{detail.attempt.profiles?.full_name ?? "Student"} · Blueprint v{detail.attempt.blueprint_version} · started {new Date(detail.attempt.started_at).toLocaleString()}{detail.attempt.completed_at ? ` · completed ${new Date(detail.attempt.completed_at).toLocaleString()}` : ""}</p></div>
+                    {detail.source === "direct" && <p className="rounded-md border bg-muted/40 p-2 text-xs text-muted-foreground">Read directly from the stored attempt snapshot (engine detail unavailable on this deployment). Report actions require the current engine.</p>}
+                    {detail.carryover?.flagged && <p className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900" role="note"><strong>Bank note:</strong> {detail.carryover.note}</p>}
+                    <section><h3 className="mb-2 font-semibold">Historical payment details</h3>{detail.attempt.order ? <div className="grid gap-1 rounded-md border p-3 text-sm sm:grid-cols-2"><div>Status: <strong>{detail.attempt.order.payment_status}</strong> ({detail.attempt.order.source})</div><div>Base: {dollars(detail.attempt.order.net_amount_cents)} · Fee: {dollars(detail.attempt.order.fee_cents)} · Total: {dollars(detail.attempt.order.total_cents)}</div><div>Paid: {detail.attempt.order.amount_paid_cents != null ? dollars(detail.attempt.order.amount_paid_cents) : "—"} {detail.attempt.order.currency.toUpperCase()}</div><div>Payment time: {detail.attempt.order.verified_at ? new Date(detail.attempt.order.verified_at).toLocaleString() : "—"}</div><div className="sm:col-span-2 break-all text-xs text-muted-foreground">Stripe Session: {detail.attempt.order.stripe_checkout_session_id ?? "—"} · Stripe Payment Intent: {detail.attempt.order.stripe_payment_intent_id ?? "—"}</div>{detail.attempt.order.grant_reason && <div className="sm:col-span-2 text-xs">Grant reason: {detail.attempt.order.grant_reason}</div>}</div> : <p className="text-sm text-muted-foreground">No order linked — access source: {detail.attempt.access_source ?? "unknown"}{detail.attempt.test_mode ? " (admin TEST MODE)" : ""}.</p>}</section>
+                    <section><h3 className="mb-2 font-semibold">Section timing, status and difficulty paths</h3><div className="overflow-x-auto"><Table><TableHeader><TableRow><TableHead>Section</TableHead><TableHead>Status</TableHead><TableHead>Items</TableHead><TableHead>Time used</TableHead><TableHead>Submit reason</TableHead><TableHead>Difficulty path</TableHead></TableRow></TableHeader><TableBody>{detail.sections.map((s) => <TableRow key={s.id}><TableCell>{SECTION_NAMES[s.section_key]}</TableCell><TableCell>{s.status.replace(/_/g, " ")}</TableCell><TableCell>{s.item_count}</TableCell><TableCell>{s.time_used_seconds != null ? formatClock(s.time_used_seconds) : "—"}</TableCell><TableCell>{s.submit_reason ?? "—"}</TableCell><TableCell className="text-xs">{(s.difficulty_path ?? []).map((path) => path.difficulty).join(" → ") || "—"}</TableCell></TableRow>)}</TableBody></Table></div></section>
+                    {detail.attempt.results && <section><h3 className="mb-2 font-semibold">Skill metrics</h3><div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{detail.attempt.results.skills.map((skill) => <div key={`${skill.section_key}-${skill.skill}`} className="rounded-md border p-2 text-sm"><div className="font-medium">{skillLabel(skill.skill)}</div><div className="text-xs text-muted-foreground">{SECTION_NAMES[skill.section_key]} · {skill.correct}/{skill.presented} · {skill.accuracy}%</div></div>)}</div></section>}
+                    <section><h3 className="mb-2 font-semibold">Answer audit, keys and rationales ({detail.audit.length} items)</h3><div className="max-h-80 overflow-y-auto rounded-md border print:max-h-none print:overflow-visible"><Table><TableHeader><TableRow><TableHead>#</TableHead><TableHead>Section</TableHead><TableHead>Item</TableHead><TableHead>Skill</TableHead><TableHead>Diff</TableHead><TableHead>Chosen</TableHead><TableHead>Key</TableHead><TableHead>Result</TableHead><TableHead>Rationale</TableHead><TableHead>Time</TableHead><TableHead>Flag</TableHead></TableRow></TableHeader><TableBody>{detail.audit.map((row, i) => <TableRow key={`${row.section_key}-${row.position}-${i}`}><TableCell>{row.position}</TableCell><TableCell>{SECTION_NAMES[row.section_key]}</TableCell><TableCell className="max-w-[18rem] truncate text-xs">{row.code} — {row.stem}</TableCell><TableCell className="text-xs">{skillLabel(row.skill)}</TableCell><TableCell>{row.difficulty}</TableCell><TableCell>{row.selected_key ?? "—"}</TableCell><TableCell>{row.correct_key ?? "—"}</TableCell><TableCell>{row.is_correct == null ? "—" : row.is_correct ? "Correct" : "Incorrect"}</TableCell><TableCell className="max-w-[16rem] text-xs text-muted-foreground">{row.rationale ?? "—"}</TableCell><TableCell>{formatClock(row.time_spent_seconds ?? 0)}</TableCell><TableCell>{row.is_flagged ? "Yes" : ""}</TableCell></TableRow>)}</TableBody></Table></div></section>
+                    <section><h3 className="mb-2 font-semibold">Internal notes and workflow history</h3><p className="mb-2 text-xs text-muted-foreground">Status: <strong>{REPORT_STATUS_LABEL[reportStatusOf(detail.attempt)]}</strong>{detail.attempt.report_reviewed_at ? ` · reviewed ${new Date(detail.attempt.report_reviewed_at).toLocaleString()}` : ""}{detail.attempt.report_approved_at ? ` · approved ${new Date(detail.attempt.report_approved_at).toLocaleString()}` : ""}{detail.attempt.report_sent_at ? ` · sent ${new Date(detail.attempt.report_sent_at).toLocaleString()}` : ""} · acknowledgment email: {detail.attempt.ack_email_status ?? "pending"}</p><Textarea placeholder="Consultant review notes (internal only — never shown to families)" value={reportNotes} onChange={(e) => setReportNotes(e.target.value)} /></section>
+                    <section><h3 className="mb-2 font-semibold">Activity and email log</h3>{detail.events.length === 0 ? <p className="text-sm text-muted-foreground">No recorded events yet.</p> : <ul className="space-y-1 text-sm">{detail.events.map((event) => <li key={event.id} className="rounded border p-2"><span className="font-medium">{event.event_type.replace(/_/g, " ")}</span><span className="text-muted-foreground"> · {new Date(event.created_at).toLocaleString()}</span>{event.detail && Object.keys(event.detail).length > 0 && <div className="mt-1 break-all text-xs text-muted-foreground">{JSON.stringify(event.detail)}</div>}</li>)}</ul>}</section>
+                    <section className="border-t pt-4 print:hidden"><h3 className="font-semibold">Administrative attempt controls</h3><p className="mb-2 text-xs text-muted-foreground">Reopening changes the student attempt and is never part of the parent report.</p><Button size="sm" variant="destructive" onClick={() => { setReopenTarget(detail.attempt); setReopenSection(""); }}><RotateCcw className="mr-1 h-4 w-4" /> Reopen section</Button></section>
+                  </div>
+                </TabsContent>
+              </Tabs>
             </>
           )}
         </DialogContent>
