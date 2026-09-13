@@ -26,7 +26,8 @@ describe("pricing", () => {
     const src = readFileSync("supabase/functions/create-tachs-checkout/index.ts", "utf8");
     expect(src).not.toMatch(/automatic_tax/);
     expect(src).not.toMatch(/payment_method_types/);
-    expect(src).toMatch(/D\.E\.Bs TACHS Readiness Diagnostic/);
+    expect(src).toMatch(/name: TACHS_PRODUCT_NAME/);
+    expect(readFileSync("supabase/functions/_shared/tachs-payment.ts", "utf8")).toMatch(/"D\.E\.Bs TACHS Readiness Diagnostic"/);
   });
 });
 
