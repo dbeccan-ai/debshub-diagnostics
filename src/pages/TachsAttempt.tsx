@@ -112,6 +112,21 @@ export default function TachsAttempt() {
     persist(q.id, { flagged: nf });
   };
 
+  // When a section's timer expires the server auto-submits it, so in-flight calls come back 409
+  // with the fresh state attached. Adopt that state quietly instead of showing an error.
+  const handleSectionError = (e: unknown, fallback: string) => {
+    const te = e as TachsError;
+    if (te?.state) {
+      applyState(te.state);
+      setIndex(Math.max(0, te.state.questions.length - 1));
+      setShowCalc(false);
+      setReviewOpen(false);
+      if (te.state.attempt.status === "completed") { navigate(`/tachs/results/${attemptId}`); return; }
+      if (te.status === 409) { toast.info("Time was up for that section. Moving on."); return; }
+    }
+    toast.error(e instanceof Error ? e.message : fallback);
+  };
+
   const goNext = async () => {
     if (!q || !current) return;
     if (index < questions.length - 1) { setIndex(index + 1); return; }
@@ -122,14 +137,14 @@ export default function TachsAttempt() {
       const res = await tachsApi.next(attemptId);
       applyState(res.state);
       if (res.done) setReviewOpen(true); else setIndex(res.state.questions.length - 1);
-    } catch (e) { toast.error(e instanceof Error ? e.message : "Could not load next question."); }
+    } catch (e) { handleSectionError(e, "Could not load next question."); }
     finally { setBusy(false); }
   };
 
   const startSection = async () => {
     setBusy(true);
     try { const { state: s } = await tachsApi.startSection(attemptId); applyState(s); setIndex(0); }
-    catch (e) { toast.error(e instanceof Error ? e.message : "Could not start section."); }
+    catch (e) { handleSectionError(e, "Could not start section."); }
     finally { setBusy(false); }
   };
 
@@ -143,9 +158,10 @@ export default function TachsAttempt() {
       setShowCalc(false);
       if (res.completed) { navigate(`/tachs/results/${attemptId}`); return; }
       if (breakSecs > 0) setBreakLeft(breakSecs);
-    } catch (e) { toast.error(e instanceof Error ? e.message : "Could not submit section."); }
+    } catch (e) { handleSectionError(e, "Could not submit section."); }
     finally { setBusy(false); }
   };
+
 
   if (error) return (
     <div className="min-h-screen flex items-center justify-center p-6">
