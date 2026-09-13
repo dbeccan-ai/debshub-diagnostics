@@ -2,9 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  tachsApi, SECTION_NAMES, skillLabel, formatClock, dollars, REPORT_STATUS_LABEL, PACING_LABEL, loadAdminAttempts, loadAdminDetail,
-  type TachsAdminAttempt, type TachsAdminDetail, type TachsOrder, type TachsReportStatus,
+  tachsApi, SECTION_NAMES, skillLabel, formatClock, dollars, REPORT_STATUS_LABEL, loadAdminAttempts, loadAdminDetail,
+  type TachsAdminAttempt, type TachsAdminDetail, type TachsOrder, type TachsReportStatus, type TachsParentReportContent,
 } from "@/lib/tachs";
+import { PROGRAM_KEYS, TACHS_PROGRAMS, TACHS_TIERS, usd, type TachsProgramKey } from "@/lib/tachsPrograms";
 import { PINNED_ATTEMPTS, MODE_LABEL, countsByMode, filterByMode, type AttemptMode } from "@/lib/tachsAdminHelpers";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -35,6 +36,7 @@ export default function AdminTachs() {
   const [version, setVersion] = useState("all");
   const [detail, setDetail] = useState<TachsAdminDetail | null>(null);
   const [reportNotes, setReportNotes] = useState("");
+  const [parentForm, setParentForm] = useState<TachsParentReportContent | null>(null);
   const [sendConfirm, setSendConfirm] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
@@ -100,6 +102,8 @@ export default function AdminTachs() {
     try {
       const d = await loadAdminDetail(id);
       setDetail(d); setReportNotes(d.attempt.report_notes ?? ""); setSendConfirm(false);
+      const base = d.parent_report_content ?? d.parent_report_defaults ?? null;
+      setParentForm(base ? { ...base, customized_next_steps: [...base.customized_next_steps], priority_sections: [...base.priority_sections] } : null);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not load the attempt details.");
     } finally { setDetailLoading(false); }
@@ -107,6 +111,21 @@ export default function AdminTachs() {
 
   const reportStatusOf = (a: TachsAdminAttempt): TachsReportStatus => (a.report_status ?? "draft") as TachsReportStatus;
   const canSend = (a: TachsAdminAttempt) => a.status === "completed" && !a.test_mode && (reportStatusOf(a) === "approved" || reportStatusOf(a) === "sent");
+  const canEditParent = !!detail && detail.attempt.status === "completed" && (reportStatusOf(detail.attempt) === "draft" || reportStatusOf(detail.attempt) === "reviewed");
+
+  /** Save consultant-controlled parent content (server-validated; no item-level data can be entered). */
+  const saveParentContent = async () => {
+    if (!detail || !parentForm) return;
+    setBusy("parent-content");
+    try {
+      const { approved_for_parent_at: _ignored, ...content } = parentForm;
+      await tachsApi.adminSaveParentReport(detail.attempt.id, { ...content, customized_next_steps: content.customized_next_steps.map((s) => s.trim()).filter(Boolean) });
+      toast.success("Parent report content saved. It is released only when you approve the report.");
+      await openDetail(detail.attempt.id);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not save the parent content.");
+    } finally { setBusy(null); }
+  };
 
   /** Report workflow: draft -> reviewed -> approved -> sent. Every step is server-checked and audited. */
   const transition = async (a: TachsAdminAttempt, to: TachsReportStatus) => {
