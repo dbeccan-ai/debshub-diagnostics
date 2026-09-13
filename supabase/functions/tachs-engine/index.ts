@@ -154,7 +154,7 @@ async function gradeAttempt(db: Client, attemptId: string) {
   const totalCorrect = sectionSummaries.reduce((a, s) => a + s.correct, 0);
   const totalTime = sectionSummaries.reduce((a, s) => a + (s.time_used_seconds ?? 0), 0);
   const overall = totalPresented ? Math.round((totalCorrect / totalPresented) * 100) : 0;
-  const band = BANDS.find((b) => overall >= b.min)!;
+  const band = bandFor(overall);
   const skillRows: { section_key: string; skill: string; presented: number; correct: number; accuracy: number }[] = [];
   for (const s of sectionSummaries) {
     for (const [skill, v] of Object.entries(s.skills as Record<string, { presented: number; correct: number }>)) {
