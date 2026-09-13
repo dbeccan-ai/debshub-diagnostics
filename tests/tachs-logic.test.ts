@@ -140,3 +140,50 @@ describe("mathematics readiness ladder", () => {
     expect(mathReadiness([{ strand: null, is_correct: true }])).toEqual([]);
   });
 });
+
+import { testModeQuotas, buildEvidence, sustainedCeiling } from "../supabase/functions/tachs-engine/logic";
+import { BLUEPRINT_V2 } from "../supabase/functions/tachs-engine/bank-types";
+import { BANK_V2, SAMPLE_BANK } from "../supabase/functions/tachs-engine/sample-bank";
+
+describe("representative TEST MODE", () => {
+  it("presents one item per skill for every v2 section", () => {
+    for (const s of BLUEPRINT_V2.sections) {
+      const pool = BANK_V2.filter((q) => q.section_key === s.key).length;
+      const tm = testModeQuotas(s, pool);
+      expect(Object.keys(tm.quotas).sort()).toEqual(Object.keys(s.skill_quotas).sort());
+      expect(tm.item_count).toBe(Object.keys(s.skill_quotas).length);
+      expect(Object.values(tm.quotas).reduce((a, b) => a + b, 0)).toBe(tm.item_count);
+    }
+  });
+  it("keeps quotas consistent with item_count when capped by availability", () => {
+    const tm = testModeQuotas({ skill_quotas: { a: 5, b: 3, c: 1, d: 2 }, item_count: 11 }, 2);
+    expect(tm.item_count).toBe(2);
+    expect(Object.values(tm.quotas).reduce((a, b) => a + b, 0)).toBe(2);
+    expect(Object.keys(tm.quotas).sort()).toEqual(["a", "b"]);
+  });
+});
+
+describe("scoring evidence", () => {
+  const rows = [
+    ...Array.from({ length: 4 }, (_, i) => ({ section_key: "reading", skill: "vocabulary_in_context", difficulty: 1, is_correct: i < 3 })),
+    ...Array.from({ length: 4 }, (_, i) => ({ section_key: "reading", skill: "inference", difficulty: 2, is_correct: i < 1 })),
+    { section_key: "reading", skill: "main_idea", difficulty: 3, is_correct: true },
+  ];
+  it("computes difficulty ceiling with a sample floor", () => {
+    expect(sustainedCeiling(rows).level).toBe(1);
+    expect(sustainedCeiling([{ section_key: "reading", skill: "x", difficulty: 3, is_correct: true }]).level).toBeNull();
+  });
+  it("flags low-sample skills and names sub-scores without claiming official scores", () => {
+    const ev = buildEvidence(rows);
+    expect(ev.skills.find((s) => s.skill === "main_idea")?.low_sample).toBe(true);
+    expect(ev.groups.find((g) => g.key === "reading_vocabulary")?.accuracy).toBe(75);
+    expect(ev.note).toMatch(/not official/i);
+  });
+});
+
+describe("v1 immutability", () => {
+  it("keeps the frozen v1 bank at 200 four-choice items with original codes", () => {
+    expect(SAMPLE_BANK.length).toBe(200);
+    expect(SAMPLE_BANK.every((q) => q.choices.length === 4 && !q.code.startsWith("V2-"))).toBe(true);
+  });
+});
