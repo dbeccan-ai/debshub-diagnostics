@@ -414,11 +414,8 @@ export default function AdminTachs() {
           ) : (
             <>
               <DialogHeader>
-                <DialogTitle>{detail.attempt.profiles?.full_name ?? "Student"} — TACHS attempt</DialogTitle>
-                <DialogDescription>
-                  Blueprint v{detail.attempt.blueprint_version} · started {new Date(detail.attempt.started_at).toLocaleString()}
-                  {detail.attempt.completed_at ? ` · completed ${new Date(detail.attempt.completed_at).toLocaleString()}` : ""}
-                </DialogDescription>
+                <DialogTitle>{detail.attempt.profiles?.full_name ?? "Student"} — TACHS report workspace</DialogTitle>
+                <DialogDescription>Choose the family-safe report or the separate administrator-only diagnostic audit.</DialogDescription>
               </DialogHeader>
 
               <style>{`@media print {
