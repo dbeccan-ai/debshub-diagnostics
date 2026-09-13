@@ -124,7 +124,7 @@ export const FIGURE_MATRICES: BankQuestion[] = [
   fmCount("FM-12", 2, 1, 3, 2, 1),
   fmCount("FM-13", 2, 2, 1),
   fmCount("FM-14", 3, 2, 2, 1, 2),
-  fmCount("FM-15", 3, 3, 1, 2, 2),
+  fmCount("FM-15", 3, 1, 1, 2, 2),
   fmSize("FM-16", 1, ["circle", "square", "triangle"], false, 3),
   fmSize("FM-17", 2, ["hexagon", "diamond", "star"], false, 0),
   fmSize("FM-18", 2, ["square", "pentagon", "circle"], true, 2),
