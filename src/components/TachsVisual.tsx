@@ -5,6 +5,7 @@ export type VisualItem =
   | { t: "rect"; x: number; y: number; w: number; h: number; fill?: string; stroke?: string; rot?: number; dash?: boolean }
   | { t: "line"; x1: number; y1: number; x2: number; y2: number; stroke?: string; dash?: boolean; arrow?: boolean }
   | { t: "text"; x: number; y: number; s: string; size?: number }
+  | { t: "poly"; pts: [number, number][]; fill?: string; stroke?: string; dash?: boolean }
   | { t: "shape"; kind: "triangle" | "diamond" | "star" | "hexagon" | "pentagon" | "arrow" | "plus" | "square" | "circle"; cx: number; cy: number; size: number; fill?: string; stroke?: string; rot?: number; dash?: boolean };
 
 export interface VisualSpec { w: number; h: number; items: VisualItem[] }
@@ -42,20 +43,24 @@ function polygon(kind: string, cx: number, cy: number, size: number): string {
 
 const fillOf = (f?: string) => (f === "black" ? STROKE : f === "gray" ? "hsl(var(--muted-foreground))" : f && f !== "none" && f !== "white" ? f : f === "white" ? "hsl(var(--background))" : "none");
 
+const strokeOf = (s?: string) => (s === "none" ? "none" : s ?? STROKE);
+
 function Item({ it, i }: { it: VisualItem; i: number }) {
   const dash = "dash" in it && it.dash ? "5 4" : undefined;
   switch (it.t) {
+    case "poly":
+      return <polygon key={i} points={it.pts.map((p) => `${p[0]},${p[1]}`).join(" ")} fill={fillOf(it.fill)} stroke={strokeOf(it.stroke)} strokeWidth={2} strokeLinejoin="round" strokeDasharray={dash} />;
     case "circle":
-      return <circle key={i} cx={it.cx} cy={it.cy} r={it.r} fill={fillOf(it.fill)} stroke={it.stroke ?? STROKE} strokeWidth={2} strokeDasharray={dash} />;
+      return <circle key={i} cx={it.cx} cy={it.cy} r={it.r} fill={fillOf(it.fill)} stroke={strokeOf(it.stroke)} strokeWidth={2} strokeDasharray={dash} />;
     case "rect":
-      return <rect key={i} x={it.x} y={it.y} width={it.w} height={it.h} fill={fillOf(it.fill)} stroke={it.stroke ?? STROKE} strokeWidth={2} strokeDasharray={dash} transform={it.rot ? `rotate(${it.rot} ${it.x + it.w / 2} ${it.y + it.h / 2})` : undefined} />;
+      return <rect key={i} x={it.x} y={it.y} width={it.w} height={it.h} fill={fillOf(it.fill)} stroke={strokeOf(it.stroke)} strokeWidth={2} strokeDasharray={dash} transform={it.rot ? `rotate(${it.rot} ${it.x + it.w / 2} ${it.y + it.h / 2})` : undefined} />;
     case "line":
-      return <line key={i} x1={it.x1} y1={it.y1} x2={it.x2} y2={it.y2} stroke={it.stroke ?? STROKE} strokeWidth={2} strokeDasharray={dash} markerEnd={it.arrow ? "url(#tachs-arrow)" : undefined} />;
+      return <line key={i} x1={it.x1} y1={it.y1} x2={it.x2} y2={it.y2} stroke={strokeOf(it.stroke)} strokeWidth={2} strokeDasharray={dash} markerEnd={it.arrow ? "url(#tachs-arrow)" : undefined} />;
     case "text":
       return <text key={i} x={it.x} y={it.y} fontSize={it.size ?? 14} textAnchor="middle" dominantBaseline="middle" fill={STROKE} fontFamily="system-ui, sans-serif">{it.s}</text>;
     case "shape":
-      if (it.kind === "circle") return <circle key={i} cx={it.cx} cy={it.cy} r={it.size / 2} fill={fillOf(it.fill)} stroke={it.stroke ?? STROKE} strokeWidth={2} strokeDasharray={dash} />;
-      return <polygon key={i} points={polygon(it.kind, it.cx, it.cy, it.size)} fill={fillOf(it.fill)} stroke={it.stroke ?? STROKE} strokeWidth={2} strokeDasharray={dash} transform={it.rot ? `rotate(${it.rot} ${it.cx} ${it.cy})` : undefined} />;
+      if (it.kind === "circle") return <circle key={i} cx={it.cx} cy={it.cy} r={it.size / 2} fill={fillOf(it.fill)} stroke={strokeOf(it.stroke)} strokeWidth={2} strokeDasharray={dash} />;
+      return <polygon key={i} points={polygon(it.kind, it.cx, it.cy, it.size)} fill={fillOf(it.fill)} stroke={strokeOf(it.stroke)} strokeWidth={2} strokeDasharray={dash} transform={it.rot ? `rotate(${it.rot} ${it.cx} ${it.cy})` : undefined} />;
     default:
       return null;
   }

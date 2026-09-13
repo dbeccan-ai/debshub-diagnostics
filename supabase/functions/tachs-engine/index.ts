@@ -2,8 +2,8 @@
 // Actions: access, start, state, start_section, answer, next, submit_section, results, admin_list, admin_detail, admin_resend_email, admin_reopen, admin_search_users, admin_grant_access
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { BLUEPRINT_V1, SAMPLE_BANK, type BlueprintSection } from "./sample-bank.ts";
-import { advanceAdaptive, bandFor, DISCLAIMER, maskEmail, needsGrading, sectionsShortOfTarget } from "./logic.ts";
+import { ACTIVE_BANK, ACTIVE_BLUEPRINT, STRAND_BY_CODE, type BankQuestion, type BlueprintSection } from "./sample-bank.ts";
+import { advanceAdaptive, bandFor, DISCLAIMER, maskEmail, mathReadiness, needsGrading, sectionsShortOfTarget, selectNextQuestion } from "./logic.ts";
 import { attemptIsEntitled, pendingOrder, tachsQuote, unconsumedEntitlement, TACHS_EXAM_TYPE } from "../_shared/tachs-payment.ts";
 
 const PAYMENT_REQUIRED_MSG = "Payment is required before starting the TACHS Readiness Diagnostic ($175 + processing fee).";
@@ -33,35 +33,44 @@ const publicQuestion = (q: QuestionRow) => ({
   visual: q.visual, visual_alt: q.visual_alt, choices: q.choices,
 });
 
-/** Stable fingerprint of the shipped bank so content edits reseed idempotently. */
-function bankFingerprint(): string {
-  const src = JSON.stringify(SAMPLE_BANK.map((b) => [b.code, b.section_key, b.skill, b.difficulty, b.stem, b.correct_key, b.choices, b.visual ?? null, b.rationale]));
+/** Stable fingerprint of the shipped active bank so content edits reseed idempotently. */
+function bankFingerprint(bank: BankQuestion[]): string {
+  const src = JSON.stringify(bank.map((b) => [b.code, b.section_key, b.skill, b.difficulty, b.stem, b.correct_key, b.choices, b.visual ?? null, b.rationale, b.strand ?? null]));
   let h = 2166136261;
   for (let i = 0; i < src.length; i++) { h ^= src.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
-  return `bank:${h.toString(16)}:${SAMPLE_BANK.length}`;
+  return `bank:${h.toString(16)}:${bank.length}`;
 }
 
+/**
+ * Seed the ACTIVE blueprint/bank idempotently and make it the only blueprint open for new starts.
+ * Older versions are never rewritten or retired: their questions stay active under their own
+ * blueprint_version so in-progress and completed attempts keep identical content, IDs and scoring.
+ */
 async function ensureSeed(db: Client) {
-  // Keep the active blueprint and the item bank in sync with the shipped pilot content (idempotent).
-  const fp = bankFingerprint();
-  const { data: bp } = await db.from("tachs_blueprints").select("notes").eq("version", BLUEPRINT_V1.version).maybeSingle();
+  const bp = ACTIVE_BLUEPRINT, bank = ACTIVE_BANK;
+  const fp = bankFingerprint(bank);
+  const { data: row } = await db.from("tachs_blueprints").select("notes, is_active").eq("version", bp.version).maybeSingle();
   const { count } = await db.from("tachs_questions")
     .select("id", { count: "exact", head: true })
-    .eq("blueprint_version", BLUEPRINT_V1.version).eq("is_active", true);
-  if ((count ?? 0) === SAMPLE_BANK.length && (bp?.notes ?? "").includes(fp)) return;
-  const rows = SAMPLE_BANK.map((b) => ({
-    code: b.code, blueprint_version: BLUEPRINT_V1.version, section_key: b.section_key, skill: b.skill, difficulty: b.difficulty,
+    .eq("blueprint_version", bp.version).eq("is_active", true);
+  if ((count ?? 0) === bank.length && (row?.notes ?? "").includes(fp) && row?.is_active) return;
+  const rows = bank.map((b) => ({
+    code: b.code, blueprint_version: bp.version, section_key: b.section_key, skill: b.skill, difficulty: b.difficulty,
     stem: b.stem, passage_id: b.passage_id ?? null, passage_title: b.passage_title ?? null, passage_text: b.passage_text ?? null,
     visual: b.visual ?? null, visual_alt: b.visual_alt ?? null, choices: b.choices, correct_key: b.correct_key, rationale: b.rationale, is_active: true,
   }));
-  const { error } = await db.from("tachs_questions").upsert(rows, { onConflict: "code" });
-  if (error) { console.error("seed error", error); return; }
-  // Retire any stale items that are no longer part of the shipped bank so exactly 200 stay active.
-  const codes = SAMPLE_BANK.map((b) => b.code);
-  await db.from("tachs_questions").update({ is_active: false }).eq("blueprint_version", BLUEPRINT_V1.version).eq("is_active", true).not("code", "in", `(${codes.map((c) => `"${c}"`).join(",")})`);
+  for (let i = 0; i < rows.length; i += 100) {
+    const { error } = await db.from("tachs_questions").upsert(rows.slice(i, i + 100), { onConflict: "code" });
+    if (error) { console.error("seed error", error); return; }
+  }
+  // Retire stale items of THIS version only (never touches earlier versions).
+  const codes = bank.map((b) => b.code);
+  await db.from("tachs_questions").update({ is_active: false }).eq("blueprint_version", bp.version).eq("is_active", true).not("code", "in", `(${codes.map((c) => `"${c}"`).join(",")})`);
   await db.from("tachs_blueprints").upsert({
-    version: BLUEPRINT_V1.version, name: BLUEPRINT_V1.name, is_active: true, sections: BLUEPRINT_V1.sections, notes: `${BLUEPRINT_V1.notes ?? ""} [${fp}]`.trim(),
+    version: bp.version, name: bp.name, is_active: true, sections: bp.sections, notes: `${bp.notes ?? ""} [${fp}]`.trim(),
   }, { onConflict: "version" });
+  // Only the active version accepts new starts.
+  await db.from("tachs_blueprints").update({ is_active: false }).neq("version", bp.version).eq("is_active", true);
 }
 
 async function isAdmin(db: Client, userId: string) {
@@ -183,8 +192,12 @@ async function gradeAttempt(db: Client, attemptId: string) {
   const strengths = skillRows.filter((r) => r.presented >= 1 && r.accuracy >= 80).sort((a, b) => b.accuracy - a.accuracy).slice(0, 6);
   const gaps = skillRows.filter((r) => r.presented >= 1 && r.accuracy < 60).sort((a, b) => a.accuracy - b.accuracy).slice(0, 6);
   const weakestSections = [...sectionSummaries].sort((a, b) => a.accuracy - b.accuracy).slice(0, 2).map((s) => s.section_key);
+  // Mathematics reporting ladder (Foundation / Grade-8 / Algebra-I) — only when the items carry strands (v2+).
+  const { data: mathRows } = await db.from("tachs_responses").select("is_correct, skill, tachs_questions(code)").eq("attempt_id", attemptId);
+  const ladder = mathReadiness((mathRows ?? []).map((r: any) => ({ strand: STRAND_BY_CODE[r.tachs_questions?.code] ?? null, is_correct: r.is_correct })));
   const results = {
-    version: 1,
+    version: 2,
+    blueprint_version: attempt.blueprint_version,
     generated_at: now().toISOString(),
     overall_accuracy: overall,
     total_presented: totalPresented,
@@ -196,6 +209,7 @@ async function gradeAttempt(db: Client, attemptId: string) {
     sections: sectionSummaries,
     skills: skillRows,
     strengths, gaps,
+    math_readiness: ladder.length ? ladder : null,
     disclaimer: DISCLAIMER,
   };
   // Idempotent: only the transition out of in_progress writes results and triggers the email.
@@ -213,24 +227,13 @@ async function gradeAttempt(db: Client, attemptId: string) {
   return results;
 }
 
-/** Adaptive selection: honors skill quotas, without replacement, target difficulty with nearest fallback. */
+/** Adaptive selection from the attempt's own blueprint pool: without replacement, mandatory skill quotas, nearest-difficulty routing. */
 async function pickNextQuestion(db: Client, attempt: any, section: any): Promise<QuestionRow | null> {
   const presented: string[] = section.presented_question_ids ?? [];
   const { data: pool } = await db.from("tachs_questions").select("*")
     .eq("blueprint_version", attempt.blueprint_version).eq("section_key", section.section_key).eq("is_active", true);
   const candidates = (pool ?? []).filter((q: QuestionRow) => !presented.includes(q.id)) as QuestionRow[];
-  if (!candidates.length) return null;
-  const quotas: Record<string, number> = section.quotas_remaining ?? {};
-  const openSkills = new Set(Object.entries(quotas).filter(([, n]) => n > 0).map(([k]) => k));
-  let bySkill = openSkills.size ? candidates.filter((q) => openSkills.has(q.skill)) : candidates;
-  if (!bySkill.length) bySkill = candidates; // quotas exhausted for remaining pool: fall back
-  const target = section.current_difficulty ?? 2;
-  const order = [target, target === 2 ? 1 : 2, target === 3 ? 1 : 3].filter((v, i, a) => a.indexOf(v) === i);
-  for (const d of order) {
-    const atD = bySkill.filter((q) => q.difficulty === d);
-    if (atD.length) return atD[Math.floor(Math.random() * atD.length)];
-  }
-  return bySkill[Math.floor(Math.random() * bySkill.length)];
+  return selectNextQuestion(candidates, section.quotas_remaining ?? {}, section.current_difficulty ?? 2);
 }
 
 async function presentQuestion(db: Client, attempt: any, section: any) {

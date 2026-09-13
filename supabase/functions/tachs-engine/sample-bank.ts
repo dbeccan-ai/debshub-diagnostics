@@ -1,13 +1,22 @@
-// D.E.Bs TACHS Readiness Diagnostic — full pilot content bank (200 original items).
-// Reading 50, Written Expression 50, Mathematics 50, Figure Matrices 20,
-// Paper Folding 15, Figure Classification 15.
+// D.E.Bs TACHS Readiness Diagnostic — content banks.
+//
+// Pilot v1 (SAMPLE_BANK, 200 items) is FROZEN: existing attempts stay bound to blueprint version 1 and
+// these exact question codes. Do not edit v1 content; author changes go into the active version.
+//
+// Pilot v2 (BANK_V2) is the active bank for all NEW attempts: Reading 50, Written Expression 50,
+// Figure Matrices 20 and Figure Classification 15 are carried over unchanged under "V2-" codes;
+// Mathematics (80-item pool for 50 administered) and Paper Folding (32-item pool for 15 administered)
+// are new original content built for adaptive selection.
+//
 // Original content authored for the D.E.Bs pilot. Not affiliated with, sponsored by,
 // or endorsed by the TACHS program or its publisher.
 export * from "./bank-types.ts";
-import type { BankQuestion } from "./bank-types.ts";
+import { BLUEPRINT_V1, BLUEPRINT_V2, type BankQuestion, type Blueprint } from "./bank-types.ts";
 import { READING } from "./bank-reading.ts";
 import { WRITTEN } from "./bank-written.ts";
 import { MATH } from "./bank-math.ts";
+import { MATH_V2_BANK } from "./bank-math-v2.ts";
+import { PAPER_FOLDING_V2 } from "./bank-paper-folding-v2.ts";
 import { FIGURE_MATRICES, PAPER_FOLDING, FIGURE_CLASSIFICATION } from "./bank-figures.ts";
 
 const KEYS = ["A", "B", "C", "D"] as const;
@@ -27,6 +36,7 @@ function balanceKeys(items: BankQuestion[]): BankQuestion[] {
   });
 }
 
+/** Pilot v1 — frozen. */
 export const SAMPLE_BANK: BankQuestion[] = [
   ...balanceKeys(READING),
   ...balanceKeys(WRITTEN),
@@ -36,5 +46,31 @@ export const SAMPLE_BANK: BankQuestion[] = [
   ...FIGURE_CLASSIFICATION,
 ];
 
+const carry = (items: BankQuestion[]): BankQuestion[] => items.map((q) => ({ ...q, code: `V2-${q.code}` }));
+
+/** Pilot v2 — active for new attempts. */
+export const BANK_V2: BankQuestion[] = [
+  ...carry(balanceKeys(READING)),
+  ...carry(balanceKeys(WRITTEN)),
+  ...balanceKeys(MATH_V2_BANK),
+  ...carry(FIGURE_MATRICES),
+  ...PAPER_FOLDING_V2,
+  ...carry(FIGURE_CLASSIFICATION),
+];
+
+export const ACTIVE_BLUEPRINT: Blueprint = BLUEPRINT_V2;
+export const ACTIVE_BANK: BankQuestion[] = BANK_V2;
+
+/** Every shipped version, oldest first (used by validation and by the strand lookup). */
+export const BANK_VERSIONS: { blueprint: Blueprint; bank: BankQuestion[]; frozen: boolean }[] = [
+  { blueprint: BLUEPRINT_V1, bank: SAMPLE_BANK, frozen: true },
+  { blueprint: BLUEPRINT_V2, bank: BANK_V2, frozen: false },
+];
+
+/** Reporting strand by question code (mathematics only; v1 items have no strand). */
+export const STRAND_BY_CODE: Record<string, string> = Object.fromEntries(
+  BANK_VERSIONS.flatMap((v) => v.bank.filter((q) => q.strand).map((q) => [q.code, q.strand as string])),
+);
+
 export const TACHS_BANK = SAMPLE_BANK;
-export { READING, WRITTEN, MATH, FIGURE_MATRICES, PAPER_FOLDING, FIGURE_CLASSIFICATION };
+export { READING, WRITTEN, MATH, MATH_V2_BANK, PAPER_FOLDING_V2, FIGURE_MATRICES, PAPER_FOLDING, FIGURE_CLASSIFICATION };

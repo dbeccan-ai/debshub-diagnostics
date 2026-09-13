@@ -12,9 +12,9 @@ import { BookOpen, PenLine, Calculator, Grid3X3, Scissors, Shapes, ShieldAlert, 
 const DOMAINS = [
   { icon: BookOpen, name: "Reading", blurb: "Passages with questions on main idea, inference, vocabulary in context, and text structure." },
   { icon: PenLine, name: "Written Expression", blurb: "Usage, punctuation and capitalization, sentence structure, and paragraph organization." },
-  { icon: Calculator, name: "Mathematics", blurb: "Number operations, fractions/decimals/percent, algebra and patterns, geometry and measurement, data." },
+  { icon: Calculator, name: "Mathematics", blurb: "Late Grade 8 through introductory Algebra I: integer and ratio fluency, equations, inequalities, slope, functions, systems, exponents, geometry, data, and multistep modeling." },
   { icon: Grid3X3, name: "Figure Matrices", blurb: "Spot the rule across rows and columns of a 3 x 3 grid and choose the missing figure." },
-  { icon: Scissors, name: "Paper Folding", blurb: "A sheet is folded and hole-punched; choose the unfolded pattern." },
+  { icon: Scissors, name: "Paper Folding", blurb: "A sheet is folded one to three times (including diagonal and off-center folds), then punched or notched; choose the fully unfolded sheet." },
   { icon: Shapes, name: "Figure Classification", blurb: "Three figures share a rule; find the figure that belongs with them." },
 ];
 

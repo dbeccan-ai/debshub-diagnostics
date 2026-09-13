@@ -71,6 +71,106 @@ export function sectionsShortOfTarget(
     .map((s) => ({ key: s.key, available: availability[s.key] ?? 0, target: s.item_count }));
 }
 
+// ---------- adaptive selection (pure) ----------
+export interface PoolItem { id: string; skill: string; difficulty: number }
+
+/**
+ * Pick the next item from `candidates` (already excludes presented items — sampling without replacement).
+ * Content quotas are mandatory: while any skill still has quota, only those skills are eligible, so the
+ * adaptive route can never skip a required domain. Within eligible skills the target difficulty is
+ * preferred, then the nearest level. Ties are broken uniformly at random via `rng`.
+ */
+export function selectNextQuestion<T extends PoolItem>(
+  candidates: T[], quotas: Record<string, number>, targetDifficulty: number, rng: () => number = Math.random,
+): T | null {
+  if (!candidates.length) return null;
+  const open = new Set(Object.entries(quotas).filter(([, n]) => n > 0).map(([k]) => k));
+  let eligible = open.size ? candidates.filter((q) => open.has(q.skill)) : candidates;
+  if (!eligible.length) eligible = candidates; // pool cannot satisfy the quota: degrade gracefully instead of stalling
+  const target = Math.min(3, Math.max(1, Math.round(targetDifficulty || 2)));
+  const order = [target, target === 2 ? 1 : 2, target === 3 ? 1 : 3].filter((v, i, a) => a.indexOf(v) === i);
+  for (const d of order) {
+    const atD = eligible.filter((q) => q.difficulty === d);
+    if (atD.length) return atD[Math.floor(rng() * atD.length)];
+  }
+  return eligible[Math.floor(rng() * eligible.length)];
+}
+
+/** Deterministic PRNG for tests and simulations (mulberry32). */
+export function seededRng(seed: number): () => number {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+export interface SimulatedSection {
+  presented: { id: string; skill: string; difficulty: number; correct: boolean }[];
+  difficultyCounts: Record<number, number>;
+  meanDifficulty: number;
+  skillCounts: Record<string, number>;
+  path: number[];
+}
+
+/**
+ * Simulate one section exactly as the engine runs it: start at level 2, select with quotas, advance the
+ * streak rule after each response. `pCorrect(difficulty)` models the student.
+ */
+export function simulateSection<T extends PoolItem>(
+  pool: T[], quotas: Record<string, number>, itemCount: number, pCorrect: (difficulty: number) => number, rng: () => number,
+): SimulatedSection {
+  let state: AdaptiveState = { difficulty: 2, streakCorrect: 0, streakIncorrect: 0 };
+  const remaining = { ...quotas };
+  const presentedIds = new Set<string>();
+  const presented: SimulatedSection["presented"] = [];
+  const path: number[] = [];
+  for (let i = 0; i < itemCount; i++) {
+    const q = selectNextQuestion(pool.filter((p) => !presentedIds.has(p.id)), remaining, state.difficulty, rng);
+    if (!q) break;
+    presentedIds.add(q.id);
+    if (remaining[q.skill] != null) remaining[q.skill] = Math.max(0, remaining[q.skill] - 1);
+    const correct = rng() < pCorrect(q.difficulty);
+    presented.push({ id: q.id, skill: q.skill, difficulty: q.difficulty, correct });
+    path.push(q.difficulty);
+    state = advanceAdaptive(state, correct);
+  }
+  const difficultyCounts: Record<number, number> = { 1: 0, 2: 0, 3: 0 };
+  const skillCounts: Record<string, number> = {};
+  for (const p of presented) { difficultyCounts[p.difficulty]++; skillCounts[p.skill] = (skillCounts[p.skill] ?? 0) + 1; }
+  const meanDifficulty = presented.length ? presented.reduce((a, p) => a + p.difficulty, 0) / presented.length : 0;
+  return { presented, difficultyCounts, meanDifficulty, skillCounts, path };
+}
+
+// ---------- mathematics reporting ladder ----------
+export const MATH_STRAND_ORDER = ["foundation", "grade8", "algebra1"] as const;
+export type MathStrandKey = typeof MATH_STRAND_ORDER[number];
+export const MATH_STRAND_LABEL: Record<MathStrandKey, string> = {
+  foundation: "Foundation (Grades 6–7 fluency)",
+  grade8: "Grade-8 Readiness",
+  algebra1: "Algebra-I Readiness",
+};
+
+export interface StrandRow { key: MathStrandKey; label: string; presented: number; correct: number; accuracy: number }
+
+/** Aggregate Mathematics responses into the Foundation / Grade-8 / Algebra-I ladder (items without a strand are ignored). */
+export function mathReadiness(rows: { strand: string | null | undefined; is_correct: boolean | null }[]): StrandRow[] {
+  const acc: Record<string, { presented: number; correct: number }> = {};
+  for (const r of rows) {
+    if (!r.strand || !(MATH_STRAND_ORDER as readonly string[]).includes(r.strand)) continue;
+    acc[r.strand] ??= { presented: 0, correct: 0 };
+    acc[r.strand].presented++;
+    if (r.is_correct) acc[r.strand].correct++;
+  }
+  return MATH_STRAND_ORDER.filter((k) => acc[k]).map((k) => ({
+    key: k, label: MATH_STRAND_LABEL[k], presented: acc[k].presented, correct: acc[k].correct,
+    accuracy: Math.round((acc[k].correct / acc[k].presented) * 100),
+  }));
+}
+
 /** A section is locked once submitted or once its server deadline has passed. */
 export function isSectionLocked(
   section: { status: string; deadline_at: string | null },

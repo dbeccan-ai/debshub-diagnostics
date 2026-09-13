@@ -122,6 +122,24 @@ export default function TachsResults() {
           </Card>
         </section>
 
+        {r.math_readiness && r.math_readiness.length > 0 && (
+          <section className="print-break">
+            <h2 className="text-xl font-bold mb-3">Mathematics readiness ladder</h2>
+            <Card>
+              <CardContent className="pt-4 space-y-3 text-sm">
+                <p className="text-muted-foreground">Mathematics items are tagged by the level they represent. Accuracy on each rung shows how far along the Grade 8 → Algebra I path the student is working securely.</p>
+                {r.math_readiness.map((s) => (
+                  <div key={s.key} className="flex items-center gap-3">
+                    <span className="w-56 shrink-0 font-medium">{s.label}</span>
+                    <Progress value={s.accuracy} className="h-2 flex-1" />
+                    <span className="w-24 text-right">{s.accuracy}% ({s.correct}/{s.presented})</span>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </section>
+        )}
+
         <section className="print-break">
           <h2 className="text-xl font-bold mb-3">Skill metrics</h2>
           <Card>

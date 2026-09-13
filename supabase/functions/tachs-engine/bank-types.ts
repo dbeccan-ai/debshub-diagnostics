@@ -7,6 +7,7 @@ export type VisualItem =
   | { t: "rect"; x: number; y: number; w: number; h: number; fill?: string; stroke?: string; rot?: number; dash?: boolean }
   | { t: "line"; x1: number; y1: number; x2: number; y2: number; stroke?: string; dash?: boolean; arrow?: boolean }
   | { t: "text"; x: number; y: number; s: string; size?: number }
+  | { t: "poly"; pts: [number, number][]; fill?: string; stroke?: string; dash?: boolean }
   | { t: "shape"; kind: ShapeKind; cx: number; cy: number; size: number; fill?: string; stroke?: string; rot?: number; dash?: boolean };
 
 export type ShapeKind = "triangle" | "diamond" | "star" | "hexagon" | "pentagon" | "arrow" | "plus" | "square" | "circle";
@@ -23,6 +24,9 @@ export type SectionKey =
   | "paper_folding"
   | "figure_classification";
 
+/** Mathematics reporting ladder (v2). */
+export type MathStrand = "foundation" | "grade8" | "algebra1";
+
 export interface BankQuestion {
   code: string;
   section_key: SectionKey;
@@ -37,6 +41,7 @@ export interface BankQuestion {
   choices: Choice[];
   correct_key: string;
   rationale: string;
+  strand?: MathStrand;
 }
 
 export interface BlueprintSection {
@@ -49,7 +54,13 @@ export interface BlueprintSection {
   break_after_minutes: number;
   skill_quotas: Record<string, number>;
   description: string;
+  /** v2: minimum active pool size required for meaningful adaptive selection (defaults to item_count). */
+  pool_minimum?: number;
+  /** v2: target share of the POOL at each difficulty level, e.g. { 1: 0.2, 2: 0.45, 3: 0.35 } (validated with tolerance). */
+  pool_difficulty_mix?: Record<string, number>;
 }
+
+export interface Blueprint { version: number; name: string; notes?: string; sections: BlueprintSection[] }
 
 export const BLUEPRINT_V1 = {
   version: 1,
@@ -90,6 +101,45 @@ export const BLUEPRINT_V1 = {
   ] as BlueprintSection[],
 };
 
+/**
+ * Pilot v2 — administered allocation unchanged (50/50/50/20/15/15 = 200 items, 130 minutes).
+ * Mathematics and Paper Folding draw from pools larger than the administered count so adaptive
+ * routing produces genuinely different difficulty paths. Calculator policy for Mathematics is
+ * carried over from v1 unchanged (D.E.Bs pilot decision; not an official TACHS policy statement).
+ */
+export const BLUEPRINT_V2: Blueprint = {
+  version: 2,
+  name: "D.E.Bs TACHS Readiness Diagnostic — Pilot v2",
+  notes:
+    "D.E.Bs working allocation; the 130-minute total mirrors the published regular testing time. Section item counts and timing are not official TACHS specifications. v2: expanded Mathematics (Grade 8 → Algebra I ladder) and Paper Folding (multi-fold visual sequences) pools with adaptive selection from a larger pool.",
+  sections: [
+    BLUEPRINT_V1.sections[0],
+    BLUEPRINT_V1.sections[1],
+    {
+      key: "mathematics", name: "Mathematics", order: 3, item_count: 50, time_minutes: 40, calculator: true, break_after_minutes: 5,
+      description: "Late Grade 8 through introductory Algebra I: integer and number fluency, ratio/proportion/percent, algebra and functions (equations, inequalities, slope, function notation, systems, exponents, roots, sequences), geometry and measurement, data/probability/statistics, and multistep modeling.",
+      skill_quotas: { number_integer_fluency: 6, ratio_proportion_percent: 6, algebra_functions: 20, geometry_measurement: 8, data_probability_statistics: 6, multistep_modeling: 4 },
+      pool_minimum: 75,
+      pool_difficulty_mix: { "1": 0.2, "2": 0.45, "3": 0.35 },
+    },
+    BLUEPRINT_V1.sections[3],
+    {
+      key: "paper_folding", name: "Paper Folding", order: 5, item_count: 15, time_minutes: 12, calculator: false, break_after_minutes: 1,
+      description: "A sheet is folded one to three times (vertical, horizontal, diagonal, off-center), then punched or notched. Each fold is shown as its own panel; choose the fully unfolded sheet.",
+      skill_quotas: { single_fold: 2, two_fold_reflection: 3, three_fold_sequence: 3, diagonal_reflection: 2, multiple_punches: 2, edge_notch: 1, asymmetric_fold: 2 },
+      pool_minimum: 30,
+      pool_difficulty_mix: { "1": 0.125, "2": 0.47, "3": 0.405 },
+    },
+    BLUEPRINT_V1.sections[5],
+  ],
+};
+
+export const MATH_STRAND_LABELS: Record<MathStrand, string> = {
+  foundation: "Foundation (Grades 6–7 fluency)",
+  grade8: "Grade-8 Readiness",
+  algebra1: "Algebra-I Readiness",
+};
+
 // ---------- shared SVG helpers ----------
 export const NAVY = "#1C2D5A";
 export const GRAY = "#94a3b8";
@@ -106,6 +156,7 @@ export const at = (it: VisualItem[], dx: number, dy: number): VisualItem[] =>
     if (i.t === "circle") return { ...i, cx: i.cx + dx, cy: i.cy + dy };
     if (i.t === "rect") return { ...i, x: i.x + dx, y: i.y + dy };
     if (i.t === "text") return { ...i, x: i.x + dx, y: i.y + dy };
+    if (i.t === "poly") return { ...i, pts: i.pts.map(([x, y]) => [x + dx, y + dy] as [number, number]) };
     return { ...i, x1: i.x1 + dx, y1: i.y1 + dy, x2: i.x2 + dx, y2: i.y2 + dy };
   });
 
