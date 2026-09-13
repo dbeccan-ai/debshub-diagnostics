@@ -122,12 +122,24 @@ async function submitSection(db: Client, attemptId: string, section: any, reason
   return updated ?? section;
 }
 
-const BANDS = [
-  { key: "ready", label: "Ready", min: 85, color: "#16a34a", plan: "Maintain momentum with weekly timed mixed practice and targeted review of any remaining gaps. Focus on pacing consistency and test-day routines." },
-  { key: "approaching", label: "Approaching Readiness", min: 70, color: "#2563eb", plan: "Build a 6-week plan: two focused skill sessions per week on the flagged gaps plus one full timed section. Re-assess at week 6." },
-  { key: "developing", label: "Developing", min: 55, color: "#d97706", plan: "Prioritize foundational skills in the two lowest sections before timed practice. Use short daily sessions (20-30 minutes) and weekly progress checks." },
-  { key: "foundational", label: "Foundational Support Needed", min: 0, color: "#dc2626", plan: "Begin with a structured intervention on core reading, language, and number skills. Delay timed practice until accuracy improves; consult a D.E.Bs specialist for a tailored program." },
-];
+/** Fire-and-forget parent/admin report email. Never blocks or fails grading. */
+async function sendReportEmail(attemptId: string) {
+  try {
+    const url = `${Deno.env.get("SUPABASE_URL")}/functions/v1/send-tachs-results`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+      },
+      body: JSON.stringify({ attemptId }),
+    });
+    if (!res.ok) console.error("tachs email failed", res.status, await res.text());
+  } catch (e) {
+    console.error("tachs email error", e);
+  }
+}
+
 
 async function gradeAttempt(db: Client, attemptId: string) {
   const { data: attempt } = await db.from("tachs_attempts").select("*").eq("id", attemptId).maybeSingle();
