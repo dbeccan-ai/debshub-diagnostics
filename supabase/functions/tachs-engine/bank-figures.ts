@@ -232,12 +232,12 @@ export const PAPER_FOLDING: BankQuestion[] = [
     correct_key: "C", rationale: "Two folds create four layers of paper, so one punch makes four holes.",
   },
   {
-    code: "PF-15", section_key: "paper_folding", skill: "single_fold", difficulty: 1,
-    stem: "A square sheet is folded in half one time, and then two holes are punched through both layers. How many holes will the sheet have when it is unfolded?",
-    visual: foldVisual("vertical", [[20, 30], [30, 75]]),
-    visual_alt: "A square sheet folded in half from right to left, with two holes punched through the folded half.",
-    choices: [{ key: "A", text: "2" }, { key: "B", text: "3" }, { key: "C", text: "4" }, { key: "D", text: "8" }],
-    correct_key: "C", rationale: "One fold makes two layers, so each punch opens into two holes: 2 × 2 = 4.",
+    code: "PF-15", section_key: "paper_folding", skill: "double_fold", difficulty: 2,
+    stem: "A square sheet is folded in half twice, and then two holes are punched through all of the layers. How many holes will the sheet have when it is unfolded?",
+    visual: doubleFoldVisual([20, 30]),
+    visual_alt: "A square sheet with both center fold lines, folded into a quarter-size square, with holes punched through all four layers.",
+    choices: [{ key: "A", text: "2" }, { key: "B", text: "4" }, { key: "C", text: "6" }, { key: "D", text: "8" }],
+    correct_key: "D", rationale: "Two folds make four layers, so each punch opens into four holes: 2 × 4 = 8.",
   },
 ];
 
