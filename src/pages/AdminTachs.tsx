@@ -556,7 +556,7 @@ export default function AdminTachs() {
                       {detail.parent_preview.home_support && (
                         <section aria-labelledby="admin-parent-home" data-testid="admin-home-plan-preview" data-print-surface="home-plan">
                           <div className="flex flex-wrap items-center justify-between gap-2"><h3 id="admin-parent-home" className="font-semibold">5. {detail.parent_preview.home_support.title}</h3><Button size="sm" variant="outline" className="print:hidden" onClick={() => printSurface("home-plan")}><Printer className="mr-1 h-4 w-4" /> Print / Save At-Home Plan</Button></div>
-                          <div className="mt-2"><TachsHomeSupportPlan plan={detail.parent_preview.home_support} /></div>
+                          <div className="mt-2"><HomeSupportPlanView plan={detail.parent_preview.home_support} /></div>
                         </section>
                       )}
                       {(() => { const pg = detail.parent_preview.program; const pr = pg.pricing ?? pricingBreakdown({ regular_tuition_cents: pg.total_cents, installment_count: TACHS_PROGRAMS[pg.key]?.installments.count ?? 3, credit_applied: true, credit_expires_at: null }); return (

@@ -337,7 +337,7 @@ export function sanitizeParentReportContent(input: unknown, results: Record<stri
   }
   const prioritySet = [...new Set(ps as string[])];
   const homePlan = sanitizeHomeSupportPlan(o.home_support_plan, defaultHomeSupportPlan(pk as TachsProgramKey, prioritySet, sectionScores(results)));
-  if (!homePlan.ok) return { ok: false, error: homePlan.error };
+  if (!homePlan.ok) return { ok: false, error: (homePlan as { error: string }).error };
   const content: ParentReportContent = {
     interpretation, priority_sections: prioritySet, recommended_program_key: pk as TachsProgramKey,
     customized_next_steps: steps, price_override_cents: price, credit_expires_at: creditExpires, approved_for_parent_at: null, // approval stamp is set server-side only
