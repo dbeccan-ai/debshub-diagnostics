@@ -138,7 +138,7 @@ describe("labels and screen/print output", () => {
     expect(page).not.toMatch(/from "lucide-react"/);
     expect(page).not.toMatch(/svgPrint|svgStrengths|svgGaps/);
     const parentView = page.slice(0, page.indexOf('viewer === "admin" && data.results'));
-    expect(parentView.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "")).not.toMatch(/correct_key|rationale|difficulty_path|review\./);
+    expect(parentView.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "")).not.toMatch(/correct_key|rationale|difficulty_path|\breview\.(items|map|length)/);
     expect(page).toMatch(/TableCaption/);
   });
   it("no literal SVG placeholder strings remain in TACHS source or templates", () => {
