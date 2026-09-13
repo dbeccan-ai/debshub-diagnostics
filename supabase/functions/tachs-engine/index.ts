@@ -16,7 +16,6 @@ const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
 const TEST_MODE_SECONDS = 120; // shortened per-section timer for admin TEST MODE
-const TEST_MODE_ITEMS = 4; // shortened per-section item count for admin TEST MODE
 
 type Client = ReturnType<typeof createClient>;
 
@@ -195,6 +194,9 @@ async function gradeAttempt(db: Client, attemptId: string) {
   // Mathematics reporting ladder (Foundation / Grade-8 / Algebra-I) — only when the items carry strands (v2+).
   const { data: mathRows } = await db.from("tachs_responses").select("is_correct, skill, tachs_questions(code)").eq("attempt_id", attemptId);
   const ladder = mathReadiness((mathRows ?? []).map((r: any) => ({ strand: STRAND_BY_CODE[r.tachs_questions?.code] ?? null, is_correct: r.is_correct })));
+  // Transparent evidence: accuracy by difficulty, per-skill with low-sample flags, sustained ceiling, named sub-scores.
+  const { data: evRows } = await db.from("tachs_responses").select("skill, difficulty, is_correct, position, tachs_attempt_sections(section_key)").eq("attempt_id", attemptId);
+  const evidence = buildEvidence((evRows ?? []).map((r: any) => ({ section_key: r.tachs_attempt_sections?.section_key ?? "", skill: r.skill, difficulty: r.difficulty, is_correct: r.is_correct, position: r.position })));
   const results = {
     version: 2,
     blueprint_version: attempt.blueprint_version,
@@ -210,6 +212,7 @@ async function gradeAttempt(db: Client, attemptId: string) {
     skills: skillRows,
     strengths, gaps,
     math_readiness: ladder.length ? ladder : null,
+    evidence,
     disclaimer: DISCLAIMER,
   };
   // Idempotent: only the transition out of in_progress writes results and triggers the email.
@@ -373,12 +376,16 @@ serve(async (req) => {
         }
         await db.from("tachs_attempt_events").insert({ attempt_id: attempt.id, actor_id: user.id, event_type: "entitlement_consumed", detail: { order_id: entitlement.id, source: entitlement.source } });
       }
-      const rows = sections.map((s) => ({
-        attempt_id: attempt.id, section_key: s.key, section_order: s.order,
-        item_count: testMode ? Math.max(1, Math.min(s.item_count, availability[s.key], TEST_MODE_ITEMS)) : s.item_count,
-        time_limit_seconds: testMode ? TEST_MODE_SECONDS : s.time_minutes * 60,
-        quotas_remaining: s.skill_quotas, break_after_seconds: (testMode ? Math.min(1, s.break_after_minutes) : s.break_after_minutes) * 60,
-      }));
+      // TEST MODE is short but representative: one item per skill quota, so every content domain is exercised.
+      const rows = sections.map((s) => {
+        const tm = testMode ? testModeQuotas(s, availability[s.key]) : null;
+        return {
+          attempt_id: attempt.id, section_key: s.key, section_order: s.order,
+          item_count: tm ? tm.item_count : s.item_count,
+          time_limit_seconds: testMode ? TEST_MODE_SECONDS : s.time_minutes * 60,
+          quotas_remaining: tm ? tm.quotas : s.skill_quotas, break_after_seconds: (testMode ? Math.min(1, s.break_after_minutes) : s.break_after_minutes) * 60,
+        };
+      });
       await db.from("tachs_attempt_sections").insert(rows);
       return json({ resumed: false, attemptId: attempt.id, state: await buildState(db, attempt) });
     }
