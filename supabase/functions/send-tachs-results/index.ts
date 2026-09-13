@@ -8,7 +8,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 import { Resend } from "https://esm.sh/resend@2.0.0";
-import { acknowledgmentEmailHtml, canSendParentReport, findForbiddenParentKeys, parentReportEmailHtml, parentReportView } from "../_shared/tachs-report.ts";
+import { acknowledgmentEmailHtml, canSendParentReport, findForbiddenParentKeys, findForbiddenParentPhrases, parentReportEmailHtml, parentReportView, sanitizeParentReportContent } from "../_shared/tachs-report.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -82,12 +82,17 @@ serve(async (req) => {
     if (!canSendParentReport(attempt.report_status ?? "draft")) {
       return json({ success: false, error: "The parent report has not been approved by an administrator yet." }, 409);
     }
-    const report = parentReportView(attempt.results as Record<string, unknown>);
+    // Only the consultant-controlled content structure + whitelisted section scores/tiers are rendered.
+    // report_notes (internal) is never read here.
+    const stored = attempt.parent_report_content as Record<string, unknown> | null;
+    const safe = stored ? sanitizeParentReportContent(stored, attempt.results as Record<string, unknown>) : null;
+    const content = safe && safe.ok ? { ...safe.content, approved_for_parent_at: (stored?.approved_for_parent_at as string | null) ?? null } : null;
+    const report = parentReportView(attempt.results as Record<string, unknown>, content, attempt.completed_at);
     if (!report) return json({ success: false, error: "No stored results to report." }, 409);
-    const leaked = findForbiddenParentKeys(report);
-    if (leaked.length) return json({ success: false, error: `Report blocked: contains restricted fields (${leaked.join(", ")}).` }, 500);
-    html = parentReportEmailHtml({ firstName, gradeLevel: attempt.grade_level ?? null, completedOn, attemptId: attempt.id, report, blueprintVersion: attempt.blueprint_version ?? null });
-    subject = `TACHS Readiness Diagnostic — ${firstName}'s reviewed preliminary report`;
+    html = parentReportEmailHtml({ firstName, gradeLevel: attempt.grade_level ?? null, completedOn, attemptId: attempt.id, report });
+    const leaked = findForbiddenParentKeys(report).concat(findForbiddenParentPhrases(html));
+    if (leaked.length) return json({ success: false, error: `Report blocked: contains restricted content (${leaked.join(", ")}).` }, 500);
+    subject = `TACHS Diagnostic Results & Recommended Plan — ${firstName}`;
   }
 
   try {

@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { TachsProgramKey } from "@/lib/tachsPrograms";
 
 export type TachsSectionKey =
   | "reading" | "written_expression" | "mathematics"
@@ -62,13 +63,19 @@ export interface TachsAuditItem {
   code: string; section_key: TachsSectionKey; skill: string; difficulty: number; strand: string | null; stem: string;
   passage_id: string | null; passage_title: string | null; visual: unknown; visual_alt: string | null; choices: TachsChoice[]; correct_key: string; rationale: string;
 }
+/**
+ * Parent/student results payload. Deliberately tiny: before approval only `message`; after approval
+ * the released parent report (scores, tiers, interpretation, plan, program). No internal fields exist
+ * on this type — item review, keys, rationales, bank notes and workflow live only in TachsAdminDetail.
+ */
 export interface TachsResultsResponse {
   viewer: "student" | "admin";
-  report: TachsParentReport | null;
-  report_status: TachsReportStatus;
-  results?: TachsResults; review?: TachsReviewItem[]; carryover?: TachsCarryover;
-  attempt: { id: string; grade_level: number | null; test_mode: boolean; completed_at: string; started_at: string; user_id: string; blueprint_version: number };
-  email?: { status: string; sent_at: string | null; masked_to: string | null; ack_status?: string };
+  released: boolean;
+  /** True when an admin is previewing a not-yet-released report (admins only; never sent to parents). */
+  preview?: boolean;
+  message?: string;
+  report?: TachsParentReport | null;
+  attempt: { id: string; grade_level: number | null; completed_at: string };
 }
 export interface TachsReviewItem {
   section_key: TachsSectionKey; position: number; skill: string; difficulty: number; selected_key: string | null; is_correct: boolean | null;
@@ -88,20 +95,28 @@ export const skillLabel = (s: string) =>
   SKILL_LABEL_OVERRIDES[s] ?? s.replace(/partwhole/g, "part-whole").replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()).replace(/\bPart-whole\b/g, "Part-Whole");
 
 export type TachsReportStatus = "draft" | "reviewed" | "approved" | "sent";
-export const REPORT_STATUS_LABEL: Record<TachsReportStatus, string> = { draft: "Draft — awaiting review", reviewed: "Reviewed — awaiting approval", approved: "Approved — ready to send", sent: "Sent to parent" };
-export interface TachsParentSection {
-  section_key: TachsSectionKey; label: string; item_count: number; presented: number; answered: number; correct: number; accuracy: number;
-  time_limit_seconds: number; time_used_seconds: number; pace_seconds_per_item: number; allotted_seconds_per_item: number;
-  pacing: "rushed" | "on_pace" | "slow"; ended_by: "student" | "timer";
+export const REPORT_STATUS_LABEL: Record<TachsReportStatus, string> = { draft: "Draft — awaiting review", reviewed: "Reviewed — awaiting approval", approved: "Approved — released to parent", sent: "Sent to parent" };
+
+/** Released parent report (mirrors _shared/tachs-report.ts ParentReport). */
+export type TachsTierKey = "green" | "yellow" | "red";
+export interface TachsParentSectionScore { section_key: TachsSectionKey; label: string; accuracy: number; tier: TachsTierKey; tier_badge: string; tier_label: string }
+export interface TachsParentProgramView {
+  key: TachsProgramKey; name: string; duration_weeks: number; sessions_per_week: number; total_cents: number; price_label: string;
+  installments_label: string; focus: string[]; included: string[]; progress_monitoring: string; honesty_note: string | null;
+  payment_url: string | null; enrollment_call_url: string;
 }
 export interface TachsParentReport {
-  kind: "parent_preliminary"; overall_accuracy: number; total_presented: number; total_correct: number; total_time_seconds: number;
-  sections: TachsParentSection[]; observations: string[];
-  working_band: { label: string; color: string; interpretation: string } | null;
-  pending_interpretation: string; disclaimer: string; blueprint_version: number | null; generated_at: string | null;
+  kind: "parent_released"; title: string; assessment_date: string | null;
+  overall: { accuracy: number; tier: TachsTierKey; tier_badge: string; tier_label: string };
+  sections: TachsParentSectionScore[]; interpretation: string; priority_sections: string[]; plan: string[]; placement_note: string;
+  program: TachsParentProgramView; disclaimer: string;
+}
+/** Consultant-controlled content edited at /admin/tachs/:attemptId (mirrors _shared ParentReportContent). */
+export interface TachsParentReportContent {
+  interpretation: string; priority_sections: TachsSectionKey[]; recommended_program_key: TachsProgramKey;
+  customized_next_steps: string[]; price_override_cents: number | null; approved_for_parent_at: string | null;
 }
 export interface TachsCarryover { v2r: number; v2w: number; flagged: boolean; note: string | null }
-export const PACING_LABEL: Record<TachsParentSection["pacing"], string> = { rushed: "Faster than allotted", on_pace: "Within allotted pace", slow: "Slower than allotted" };
 
 export class TachsError extends Error {
   status: number; state?: TachsState;
