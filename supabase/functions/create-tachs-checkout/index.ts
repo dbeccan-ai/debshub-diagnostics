@@ -4,7 +4,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 import {
-  TACHS_EXAM_TYPE, TACHS_PRODUCT_NAME, tachsQuote, unconsumedEntitlement, pendingOrder, integrationIdentifier,
+  TACHS_EXAM_TYPE, TACHS_PRODUCT_NAME, tachsQuote, unconsumedEntitlement, pendingOrder, integrationIdentifier, checkStripeAccount,
 } from "../_shared/tachs-payment.ts";
 
 const corsHeaders = {
@@ -60,7 +60,18 @@ serve(async (req) => {
     if (mode === "quote") return json({ alreadyEntitled: false, order: publicOrder, quote });
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { apiVersion: "2025-08-27.basil" });
+
+    // Owner requirement: only the designated Stripe account may process payments.
+    let account: { id?: string | null } | null = null;
+    try { account = await stripe.accounts.retrieve(); } catch (e) { log("account retrieve failed", { error: String(e) }); }
+    const accountCheck = checkStripeAccount(account);
+    if (!accountCheck.ok) {
+      log("BLOCKED wrong stripe account", { reason: accountCheck.reason });
+      return json({ error: accountCheck.reason }, 503);
+    }
+
     const origin = req.headers.get("origin") || "http://localhost:8080";
+
 
     // Reuse a still-open session to avoid duplicate simultaneous sessions.
     if (order.stripe_checkout_session_id) {

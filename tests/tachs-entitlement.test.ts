@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import {
-  attemptIsEntitled, unconsumedEntitlement, pendingOrder, tachsQuote, verifySessionAgainstOrder, integrationIdentifier, grossUpCents,
+  attemptIsEntitled, unconsumedEntitlement, pendingOrder, tachsQuote, verifySessionAgainstOrder, integrationIdentifier, grossUpCents, checkStripeAccount, EXPECTED_STRIPE_ACCOUNT_ID,
 } from "../supabase/functions/_shared/tachs-payment.ts";
 
 const USER = "11111111-1111-1111-1111-111111111111";
@@ -98,5 +98,27 @@ describe("Stripe session verification", () => {
   it("builds an integration identifier with an 8-letter suffix", () => {
     expect(integrationIdentifier(() => 0)).toBe("debs_tachs_AAAAAAAA");
     expect(integrationIdentifier()).toMatch(/^debs_tachs_[A-Z]{8}$/);
+  });
+});
+
+describe("designated Stripe account", () => {
+  it("accepts only the owner-designated account id", () => {
+    expect(EXPECTED_STRIPE_ACCOUNT_ID).toBe("acct_1SUg5a1qBeNCFEYA");
+    expect(checkStripeAccount({ id: EXPECTED_STRIPE_ACCOUNT_ID })).toEqual({ ok: true, accountId: EXPECTED_STRIPE_ACCOUNT_ID });
+  });
+  it("rejects a different or unverifiable account", () => {
+    expect(checkStripeAccount({ id: "acct_OTHER123" })).toMatchObject({ ok: false });
+    expect(checkStripeAccount({ id: "" })).toMatchObject({ ok: false });
+    expect(checkStripeAccount(null)).toMatchObject({ ok: false });
+  });
+  it("both payment functions block with 503 before touching a session", () => {
+    for (const f of ["create-tachs-checkout", "verify-tachs-payment"]) {
+      const src = readFileSync(`supabase/functions/${f}/index.ts`, "utf8");
+      expect(src).toMatch(/checkStripeAccount\(account\)/);
+      expect(src).toMatch(/if \(!accountCheck\.ok\) \{[\s\S]*?503\);/);
+      const guardAt = src.indexOf("accountCheck.ok");
+      expect(guardAt).toBeGreaterThan(-1);
+      expect(src.indexOf("checkout.sessions")).toBeGreaterThan(guardAt);
+    }
   });
 });

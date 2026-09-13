@@ -3,7 +3,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
-import { verifySessionAgainstOrder } from "../_shared/tachs-payment.ts";
+import { verifySessionAgainstOrder, checkStripeAccount } from "../_shared/tachs-payment.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -37,6 +37,16 @@ serve(async (req) => {
     if (order.payment_status === "granted") return json({ success: true, alreadyVerified: true, order: publicOrder(order) });
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { apiVersion: "2025-08-27.basil" });
+
+    // Owner requirement: sessions are only honoured from the designated Stripe account.
+    let account: { id?: string | null } | null = null;
+    try { account = await stripe.accounts.retrieve(); } catch (e) { log("account retrieve failed", { error: String(e) }); }
+    const accountCheck = checkStripeAccount(account);
+    if (!accountCheck.ok) {
+      log("BLOCKED wrong stripe account", { reason: accountCheck.reason });
+      return json({ error: accountCheck.reason }, 503);
+    }
+
     const session = await stripe.checkout.sessions.retrieve(sessionId);
     log("session", { id: session.id, payment_status: session.payment_status, amount_total: session.amount_total });
 
