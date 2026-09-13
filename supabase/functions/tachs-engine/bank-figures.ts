@@ -286,7 +286,7 @@ export const FIGURE_CLASSIFICATION: BankQuestion[] = [
     [[shape("circle", 40, 42, 46), shape("square", 40, 42, 16)], [shape("square", 40, 42, 46), shape("triangle", 40, 42, 16)], single("circle", {}, 20)], 2,
     "Each figure is a circle inside a straight-sided polygon, so a circle inside a pentagon belongs."),
   fc("FC-03", 2, "shape_attribute",
-    [single("square"), single("diamond"), single("rect" as ShapeKind === "rect" as ShapeKind ? "square" : "square", { rot: 30 })],
+    [single("square"), single("diamond"), single("square", { rot: 30 })],
     "Three four-sided figures: a square, a diamond, and a tilted square.",
     single("square", { rot: 60 }),
     [single("triangle"), single("pentagon"), single("circle")], 0,
