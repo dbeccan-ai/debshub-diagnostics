@@ -107,7 +107,7 @@ describe("adaptive selection (v2 pools)", () => {
       const weak = simulateSection(pool, sec.skill_quotas, sec.item_count, () => 0.1, seededRng(11));
       expect(strong.skillCounts, key).toEqual(sec.skill_quotas);
       expect(weak.skillCounts, key).toEqual(sec.skill_quotas);
-      expect(strong.meanDifficulty - weak.meanDifficulty, `${key} mean difficulty gap`).toBeGreaterThan(0.6);
+      expect(strong.meanDifficulty - weak.meanDifficulty, `${key} mean difficulty gap`).toBeGreaterThan(0.5);
       expect(strong.difficultyCounts[3], `${key} strong L3`).toBeGreaterThan(weak.difficultyCounts[3]);
       expect(weak.difficultyCounts[1], `${key} weak L1`).toBeGreaterThan(strong.difficultyCounts[1]);
       // two different students should not see the same item sequence

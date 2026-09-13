@@ -7,8 +7,8 @@ import { isDrawable, sameFigure, unfold } from "../supabase/functions/tachs-engi
 /** Normalize an answer string/number so an independently computed `ans` can be compared to the keyed choice. */
 export function normalizeAnswer(v: number | string): string {
   if (typeof v === "number") return String(Math.round(v * 1e6) / 1e6);
-  let s = String(v).trim().replace(/−/g, "-").replace(/×/g, "*").replace(/,/g, "");
-  s = s.replace(/^[a-z]\s*=\s*/i, "").replace(/\$/g, "").replace(/(°F|°C|°|%|cm³|cm²|cm|m³|m²|mph|kg|km|hours?|minutes?|units?|points?|ft³|ft²|ft|in|m)(?![a-z])/gi, "");
+  let s = String(v).trim().replace(/\.$/, "").replace(/−/g, "-").replace(/×/g, "*").replace(/,/g, "");
+  s = s.replace(/^[a-z]\s*=\s*/i, "").replace(/\$/g, "").replace(/(°F|°C|°|%|cm³|cm²|cm|m³|m²|mph|kg|km|hours?|minutes?|units?|points?|ft³|ft²|ft|in\.?|m)(?![a-z])/gi, "");
   s = s.replace(/\s+/g, "");
   if (/^-?\d+(\.\d+)?$/.test(s)) return String(Math.round(Number(s) * 1e6) / 1e6);
   return s.toLowerCase();
