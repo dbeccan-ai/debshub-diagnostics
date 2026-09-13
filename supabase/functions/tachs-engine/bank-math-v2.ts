@@ -124,7 +124,7 @@ export const MATH_V2: MathItem[] = [
     "Original height: √(13² − 5²) = 12 ft. New height: √(13² − 12²) = 5 ft. The top slides 12 − 5 = 7 ft. 1 ft is the change in the ladder's base minus the original height; 5 ft and 12 ft are heights, not the slide."),
   m("MA2-50", 3, ALG, "algebra1", "In an arithmetic sequence, the 3rd term is 11 and the 7th term is 27. What is the 1st term?", ["3", "7", "4", "−5"], "A", 11 - 2 * ((27 - 11) / 4),
     "Four steps take 11 to 27, so the common difference is 16 ÷ 4 = 4; two steps back from 11 gives 11 − 8 = 3. 7 steps back only once; 4 is the common difference itself; −5 steps back four times."),
-  m("MA2-51", 3, ALG, "algebra1", "Which expression is equivalent to (x + 4)(x − 6)?", ["x² − 2x − 24", "x² + 2x − 24", "x² − 24", "x² − 2x + 24"], "A", "x² − 2x − 24",
+  m("MA2-51", 2, ALG, "algebra1", "Which expression is equivalent to (x + 4)(x − 6)?", ["x² − 2x − 24", "x² + 2x − 24", "x² − 24", "x² − 2x + 24"], "A", "x² − 2x − 24",
     "x² − 6x + 4x − 24 = x² − 2x − 24. x² + 2x − 24 adds the middle terms with the wrong sign; x² − 24 omits the middle terms; x² − 2x + 24 uses the wrong sign on the constant."),
   m("MA2-52", 3, ALG, "algebra1", "A car rental costs $45 per day plus $0.20 per mile. Maria paid $138 for a 2-day rental. How many miles did she drive?", ["240", "465", "690", "96"], "A", (138 - 90) / 0.2,
     "138 − 2(45) = 48 for mileage, and 48 ÷ 0.20 = 240 miles. 465 charges only one day; 690 ignores the daily charge; 96 multiplies by 0.20 instead of dividing."),
