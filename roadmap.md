@@ -56,3 +56,9 @@
 - [x] SVG icon/placeholder tokens removed from parent report; accessible/printable tables; "Part-Whole" label
 - [x] Tests: `tests/tachs-report-safety.test.ts` (90 total passing)
 - [ ] BLOCKED on owner approval: deploy `tachs-engine` + `send-tachs-results`, then publish
+
+## TACHS admin visibility (done, preview only)
+- [x] Root cause fixed in engine code (FK-qualified profile embeds, errors surfaced) — NOT deployed
+- [x] Admin page: error+retry state, All/Student/TEST MODE tabs, resettable filters, pinned Mckenzie link, direct DB fallback
+- [x] Content Audit: v1 frozen vs v2 revised compare, carry-over notice
+- [ ] Backend deploy of tachs-engine + send-tachs-results (awaiting owner approval)
