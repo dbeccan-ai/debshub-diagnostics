@@ -97,7 +97,10 @@ const App = () => (
             <Route path="/demo/test" element={<DemoTest />} />
             <Route path="/tachs" element={<TachsLanding />} />
             <Route path="/tachs/start" element={<TachsStart />} />
+            <Route path="/tachs/setup" element={<TachsStart />} />
             <Route path="/tachs/attempt/:attemptId" element={<TachsAttempt />} />
+            <Route path="/tachs/test/:attemptId" element={<TachsAttempt />} />
+
             <Route path="/tachs/results/:attemptId" element={<TachsResults />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
