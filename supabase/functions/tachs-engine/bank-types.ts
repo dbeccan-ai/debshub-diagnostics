@@ -139,10 +139,13 @@ const DOT_LAYOUTS: number[][][] = [
   [[28, 28], [52, 28], [28, 52], [52, 52]],
   [[28, 26], [52, 26], [40, 40], [28, 56], [52, 56]],
   [[26, 24], [54, 24], [26, 40], [54, 40], [26, 56], [54, 56]],
+  [[22, 24], [40, 24], [58, 24], [22, 40], [58, 40], [22, 56], [58, 56]],
+  [[22, 24], [40, 24], [58, 24], [22, 40], [58, 40], [22, 56], [40, 56], [58, 56]],
+  [[22, 24], [40, 24], [58, 24], [22, 40], [40, 40], [58, 40], [22, 56], [40, 56], [58, 56]],
 ];
 
 export const dots = (n: number, fill: string = NAVY): VisualItem[] =>
-  (DOT_LAYOUTS[n] ?? DOT_LAYOUTS[1]).map(([x, y]) => ({ t: "circle", cx: x, cy: y, r: 7, fill, stroke: NAVY }) as VisualItem);
+  (DOT_LAYOUTS[n] ?? DOT_LAYOUTS[1]).map(([x, y]) => ({ t: "circle", cx: x, cy: y, r: n > 6 ? 6 : 7, fill, stroke: NAVY }) as VisualItem);
 
 /** Unfolded 100x100 sheet with holes given in 0-100 sheet coordinates. */
 export const unfolded = (holes: [number, number][]): VisualSpec => ({

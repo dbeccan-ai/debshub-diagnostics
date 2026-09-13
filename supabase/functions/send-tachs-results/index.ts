@@ -1,5 +1,5 @@
 // Sends the preliminary D.E.Bs TACHS Readiness report to the confirmed parent/guardian
-// email and to the D.E.Bs admin. Callable by the service role (from tachs-engine) or by an
+// email only. Callable by the service role (from tachs-engine) or by an
 // authenticated admin. Email failures are recorded and never block the completed result.
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
@@ -12,7 +12,7 @@ const corsHeaders = {
 const json = (b: unknown, status = 200) =>
   new Response(JSON.stringify(b), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
-const ADMIN_EMAIL = "dbeccan@debslearnacademy.com";
+
 const APP_URL = "https://debshub-diagnostics.lovable.app";
 const DISCLAIMER =
   "This is a preliminary D.E.Bs readiness result, not an official TACHS scaled score, percentile, admission decision, or scholarship prediction. D.E.Bs working allocation; the 130-minute total mirrors the published regular testing time. Section item counts and timing are not official TACHS specifications. D.E.Bs is not affiliated with, sponsored by, or endorsed by the TACHS program.";
@@ -129,10 +129,10 @@ serve(async (req) => {
 
   try {
     const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+    // Parent/guardian only — staff review the report inside the authenticated admin dashboard.
     const { error } = await resend.emails.send({
       from: "D.E.Bs Diagnostic Hub <noreply@debslearnacademy.com>",
       to: [parentEmail],
-      bcc: [ADMIN_EMAIL],
       subject: `TACHS Readiness Diagnostic — ${firstName}'s preliminary report`,
       html,
     });

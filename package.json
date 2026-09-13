@@ -9,8 +9,9 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "vitest run",
-    "test:watch": "vitest"
+    "test": "bun run scripts/validate-tachs-bank.ts && vitest run",
+    "test:watch": "vitest",
+    "validate:tachs": "bun run scripts/validate-tachs-bank.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

@@ -3,7 +3,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { BLUEPRINT_V1, SAMPLE_BANK, type BlueprintSection } from "./sample-bank.ts";
-import { advanceAdaptive, bandFor, DISCLAIMER } from "./logic.ts";
+import { advanceAdaptive, bandFor, DISCLAIMER, maskEmail, needsGrading, sectionsShortOfTarget } from "./logic.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -30,22 +30,35 @@ const publicQuestion = (q: QuestionRow) => ({
   visual: q.visual, visual_alt: q.visual_alt, choices: q.choices,
 });
 
+/** Stable fingerprint of the shipped bank so content edits reseed idempotently. */
+function bankFingerprint(): string {
+  const src = JSON.stringify(SAMPLE_BANK.map((b) => [b.code, b.section_key, b.skill, b.difficulty, b.stem, b.correct_key, b.choices, b.visual ?? null, b.rationale]));
+  let h = 2166136261;
+  for (let i = 0; i < src.length; i++) { h ^= src.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
+  return `bank:${h.toString(16)}:${SAMPLE_BANK.length}`;
+}
+
 async function ensureSeed(db: Client) {
-  // Keep the active blueprint and the item bank in sync with the shipped pilot content.
+  // Keep the active blueprint and the item bank in sync with the shipped pilot content (idempotent).
+  const fp = bankFingerprint();
+  const { data: bp } = await db.from("tachs_blueprints").select("notes").eq("version", BLUEPRINT_V1.version).maybeSingle();
   const { count } = await db.from("tachs_questions")
     .select("id", { count: "exact", head: true })
     .eq("blueprint_version", BLUEPRINT_V1.version).eq("is_active", true);
-  if ((count ?? 0) >= SAMPLE_BANK.length) return;
-  await db.from("tachs_blueprints").upsert({
-    version: BLUEPRINT_V1.version, name: BLUEPRINT_V1.name, is_active: true, sections: BLUEPRINT_V1.sections, notes: BLUEPRINT_V1.notes,
-  }, { onConflict: "version" });
+  if ((count ?? 0) === SAMPLE_BANK.length && (bp?.notes ?? "").includes(fp)) return;
   const rows = SAMPLE_BANK.map((b) => ({
     code: b.code, blueprint_version: BLUEPRINT_V1.version, section_key: b.section_key, skill: b.skill, difficulty: b.difficulty,
     stem: b.stem, passage_id: b.passage_id ?? null, passage_title: b.passage_title ?? null, passage_text: b.passage_text ?? null,
     visual: b.visual ?? null, visual_alt: b.visual_alt ?? null, choices: b.choices, correct_key: b.correct_key, rationale: b.rationale, is_active: true,
   }));
   const { error } = await db.from("tachs_questions").upsert(rows, { onConflict: "code" });
-  if (error) console.error("seed error", error);
+  if (error) { console.error("seed error", error); return; }
+  // Retire any stale items that are no longer part of the shipped bank so exactly 200 stay active.
+  const codes = SAMPLE_BANK.map((b) => b.code);
+  await db.from("tachs_questions").update({ is_active: false }).eq("blueprint_version", BLUEPRINT_V1.version).eq("is_active", true).not("code", "in", `(${codes.map((c) => `"${c}"`).join(",")})`);
+  await db.from("tachs_blueprints").upsert({
+    version: BLUEPRINT_V1.version, name: BLUEPRINT_V1.name, is_active: true, sections: BLUEPRINT_V1.sections, notes: `${BLUEPRINT_V1.notes ?? ""} [${fp}]`.trim(),
+  }, { onConflict: "version" });
 }
 
 async function isAdmin(db: Client, userId: string) {
@@ -147,7 +160,7 @@ async function sendReportEmail(attemptId: string) {
 async function gradeAttempt(db: Client, attemptId: string) {
   const { data: attempt } = await db.from("tachs_attempts").select("*").eq("id", attemptId).maybeSingle();
   if (!attempt) return null;
-  if (attempt.status === "completed" && attempt.results) return attempt.results; // idempotent
+  if (!needsGrading(attempt)) return attempt.results; // idempotent
   const { data: sections } = await db.from("tachs_attempt_sections").select("*").eq("attempt_id", attemptId).order("section_order");
   const sectionSummaries = [];
   for (const s of sections ?? []) {
@@ -188,7 +201,11 @@ async function gradeAttempt(db: Client, attemptId: string) {
     .eq("id", attemptId).eq("status", "in_progress").select("id").maybeSingle();
   if (finished) {
     await db.from("tachs_attempt_events").insert({ attempt_id: attemptId, event_type: "graded", detail: { overall_accuracy: overall, band: band.key } });
-    if (!attempt.test_mode) await sendReportEmail(attemptId);
+    if (attempt.test_mode) {
+      await db.from("tachs_attempts").update({ email_status: "skipped", email_error: "TEST MODE attempt: no parent email is sent." }).eq("id", attemptId);
+    } else {
+      await sendReportEmail(attemptId);
+    }
   }
   return results;
 }
@@ -293,23 +310,31 @@ serve(async (req) => {
       const { data: profile } = await db.from("profiles").select("school_id, parent_email").eq("id", user.id).maybeSingle();
       if (parentEmail && profile && profile.parent_email !== parentEmail) await db.from("profiles").update({ parent_email: parentEmail }).eq("id", user.id);
       const sections = (bp.sections as BlueprintSection[]).sort((a, b) => a.order - b.order);
+      // Normal mode never silently shrinks a section: verify the active bank covers every target first.
+      const availability: Record<string, number> = {};
+      for (const s of sections) {
+        const { count } = await db.from("tachs_questions").select("id", { count: "exact", head: true }).eq("blueprint_version", bp.version).eq("section_key", s.key).eq("is_active", true);
+        availability[s.key] = count ?? 0;
+      }
+      if (!testMode) {
+        const short = sectionsShortOfTarget(sections, availability);
+        if (short.length) {
+          const detail = short.map((s) => `${s.key} (${s.available}/${s.target})`).join(", ");
+          console.error("tachs-engine configuration error: bank short for", detail);
+          return json({ error: `Configuration error: the TACHS question bank is incomplete for ${detail}. Please contact D.E.Bs support before starting.` }, 503);
+        }
+      }
       const { data: attempt, error: aErr } = await db.from("tachs_attempts").insert({
         user_id: user.id, school_id: profile?.school_id ?? null, blueprint_id: bp.id, blueprint_version: bp.version,
         grade_level: gradeLevel, parent_email: parentEmail ?? profile?.parent_email ?? null, test_mode: testMode, current_section_key: sections[0].key,
       }).select("*").single();
       if (aErr || !attempt) return json({ error: "Could not start the diagnostic." }, 500);
-      // Available items per section (bank may be smaller than the blueprint during the pilot)
-      const rows = [];
-      for (const s of sections) {
-        const { count } = await db.from("tachs_questions").select("id", { count: "exact", head: true }).eq("blueprint_version", bp.version).eq("section_key", s.key).eq("is_active", true);
-        const available = count ?? 0;
-        const itemCount = Math.max(1, Math.min(s.item_count, available, testMode ? TEST_MODE_ITEMS : s.item_count));
-        rows.push({
-          attempt_id: attempt.id, section_key: s.key, section_order: s.order, item_count: itemCount,
-          time_limit_seconds: testMode ? TEST_MODE_SECONDS : s.time_minutes * 60,
-          quotas_remaining: s.skill_quotas, break_after_seconds: (testMode ? Math.min(1, s.break_after_minutes) : s.break_after_minutes) * 60,
-        });
-      }
+      const rows = sections.map((s) => ({
+        attempt_id: attempt.id, section_key: s.key, section_order: s.order,
+        item_count: testMode ? Math.max(1, Math.min(s.item_count, availability[s.key], TEST_MODE_ITEMS)) : s.item_count,
+        time_limit_seconds: testMode ? TEST_MODE_SECONDS : s.time_minutes * 60,
+        quotas_remaining: s.skill_quotas, break_after_seconds: (testMode ? Math.min(1, s.break_after_minutes) : s.break_after_minutes) * 60,
+      }));
       await db.from("tachs_attempt_sections").insert(rows);
       return json({ resumed: false, attemptId: attempt.id, state: await buildState(db, attempt) });
     }
@@ -406,7 +431,13 @@ serve(async (req) => {
         const q = qMap.get(r.question_id);
         return { section_key: secMap.get(r.section_id), position: r.position, skill: r.skill, difficulty: r.difficulty, selected_key: r.selected_key, is_correct: r.is_correct, correct_key: q?.correct_key, rationale: q?.rationale, stem: q?.stem, choices: q?.choices, time_spent_seconds: r.time_spent_seconds };
       });
-      return json({ results, review, attempt: { id: freshAttempt.id, grade_level: freshAttempt.grade_level, test_mode: freshAttempt.test_mode, completed_at: freshAttempt.completed_at, started_at: freshAttempt.started_at, user_id: freshAttempt.user_id } });
+      // Email delivery status with a masked address (full address stays admin-only).
+      const maskedEmail = maskEmail(freshAttempt.parent_email);
+      return json({
+        results, review,
+        attempt: { id: freshAttempt.id, grade_level: freshAttempt.grade_level, test_mode: freshAttempt.test_mode, completed_at: freshAttempt.completed_at, started_at: freshAttempt.started_at, user_id: freshAttempt.user_id },
+        email: { status: freshAttempt.email_status ?? "pending", sent_at: freshAttempt.email_sent_at ?? null, masked_to: maskedEmail },
+      });
     }
 
     if (freshAttempt.status !== "in_progress") return json({ error: "This attempt is already completed.", state: await buildState(db, freshAttempt) }, 409);

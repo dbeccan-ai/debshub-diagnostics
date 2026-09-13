@@ -67,8 +67,8 @@ const fmShading = (code: string, difficulty: 1 | 2 | 3, kinds: [ShapeKind, Shape
   };
 };
 
-const fmCount = (code: string, difficulty: 1 | 2 | 3, base: number, correctIndex: number): BankQuestion => {
-  const count = (i: number) => base + (i % 3) + Math.floor(i / 3);
+const fmCount = (code: string, difficulty: 1 | 2 | 3, base: number, correctIndex: number, colStep = 1, rowStep = 1): BankQuestion => {
+  const count = (i: number) => base + (i % 3) * colStep + Math.floor(i / 3) * rowStep;
   const answer = count(8);
   const { choices, correct_key } = pack(
     choiceFig(dots(answer)),
@@ -79,9 +79,9 @@ const fmCount = (code: string, difficulty: 1 | 2 | 3, base: number, correctIndex
     code, section_key: "figure_matrices", skill: "count", difficulty,
     stem: "Which figure completes the matrix?",
     visual: grid((i) => (i === 8 ? null : dots(count(i)))),
-    visual_alt: `A 3 by 3 grid of dot groups. The first row has ${count(0)}, ${count(1)} and ${count(2)} dots, and each row below adds one more dot to each cell. The bottom-right cell is missing.`,
+    visual_alt: `A 3 by 3 grid of dot groups. The first row has ${count(0)}, ${count(1)} and ${count(2)} dots, and each row below adds ${rowStep} more dot${rowStep === 1 ? "" : "s"} to each cell. The bottom-right cell is missing.`,
     choices, correct_key,
-    rationale: `Each step right adds one dot and each step down adds one dot, so the missing cell holds ${answer} dots.`,
+    rationale: `Each step right adds ${colStep} dot${colStep === 1 ? "" : "s"} and each step down adds ${rowStep} dot${rowStep === 1 ? "" : "s"}, so the missing cell holds ${answer} dots.`,
   };
 };
 
@@ -121,10 +121,10 @@ export const FIGURE_MATRICES: BankQuestion[] = [
   fmShading("FM-09", 3, ["triangle", "diamond", "star"], 1, 1),
   fmShading("FM-10", 3, ["pentagon", "hexagon", "circle"], 2, 2),
   fmCount("FM-11", 1, 1, 0),
-  fmCount("FM-12", 2, 1, 3),
+  fmCount("FM-12", 2, 1, 3, 2, 1),
   fmCount("FM-13", 2, 2, 1),
-  fmCount("FM-14", 3, 2, 2),
-  fmCount("FM-15", 3, 1, 1),
+  fmCount("FM-14", 3, 2, 2, 1, 2),
+  fmCount("FM-15", 3, 1, 1, 2, 2),
   fmSize("FM-16", 1, ["circle", "square", "triangle"], false, 3),
   fmSize("FM-17", 2, ["hexagon", "diamond", "star"], false, 0),
   fmSize("FM-18", 2, ["square", "pentagon", "circle"], true, 2),

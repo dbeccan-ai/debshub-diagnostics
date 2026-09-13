@@ -100,7 +100,7 @@ export const tachsApi = {
     call<{ ok: true; server_time: string }>({ action: "answer", attemptId, questionId, ...patch }),
   next: (attemptId: string) => call<{ done: boolean; state: TachsState }>({ action: "next", attemptId }),
   submitSection: (attemptId: string) => call<{ state: TachsState; completed: boolean }>({ action: "submit_section", attemptId }),
-  results: (attemptId: string) => call<{ results: TachsResults; review: TachsReviewItem[]; attempt: { id: string; grade_level: number | null; test_mode: boolean; completed_at: string; started_at: string; user_id: string } }>({ action: "results", attemptId }),
+  results: (attemptId: string) => call<{ results: TachsResults; review: TachsReviewItem[]; attempt: { id: string; grade_level: number | null; test_mode: boolean; completed_at: string; started_at: string; user_id: string }; email?: { status: string; sent_at: string | null; masked_to: string | null } }>({ action: "results", attemptId }),
   adminList: () => call<{ attempts: TachsAdminAttempt[] }>({ action: "admin_list", attemptId: "admin" }),
   adminDetail: (attemptId: string) =>
     call<{ attempt: TachsAdminAttempt; sections: TachsAdminSection[]; audit: TachsAuditRow[]; events: TachsAttemptEvent[] }>({ action: "admin_detail", attemptId }),
