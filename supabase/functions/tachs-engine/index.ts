@@ -386,10 +386,11 @@ serve(async (req) => {
       if (presented.length >= current.item_count) return json({ done: true, state: await buildState(db, freshAttempt) });
       const lastId = presented[presented.length - 1];
       const { data: last } = await db.from("tachs_responses").select("is_correct, position").eq("section_id", current.id).eq("question_id", lastId).maybeSingle();
-      let { streak_correct: sc, streak_incorrect: si, current_difficulty: diff } = current;
-      let transition: string | null = null;
-      if (last?.is_correct === true) { sc += 1; si = 0; if (sc >= 2 && diff < 3) { diff += 1; sc = 0; transition = "up"; } }
-      else if (last?.is_correct === false) { si += 1; sc = 0; if (si >= 2 && diff > 1) { diff -= 1; si = 0; transition = "down"; } }
+      const adapted = advanceAdaptive(
+        { difficulty: current.current_difficulty, streakCorrect: current.streak_correct, streakIncorrect: current.streak_incorrect },
+        last?.is_correct ?? null,
+      );
+      const sc = adapted.streakCorrect, si = adapted.streakIncorrect, diff = adapted.difficulty, transition = adapted.transition;
       const path = [...(current.difficulty_path ?? [])];
       if (transition && path.length) path[path.length - 1] = { ...path[path.length - 1], transition };
       const { data: updated } = await db.from("tachs_attempt_sections").update({ streak_correct: sc, streak_incorrect: si, current_difficulty: diff, difficulty_path: path }).eq("id", current.id).select("*").single();
