@@ -21,6 +21,7 @@ import {
 import { useTranslation } from "@/hooks/useTranslation";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import FollowUpAssessmentsCard from "@/components/FollowUpAssessmentsCard";
+import TachsDashboardCard from "@/components/TachsDashboardCard";
 
 type Tier = "Tier 1" | "Tier 2" | "Tier 3";
 type TestStatus = "In Progress" | "Completed" | "Payment Pending";
@@ -464,6 +465,7 @@ const Dashboard = () => {
           </div>
         )}
         {userId && <FollowUpAssessmentsCard studentId={userId} />}
+        {userId && <TachsDashboardCard userId={userId} />}
 
         {/* Greeting + quick actions */}
         <div className="mb-6 flex flex-col gap-3 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">

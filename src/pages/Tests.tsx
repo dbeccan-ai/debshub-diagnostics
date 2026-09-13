@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Clock, DollarSign, CheckCircle, ArrowLeft, Calculator, BookOpen, Shield, Package } from "lucide-react";
+import { Clock, DollarSign, CheckCircle, ArrowLeft, Calculator, BookOpen, Shield, Package, GraduationCap } from "lucide-react";
 import { User } from "@supabase/supabase-js";
 import { GradeSelectionDialog } from "@/components/GradeSelectionDialog";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -274,6 +274,29 @@ const Tests = () => {
                   $199
                 </Badge>
                 <p className="text-xs text-muted-foreground">Take one test now, get a coupon for the second</p>
+              </CardContent>
+            </Card>
+
+            {/* TACHS Readiness Card */}
+            <Card
+              className="cursor-pointer hover:shadow-lg transition-all hover:border-primary group"
+              onClick={() => navigate("/tachs/start")}
+            >
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                <Badge variant="secondary" className="text-xs px-3">PILOT</Badge>
+              </div>
+              <CardHeader className="text-center pb-2">
+                <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-purple-100 group-hover:bg-purple-200 transition-colors">
+                  <GraduationCap className="h-10 w-10 text-purple-600" />
+                </div>
+                <CardTitle className="text-2xl">TACHS Readiness Diagnostic</CardTitle>
+                <CardDescription className="text-base">
+                  Six timed, adaptive sections: Reading, Written Expression, Math, and three abstract reasoning domains
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="text-center space-y-2">
+                <Badge variant="secondary" className="text-sm">Grades 6–9 · ~130 min</Badge>
+                <p className="text-xs text-muted-foreground"><a href="/tachs" onClick={(e) => { e.stopPropagation(); }} className="underline">Learn more</a></p>
               </CardContent>
             </Card>
           </div>
