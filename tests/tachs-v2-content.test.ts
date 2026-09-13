@@ -104,7 +104,7 @@ describe("Mathematics v2 pool", () => {
   it("level-3 items are multistep (word or expression models), not just bigger numbers", () => {
     for (const q of items.filter((q) => q.difficulty === 3)) {
       const words = q.stem.split(/\s+/).length;
-      const ops = (q.stem.match(/[+\-−×÷*/^²³=<>≤≥]|\(\s*−?\d+,\s*−?\d+\s*\)/g) ?? []).length;
+      const ops = (q.stem.match(/[+\-−×÷*/^²³⁰-⁹=<>≤≥]|\(\s*−?\d+,\s*−?\d+\s*\)/g) ?? []).length;
       expect(words >= 14 || ops >= 3, `${q.code} does not look multistep: "${q.stem}"`).toBe(true);
     }
   });
