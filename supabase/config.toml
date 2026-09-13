@@ -78,3 +78,6 @@ verify_jwt = true
 
 [functions.tachs-engine]
 verify_jwt = false
+
+[functions.send-tachs-results]
+verify_jwt = false
