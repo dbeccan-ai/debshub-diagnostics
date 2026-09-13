@@ -17,7 +17,7 @@ for (const q of SAMPLE_BANK as any[]) {
   if (!q.skill || /sample|placeholder/i.test(q.skill)) errors.push(`${id}: skill`);
   const stem = String(q.stem ?? "").trim();
   if (stem.length < 8 || /\b(sample|placeholder|question \d+)\b/i.test(stem)) errors.push(`${id}: weak stem`);
-  const stemKey = `${q.section_key}|${q.passage_id ?? ""}|${stem}|${VISUAL.has(q.section_key) ? JSON.stringify(q.visual ?? null) : ""}`;
+  const stemKey = `${q.section_key}|${q.passage_id ?? ""}|${stem}|${JSON.stringify(q.visual ?? null)}|${JSON.stringify(q.choices)}`;
   if (stems.has(stemKey)) errors.push(`${id}: repeated stem`); stems.add(stemKey);
   const keys = (q.choices ?? []).map((c: any) => c.key).join("");
   if (keys !== "ABCD") errors.push(`${id}: choice keys ${keys}`);
