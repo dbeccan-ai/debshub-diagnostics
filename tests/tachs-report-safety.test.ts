@@ -1,14 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import {
-  acknowledgmentEmailHtml, canSendParentReport, canTransitionReport, carryoverSummary, findForbiddenParentKeys,
-  parentReportEmailHtml, parentReportView, skillLabel, BAND_WORKING_LABEL,
+  acknowledgmentEmailHtml, canSendParentReport, canTransitionReport, carryoverSummary, findForbiddenParentKeys, findForbiddenParentPhrases,
+  parentReportEmailHtml, parentReportView, skillLabel, REPORT_PREPARING_MESSAGE,
 } from "../supabase/functions/_shared/tachs-report.ts";
 import { skillLabel as engineSkillLabel } from "../supabase/functions/tachs-engine/logic.ts";
 import { skillLabel as uiSkillLabel } from "../src/lib/tachs";
 
 // A realistic stored results blob including everything that must NOT reach parents.
-const STORED_RESULTS = {
+export const STORED_RESULTS = {
   version: 2, blueprint_version: 2, generated_at: "2026-09-13T18:56:31Z",
   overall_accuracy: 61, total_presented: 200, total_correct: 122, total_time_seconds: 7200,
   band: { key: "developing", label: "Developing", color: "#d97706" },
@@ -16,7 +16,11 @@ const STORED_RESULTS = {
   focus_sections: ["mathematics", "paper_folding"],
   sections: [
     { section_key: "reading", item_count: 50, presented: 50, answered: 50, correct: 40, accuracy: 80, time_limit_seconds: 2100, time_used_seconds: 2100, pace_seconds_per_item: 42, allotted_seconds_per_item: 42, submit_reason: "timeout", avg_difficulty: 2.1, max_difficulty: 3, difficulty_path: [{ position: 1, difficulty: 2, skill: "inference" }], skills: { inference: { presented: 10, answered: 10, correct: 8 } } },
+    { section_key: "written_expression", item_count: 50, presented: 50, answered: 50, correct: 44, accuracy: 88, time_limit_seconds: 1800, time_used_seconds: 1500, pace_seconds_per_item: 30, allotted_seconds_per_item: 36, submit_reason: "student", avg_difficulty: 2, max_difficulty: 3, difficulty_path: [], skills: {} },
     { section_key: "mathematics", item_count: 50, presented: 50, answered: 46, correct: 20, accuracy: 40, time_limit_seconds: 2400, time_used_seconds: 900, pace_seconds_per_item: 18, allotted_seconds_per_item: 48, submit_reason: "student", avg_difficulty: 1.4, max_difficulty: 2, difficulty_path: [{ position: 1, difficulty: 2, skill: "algebra" }], skills: { algebra: { presented: 10, answered: 9, correct: 3 } } },
+    { section_key: "figure_matrices", item_count: 20, presented: 20, answered: 20, correct: 14, accuracy: 70, time_limit_seconds: 600, time_used_seconds: 600, pace_seconds_per_item: 30, allotted_seconds_per_item: 30, submit_reason: "timeout", avg_difficulty: 2, max_difficulty: 3, difficulty_path: [], skills: {} },
+    { section_key: "paper_folding", item_count: 15, presented: 15, answered: 15, correct: 6, accuracy: 40, time_limit_seconds: 450, time_used_seconds: 450, pace_seconds_per_item: 30, allotted_seconds_per_item: 30, submit_reason: "timeout", avg_difficulty: 2, max_difficulty: 3, difficulty_path: [], skills: {} },
+    { section_key: "figure_classification", item_count: 15, presented: 15, answered: 15, correct: 13, accuracy: 87, time_limit_seconds: 450, time_used_seconds: 400, pace_seconds_per_item: 27, allotted_seconds_per_item: 30, submit_reason: "student", avg_difficulty: 2, max_difficulty: 3, difficulty_path: [], skills: {} },
   ],
   skills: [{ section_key: "reading", skill: "inference", presented: 10, correct: 8, accuracy: 80 }],
   strengths: [], gaps: [],
@@ -27,51 +31,61 @@ const STORED_RESULTS = {
 const SVG_TOKENS = /svgPrint|svgStrengths|svgGaps|<svg|\bsvg\b/i;
 const ANSWER_LEAK = /correct_key|rationale|selected_key|"stem"|difficulty_path|Correct answer|Why:/i;
 
-describe("parent preliminary report view", () => {
-  const view = parentReportView(STORED_RESULTS)!;
-  it("keeps raw accuracy and pacing transparent", () => {
-    expect(view.overall_accuracy).toBe(61);
-    expect(view.sections.map((s) => [s.label, s.accuracy, s.pacing, s.ended_by])).toEqual([
-      ["Reading", 80, "on_pace", "timer"], ["Mathematics", 40, "rushed", "student"],
+describe("released parent report view", () => {
+  const view = parentReportView(STORED_RESULTS, null, "2026-09-13T19:00:00Z")!;
+  it("has exactly six section scores with tiers plus an overall tier", () => {
+    expect(view.sections).toHaveLength(6);
+    expect(view.sections.map((s) => [s.label, s.accuracy, s.tier_badge])).toEqual([
+      ["Reading", 80, "Tier 2"], ["Written Expression", 88, "Tier 1"], ["Mathematics", 40, "Tier 3"],
+      ["Figure Matrices", 70, "Tier 2"], ["Paper Folding", 40, "Tier 3"], ["Figure Classification", 87, "Tier 1"],
     ]);
+    expect(view.overall).toMatchObject({ accuracy: 61, tier: "red", tier_badge: "Tier 3", tier_label: "Priority Intervention Required" });
   });
-  it("labels the band as an internal working interpretation pending consultant review", () => {
-    expect(view.working_band?.label).toBe("Developing");
-    expect(view.working_band?.interpretation).toBe(BAND_WORKING_LABEL);
-    expect(view.pending_interpretation).toMatch(/consultant review/i);
-    expect(view.pending_interpretation).toMatch(/not .*admission prediction/i);
-  });
-  it("contains no answers, rationales, question text, adaptive paths, evidence or next-step plans", () => {
+  it("contains no answers, rationales, question text, adaptive paths, bands, timing, counts, bank or workflow fields", () => {
     expect(findForbiddenParentKeys(view)).toEqual([]);
+    expect(findForbiddenParentPhrases(JSON.stringify(view))).toEqual([]);
     expect(JSON.stringify(view)).not.toMatch(ANSWER_LEAK);
-    expect(JSON.stringify(view)).not.toContain("Rebuild the two weakest");
+    expect(JSON.stringify(view)).not.toMatch(/Developing|working|blueprint|pacing|time_used|presented|Rebuild the two weakest/);
   });
   it("safety scanner catches leaked fields", () => {
     expect(findForbiddenParentKeys({ a: [{ correct_key: "B" }], b: { nested: { rationale: "x" } } }).sort()).toEqual(["correct_key", "rationale"]);
-    expect(findForbiddenParentKeys(STORED_RESULTS)).toContain("difficulty_path");
+    for (const k of ["difficulty_path", "blueprint_version", "band", "total_presented", "time_used_seconds", "evidence", "next_steps"]) {
+      expect(findForbiddenParentKeys(STORED_RESULTS)).toContain(k);
+    }
+    for (const k of ["carryover", "test_mode", "report_status", "report_notes", "report_reviewed_by", "report_approved_by", "code", "bank", "item_count", "pacing"]) {
+      expect(findForbiddenParentKeys({ [k]: 1 })).toEqual([k]);
+    }
+    expect(findForbiddenParentPhrases("Pilot blueprint v2 carry-over")).not.toEqual([]);
   });
 });
 
 describe("completion acknowledgment email", () => {
   const html = acknowledgmentEmailHtml({ firstName: "Mckenzie", completedOn: "September 13, 2026" });
-  it("contains no scores, bands, answers or rationales", () => {
+  it("contains no scores, bands, answers, rationales or workflow wording", () => {
     expect(html).toMatch(/assessment received/i);
-    expect(html).toMatch(/pending consultant review/i);
+    expect(html).toMatch(/being prepared/i);
     expect(html).not.toMatch(/%/);
     expect(html).not.toMatch(/Developing|Approaching|Strong Readiness|Building Foundations/);
     expect(html).not.toMatch(ANSWER_LEAK);
+    expect(findForbiddenParentPhrases(html)).toEqual([]);
   });
   it("has no SVG placeholders or icon tokens", () => { expect(html).not.toMatch(SVG_TOKENS); });
 });
 
-describe("approved parent report email", () => {
-  const html = parentReportEmailHtml({ firstName: "Mckenzie", gradeLevel: 8, completedOn: "September 13, 2026", attemptId: "abc", report: parentReportView(STORED_RESULTS)!, blueprintVersion: 2 });
-  it("shows section accuracy and pacing but no answer data", () => {
+describe("released parent report email", () => {
+  const html = parentReportEmailHtml({ firstName: "Mckenzie", gradeLevel: 8, completedOn: "September 13, 2026", attemptId: "abc", report: parentReportView(STORED_RESULTS, null, null)! });
+  it("shows section scores and tiers, interpretation, plan and program but no internal data", () => {
+    expect(html).toContain("TACHS Diagnostic Results &amp; Recommended Plan");
     expect(html).toContain("80%");
-    expect(html).toContain("Faster than allotted");
-    expect(html).toContain(BAND_WORKING_LABEL);
+    expect(html).toContain("Tier 3");
+    expect(html).toContain("TACHS Intensive Readiness — Phase 1");
+    expect(html).toContain("$2,400");
+    expect(html).toContain("Schedule Enrollment Call");
     expect(html).not.toMatch(ANSWER_LEAK);
     expect(html).not.toMatch(/inference|algebra/i); // no skill/adaptive internals
+    expect(html).not.toMatch(/Faster than allotted|Time used|pacing|of 50|Pilot|blueprint|working|pending consultant interpretation/i);
+    expect(html).not.toMatch(/\/admin\//);
+    expect(findForbiddenParentPhrases(html)).toEqual([]);
   });
   it("uses accessible table markup and no SVG tokens", () => {
     expect(html).toMatch(/<th scope="col"/);
@@ -90,37 +104,51 @@ describe("report approval workflow", () => {
     expect(canTransitionReport("draft", "sent")).toBe(false);
     expect(canTransitionReport("reviewed", "sent")).toBe(false);
   });
-  it("only approved (or already sent) reports can be emailed", () => {
+  it("only approved (or already sent) reports can be released or emailed", () => {
     expect(canSendParentReport("draft")).toBe(false);
     expect(canSendParentReport("reviewed")).toBe(false);
     expect(canSendParentReport("approved")).toBe(true);
     expect(canSendParentReport("sent")).toBe(true);
+    expect(REPORT_PREPARING_MESSAGE).toMatch(/being prepared/);
   });
 });
 
 describe("server-side enforcement (source contracts)", () => {
   const engine = readFileSync("supabase/functions/tachs-engine/index.ts", "utf8");
   const sender = readFileSync("supabase/functions/send-tachs-results/index.ts", "utf8");
+  const strip = (s: string) => s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
   it("completion sends only the acknowledgment and leaves the report in draft", () => {
     expect(engine).toMatch(/report_status: "draft", email_status: "pending"/);
     expect(engine).toMatch(/await sendReportEmail\(attemptId, "acknowledgment"\)/);
     expect(engine).not.toMatch(/await sendReportEmail\(attemptId\);/);
   });
-  it("students never receive review/keys from the results action; admins do", () => {
-    expect(engine).toMatch(/if \(!admin\) return json\(\{ \.\.\.base, viewer: "student", report \}\)/);
-    const resultsBlock = engine.slice(engine.indexOf('if (action === "results")'), engine.indexOf('viewer: "admin"'));
-    const beforeAdmin = resultsBlock.slice(0, resultsBlock.indexOf('viewer: "student"'));
-    // The student payload is exactly { ...base, viewer, report } where report passed the forbidden-key scan.
-    expect(beforeAdmin).toMatch(/const leaked = findForbiddenParentKeys\(report\)/);
-    expect(beforeAdmin.replace(/\/\/.*$/gm, "")).not.toMatch(/correct_key|rationale/);
+  it("the results action withholds scores before approval and never returns internal detail to anyone", () => {
+    const resultsBlock = strip(engine.slice(engine.indexOf('if (action === "results")'), engine.indexOf('if (freshAttempt.status !== "in_progress")')));
+    expect(resultsBlock).toMatch(/if \(!released && !admin\) return json\(\{ \.\.\.base, released: false, message: REPORT_PREPARING_MESSAGE \}\)/);
+    expect(resultsBlock).toMatch(/findForbiddenParentKeys\(report\)/);
+    expect(resultsBlock).toMatch(/findForbiddenParentPhrases/);
+    expect(resultsBlock).not.toMatch(/correct_key|rationale|review|carryover|results: full|tachs_responses|tachs_questions|blueprint_version|test_mode|report_notes|email_status/);
     expect(engine).toMatch(/action === "admin_report_transition"/);
     expect(engine).toMatch(/if \(!canSendParentReport\(from\)\) return json/);
   });
-  it("legacy resend is gated behind approval and the sender re-checks status", () => {
-    expect(engine).toMatch(/admin_resend_email[\s\S]*?canSendParentReport\(a\.report_status \?\? "draft"\)/);
+  it("item review, keys and rationales are served only by admin_detail behind the admin check", () => {
+    const detailBlock = engine.slice(engine.indexOf('if (action === "admin_detail")'), engine.indexOf('if (action === "admin_parent_report_content")'));
+    expect(detailBlock).toMatch(/if \(!admin\) return json\(\{ error: "Forbidden" \}, 403\)/);
+    expect(detailBlock).toMatch(/correct_key/);
+    expect(detailBlock).toMatch(/rationale/);
+    expect(detailBlock).toMatch(/carryoverSummary/);
+  });
+  it("parent content edits are admin-only, validated, and locked after approval", () => {
+    const block = engine.slice(engine.indexOf('if (action === "admin_parent_report_content")'), engine.indexOf('if (action === "admin_report_transition")'));
+    expect(block).toMatch(/if \(!admin\) return json\(\{ error: "Forbidden" \}, 403\)/);
+    expect(block).toMatch(/canEditParentContent/);
+    expect(block).toMatch(/sanitizeParentReportContent\(body\.content, a\.results\)/);
+  });
+  it("the sender re-checks approval, renders only the safe structure, and never reads internal notes", () => {
     expect(sender).toMatch(/if \(!canSendParentReport\(attempt\.report_status \?\? "draft"\)\)/);
     expect(sender).toMatch(/findForbiddenParentKeys\(report\)/);
-    expect(sender.replace(/\/\/.*$/gm, "")).not.toMatch(/results\.strengths|results\.gaps|results\.next_steps|rationale|correct_key/);
+    expect(sender).toMatch(/findForbiddenParentPhrases\(html\)/);
+    expect(strip(sender)).not.toMatch(/results\.strengths|results\.gaps|results\.next_steps|rationale|correct_key|report_notes|blueprint_version|carryover/);
     expect(sender).not.toMatch(/bcc\s*:/i);
   });
 });
@@ -133,14 +161,6 @@ describe("labels and screen/print output", () => {
       expect(fn("main_idea")).toBe("Main Idea");
     }
   });
-  it("parent results page has no icon components, answer keys or rationales in the parent view", () => {
-    const page = readFileSync("src/pages/TachsResults.tsx", "utf8");
-    expect(page).not.toMatch(/from "lucide-react"/);
-    expect(page).not.toMatch(/svgPrint|svgStrengths|svgGaps/);
-    const parentView = page.slice(0, page.indexOf('viewer === "admin" && data.results'));
-    expect(parentView.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "")).not.toMatch(/correct_key|rationale|difficulty_path|\breview\.(items|map|length)/);
-    expect(page).toMatch(/TableCaption/);
-  });
   it("no literal SVG placeholder strings remain in TACHS source or templates", () => {
     for (const f of ["src/pages/TachsResults.tsx", "src/pages/AdminTachs.tsx", "supabase/functions/_shared/tachs-report.ts", "supabase/functions/send-tachs-results/index.ts"]) {
       expect(readFileSync(f, "utf8")).not.toMatch(/svgPrint|svgStrengths|svgGaps|<svg/);
@@ -148,7 +168,7 @@ describe("labels and screen/print output", () => {
   });
 });
 
-describe("carry-over bank flag", () => {
+describe("carry-over bank flag (admin-only)", () => {
   it("flags V2-R / V2-W attempts and leaves revised-bank attempts clean", () => {
     const f = carryoverSummary(["V2-R-01", "V2-W-07", "MA2-10", null]);
     expect(f.flagged).toBe(true); expect(f.v2r).toBe(1); expect(f.v2w).toBe(1);
