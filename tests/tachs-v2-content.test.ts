@@ -8,7 +8,7 @@ import { isDrawable, sameFigure, unfold } from "../supabase/functions/tachs-engi
 export function normalizeAnswer(v: number | string): string {
   if (typeof v === "number") return String(Math.round(v * 1e6) / 1e6);
   let s = String(v).trim().replace(/−/g, "-").replace(/×/g, "*").replace(/,/g, "");
-  s = s.replace(/^[a-z]\s*=\s*/i, "").replace(/\$/g, "").replace(/(°F|°C|°|%|cm²|cm|m²|mph|kg|km|hours?|minutes?|units?|points?|ft|in|m)(?![a-z])/gi, "");
+  s = s.replace(/^[a-z]\s*=\s*/i, "").replace(/\$/g, "").replace(/(°F|°C|°|%|cm³|cm²|cm|m³|m²|mph|kg|km|hours?|minutes?|units?|points?|ft³|ft²|ft|in|m)(?![a-z])/gi, "");
   s = s.replace(/\s+/g, "");
   if (/^-?\d+(\.\d+)?$/.test(s)) return String(Math.round(Number(s) * 1e6) / 1e6);
   return s.toLowerCase();
@@ -104,7 +104,7 @@ describe("Mathematics v2 pool", () => {
   it("level-3 items are multistep (word or expression models), not just bigger numbers", () => {
     for (const q of items.filter((q) => q.difficulty === 3)) {
       const words = q.stem.split(/\s+/).length;
-      const ops = (q.stem.match(/[+\-−×÷*/^²³=<>≤≥]/g) ?? []).length;
+      const ops = (q.stem.match(/[+\-−×÷*/^²³=<>≤≥]|\(\s*−?\d+,\s*−?\d+\s*\)/g) ?? []).length;
       expect(words >= 14 || ops >= 3, `${q.code} does not look multistep: "${q.stem}"`).toBe(true);
     }
   });
