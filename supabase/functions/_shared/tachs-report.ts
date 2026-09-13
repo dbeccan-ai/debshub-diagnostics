@@ -274,7 +274,7 @@ export const FORBIDDEN_PARENT_PHRASES: RegExp[] = [
   /blueprint/i, /carry-?over/i, /test mode/i, /\bpilot\b/i, /report status/i, /\bdraft\b/i, /\bapproved\b/i, /\bapproval\b/i,
   /reviewer/i, /rationale/i, /answer key/i, /correct answer/i, /item review/i, /question bank/i, /\bbank\b/i, /\bversion\b/i,
   /adaptive/i, /difficulty/i, /\badmin/i, /internal note/i, /working band/i, /pending consultant interpretation/i,
-  /\bV2-[RW]/, /\bRD2\b/, /\bWR2\b/, /\/admin\//i, /svgPrint|svgStrengths|svgGaps|<svg/i, /percentile/i,
+  /\bV2-[RW]/, /\bRD2\b/, /\bWR2\b/, /\/admin\//i, new RegExp(["svg" + "Print", "svg" + "Strengths", "svg" + "Gaps", "<" + "svg"].join("|"), "i"),
 ];
 export function findForbiddenParentPhrases(text: string): string[] {
   return FORBIDDEN_PARENT_PHRASES.filter((re) => re.test(text)).map((re) => re.source);

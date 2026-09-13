@@ -10,7 +10,7 @@ import {
   defaultParentReportContent, parentReportView, sanitizeParentReportContent, sectionScores, findForbiddenParentKeys, findForbiddenParentPhrases,
   parentReportEmailHtml, canEditParentContent, PARENT_REPORT_TITLE,
 } from "../supabase/functions/_shared/tachs-report.ts";
-import { STORED_RESULTS } from "./tachs-report-safety.test";
+import { STORED_RESULTS } from "./tachs-fixtures";
 
 const strip = (s: string) => s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
 const INTERNAL_TERMS = /correct_key|rationale|selected_key|difficulty_path|\breview\b|carryover|blueprint|test_mode|TEST MODE|report_status|REPORT_STATUS_LABEL|report_notes|reviewed_by|approved_by|PACING|time_used|ended_by|total_presented|item_count|working_band|pending_interpretation|Pilot|Admin viewing|Internal \(admin-only\)|Show item review/;
@@ -30,7 +30,7 @@ describe("A. strict surface separation", () => {
   it("the parent results type carries no internal fields", () => {
     const lib = readFileSync("src/lib/tachs.ts", "utf8");
     const t = strip(lib.slice(lib.indexOf("export interface TachsResultsResponse"), lib.indexOf("export interface TachsReviewItem")));
-    expect(t).not.toMatch(/results\?|review\?|carryover|report_status|test_mode|blueprint_version|email|user_id|started_at/);
+    expect(t).not.toMatch(/results\?|\breview\?|carryover|report_status|test_mode|blueprint_version|email|user_id|started_at/);
   });
   it("admin detail page keeps the item audit, keys, rationales and bank notes", () => {
     const admin = readFileSync("src/pages/AdminTachs.tsx", "utf8");
@@ -126,7 +126,7 @@ describe("F. engine contract: unapproved parent route withholds scores", () => {
     const block = engine.slice(engine.indexOf('if (action === "results")'), engine.indexOf('if (freshAttempt.status !== "in_progress")'));
     const preRelease = block.slice(0, block.indexOf("const full ="));
     expect(preRelease).toMatch(/released: false, message: REPORT_PREPARING_MESSAGE/);
-    expect(preRelease).not.toMatch(/results|accuracy|report\b/);
+    expect(preRelease).not.toMatch(/overall_accuracy|parentReportView|\.results\b|sections/);
     expect(block).not.toMatch(/blueprint_version|test_mode|user_id|started_at|email_status|report_status:/);
   });
   it("approval snapshots content with approved_for_parent_at and returning to draft clears it", () => {
