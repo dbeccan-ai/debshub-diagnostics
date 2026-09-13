@@ -45,6 +45,8 @@ export interface TachsResults {
   overall_accuracy: number; total_presented: number; total_correct: number; total_time_seconds: number;
   band: { key: string; label: string; color: string }; next_steps: string; focus_sections: TachsSectionKey[];
   sections: TachsSectionSummary[]; skills: TachsSkillRow[]; strengths: TachsSkillRow[]; gaps: TachsSkillRow[]; disclaimer: string; generated_at: string;
+  blueprint_version?: number;
+  math_readiness?: { key: "foundation" | "grade8" | "algebra1"; label: string; presented: number; correct: number; accuracy: number }[] | null;
 }
 export interface TachsReviewItem {
   section_key: TachsSectionKey; position: number; skill: string; difficulty: number; selected_key: string | null; is_correct: boolean | null;

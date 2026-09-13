@@ -261,7 +261,7 @@ export default function TachsAttempt() {
                   <CardTitle className={cn("font-medium whitespace-pre-line", textSize)}>{q.stem}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {q.visual ? <div className="rounded-md border p-3 bg-card"><TachsVisual spec={q.visual} alt={q.visual_alt} /></div> : null}
+                  {q.visual ? <div className="rounded-md border p-3 bg-card overflow-x-auto"><TachsVisual spec={q.visual} alt={q.visual_alt} maxWidth={q.section_key === "paper_folding" ? 760 : 360} /></div> : null}
                   <div role="radiogroup" aria-label="Answer choices" className={cn("grid gap-2", q.choices.some((c) => c.visual) ? "sm:grid-cols-2" : "")}>
                     {q.choices.map((c, i) => {
                       const selected = answers[q.id] === c.key;
@@ -275,7 +275,7 @@ export default function TachsAttempt() {
                           <span className={cn("flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-sm font-bold", selected && "bg-primary text-primary-foreground border-primary")}>{KEY_LABEL[i] ?? c.key}</span>
                           <span className={cn("flex-1", textSize)}>
                             {c.text}
-                            {c.visual ? <TachsVisual spec={c.visual} alt={`Choice ${KEY_LABEL[i]}`} maxWidth={140} /> : null}
+                            {c.visual ? <TachsVisual spec={c.visual} alt={`Choice ${KEY_LABEL[i]}`} maxWidth={q.section_key === "paper_folding" ? 200 : 140} /> : null}
                           </span>
                         </button>
                       );
