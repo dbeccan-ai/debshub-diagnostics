@@ -44,6 +44,8 @@ import ResetPassword from "./pages/ResetPassword";
 import RecoveryRedirect from "@/components/RecoveryRedirect";
 import TachsLanding from "./pages/TachsLanding";
 import TachsStart from "./pages/TachsStart";
+import TachsCheckout from "./pages/TachsCheckout";
+import TachsPaymentSuccess from "./pages/TachsPaymentSuccess";
 import TachsAttempt from "./pages/TachsAttempt";
 import TachsResults from "./pages/TachsResults";
 import NotFound from "./pages/NotFound";
@@ -99,6 +101,8 @@ const App = () => (
             <Route path="/tachs" element={<TachsLanding />} />
             <Route path="/tachs/start" element={<TachsStart />} />
             <Route path="/tachs/setup" element={<TachsStart />} />
+            <Route path="/tachs/checkout" element={<TachsCheckout />} />
+            <Route path="/tachs/payment-success" element={<TachsPaymentSuccess />} />
             <Route path="/tachs/attempt/:attemptId" element={<TachsAttempt />} />
             <Route path="/tachs/test/:attemptId" element={<TachsAttempt />} />
 

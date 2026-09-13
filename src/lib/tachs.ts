@@ -92,6 +92,7 @@ async function call<T>(payload: Record<string, unknown>, retry = true): Promise<
 }
 
 export const tachsApi = {
+  access: () => call<TachsAccess>({ action: "access" }),
   start: (opts: { gradeLevel?: number | null; parentEmail?: string | null; testMode?: boolean }) =>
     call<{ resumed: boolean; attemptId: string; state: TachsState }>({ action: "start", ...opts }),
   state: (attemptId: string) => call<{ state: TachsState }>({ action: "state", attemptId }),
@@ -101,13 +102,53 @@ export const tachsApi = {
   next: (attemptId: string) => call<{ done: boolean; state: TachsState }>({ action: "next", attemptId }),
   submitSection: (attemptId: string) => call<{ state: TachsState; completed: boolean }>({ action: "submit_section", attemptId }),
   results: (attemptId: string) => call<{ results: TachsResults; review: TachsReviewItem[]; attempt: { id: string; grade_level: number | null; test_mode: boolean; completed_at: string; started_at: string; user_id: string }; email?: { status: string; sent_at: string | null; masked_to: string | null } }>({ action: "results", attemptId }),
-  adminList: () => call<{ attempts: TachsAdminAttempt[] }>({ action: "admin_list", attemptId: "admin" }),
+  adminList: () => call<{ attempts: TachsAdminAttempt[]; orders: TachsOrder[] }>({ action: "admin_list", attemptId: "admin" }),
   adminDetail: (attemptId: string) =>
     call<{ attempt: TachsAdminAttempt; sections: TachsAdminSection[]; audit: TachsAuditRow[]; events: TachsAttemptEvent[] }>({ action: "admin_detail", attemptId }),
   adminResendEmail: (attemptId: string) =>
     call<{ ok: true; email: { email_status: string | null; email_error: string | null; email_sent_at: string | null; email_attempts: number | null } }>({ action: "admin_resend_email", attemptId }),
   adminReopen: (attemptId: string, sectionKey?: string) =>
     call<{ ok: true; section_key: string }>({ action: "admin_reopen", attemptId, sectionKey }),
+  adminSearchUsers: (query: string) =>
+    call<{ users: { id: string; full_name: string | null; username: string | null; parent_email: string | null }[] }>({ action: "admin_search_users", attemptId: "admin", query }),
+  adminGrantAccess: (targetUserId: string, reason: string) =>
+    call<{ ok: true; order: TachsOrder }>({ action: "admin_grant_access", attemptId: "admin", targetUserId, reason }),
+};
+
+/** Payment / entitlement helpers (Stripe-hosted Checkout, one-time). */
+export interface TachsQuote { net_cents: number; fee_cents: number; total_cents: number; currency: string }
+export interface TachsAccess {
+  admin: boolean; quote: TachsQuote; entitled: boolean; entitlement_source: string | null; pending_order_id: string | null;
+  in_progress: { id: string; grade_level: number | null; entitled: boolean } | null;
+}
+export interface TachsOrder {
+  id: string; user_id: string; attempt_id: string | null; source: string; payment_status: string;
+  net_amount_cents: number; fee_cents: number; total_cents: number; amount_paid_cents: number | null; currency: string;
+  stripe_checkout_session_id: string | null; stripe_payment_intent_id: string | null; verified_at: string | null; created_at: string;
+  granted_by: string | null; grant_reason: string | null;
+  profiles?: { full_name: string | null; username: string | null; parent_email: string | null } | null;
+}
+export const TACHS_PRICE_LABEL = "$175 + processing fee";
+export const dollars = (cents: number) => `$${(cents / 100).toFixed(2)}`;
+
+async function paymentCall<T>(fn: string, body: Record<string, unknown>): Promise<T> {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new TachsError("Please sign in to continue.", 401);
+  const { data, error } = await supabase.functions.invoke(fn, { body, headers: { Authorization: `Bearer ${session.access_token}` } });
+  if (error) {
+    let message = error.message || "Request failed"; let status = 500;
+    const ctx = (error as { context?: Response }).context;
+    if (ctx && typeof ctx.json === "function") { status = ctx.status; try { const j = await ctx.json(); message = j.error ?? j.message ?? message; } catch { /* ignore */ } }
+    throw new TachsError(message, status);
+  }
+  if (data?.error) throw new TachsError(data.error, 400);
+  return data as T;
+}
+export const tachsPayments = {
+  quote: () => paymentCall<{ alreadyEntitled: boolean; quote: TachsQuote; order?: { id: string; payment_status: string; net_cents: number; fee_cents: number; total_cents: number; currency: string } }>("create-tachs-checkout", { mode: "quote" }),
+  session: () => paymentCall<{ alreadyEntitled: boolean; url?: string; verifyPending?: boolean; sessionId?: string; order?: { id: string } }>("create-tachs-checkout", { mode: "session" }),
+  verify: (sessionId: string, orderId: string) =>
+    paymentCall<{ success: boolean; alreadyVerified?: boolean; message?: string; order?: { id: string; total_cents: number; amount_paid_cents: number | null } }>("verify-tachs-payment", { sessionId, orderId }),
 };
 
 export interface TachsAdminAttempt {
@@ -115,7 +156,7 @@ export interface TachsAdminAttempt {
   test_mode: boolean; started_at: string; completed_at: string | null; blueprint_version: number;
   parent_email: string | null; email_status: string | null; email_sent_at: string | null;
   email_attempts: number | null; email_error: string | null; results: TachsResults | null;
-  reopened_at?: string | null;
+  reopened_at?: string | null; access_source?: string; order_id?: string | null; order?: TachsOrder | null;
   profiles?: { full_name: string | null; username: string | null } | null;
 }
 export interface TachsAdminSection {

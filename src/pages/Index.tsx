@@ -29,8 +29,8 @@ export default function Page() {
   return (
     <div className="bg-gradient-to-br from-sky-100 via-white to-amber-50 text-slate-900 min-h-screen">
       <SEO
-        title="DEBs Diagnostic Hub — K-12 ELA & Math Testing"
-        description="AI-powered K-12 diagnostic testing for ELA and Math. Identify skill gaps, get personalized 6-week learning plans, and track student progress."
+        title="DEBs Diagnostic Hub — K-12 ELA, Math & TACHS Testing"
+        description="K-12 ELA and Math diagnostics plus a specialized TACHS high-school admissions readiness diagnostic. Identify skill gaps, get 6-week plans, and track progress."
         path="/"
         jsonLd={{
           "@context": "https://schema.org",
@@ -49,7 +49,15 @@ export default function Page() {
               name: "How much does a diagnostic test cost?",
               acceptedAnswer: {
                 "@type": "Answer",
-                text: "Diagnostics are $99 for Grades 1–6 and $120 for Grades 7–12. Dual-subject bundles are also available.",
+                text: "Diagnostics are $99 for Grades 1–6 and $120 for Grades 7–12. Dual-subject bundles are also available. The specialized TACHS Readiness Diagnostic is $175 plus a processing fee.",
+              },
+            },
+            {
+              "@type": "Question",
+              name: "Do you offer a TACHS or specialized high-school admissions diagnostic?",
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: "Yes. The D.E.Bs TACHS Readiness Diagnostic has six timed, adaptive sections (Reading, Written Expression, Mathematics, Figure Matrices, Paper Folding, Figure Classification), 200 questions over 130 testing minutes, and an immediate parent report. It is an independent, TACHS-aligned diagnostic, not the official exam.",
               },
             },
             {
@@ -253,6 +261,20 @@ export default function Page() {
                     </div>
                     <HeroTestDropdown type="ela" buttonLabel={t.dashboard.run} />
                   </div>
+                  {/* Card 4 - TACHS Readiness */}
+                  <div className="flex items-center justify-between gap-3 p-3 rounded-2xl bg-purple-50 border border-purple-100">
+                    <div>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-xs font-semibold text-slate-700">TACHS Readiness Diagnostic</span>
+                        <span className="text-[9px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded-full bg-purple-600 text-white">TACHS · Specialized high-school admissions</span>
+                      </div>
+                      <div className="text-[11px] text-slate-500">Six timed, adaptive sections covering Reading, Written Expression, Mathematics, Figure Matrices, Paper Folding, and Figure Classification.</div>
+                      <div className="text-[11px] font-semibold text-purple-700 mt-0.5">$175 + processing fee</div>
+                    </div>
+                    <a href="/tachs" className="shrink-0 px-3 py-1 text-[11px] font-semibold rounded-full bg-purple-600 text-white hover:bg-purple-700">
+                      Register / Sign in
+                    </a>
+                  </div>
                 </div>
 
                 <div className="mt-4 border-t border-slate-100 pt-3 flex items-center justify-between">
@@ -404,7 +426,7 @@ export default function Page() {
               </a>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
               {/* Reading Recovery Diagnostic */}
               <div className="rounded-2xl bg-slate-800/80 border border-slate-700 p-5">
                 <div className="text-xs font-semibold text-amber-300 uppercase mb-1">{t.dashboard.readingRecovery}</div>
@@ -460,6 +482,26 @@ export default function Page() {
                 >
                   {t.tests.startEla}
                 </button>
+              </div>
+
+              {/* TACHS Readiness Diagnostic */}
+              <div className="rounded-2xl bg-slate-800/80 border border-purple-500/60 p-5 flex flex-col">
+                <div className="text-xs font-semibold text-purple-300 uppercase mb-1">TACHS · Specialized high-school admissions</div>
+                <h3 className="font-semibold mb-2">TACHS Readiness Diagnostic</h3>
+                <p className="text-xs text-slate-300 mb-3">
+                  Six timed, adaptive sections covering Reading, Written Expression, Mathematics, Figure Matrices, Paper Folding, and Figure Classification.
+                </p>
+                <ul className="text-[11px] text-slate-300 space-y-1.5 mb-3">
+                  <li>• 200 questions · 130 testing minutes</li>
+                  <li>• Immediate parent report with four readiness bands</li>
+                  <li>• Adaptive difficulty with skill-level strengths and gaps</li>
+                </ul>
+                <div className="text-sm font-bold text-white mb-1">$175 <span className="text-xs font-normal text-slate-300">+ processing fee</span></div>
+                <p className="text-[10px] text-slate-400 mb-4">Independent, TACHS-aligned diagnostic by D.E.Bs. Not affiliated with or endorsed by the official TACHS program; no official scores.</p>
+                <div className="mt-auto grid grid-cols-2 gap-2">
+                  <a href="/tachs" className="px-3 py-2 text-xs font-semibold rounded-full bg-white text-slate-900 hover:bg-slate-100 text-center">Learn more</a>
+                  <a href="/auth?redirect=/tachs/start" className="px-3 py-2 text-xs font-semibold rounded-full bg-purple-500 text-white hover:bg-purple-400 text-center">Register / Sign in</a>
+                </div>
               </div>
             </div>
           </div>
@@ -518,7 +560,7 @@ export default function Page() {
               </p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-6 text-sm">
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 text-sm">
               {/* Grades 1–6 */}
               <div className="bg-white/90 backdrop-blur rounded-2xl border border-slate-200 p-6 flex flex-col">
                 <div className="text-xs font-semibold text-emerald-600 uppercase mb-1">{t.pricing.grades16}</div>
@@ -573,6 +615,27 @@ export default function Page() {
                 >
                   {t.pricing.startDiagnostic}
                 </button>
+              </div>
+
+              {/* TACHS Readiness */}
+              <div className="bg-white/90 backdrop-blur rounded-2xl border border-purple-200 p-6 flex flex-col">
+                <div className="text-xs font-semibold text-purple-600 uppercase mb-1">TACHS · Specialized admissions</div>
+                <h3 className="font-bold text-lg mb-1">TACHS Readiness Diagnostic</h3>
+                <p className="text-xs text-slate-500 mb-4">Grades 6–9 · six timed adaptive sections</p>
+                <div className="text-3xl font-bold text-slate-900 mb-1">
+                  $175
+                  <span className="text-base font-normal text-slate-500"> + processing fee</span>
+                </div>
+                <p className="text-[11px] text-slate-500 mb-4">Base price $175.00; card processing fee shown at checkout (not a tax).</p>
+                <ul className="text-[11px] text-slate-600 space-y-1.5 mb-6">
+                  <li>• Reading, Written Expression, Mathematics</li>
+                  <li>• Figure Matrices, Paper Folding, Figure Classification</li>
+                  <li>• 200 questions · 130 testing minutes</li>
+                  <li>• Immediate parent readiness report</li>
+                </ul>
+                <a href="/auth?redirect=/tachs/start" className="mt-auto w-full px-4 py-2 text-xs font-semibold rounded-full bg-purple-600 text-white hover:bg-purple-700 text-center">
+                  Register / Sign in
+                </a>
               </div>
 
               {/* Schools & Programs */}
@@ -638,6 +701,18 @@ export default function Page() {
                 </summary>
                 <p className="mt-2 text-xs text-slate-600">
                   {t.faq.a4}
+                </p>
+              </details>
+
+              <details className="rounded-xl border border-slate-200 p-4">
+                <summary className="font-semibold text-slate-900 cursor-pointer">
+                  Do you offer a specialized high-school admissions (TACHS) diagnostic?
+                </summary>
+                <p className="mt-2 text-xs text-slate-600">
+                  Yes. The D.E.Bs TACHS Readiness Diagnostic is $175 plus a processing fee and covers six timed, adaptive sections: Reading, Written
+                  Expression, Mathematics, Figure Matrices, Paper Folding, and Figure Classification (200 questions, 130 testing minutes) with an immediate
+                  parent report. It is an independent, TACHS-aligned readiness tool — not the official exam and not affiliated with the TACHS program.{" "}
+                  <a href="/tachs" className="underline text-purple-700">Learn more</a>
                 </p>
               </details>
             </div>

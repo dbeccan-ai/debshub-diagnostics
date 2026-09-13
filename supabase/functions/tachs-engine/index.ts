@@ -1,9 +1,12 @@
 // D.E.Bs TACHS Readiness Diagnostic — secure test engine.
-// Actions: start, state, start_section, answer, next, submit_section, results, admin_list, admin_reset_test_mode
+// Actions: access, start, state, start_section, answer, next, submit_section, results, admin_list, admin_detail, admin_resend_email, admin_reopen, admin_search_users, admin_grant_access
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { BLUEPRINT_V1, SAMPLE_BANK, type BlueprintSection } from "./sample-bank.ts";
 import { advanceAdaptive, bandFor, DISCLAIMER, maskEmail, needsGrading, sectionsShortOfTarget } from "./logic.ts";
+import { attemptIsEntitled, pendingOrder, tachsQuote, unconsumedEntitlement, TACHS_EXAM_TYPE } from "../_shared/tachs-payment.ts";
+
+const PAYMENT_REQUIRED_MSG = "Payment is required before starting the TACHS Readiness Diagnostic ($175 + processing fee).";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -293,6 +296,24 @@ serve(async (req) => {
     const action = String(body.action ?? "");
     const admin = await isAdmin(db, user.id);
 
+    if (action === "access") {
+      // Payment-aware summary for the UI. Entitlement is TACHS-specific: other diagnostics never unlock it.
+      const [{ data: orders }, { data: inProg }] = await Promise.all([
+        db.from("tachs_orders").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+        db.from("tachs_attempts").select("id, test_mode, access_source, status, grade_level").eq("user_id", user.id).eq("status", "in_progress").maybeSingle(),
+      ]);
+      const ent = unconsumedEntitlement(orders ?? []);
+      const pend = pendingOrder(orders ?? []);
+      return json({
+        admin,
+        quote: tachsQuote(),
+        entitled: admin || !!ent,
+        entitlement_source: ent?.source ?? null,
+        pending_order_id: pend?.id ?? null,
+        in_progress: inProg ? { id: inProg.id, grade_level: inProg.grade_level, entitled: admin || attemptIsEntitled(inProg) } : null,
+      });
+    }
+
     if (action === "start") {
       await ensureSeed(db);
       const testMode = !!body.testMode && admin;
@@ -301,10 +322,20 @@ serve(async (req) => {
       if (parentEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(parentEmail)) return json({ error: "Please enter a valid parent email." }, 400);
       const { data: existing } = await db.from("tachs_attempts").select("*").eq("user_id", user.id).eq("status", "in_progress").maybeSingle();
       if (existing) {
+        if (!admin && !attemptIsEntitled(existing)) return json({ error: PAYMENT_REQUIRED_MSG, payment_required: true }, 402);
         await enforceDeadlines(db, existing.id);
         const { data: fresh } = await db.from("tachs_attempts").select("*").eq("id", existing.id).single();
         return json({ resumed: true, attemptId: existing.id, state: await buildState(db, fresh) });
       }
+      // Entitlement: admins bypass (server-verified role); students need an unconsumed paid/granted TACHS order.
+      let entitlement: { id: string; source: string } | null = null;
+      if (!admin) {
+        const { data: orders } = await db.from("tachs_orders").select("*").eq("user_id", user.id).eq("exam_type", TACHS_EXAM_TYPE);
+        const ent = unconsumedEntitlement(orders ?? []);
+        if (!ent) return json({ error: PAYMENT_REQUIRED_MSG, payment_required: true }, 402);
+        entitlement = { id: ent.id, source: ent.source ?? "stripe" };
+      }
+      const accessSource = testMode ? "test_mode" : entitlement ? (entitlement.source === "admin_grant" ? "admin_grant" : "paid") : "admin_grant";
       const { data: bp } = await db.from("tachs_blueprints").select("*").eq("is_active", true).order("version", { ascending: false }).limit(1).maybeSingle();
       if (!bp) return json({ error: "No active TACHS blueprint." }, 500);
       const { data: profile } = await db.from("profiles").select("school_id, parent_email").eq("id", user.id).maybeSingle();
@@ -327,8 +358,18 @@ serve(async (req) => {
       const { data: attempt, error: aErr } = await db.from("tachs_attempts").insert({
         user_id: user.id, school_id: profile?.school_id ?? null, blueprint_id: bp.id, blueprint_version: bp.version,
         grade_level: gradeLevel, parent_email: parentEmail ?? profile?.parent_email ?? null, test_mode: testMode, current_section_key: sections[0].key,
+        access_source: accessSource, order_id: entitlement?.id ?? null,
       }).select("*").single();
       if (aErr || !attempt) return json({ error: "Could not start the diagnostic." }, 500);
+      if (entitlement) {
+        // Consume the entitlement atomically (unique index on attempt_id guards double use).
+        const { data: consumed } = await db.from("tachs_orders").update({ attempt_id: attempt.id }).eq("id", entitlement.id).is("attempt_id", null).select("id").maybeSingle();
+        if (!consumed) {
+          await db.from("tachs_attempts").delete().eq("id", attempt.id);
+          return json({ error: PAYMENT_REQUIRED_MSG, payment_required: true }, 402);
+        }
+        await db.from("tachs_attempt_events").insert({ attempt_id: attempt.id, actor_id: user.id, event_type: "entitlement_consumed", detail: { order_id: entitlement.id, source: entitlement.source } });
+      }
       const rows = sections.map((s) => ({
         attempt_id: attempt.id, section_key: s.key, section_order: s.order,
         item_count: testMode ? Math.max(1, Math.min(s.item_count, availability[s.key], TEST_MODE_ITEMS)) : s.item_count,
@@ -344,10 +385,46 @@ serve(async (req) => {
 
     if (action === "admin_list") {
       if (!admin) return json({ error: "Forbidden" }, 403);
-      const { data } = await db.from("tachs_attempts")
-        .select("id, user_id, grade_level, status, test_mode, started_at, completed_at, results, blueprint_version, parent_email, email_status, email_sent_at, email_attempts, email_error, profiles(full_name, username)")
-        .order("created_at", { ascending: false }).limit(300);
-      return json({ attempts: data ?? [] });
+      const [{ data }, { data: orders }] = await Promise.all([
+        db.from("tachs_attempts")
+          .select("id, user_id, grade_level, status, test_mode, access_source, order_id, started_at, completed_at, results, blueprint_version, parent_email, email_status, email_sent_at, email_attempts, email_error, profiles(full_name, username)")
+          .order("created_at", { ascending: false }).limit(300),
+        db.from("tachs_orders").select("*, profiles(full_name, username, parent_email)").order("created_at", { ascending: false }).limit(500),
+      ]);
+      const byId = new Map((orders ?? []).map((o) => [o.id, o]));
+      const attempts = (data ?? []).map((a) => ({ ...a, order: a.order_id ? byId.get(a.order_id) ?? null : null }));
+      return json({ attempts, orders: orders ?? [] });
+    }
+
+    if (action === "admin_search_users") {
+      if (!admin) return json({ error: "Forbidden" }, 403);
+      const q = String(body.query ?? "").trim().slice(0, 100);
+      if (q.length < 2) return json({ users: [] });
+      const like = `%${q.replace(/[%_]/g, "")}%`;
+      const { data: users } = await db.from("profiles").select("id, full_name, username, parent_email")
+        .or(`full_name.ilike.${like},username.ilike.${like},parent_email.ilike.${like}`).limit(10);
+      return json({ users: users ?? [] });
+    }
+
+    if (action === "admin_grant_access") {
+      if (!admin) return json({ error: "Forbidden" }, 403);
+      const targetUserId = String(body.targetUserId ?? "");
+      const reason = String(body.reason ?? "").trim().slice(0, 500);
+      if (!/^[0-9a-f-]{36}$/i.test(targetUserId)) return json({ error: "A student must be selected." }, 400);
+      if (reason.length < 3) return json({ error: "Please give a short reason (e.g. scholarship, manual invoice #)." }, 400);
+      const { data: target } = await db.from("profiles").select("id, full_name").eq("id", targetUserId).maybeSingle();
+      if (!target) return json({ error: "Student not found." }, 404);
+      const { data: orders } = await db.from("tachs_orders").select("*").eq("user_id", targetUserId);
+      if (unconsumedEntitlement(orders ?? [])) return json({ error: "This student already has an unused TACHS access." }, 409);
+      // Close out any pending Stripe order so they are not asked to pay twice.
+      await db.from("tachs_orders").update({ payment_status: "failed" }).eq("user_id", targetUserId).eq("payment_status", "pending");
+      const { data: grant, error } = await db.from("tachs_orders").insert({
+        user_id: targetUserId, exam_type: TACHS_EXAM_TYPE, source: "admin_grant", payment_status: "granted",
+        net_amount_cents: 0, fee_cents: 0, total_cents: 0, amount_paid_cents: 0, currency: "usd",
+        granted_by: user.id, grant_reason: reason, verified_at: now().toISOString(),
+      }).select("*").single();
+      if (error || !grant) return json({ error: "Could not record the grant." }, 500);
+      return json({ ok: true, order: grant });
     }
 
     if (action === "admin_detail") {
@@ -360,6 +437,7 @@ serve(async (req) => {
       const ids = [...new Set((rs ?? []).map((r) => r.question_id))];
       const { data: qs } = ids.length ? await db.from("tachs_questions").select("id, code, section_key, stem, correct_key, rationale, choices").in("id", ids) : { data: [] };
       const { data: events } = await db.from("tachs_attempt_events").select("*").eq("attempt_id", id).order("created_at", { ascending: false });
+      const { data: order } = a.order_id ? await db.from("tachs_orders").select("*").eq("id", a.order_id).maybeSingle() : { data: null };
       const qMap = new Map((qs ?? []).map((q) => [q.id, q]));
       const secMap = new Map((secs ?? []).map((s) => [s.id, s.section_key]));
       const audit = (rs ?? []).map((r) => ({
@@ -368,7 +446,7 @@ serve(async (req) => {
         selected_key: r.selected_key, correct_key: qMap.get(r.question_id)?.correct_key, is_correct: r.is_correct,
         is_flagged: r.is_flagged, time_spent_seconds: r.time_spent_seconds, presented_at: r.presented_at, answered_at: r.answered_at,
       }));
-      return json({ attempt: a, sections: secs ?? [], audit, events: events ?? [] });
+      return json({ attempt: { ...a, order }, sections: secs ?? [], audit, events: events ?? [] });
     }
 
     if (action === "admin_resend_email") {
@@ -413,6 +491,8 @@ serve(async (req) => {
 
     const attempt = await loadAttempt(db, attemptId, user.id, admin);
     if (!attempt) return json({ error: "Attempt not found" }, 404);
+    // Server-side entitlement gate for every attempt action (state/start_section/answer/next/submit_section/results).
+    if (!admin && !attemptIsEntitled(attempt)) return json({ error: PAYMENT_REQUIRED_MSG, payment_required: true }, 402);
     await enforceDeadlines(db, attempt.id);
     const { data: freshAttempt } = await db.from("tachs_attempts").select("*").eq("id", attempt.id).single();
 

@@ -6,7 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Clock, DollarSign, CheckCircle, ArrowLeft, Calculator, BookOpen, Shield, Package, GraduationCap } from "lucide-react";
+import { Clock, DollarSign, CheckCircle, ArrowLeft, Calculator, BookOpen, Shield, Package, GraduationCap, Lock } from "lucide-react";
+import { tachsApi, TACHS_PRICE_LABEL, type TachsAccess } from "@/lib/tachs";
+import { tachsCta } from "@/components/TachsDashboardCard";
 import { User } from "@supabase/supabase-js";
 import { GradeSelectionDialog } from "@/components/GradeSelectionDialog";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -25,6 +27,7 @@ const Tests = () => {
   const [selectedTestType, setSelectedTestType] = useState<TestType>(null);
   const [isBundlePurchase, setIsBundlePurchase] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [tachsAccess, setTachsAccess] = useState<TachsAccess | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -45,6 +48,11 @@ const Tests = () => {
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  useEffect(() => {
+    if (!user) return;
+    tachsApi.access().then(setTachsAccess).catch(() => setTachsAccess(null));
+  }, [user]);
 
   // Check admin status on mount
   useEffect(() => {
@@ -278,12 +286,13 @@ const Tests = () => {
             </Card>
 
             {/* TACHS Readiness Card */}
+            {(() => { const cta = tachsCta(tachsAccess); return (
             <Card
               className="cursor-pointer hover:shadow-lg transition-all hover:border-primary group relative"
-              onClick={() => navigate("/tachs/start")}
+              onClick={() => navigate(cta.to)}
             >
               <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                <Badge variant="secondary" className="text-xs px-3">PILOT</Badge>
+                <Badge variant="secondary" className="text-xs px-3">PILOT · SPECIALIZED ADMISSIONS</Badge>
               </div>
               <CardHeader className="text-center pb-2">
                 <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-purple-100 group-hover:bg-purple-200 transition-colors">
@@ -291,14 +300,22 @@ const Tests = () => {
                 </div>
                 <CardTitle className="text-2xl">TACHS Readiness Diagnostic</CardTitle>
                 <CardDescription className="text-base">
-                  Six timed, adaptive sections: Reading, Written Expression, Math, and three abstract reasoning domains
+                  Six timed, adaptive sections covering Reading, Written Expression, Mathematics, Figure Matrices, Paper Folding, and Figure Classification
                 </CardDescription>
               </CardHeader>
               <CardContent className="text-center space-y-2">
-                <Badge variant="secondary" className="text-sm">Grades 6–9 · ~130 min</Badge>
-                <p className="text-xs text-muted-foreground"><a href="/tachs" onClick={(e) => { e.stopPropagation(); }} className="underline">Learn more</a></p>
+                <Badge className="bg-purple-600 text-white text-lg px-4 py-1">$175 <span className="text-xs font-normal ml-1">+ processing fee</span></Badge>
+                <div><Badge variant="secondary" className="text-sm">Grades 6–9 · 200 questions · 130 min</Badge></div>
+                {tachsAccess?.admin ? <p className="text-xs text-muted-foreground">Admin access — no payment needed</p>
+                  : tachsAccess && !cta.locked ? <p className="text-xs text-green-700 font-medium">Paid · unlocked</p>
+                  : <p className="text-xs text-muted-foreground">Payment is separate from ELA/Math/Reading diagnostics</p>}
+                <Button size="sm" className="w-full" onClick={(e) => { e.stopPropagation(); navigate(cta.to); }}>
+                  {cta.locked && <Lock className="mr-1 h-3.5 w-3.5" />}{cta.label}{cta.locked ? ` — ${TACHS_PRICE_LABEL}` : ""}
+                </Button>
+                <p className="text-xs text-muted-foreground"><a href="/tachs" onClick={(e) => { e.stopPropagation(); }} className="underline">Learn more</a> · Not affiliated with the official TACHS program</p>
               </CardContent>
             </Card>
+            ); })()}
           </div>
         </main>
       </div>

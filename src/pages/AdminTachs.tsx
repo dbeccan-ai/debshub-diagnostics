@@ -2,9 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  tachsApi, SECTION_NAMES, skillLabel, formatClock,
-  type TachsAdminAttempt, type TachsAdminSection, type TachsAuditRow, type TachsAttemptEvent,
+  tachsApi, SECTION_NAMES, skillLabel, formatClock, dollars,
+  type TachsAdminAttempt, type TachsAdminSection, type TachsAuditRow, type TachsAttemptEvent, type TachsOrder,
 } from "@/lib/tachs";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { ArrowLeft, Loader2, Mail, Printer, RotateCcw, Search } from "lucide-react";
+import { ArrowLeft, Loader2, Mail, Printer, RotateCcw, Search, KeyRound } from "lucide-react";
 import { SEO } from "@/components/SEO";
 
 const BAND_KEYS = ["strong", "approaching", "developing", "foundations"] as const;
@@ -35,6 +36,13 @@ export default function AdminTachs() {
   const [busy, setBusy] = useState<string | null>(null);
   const [reopenTarget, setReopenTarget] = useState<TachsAdminAttempt | null>(null);
   const [reopenSection, setReopenSection] = useState<string>("");
+  const [orders, setOrders] = useState<TachsOrder[]>([]);
+  const [grantOpen, setGrantOpen] = useState(false);
+  const [grantQuery, setGrantQuery] = useState("");
+  const [grantResults, setGrantResults] = useState<{ id: string; full_name: string | null; username: string | null; parent_email: string | null }[]>([]);
+  const [grantUser, setGrantUser] = useState<{ id: string; full_name: string | null; parent_email: string | null } | null>(null);
+  const [grantReason, setGrantReason] = useState("");
+  const [grantConfirm, setGrantConfirm] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -51,8 +59,9 @@ export default function AdminTachs() {
   const load = async () => {
     setLoading(true);
     try {
-      const { attempts } = await tachsApi.adminList();
+      const { attempts, orders } = await tachsApi.adminList();
       setAttempts(attempts ?? []);
+      setOrders(orders ?? []);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not load the TACHS attempts.");
     } finally { setLoading(false); }
@@ -112,6 +121,34 @@ export default function AdminTachs() {
     } finally { setBusy(null); }
   };
 
+  const searchUsers = async (q: string) => {
+    setGrantQuery(q); setGrantUser(null);
+    if (q.trim().length < 2) { setGrantResults([]); return; }
+    try { const { users } = await tachsApi.adminSearchUsers(q); setGrantResults(users); } catch { setGrantResults([]); }
+  };
+
+  const confirmGrant = async () => {
+    if (!grantUser) return;
+    setBusy("grant");
+    try {
+      await tachsApi.adminGrantAccess(grantUser.id, grantReason);
+      toast.success(`TACHS access granted to ${grantUser.full_name ?? "the student"}. This is recorded.`);
+      setGrantOpen(false); setGrantUser(null); setGrantQuery(""); setGrantResults([]); setGrantReason(""); setGrantConfirm(false);
+      await load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not grant access.");
+    } finally { setBusy(null); }
+  };
+
+  const paymentLabel = (a: TachsAdminAttempt) => {
+    if (a.test_mode) return { text: "Test mode", tone: "bg-muted text-muted-foreground" };
+    const o = a.order;
+    if (a.access_source === "admin_grant" || o?.payment_status === "granted") return { text: "Admin grant", tone: "bg-sky-100 text-sky-800" };
+    if (a.access_source === "legacy") return { text: "Legacy", tone: "bg-amber-100 text-amber-900" };
+    if (o?.payment_status === "completed") return { text: `Paid ${dollars(o.amount_paid_cents ?? o.total_cents)}`, tone: "bg-green-100 text-green-800" };
+    return { text: "Unpaid", tone: "bg-red-100 text-red-800" };
+  };
+
   const emailBadge = (s: string | null) => {
     const v = s ?? "pending";
     const tone = v === "sent" ? "bg-green-100 text-green-800" : v === "failed" ? "bg-red-100 text-red-800" : v === "skipped" ? "bg-amber-100 text-amber-900" : "bg-muted text-muted-foreground";
@@ -130,8 +167,41 @@ export default function AdminTachs() {
             <h1 className="text-2xl font-bold">TACHS Readiness Diagnostic</h1>
             <p className="text-sm text-muted-foreground">All pilot attempts, section metrics, answer audit, and report delivery.</p>
           </div>
-          <Badge className="bg-secondary text-secondary-foreground">Pilot</Badge>
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="outline" onClick={() => setGrantOpen(true)}><KeyRound className="mr-1 h-4 w-4" /> Grant TACHS access</Button>
+            <Badge className="bg-secondary text-secondary-foreground">Pilot</Badge>
+          </div>
         </div>
+
+        <Card className="mb-6 print:hidden">
+          <CardHeader className="pb-2"><CardTitle className="text-base">TACHS orders ({orders.length})</CardTitle></CardHeader>
+          <CardContent className="overflow-x-auto">
+            {orders.length === 0 ? <p className="text-sm text-muted-foreground">No TACHS orders yet.</p> : (
+              <Table>
+                <TableHeader><TableRow>
+                  <TableHead>Student</TableHead><TableHead>Status</TableHead><TableHead>Base</TableHead><TableHead>Fee</TableHead><TableHead>Total</TableHead>
+                  <TableHead>Paid</TableHead><TableHead>Source</TableHead><TableHead>Session</TableHead><TableHead>Payment time</TableHead><TableHead>Attempt</TableHead>
+                </TableRow></TableHeader>
+                <TableBody>
+                  {orders.slice(0, 50).map((o) => (
+                    <TableRow key={o.id}>
+                      <TableCell className="whitespace-nowrap"><div className="font-medium">{o.profiles?.full_name ?? "Student"}</div><div className="text-xs text-muted-foreground">{o.profiles?.parent_email ?? ""}</div></TableCell>
+                      <TableCell>{o.payment_status}</TableCell>
+                      <TableCell>{dollars(o.net_amount_cents)}</TableCell>
+                      <TableCell>{dollars(o.fee_cents)}</TableCell>
+                      <TableCell>{dollars(o.total_cents)}</TableCell>
+                      <TableCell>{o.amount_paid_cents != null ? dollars(o.amount_paid_cents) : "—"}</TableCell>
+                      <TableCell className="text-xs">{o.source}{o.grant_reason ? ` · ${o.grant_reason}` : ""}</TableCell>
+                      <TableCell className="max-w-[10rem] truncate text-xs" title={o.stripe_checkout_session_id ?? ""}>{o.stripe_checkout_session_id ?? "—"}</TableCell>
+                      <TableCell className="whitespace-nowrap text-xs">{o.verified_at ? new Date(o.verified_at).toLocaleString() : "—"}</TableCell>
+                      <TableCell>{o.attempt_id ? <Button size="sm" variant="link" className="h-auto p-0" onClick={() => openDetail(o.attempt_id!)}>Open</Button> : "Unused"}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
 
         <Card className="mb-6 print:hidden">
           <CardContent className="grid gap-3 p-4 md:grid-cols-5">
@@ -187,7 +257,7 @@ export default function AdminTachs() {
                   <TableRow>
                     <TableHead>Student</TableHead><TableHead>Grade</TableHead><TableHead>Status</TableHead>
                     <TableHead>Band</TableHead><TableHead>Accuracy</TableHead><TableHead>Blueprint</TableHead>
-                    <TableHead>Started</TableHead><TableHead>Email</TableHead>
+                    <TableHead>Started</TableHead><TableHead>Payment</TableHead><TableHead>Email</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -205,6 +275,7 @@ export default function AdminTachs() {
                       <TableCell>{a.results ? `${a.results.overall_accuracy}%` : "—"}</TableCell>
                       <TableCell>v{a.blueprint_version}</TableCell>
                       <TableCell className="whitespace-nowrap">{new Date(a.started_at).toLocaleDateString()}</TableCell>
+                      <TableCell>{(() => { const p = paymentLabel(a); return <span className={`rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap ${p.tone}`}>{p.text}</span>; })()}</TableCell>
                       <TableCell>{emailBadge(a.email_status)}</TableCell>
                       <TableCell className="whitespace-nowrap text-right">
                         <div className="flex justify-end gap-2">
@@ -248,6 +319,22 @@ export default function AdminTachs() {
                   <Button size="sm" variant="outline" onClick={() => navigate(`/tachs/results/${detail.attempt.id}`)}>Open full report</Button>
                 )}
               </div>
+
+              <section className="mb-5">
+                <h3 className="mb-2 font-semibold">Payment</h3>
+                {detail.attempt.order ? (
+                  <div className="grid gap-1 rounded-md border p-3 text-sm sm:grid-cols-2">
+                    <div>Status: <strong>{detail.attempt.order.payment_status}</strong> ({detail.attempt.order.source})</div>
+                    <div>Base: {dollars(detail.attempt.order.net_amount_cents)} · Fee: {dollars(detail.attempt.order.fee_cents)} · Total: {dollars(detail.attempt.order.total_cents)}</div>
+                    <div>Paid: {detail.attempt.order.amount_paid_cents != null ? dollars(detail.attempt.order.amount_paid_cents) : "—"} {detail.attempt.order.currency.toUpperCase()}</div>
+                    <div>Payment time: {detail.attempt.order.verified_at ? new Date(detail.attempt.order.verified_at).toLocaleString() : "—"}</div>
+                    <div className="sm:col-span-2 break-all text-xs text-muted-foreground">Session: {detail.attempt.order.stripe_checkout_session_id ?? "—"} · Intent: {detail.attempt.order.stripe_payment_intent_id ?? "—"}</div>
+                    {detail.attempt.order.grant_reason && <div className="sm:col-span-2 text-xs">Grant reason: {detail.attempt.order.grant_reason}</div>}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No order linked — access source: {detail.attempt.access_source ?? "unknown"}{detail.attempt.test_mode ? " (admin TEST MODE)" : ""}.</p>
+                )}
+              </section>
 
               <section className="mb-5">
                 <h3 className="mb-2 font-semibold">Section metrics</h3>
@@ -338,6 +425,39 @@ export default function AdminTachs() {
               </section>
             </>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Grant access */}
+      <Dialog open={grantOpen} onOpenChange={(o) => { if (!o) { setGrantOpen(false); setGrantConfirm(false); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Grant TACHS access</DialogTitle>
+            <DialogDescription>
+              For consultation scholarships or manually invoiced families. This unlocks one TACHS diagnostic without a Stripe payment and is recorded with your name and reason.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input placeholder="Search student by name, username, or parent email" value={grantQuery} onChange={(e) => searchUsers(e.target.value)} />
+            {grantResults.length > 0 && !grantUser && (
+              <ul className="max-h-40 overflow-y-auto rounded-md border text-sm">
+                {grantResults.map((u) => (
+                  <li key={u.id}><button type="button" className="w-full px-3 py-2 text-left hover:bg-accent" onClick={() => { setGrantUser(u); setGrantResults([]); }}>
+                    <span className="font-medium">{u.full_name ?? "Student"}</span> <span className="text-muted-foreground">{u.username ? `@${u.username} · ` : ""}{u.parent_email ?? ""}</span>
+                  </button></li>
+                ))}
+              </ul>
+            )}
+            {grantUser && <p className="text-sm">Selected: <strong>{grantUser.full_name ?? "Student"}</strong> {grantUser.parent_email ? `(${grantUser.parent_email})` : ""}</p>}
+            <Textarea placeholder="Reason (e.g. scholarship, manual invoice #1234)" value={grantReason} onChange={(e) => setGrantReason(e.target.value)} />
+            <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={grantConfirm} onChange={(e) => setGrantConfirm(e.target.checked)} /> I confirm this student should receive TACHS access without payment.</label>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setGrantOpen(false)}>Cancel</Button>
+            <Button disabled={!grantUser || grantReason.trim().length < 3 || !grantConfirm || busy === "grant"} onClick={confirmGrant}>
+              {busy === "grant" ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <KeyRound className="mr-1 h-4 w-4" />} Grant access
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
