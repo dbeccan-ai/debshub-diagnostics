@@ -210,6 +210,11 @@ export function distractorCandidates(spec: FoldItemSpec, correct: Unfolded): { l
   // 4. Mirrored across the wrong line (perpendicular center line / other diagonal) for the first fold.
   const wrongLine = f0.short === "vertical" ? CENTER_H : f0.short === "horizontal" ? CENTER_V : (sideOf(MAIN_D, f0.p1) === 0 && sideOf(MAIN_D, f0.p2) === 0 ? ANTI_D : MAIN_D);
   out.push({ label: "mirrored across the wrong line", u: unionU(partial, mapU(partial, (p) => reflect(wrongLine, p))) });
+  // 4b. Diagonal fold mistaken for a vertical / horizontal center fold.
+  if (f0.short === "diagonal") {
+    out.push({ label: "mirrored across the vertical center line instead of the diagonal", u: unionU(partial, mapU(partial, (p) => reflect(CENTER_V, p))) });
+    out.push({ label: "mirrored across the horizontal center line instead of the diagonal", u: unionU(partial, mapU(partial, (p) => reflect(CENTER_H, p))) });
+  }
   // 5. Off-center fold treated as a center fold.
   const isOffCenter = (f0.short === "vertical" && f0.p1[0] !== 50) || (f0.short === "horizontal" && f0.p1[1] !== 50);
   if (isOffCenter) out.push({ label: "treated the off-center fold as a center fold", u: unionU(partial, mapU(partial, (p) => reflect(f0.short === "vertical" ? CENTER_V : CENTER_H, p))) });
