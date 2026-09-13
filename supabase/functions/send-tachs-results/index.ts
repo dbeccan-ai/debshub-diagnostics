@@ -49,7 +49,7 @@ serve(async (req) => {
   }
 
   const { data: attempt } = await db.from("tachs_attempts")
-    .select("*, profiles(full_name, parent_email)").eq("id", attemptId).maybeSingle();
+    .select("*, profiles!tachs_attempts_user_id_fkey(full_name, parent_email)").eq("id", attemptId).maybeSingle();
   if (!attempt) return json({ success: false, error: "Attempt not found" }, 404);
   if (attempt.status !== "completed") return json({ success: false, error: "Attempt is not completed yet" }, 409);
 

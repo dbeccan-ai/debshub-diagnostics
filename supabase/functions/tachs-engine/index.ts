@@ -410,12 +410,16 @@ serve(async (req) => {
 
     if (action === "admin_list") {
       if (!admin) return json({ error: "Forbidden" }, 403);
-      const [{ data }, { data: orders }] = await Promise.all([
+      // NOTE: tachs_attempts / tachs_orders have several FKs to profiles (user_id, report_reviewed_by,
+      // report_approved_by / granted_by), so the embed MUST name the FK or PostgREST rejects it as ambiguous.
+      const [{ data, error: listErr }, { data: orders, error: ordErr }] = await Promise.all([
         db.from("tachs_attempts")
-          .select("id, user_id, grade_level, status, test_mode, access_source, order_id, started_at, completed_at, results, blueprint_version, parent_email, email_status, email_sent_at, email_attempts, email_error, report_status, report_reviewed_at, report_approved_at, report_sent_at, report_notes, ack_email_status, ack_email_sent_at, profiles(full_name, username)")
+          .select("id, user_id, grade_level, status, test_mode, access_source, order_id, started_at, completed_at, results, blueprint_version, parent_email, email_status, email_sent_at, email_attempts, email_error, report_status, report_reviewed_at, report_approved_at, report_sent_at, report_notes, ack_email_status, ack_email_sent_at, profiles!tachs_attempts_user_id_fkey(full_name, username)")
           .order("created_at", { ascending: false }).limit(300),
-        db.from("tachs_orders").select("*, profiles(full_name, username, parent_email)").order("created_at", { ascending: false }).limit(500),
+        db.from("tachs_orders").select("*, profiles!tachs_orders_user_id_fkey(full_name, username, parent_email)").order("created_at", { ascending: false }).limit(500),
       ]);
+      // Never let a query failure look like "no attempts": surface it so the admin UI shows an error + retry.
+      if (listErr || ordErr) return json({ error: `Could not read TACHS attempts: ${(listErr ?? ordErr)?.message}` }, 500);
       const byId = new Map((orders ?? []).map((o) => [o.id, o]));
       const attempts = (data ?? []).map((a) => ({ ...a, order: a.order_id ? byId.get(a.order_id) ?? null : null }));
       return json({ attempts, orders: orders ?? [] });
@@ -455,7 +459,8 @@ serve(async (req) => {
     if (action === "admin_detail") {
       if (!admin) return json({ error: "Forbidden" }, 403);
       const id = String(body.attemptId ?? "");
-      const { data: a } = await db.from("tachs_attempts").select("*, profiles(full_name, username)").eq("id", id).maybeSingle();
+      const { data: a, error: aErr } = await db.from("tachs_attempts").select("*, profiles!tachs_attempts_user_id_fkey(full_name, username)").eq("id", id).maybeSingle();
+      if (aErr) return json({ error: `Could not read the attempt: ${aErr.message}` }, 500);
       if (!a) return json({ error: "Attempt not found" }, 404);
       const { data: secs } = await db.from("tachs_attempt_sections").select("*").eq("attempt_id", id).order("section_order");
       const { data: rs } = await db.from("tachs_responses").select("*").eq("attempt_id", id).order("position");
