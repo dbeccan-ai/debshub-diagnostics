@@ -3,7 +3,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { ACTIVE_BANK, ACTIVE_BLUEPRINT, STRAND_BY_CODE, type BankQuestion, type BlueprintSection } from "./sample-bank.ts";
-import { advanceAdaptive, bandFor, DISCLAIMER, maskEmail, mathReadiness, needsGrading, sectionsShortOfTarget, selectNextQuestion } from "./logic.ts";
+import { advanceAdaptive, bandFor, buildEvidence, DISCLAIMER, maskEmail, mathReadiness, needsGrading, sectionsShortOfTarget, selectNextQuestion, testModeQuotas } from "./logic.ts";
 import { attemptIsEntitled, pendingOrder, tachsQuote, unconsumedEntitlement, TACHS_EXAM_TYPE } from "../_shared/tachs-payment.ts";
 
 const PAYMENT_REQUIRED_MSG = "Payment is required before starting the TACHS Readiness Diagnostic ($175 + processing fee).";
