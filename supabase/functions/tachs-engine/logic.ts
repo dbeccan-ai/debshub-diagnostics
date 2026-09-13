@@ -60,3 +60,36 @@ export const SECTION_LABELS: Record<string, string> = {
 
 export const skillLabel = (skill: string) =>
   skill.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+
+/** Sections whose active bank is smaller than the blueprint target (normal mode must refuse to start). */
+export function sectionsShortOfTarget(
+  sections: { key: string; item_count: number }[],
+  availability: Record<string, number>,
+): { key: string; available: number; target: number }[] {
+  return sections
+    .filter((s) => (availability[s.key] ?? 0) < s.item_count)
+    .map((s) => ({ key: s.key, available: availability[s.key] ?? 0, target: s.item_count }));
+}
+
+/** A section is locked once submitted or once its server deadline has passed. */
+export function isSectionLocked(
+  section: { status: string; deadline_at: string | null },
+  nowMs: number = Date.now(),
+): boolean {
+  if (section.status === "submitted") return true;
+  if (section.deadline_at && new Date(section.deadline_at).getTime() <= nowMs) return true;
+  return false;
+}
+
+/** Grading is idempotent: a completed attempt with stored results is never regraded. */
+export function needsGrading(attempt: { status: string; results: unknown | null }): boolean {
+  return !(attempt.status === "completed" && attempt.results != null);
+}
+
+/** Masks an address for non-admin display: j•••e@example.com */
+export function maskEmail(email: string | null | undefined): string | null {
+  const pe = String(email ?? "");
+  const at = pe.indexOf("@");
+  if (at <= 0) return null;
+  return `${pe[0]}${"•".repeat(Math.max(2, at - 2))}${at > 1 ? pe[at - 1] : ""}@${pe.slice(at + 1)}`;
+}
