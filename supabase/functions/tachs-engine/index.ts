@@ -1,5 +1,5 @@
 // D.E.Bs TACHS Readiness Diagnostic — secure test engine.
-// Actions: start, state, start_section, answer, next, submit_section, results, admin_list, admin_reset_test_mode
+// Actions: access, start, state, start_section, answer, next, submit_section, results, admin_list, admin_detail, admin_resend_email, admin_reopen, admin_search_users, admin_grant_access
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { BLUEPRINT_V1, SAMPLE_BANK, type BlueprintSection } from "./sample-bank.ts";
@@ -437,6 +437,7 @@ serve(async (req) => {
       const ids = [...new Set((rs ?? []).map((r) => r.question_id))];
       const { data: qs } = ids.length ? await db.from("tachs_questions").select("id, code, section_key, stem, correct_key, rationale, choices").in("id", ids) : { data: [] };
       const { data: events } = await db.from("tachs_attempt_events").select("*").eq("attempt_id", id).order("created_at", { ascending: false });
+      const { data: order } = a.order_id ? await db.from("tachs_orders").select("*").eq("id", a.order_id).maybeSingle() : { data: null };
       const qMap = new Map((qs ?? []).map((q) => [q.id, q]));
       const secMap = new Map((secs ?? []).map((s) => [s.id, s.section_key]));
       const audit = (rs ?? []).map((r) => ({
@@ -445,7 +446,7 @@ serve(async (req) => {
         selected_key: r.selected_key, correct_key: qMap.get(r.question_id)?.correct_key, is_correct: r.is_correct,
         is_flagged: r.is_flagged, time_spent_seconds: r.time_spent_seconds, presented_at: r.presented_at, answered_at: r.answered_at,
       }));
-      return json({ attempt: a, sections: secs ?? [], audit, events: events ?? [] });
+      return json({ attempt: { ...a, order }, sections: secs ?? [], audit, events: events ?? [] });
     }
 
     if (action === "admin_resend_email") {

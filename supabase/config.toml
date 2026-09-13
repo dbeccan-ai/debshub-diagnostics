@@ -81,3 +81,9 @@ verify_jwt = false
 
 [functions.send-tachs-results]
 verify_jwt = false
+
+[functions.create-tachs-checkout]
+verify_jwt = false
+
+[functions.verify-tachs-payment]
+verify_jwt = false
