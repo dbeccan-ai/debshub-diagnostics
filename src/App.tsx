@@ -41,6 +41,10 @@ import SchoolDemo from "./pages/SchoolDemo";
 import DemoTest from "./pages/DemoTest";
 import ResetPassword from "./pages/ResetPassword";
 import RecoveryRedirect from "@/components/RecoveryRedirect";
+import TachsLanding from "./pages/TachsLanding";
+import TachsStart from "./pages/TachsStart";
+import TachsAttempt from "./pages/TachsAttempt";
+import TachsResults from "./pages/TachsResults";
 import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
@@ -89,6 +93,10 @@ const App = () => (
             <Route path="/enroll" element={<Enroll />} />
             <Route path="/demo" element={<SchoolDemo />} />
             <Route path="/demo/test" element={<DemoTest />} />
+            <Route path="/tachs" element={<TachsLanding />} />
+            <Route path="/tachs/start" element={<TachsStart />} />
+            <Route path="/tachs/attempt/:attemptId" element={<TachsAttempt />} />
+            <Route path="/tachs/results/:attemptId" element={<TachsResults />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -75,3 +75,6 @@ verify_jwt = true
 [functions.confirm-user-email]
 verify_jwt = true
 
+
+[functions.tachs-engine]
+verify_jwt = false
