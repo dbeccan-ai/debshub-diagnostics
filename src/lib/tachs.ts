@@ -101,8 +101,37 @@ export const tachsApi = {
   next: (attemptId: string) => call<{ done: boolean; state: TachsState }>({ action: "next", attemptId }),
   submitSection: (attemptId: string) => call<{ state: TachsState; completed: boolean }>({ action: "submit_section", attemptId }),
   results: (attemptId: string) => call<{ results: TachsResults; review: TachsReviewItem[]; attempt: { id: string; grade_level: number | null; test_mode: boolean; completed_at: string; started_at: string; user_id: string } }>({ action: "results", attemptId }),
-  adminList: () => call<{ attempts: unknown[] }>({ action: "admin_list", attemptId: "admin" }),
+  adminList: () => call<{ attempts: TachsAdminAttempt[] }>({ action: "admin_list", attemptId: "admin" }),
+  adminDetail: (attemptId: string) =>
+    call<{ attempt: TachsAdminAttempt; sections: TachsAdminSection[]; audit: TachsAuditRow[]; events: TachsAttemptEvent[] }>({ action: "admin_detail", attemptId }),
+  adminResendEmail: (attemptId: string) =>
+    call<{ ok: true; email: { email_status: string | null; email_error: string | null; email_sent_at: string | null; email_attempts: number | null } }>({ action: "admin_resend_email", attemptId }),
+  adminReopen: (attemptId: string, sectionKey?: string) =>
+    call<{ ok: true; section_key: string }>({ action: "admin_reopen", attemptId, sectionKey }),
 };
+
+export interface TachsAdminAttempt {
+  id: string; user_id: string; grade_level: number | null; status: "in_progress" | "completed";
+  test_mode: boolean; started_at: string; completed_at: string | null; blueprint_version: number;
+  parent_email: string | null; email_status: string | null; email_sent_at: string | null;
+  email_attempts: number | null; email_error: string | null; results: TachsResults | null;
+  reopened_at?: string | null;
+  profiles?: { full_name: string | null; username: string | null } | null;
+}
+export interface TachsAdminSection {
+  id: string; section_key: TachsSectionKey; section_order: number; status: string; item_count: number;
+  time_limit_seconds: number; time_used_seconds: number | null; submitted_at: string | null; submit_reason: string | null;
+  current_difficulty: number; difficulty_path: { position: number; difficulty: number; skill: string; transition?: "up" | "down" }[] | null;
+}
+export interface TachsAuditRow {
+  section_key: TachsSectionKey; position: number; code?: string; stem?: string; skill: string; difficulty: number;
+  selected_key: string | null; correct_key?: string; is_correct: boolean | null; is_flagged: boolean;
+  time_spent_seconds: number; presented_at: string; answered_at: string | null;
+}
+export interface TachsAttemptEvent {
+  id: string; attempt_id: string; actor_id: string | null; event_type: string;
+  detail: Record<string, unknown> | null; created_at: string;
+}
 
 export const formatClock = (seconds: number) => {
   const s = Math.max(0, Math.floor(seconds));

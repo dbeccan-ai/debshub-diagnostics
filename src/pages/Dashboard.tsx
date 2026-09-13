@@ -425,6 +425,17 @@ const Dashboard = () => {
                 Follow-Ups
               </Button>
             )}
+            {isAdmin && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-sky-300 bg-sky-50 text-xs font-semibold text-sky-700 hover:bg-sky-100"
+                onClick={() => navigate("/admin/tachs")}
+              >
+                <CalendarClock className="mr-1 h-3 w-3" />
+                TACHS Pilot
+              </Button>
+            )}
             {isTeacher && (
               <Button
                 variant="outline"

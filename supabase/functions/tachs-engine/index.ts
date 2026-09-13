@@ -3,6 +3,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { BLUEPRINT_V1, SAMPLE_BANK, type BlueprintSection } from "./sample-bank.ts";
+import { advanceAdaptive, bandFor, DISCLAIMER } from "./logic.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -30,8 +31,11 @@ const publicQuestion = (q: QuestionRow) => ({
 });
 
 async function ensureSeed(db: Client) {
-  const { data: bp } = await db.from("tachs_blueprints").select("id").eq("is_active", true).limit(1).maybeSingle();
-  if (bp) return;
+  // Keep the active blueprint and the item bank in sync with the shipped pilot content.
+  const { count } = await db.from("tachs_questions")
+    .select("id", { count: "exact", head: true })
+    .eq("blueprint_version", BLUEPRINT_V1.version).eq("is_active", true);
+  if ((count ?? 0) >= SAMPLE_BANK.length) return;
   await db.from("tachs_blueprints").upsert({
     version: BLUEPRINT_V1.version, name: BLUEPRINT_V1.name, is_active: true, sections: BLUEPRINT_V1.sections, notes: BLUEPRINT_V1.notes,
   }, { onConflict: "version" });
@@ -121,12 +125,24 @@ async function submitSection(db: Client, attemptId: string, section: any, reason
   return updated ?? section;
 }
 
-const BANDS = [
-  { key: "ready", label: "Ready", min: 85, color: "#16a34a", plan: "Maintain momentum with weekly timed mixed practice and targeted review of any remaining gaps. Focus on pacing consistency and test-day routines." },
-  { key: "approaching", label: "Approaching Readiness", min: 70, color: "#2563eb", plan: "Build a 6-week plan: two focused skill sessions per week on the flagged gaps plus one full timed section. Re-assess at week 6." },
-  { key: "developing", label: "Developing", min: 55, color: "#d97706", plan: "Prioritize foundational skills in the two lowest sections before timed practice. Use short daily sessions (20-30 minutes) and weekly progress checks." },
-  { key: "foundational", label: "Foundational Support Needed", min: 0, color: "#dc2626", plan: "Begin with a structured intervention on core reading, language, and number skills. Delay timed practice until accuracy improves; consult a D.E.Bs specialist for a tailored program." },
-];
+/** Fire-and-forget parent/admin report email. Never blocks or fails grading. */
+async function sendReportEmail(attemptId: string) {
+  try {
+    const url = `${Deno.env.get("SUPABASE_URL")}/functions/v1/send-tachs-results`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+      },
+      body: JSON.stringify({ attemptId }),
+    });
+    if (!res.ok) console.error("tachs email failed", res.status, await res.text());
+  } catch (e) {
+    console.error("tachs email error", e);
+  }
+}
+
 
 async function gradeAttempt(db: Client, attemptId: string) {
   const { data: attempt } = await db.from("tachs_attempts").select("*").eq("id", attemptId).maybeSingle();
@@ -141,7 +157,7 @@ async function gradeAttempt(db: Client, attemptId: string) {
   const totalCorrect = sectionSummaries.reduce((a, s) => a + s.correct, 0);
   const totalTime = sectionSummaries.reduce((a, s) => a + (s.time_used_seconds ?? 0), 0);
   const overall = totalPresented ? Math.round((totalCorrect / totalPresented) * 100) : 0;
-  const band = BANDS.find((b) => overall >= b.min)!;
+  const band = bandFor(overall);
   const skillRows: { section_key: string; skill: string; presented: number; correct: number; accuracy: number }[] = [];
   for (const s of sectionSummaries) {
     for (const [skill, v] of Object.entries(s.skills as Record<string, { presented: number; correct: number }>)) {
@@ -164,9 +180,16 @@ async function gradeAttempt(db: Client, attemptId: string) {
     sections: sectionSummaries,
     skills: skillRows,
     strengths, gaps,
-    disclaimer: "This is a D.E.Bs readiness estimate based on a pilot item bank. It is not an official TACHS score, percentile, or prediction and is not affiliated with or endorsed by the TACHS program or its publisher.",
+    disclaimer: DISCLAIMER,
   };
-  await db.from("tachs_attempts").update({ status: "completed", completed_at: now().toISOString(), results, current_section_key: null }).eq("id", attemptId);
+  // Idempotent: only the transition out of in_progress writes results and triggers the email.
+  const { data: finished } = await db.from("tachs_attempts")
+    .update({ status: "completed", completed_at: now().toISOString(), results, current_section_key: null })
+    .eq("id", attemptId).eq("status", "in_progress").select("id").maybeSingle();
+  if (finished) {
+    await db.from("tachs_attempt_events").insert({ attempt_id: attemptId, event_type: "graded", detail: { overall_accuracy: overall, band: band.key } });
+    if (!attempt.test_mode) await sendReportEmail(attemptId);
+  }
   return results;
 }
 
@@ -296,9 +319,72 @@ serve(async (req) => {
 
     if (action === "admin_list") {
       if (!admin) return json({ error: "Forbidden" }, 403);
-      const { data } = await db.from("tachs_attempts").select("id, user_id, grade_level, status, test_mode, started_at, completed_at, results, profiles(full_name, parent_email)").order("created_at", { ascending: false }).limit(200);
+      const { data } = await db.from("tachs_attempts")
+        .select("id, user_id, grade_level, status, test_mode, started_at, completed_at, results, blueprint_version, parent_email, email_status, email_sent_at, email_attempts, email_error, profiles(full_name, username)")
+        .order("created_at", { ascending: false }).limit(300);
       return json({ attempts: data ?? [] });
     }
+
+    if (action === "admin_detail") {
+      if (!admin) return json({ error: "Forbidden" }, 403);
+      const id = String(body.attemptId ?? "");
+      const { data: a } = await db.from("tachs_attempts").select("*, profiles(full_name, username)").eq("id", id).maybeSingle();
+      if (!a) return json({ error: "Attempt not found" }, 404);
+      const { data: secs } = await db.from("tachs_attempt_sections").select("*").eq("attempt_id", id).order("section_order");
+      const { data: rs } = await db.from("tachs_responses").select("*").eq("attempt_id", id).order("position");
+      const ids = [...new Set((rs ?? []).map((r) => r.question_id))];
+      const { data: qs } = ids.length ? await db.from("tachs_questions").select("id, code, section_key, stem, correct_key, rationale, choices").in("id", ids) : { data: [] };
+      const { data: events } = await db.from("tachs_attempt_events").select("*").eq("attempt_id", id).order("created_at", { ascending: false });
+      const qMap = new Map((qs ?? []).map((q) => [q.id, q]));
+      const secMap = new Map((secs ?? []).map((s) => [s.id, s.section_key]));
+      const audit = (rs ?? []).map((r) => ({
+        section_key: secMap.get(r.section_id), position: r.position, code: qMap.get(r.question_id)?.code,
+        stem: qMap.get(r.question_id)?.stem, skill: r.skill, difficulty: r.difficulty,
+        selected_key: r.selected_key, correct_key: qMap.get(r.question_id)?.correct_key, is_correct: r.is_correct,
+        is_flagged: r.is_flagged, time_spent_seconds: r.time_spent_seconds, presented_at: r.presented_at, answered_at: r.answered_at,
+      }));
+      return json({ attempt: a, sections: secs ?? [], audit, events: events ?? [] });
+    }
+
+    if (action === "admin_resend_email") {
+      if (!admin) return json({ error: "Forbidden" }, 403);
+      const id = String(body.attemptId ?? "");
+      const { data: a } = await db.from("tachs_attempts").select("id, status").eq("id", id).maybeSingle();
+      if (!a) return json({ error: "Attempt not found" }, 404);
+      if (a.status !== "completed") return json({ error: "The report can only be sent after the diagnostic is completed." }, 409);
+      await db.from("tachs_attempt_events").insert({ attempt_id: id, actor_id: user.id, event_type: "email_resend_requested", detail: {} });
+      await sendReportEmail(id);
+      const { data: after } = await db.from("tachs_attempts").select("email_status, email_error, email_sent_at, email_attempts").eq("id", id).single();
+      return json({ ok: true, email: after });
+    }
+
+    if (action === "admin_reopen") {
+      if (!admin) return json({ error: "Forbidden" }, 403);
+      const id = String(body.attemptId ?? "");
+      const sectionKey = typeof body.sectionKey === "string" ? body.sectionKey : null;
+      const { data: a } = await db.from("tachs_attempts").select("*").eq("id", id).maybeSingle();
+      if (!a) return json({ error: "Attempt not found" }, 404);
+      const { data: secs } = await db.from("tachs_attempt_sections").select("*").eq("attempt_id", id).order("section_order");
+      const target = sectionKey ? (secs ?? []).find((s) => s.section_key === sectionKey) : (secs ?? []).find((s) => s.status === "submitted");
+      if (!target) return json({ error: "No submitted section to reopen." }, 400);
+      // Clear the responses for that section so it can be retaken from a clean state.
+      await db.from("tachs_responses").delete().eq("section_id", target.id);
+      await db.from("tachs_attempt_sections").update({
+        status: "not_started", started_at: null, deadline_at: null, submitted_at: null, time_used_seconds: null,
+        submit_reason: null, summary: null, presented_question_ids: [], difficulty_path: [], current_difficulty: 2,
+        streak_correct: 0, streak_incorrect: 0,
+      }).eq("id", target.id);
+      await db.from("tachs_attempts").update({
+        status: "in_progress", completed_at: null, results: null, current_section_key: target.section_key,
+        reopened_at: now().toISOString(), reopened_by: user.id, email_status: "pending", email_error: null,
+      }).eq("id", id);
+      await db.from("tachs_attempt_events").insert({
+        attempt_id: id, actor_id: user.id, event_type: "attempt_reopened",
+        detail: { section_key: target.section_key, previous_results: a.results ?? null },
+      });
+      return json({ ok: true, section_key: target.section_key });
+    }
+
 
     const attempt = await loadAttempt(db, attemptId, user.id, admin);
     if (!attempt) return json({ error: "Attempt not found" }, 404);
@@ -366,10 +452,11 @@ serve(async (req) => {
       if (presented.length >= current.item_count) return json({ done: true, state: await buildState(db, freshAttempt) });
       const lastId = presented[presented.length - 1];
       const { data: last } = await db.from("tachs_responses").select("is_correct, position").eq("section_id", current.id).eq("question_id", lastId).maybeSingle();
-      let { streak_correct: sc, streak_incorrect: si, current_difficulty: diff } = current;
-      let transition: string | null = null;
-      if (last?.is_correct === true) { sc += 1; si = 0; if (sc >= 2 && diff < 3) { diff += 1; sc = 0; transition = "up"; } }
-      else if (last?.is_correct === false) { si += 1; sc = 0; if (si >= 2 && diff > 1) { diff -= 1; si = 0; transition = "down"; } }
+      const adapted = advanceAdaptive(
+        { difficulty: current.current_difficulty, streakCorrect: current.streak_correct, streakIncorrect: current.streak_incorrect },
+        last?.is_correct ?? null,
+      );
+      const sc = adapted.streakCorrect, si = adapted.streakIncorrect, diff = adapted.difficulty, transition = adapted.transition;
       const path = [...(current.difficulty_path ?? [])];
       if (transition && path.length) path[path.length - 1] = { ...path[path.length - 1], transition };
       const { data: updated } = await db.from("tachs_attempt_sections").update({ streak_correct: sc, streak_incorrect: si, current_difficulty: diff, difficulty_path: path }).eq("id", current.id).select("*").single();
