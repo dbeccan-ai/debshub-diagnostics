@@ -45,3 +45,4 @@
 - [ ] Scoring evidence: accuracy/items by difficulty, ceiling, skill min-sample warnings, vocab row, conventions breakdown, ability subskills
 - [ ] Validators/tests for all of the above; typecheck + production build
 - [ ] Old-vs-v2 audit table; NO seed/deploy/publish (preview only)
+- [ ] (16:29 request) Validate/wire Written v2; author Reading v2 directly; finish 5-choice Paper Folding, representative TEST MODE, admin Content Audit page, scoring UI, validators, tests, typecheck, build. Preview-only, v1 immutable.
