@@ -101,20 +101,37 @@ export const BLUEPRINT_V1 = {
   ] as BlueprintSection[],
 };
 
+/** Academic sections use four choices (A–D); the three Ability sections use five (A–E) from v2 onward. */
+export const ABILITY_SECTIONS: ReadonlySet<SectionKey> = new Set<SectionKey>(["figure_matrices", "paper_folding", "figure_classification"]);
+export const choiceCountFor = (section: SectionKey, version: number): number => (version >= 2 && ABILITY_SECTIONS.has(section) ? 5 : 4);
+
 /**
  * Pilot v2 — administered allocation unchanged (50/50/50/20/15/15 = 200 items, 130 minutes).
- * Mathematics and Paper Folding draw from pools larger than the administered count so adaptive
- * routing produces genuinely different difficulty paths. Calculator policy for Mathematics is
- * carried over from v1 unchanged (D.E.Bs pilot decision; not an official TACHS policy statement).
+ * Every section draws from a pool larger than the administered count so adaptive routing produces
+ * genuinely different difficulty paths. Calculator policy for Mathematics is carried over from v1
+ * unchanged (D.E.Bs pilot decision; not an official TACHS policy statement). All section objects are
+ * independent of v1 (no shared references), so v1 can never be mutated by v2 edits.
  */
 export const BLUEPRINT_V2: Blueprint = {
   version: 2,
   name: "D.E.Bs TACHS Readiness Diagnostic — Pilot v2",
   notes:
-    "D.E.Bs working allocation; the 130-minute total mirrors the published regular testing time. Section item counts and timing are not official TACHS specifications. v2: expanded Mathematics (Grade 8 → Algebra I ladder) and Paper Folding (multi-fold visual sequences) pools with adaptive selection from a larger pool.",
+    "D.E.Bs working allocation; the 130-minute total mirrors the published regular testing time. Section item counts and timing are not official TACHS specifications. v2: all six sections rebuilt with larger original pools, adaptive selection, Grade 8–9 academic reading, standalone conventions, a Grade 8 → Algebra I mathematics ladder, and five-choice Ability items.",
   sections: [
-    BLUEPRINT_V1.sections[0],
-    BLUEPRINT_V1.sections[1],
+    {
+      key: "reading", name: "Reading", order: 1, item_count: 50, time_minutes: 30, calculator: false, break_after_minutes: 0,
+      description: "Ten longer original literary, historical, informational, argumentative and paired passages (300–450 words) with questions on central idea, inference, vocabulary in context, author's purpose and tone, structure, evidence and rhetorical analysis.",
+      skill_quotas: { main_idea: 6, inference: 9, vocabulary_in_context: 9, author_purpose_tone: 8, text_structure: 6, detail_evidence: 6, rhetorical_analysis: 6 },
+      pool_minimum: 75,
+      pool_difficulty_mix: { "1": 0.2, "2": 0.45, "3": 0.35 },
+    },
+    {
+      key: "written_expression", name: "Written Expression", order: 2, item_count: 50, time_minutes: 25, calculator: false, break_after_minutes: 0,
+      description: "Passage editing and revision plus standalone conventions: capitalization, punctuation, spelling, word usage, agreement, sentence structure (fragments, run-ons, compound/complex), parallelism, modifiers, and organization.",
+      skill_quotas: { capitalization: 4, punctuation: 8, spelling: 4, word_usage: 6, agreement: 6, sentence_structure: 8, parallelism_modifiers: 6, organization_revision: 8 },
+      pool_minimum: 75,
+      pool_difficulty_mix: { "1": 0.2, "2": 0.45, "3": 0.35 },
+    },
     {
       key: "mathematics", name: "Mathematics", order: 3, item_count: 50, time_minutes: 40, calculator: true, break_after_minutes: 5,
       description: "Late Grade 8 through introductory Algebra I: integer and number fluency, ratio/proportion/percent, algebra and functions (equations, inequalities, slope, function notation, systems, exponents, roots, sequences), geometry and measurement, data/probability/statistics, and multistep modeling.",
@@ -122,15 +139,27 @@ export const BLUEPRINT_V2: Blueprint = {
       pool_minimum: 75,
       pool_difficulty_mix: { "1": 0.2, "2": 0.45, "3": 0.35 },
     },
-    BLUEPRINT_V1.sections[3],
+    {
+      key: "figure_matrices", name: "Figure Matrices", order: 4, item_count: 20, time_minutes: 12, calculator: false, break_after_minutes: 1,
+      description: "Find the rule across the rows and columns of a 3 x 3 grid — rotation, overlay composition, progression, shading/size change, alternation and integrated two-rule patterns — and choose the missing figure from five options.",
+      skill_quotas: { rotation_reflection: 4, overlay_composition: 3, progression_count: 3, shading_size_change: 3, two_rule_integration: 5, alternating_pattern: 2 },
+      pool_minimum: 36,
+      pool_difficulty_mix: { "1": 0.13, "2": 0.42, "3": 0.45 },
+    },
     {
       key: "paper_folding", name: "Paper Folding", order: 5, item_count: 15, time_minutes: 12, calculator: false, break_after_minutes: 1,
-      description: "A sheet is folded one to three times (vertical, horizontal, diagonal, off-center), then punched or notched. Each fold is shown as its own panel; choose the fully unfolded sheet.",
+      description: "A sheet is folded one to three times (vertical, horizontal, diagonal, off-center), then punched or notched. Each fold is shown as its own panel; choose the fully unfolded sheet from five options.",
       skill_quotas: { single_fold: 2, two_fold_reflection: 3, three_fold_sequence: 3, diagonal_reflection: 2, multiple_punches: 2, edge_notch: 1, asymmetric_fold: 2 },
       pool_minimum: 30,
       pool_difficulty_mix: { "1": 0.125, "2": 0.47, "3": 0.405 },
     },
-    BLUEPRINT_V1.sections[5],
+    {
+      key: "figure_classification", name: "Figure Classification", order: 6, item_count: 15, time_minutes: 11, calculator: false, break_after_minutes: 0,
+      description: "Three figures share a rule built from interacting attributes (shape family, shading, count, orientation, internal structure, size/position). Choose the one option of five that belongs with them.",
+      skill_quotas: { shape_attribute_combo: 3, count_shading: 3, orientation_symmetry: 3, internal_structure: 3, size_position_partwhole: 3 },
+      pool_minimum: 30,
+      pool_difficulty_mix: { "1": 0.25, "2": 0.44, "3": 0.31 },
+    },
   ],
 };
 
