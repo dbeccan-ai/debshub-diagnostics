@@ -205,8 +205,11 @@ export function testModeQuotas(section: { skill_quotas: Record<string, number>; 
   const quotas: Record<string, number> = {};
   for (const [skill, q] of Object.entries(section.skill_quotas)) if (q > 0) quotas[skill] = Math.min(perSkillCap, q);
   let total = Object.values(quotas).reduce((a, b) => a + b, 0);
-  total = Math.max(1, Math.min(total, section.item_count, available));
-  return { quotas, item_count: total };
+  const cap = Math.max(1, Math.min(total, section.item_count, available));
+  // Deterministically drop the smallest-quota skills until the representative set fits the cap.
+  const order = Object.entries(section.skill_quotas).filter(([s]) => s in quotas).sort((a, b) => a[1] - b[1] || a[0].localeCompare(b[0]));
+  for (const [skill] of order) { if (total <= cap) break; total -= quotas[skill]; delete quotas[skill]; }
+  return { quotas, item_count: Math.max(1, total) };
 }
 
 // ---------- transparent scoring evidence ----------
