@@ -230,3 +230,92 @@ export const formatClock = (seconds: number) => {
   const m = Math.floor(s / 60); const r = s % 60;
   return `${m}:${r.toString().padStart(2, "0")}`;
 };
+
+// ---------- Admin direct reads (backward-compatible fallback) ----------
+// The engine's admin_list / admin_detail can fail on older deployments (ambiguous profiles embed after the
+// report-workflow migration). These read the same immutable rows straight from the database under the
+// admin-only RLS policies; non-admins get zero rows. Nothing here writes.
+import { buildAuditRows, carryoverSummary, type ListLoad } from "@/lib/tachsAdminHelpers";
+
+export interface TachsAdminDetail {
+  attempt: TachsAdminAttempt; sections: TachsAdminSection[]; audit: TachsAuditRow[]; events: TachsAttemptEvent[];
+  carryover?: TachsCarryover; parent_preview?: TachsParentReport | null; source: "engine" | "direct";
+}
+
+async function profilesById(ids: string[]) {
+  if (!ids.length) return new Map<string, { full_name: string | null; username: string | null; parent_email: string | null }>();
+  const { data } = await supabase.from("profiles").select("id, full_name, username, parent_email").in("id", ids);
+  return new Map((data ?? []).map((p) => [p.id, { full_name: p.full_name, username: p.username, parent_email: p.parent_email }]));
+}
+
+export const tachsAdminDirect = {
+  async list(): Promise<{ attempts: TachsAdminAttempt[]; orders: TachsOrder[] }> {
+    const [{ data: attempts, error: e1 }, { data: orders, error: e2 }] = await Promise.all([
+      supabase.from("tachs_attempts").select("*").order("created_at", { ascending: false }).limit(300),
+      supabase.from("tachs_orders").select("*").order("created_at", { ascending: false }).limit(500),
+    ]);
+    if (e1) throw new TachsError(`Could not read TACHS attempts: ${e1.message}`, 500);
+    if (e2) throw new TachsError(`Could not read TACHS orders: ${e2.message}`, 500);
+    const profs = await profilesById([...new Set([...(attempts ?? []).map((a) => a.user_id), ...(orders ?? []).map((o) => o.user_id)])]);
+    const ords: TachsOrder[] = (orders ?? []).map((o) => ({ ...(o as unknown as TachsOrder), profiles: profs.get(o.user_id) ?? null }));
+    const byId = new Map(ords.map((o) => [o.id, o]));
+    const atts: TachsAdminAttempt[] = (attempts ?? []).map((a) => ({
+      ...(a as unknown as TachsAdminAttempt),
+      profiles: profs.get(a.user_id) ?? null,
+      order: a.order_id ? byId.get(a.order_id) ?? null : null,
+    }));
+    return { attempts: atts, orders: ords };
+  },
+  async detail(id: string): Promise<TachsAdminDetail> {
+    const { data: a, error } = await supabase.from("tachs_attempts").select("*").eq("id", id).maybeSingle();
+    if (error) throw new TachsError(`Could not read the attempt: ${error.message}`, 500);
+    if (!a) throw new TachsError("Attempt not found", 404);
+    const [{ data: secs }, { data: rs }, { data: events }, prof, { data: order }] = await Promise.all([
+      supabase.from("tachs_attempt_sections").select("*").eq("attempt_id", id).order("section_order"),
+      supabase.from("tachs_responses").select("*").eq("attempt_id", id).order("position"),
+      supabase.from("tachs_attempt_events").select("*").eq("attempt_id", id).order("created_at", { ascending: false }),
+      profilesById([a.user_id]),
+      a.order_id ? supabase.from("tachs_orders").select("*").eq("id", a.order_id).maybeSingle() : Promise.resolve({ data: null }),
+    ]);
+    const ids = [...new Set((rs ?? []).map((r) => r.question_id))];
+    const { data: qs } = ids.length ? await supabase.from("tachs_questions").select("id, code, section_key, stem, correct_key, rationale").in("id", ids) : { data: [] };
+    const audit = buildAuditRows(
+      (rs ?? []) as unknown as Parameters<typeof buildAuditRows>[0],
+      (qs ?? []) as unknown as Parameters<typeof buildAuditRows>[1],
+      (secs ?? []) as unknown as Parameters<typeof buildAuditRows>[2],
+    );
+    return {
+      attempt: { ...(a as unknown as TachsAdminAttempt), profiles: prof.get(a.user_id) ?? null, order: (order as TachsOrder | null) ?? null },
+      sections: (secs ?? []) as unknown as TachsAdminSection[],
+      audit, events: (events ?? []) as unknown as TachsAttemptEvent[],
+      carryover: carryoverSummary(audit.map((r) => r.code)), parent_preview: null, source: "direct",
+    };
+  },
+};
+
+/** Engine first; if it errors OR returns nothing while rows exist, fall back to the direct read. Errors are never disguised as empty data. */
+export async function loadAdminAttempts(): Promise<ListLoad<TachsAdminAttempt> & { orders: TachsOrder[] }> {
+  let engineErr: string | null = null;
+  try {
+    const r = await tachsApi.adminList();
+    if ((r.attempts ?? []).length > 0) return { kind: "ok", source: "engine", attempts: r.attempts, orders: r.orders ?? [] };
+  } catch (e) { engineErr = e instanceof Error ? e.message : "Engine request failed"; }
+  try {
+    const d = await tachsAdminDirect.list();
+    return { kind: "ok", source: "direct", attempts: d.attempts, orders: d.orders };
+  } catch (e) {
+    const direct = e instanceof Error ? e.message : "Direct read failed";
+    return { kind: "error", message: engineErr ? `${engineErr} · ${direct}` : direct, orders: [] };
+  }
+}
+
+export async function loadAdminDetail(id: string): Promise<TachsAdminDetail> {
+  try {
+    const d = await tachsApi.adminDetail(id);
+    return { ...d, source: "engine" };
+  } catch (e) {
+    // 404/500 from an older engine build: read the immutable snapshot directly.
+    if (e instanceof TachsError && e.status === 403) throw e;
+    return tachsAdminDirect.detail(id);
+  }
+}

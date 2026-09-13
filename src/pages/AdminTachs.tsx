@@ -2,9 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  tachsApi, SECTION_NAMES, skillLabel, formatClock, dollars, REPORT_STATUS_LABEL, PACING_LABEL,
-  type TachsAdminAttempt, type TachsAdminSection, type TachsAuditRow, type TachsAttemptEvent, type TachsOrder, type TachsReportStatus, type TachsCarryover, type TachsParentReport,
+  tachsApi, SECTION_NAMES, skillLabel, formatClock, dollars, REPORT_STATUS_LABEL, PACING_LABEL, loadAdminAttempts, loadAdminDetail,
+  type TachsAdminAttempt, type TachsAdminDetail, type TachsOrder, type TachsReportStatus,
 } from "@/lib/tachs";
+import { PINNED_ATTEMPTS, MODE_LABEL, countsByMode, filterByMode, type AttemptMode } from "@/lib/tachsAdminHelpers";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,15 +24,16 @@ export default function AdminTachs() {
   const navigate = useNavigate();
   const { attemptId: routeAttemptId } = useParams();
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [source, setSource] = useState<"engine" | "direct">("engine");
+  const [mode, setMode] = useState<AttemptMode>("all");
   const [attempts, setAttempts] = useState<TachsAdminAttempt[]>([]);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
   const [band, setBand] = useState("all");
   const [emailFilter, setEmailFilter] = useState("all");
   const [version, setVersion] = useState("all");
-  const [detail, setDetail] = useState<{
-    attempt: TachsAdminAttempt; sections: TachsAdminSection[]; audit: TachsAuditRow[]; events: TachsAttemptEvent[]; carryover?: TachsCarryover; parent_preview?: TachsParentReport | null;
-  } | null>(null);
+  const [detail, setDetail] = useState<TachsAdminDetail | null>(null);
   const [reportNotes, setReportNotes] = useState("");
   const [sendConfirm, setSendConfirm] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -59,22 +61,27 @@ export default function AdminTachs() {
   }, []);
 
   const load = async () => {
-    setLoading(true);
-    try {
-      const { attempts, orders } = await tachsApi.adminList();
-      setAttempts(attempts ?? []);
-      setOrders(orders ?? []);
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not load the TACHS attempts.");
-    } finally { setLoading(false); }
+    setLoading(true); setLoadError(null);
+    const r = await loadAdminAttempts();
+    if (r.kind === "error") {
+      // An API failure must never look like "no attempts".
+      setLoadError(r.message);
+    } else {
+      setAttempts(r.attempts); setOrders(r.orders); setSource(r.source);
+    }
+    setLoading(false);
   };
+
+  const counts = useMemo(() => countsByMode(attempts), [attempts]);
+  const filtersActive = mode !== "all" || !!search || status !== "all" || band !== "all" || emailFilter !== "all" || version !== "all";
+  const resetFilters = () => { setMode("all"); setSearch(""); setStatus("all"); setBand("all"); setEmailFilter("all"); setVersion("all"); };
 
   const versions = useMemo(
     () => [...new Set(attempts.map((a) => a.blueprint_version))].sort((a, b) => b - a),
     [attempts],
   );
 
-  const filtered = useMemo(() => attempts.filter((a) => {
+  const filtered = useMemo(() => filterByMode(attempts, mode).filter((a) => {
     const q = search.trim().toLowerCase();
     if (q) {
       const hay = `${a.profiles?.full_name ?? ""} ${a.profiles?.username ?? ""} ${a.parent_email ?? ""} ${a.id}`.toLowerCase();
@@ -85,13 +92,13 @@ export default function AdminTachs() {
     if (emailFilter !== "all" && (a.email_status ?? "pending") !== emailFilter) return false;
     if (version !== "all" && String(a.blueprint_version) !== version) return false;
     return true;
-  }), [attempts, search, status, band, emailFilter, version]);
+  }), [attempts, mode, search, status, band, emailFilter, version]);
 
   const openDetail = async (id: string) => {
     setDetailLoading(true);
     if (routeAttemptId !== id) navigate(`/admin/tachs/${id}`, { replace: true });
     try {
-      const d = await tachsApi.adminDetail(id);
+      const d = await loadAdminDetail(id);
       setDetail(d); setReportNotes(d.attempt.report_notes ?? ""); setSendConfirm(false);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not load the attempt details.");
@@ -224,6 +231,41 @@ export default function AdminTachs() {
           </CardContent>
         </Card>
 
+        {PINNED_ATTEMPTS.length > 0 && (
+          <Card className="mb-6 border-primary/40 print:hidden">
+            <CardHeader className="pb-2"><CardTitle className="text-base">Pinned attempts</CardTitle></CardHeader>
+            <CardContent className="space-y-2">
+              {PINNED_ATTEMPTS.map((p) => {
+                const live = attempts.find((a) => a.id === p.id);
+                return (
+                  <div key={p.id} className="flex flex-wrap items-center justify-between gap-2 rounded-md border p-3 text-sm">
+                    <div>
+                      <div className="font-medium">{p.label}</div>
+                      <div className="text-xs text-muted-foreground">{p.note}</div>
+                      <div className="mt-1 font-mono text-xs text-muted-foreground">{p.id}{live ? ` · ${live.status === "completed" ? "completed" : "in progress"} · v${live.blueprint_version}` : loading ? "" : " · not in the loaded list"}</div>
+                    </div>
+                    <Button size="sm" data-testid={`pinned-${p.id}`} onClick={() => openDetail(p.id)}>Open original attempt &amp; answer audit</Button>
+                  </div>
+                );
+              })}
+            </CardContent>
+          </Card>
+        )}
+
+        <Card className="mb-6 print:hidden">
+          <CardContent className="flex flex-wrap items-center gap-2 p-4" role="tablist" aria-label="Attempt type">
+            {(Object.keys(MODE_LABEL) as AttemptMode[]).map((m) => (
+              <Button key={m} role="tab" aria-selected={mode === m} size="sm" variant={mode === m ? "default" : "outline"} onClick={() => setMode(m)}>
+                {MODE_LABEL[m]} ({counts[m]})
+              </Button>
+            ))}
+            {filtersActive && <Button size="sm" variant="ghost" onClick={resetFilters}>Reset filters</Button>}
+            {source === "direct" && !loading && !loadError && (
+              <span className="ml-auto rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-900" title="The engine's admin list is unavailable on the current deployment; rows were read directly from the database under admin-only access.">Loaded directly from database (engine list unavailable)</span>
+            )}
+          </CardContent>
+        </Card>
+
         <Card className="mb-6 print:hidden">
           <CardContent className="grid gap-3 p-4 md:grid-cols-5">
             <div className="relative md:col-span-1">
@@ -266,12 +308,22 @@ export default function AdminTachs() {
         </Card>
 
         <Card>
-          <CardHeader className="print:hidden"><CardTitle className="text-lg">{filtered.length} attempt{filtered.length === 1 ? "" : "s"}</CardTitle></CardHeader>
+          <CardHeader className="print:hidden"><CardTitle className="text-lg">{loadError ? "Attempts unavailable" : `${filtered.length} of ${counts.all} attempt${counts.all === 1 ? "" : "s"}`}</CardTitle></CardHeader>
           <CardContent className="overflow-x-auto">
             {loading ? (
               <div className="flex items-center gap-2 py-10 text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Loading attempts…</div>
+            ) : loadError ? (
+              <div role="alert" className="rounded-md border border-destructive/40 bg-destructive/5 p-4 text-sm">
+                <p className="font-medium text-destructive">Could not load the TACHS attempts.</p>
+                <p className="mt-1 text-muted-foreground break-words">{loadError}</p>
+                <p className="mt-1 text-xs text-muted-foreground">No data was deleted — this is a loading error, not an empty list.</p>
+                <Button size="sm" className="mt-3" onClick={load}><RotateCcw className="mr-1 h-4 w-4" /> Retry</Button>
+              </div>
             ) : filtered.length === 0 ? (
-              <p className="py-10 text-center text-muted-foreground">No attempts match these filters yet.</p>
+              <div className="py-10 text-center text-muted-foreground">
+                <p>{counts.all === 0 ? "No TACHS attempts recorded yet." : `No attempts match these filters (${counts.all} total).`}</p>
+                {filtersActive && <Button size="sm" variant="outline" className="mt-3" onClick={resetFilters}>Reset filters</Button>}
+              </div>
             ) : (
               <Table>
                 <TableHeader>
@@ -342,6 +394,9 @@ export default function AdminTachs() {
                 )}
               </div>
 
+              {detail.source === "direct" && (
+                <p className="mb-3 rounded-md border bg-muted/40 p-2 text-xs text-muted-foreground">Read directly from the stored attempt snapshot (engine detail unavailable on this deployment). Report-approval actions require the updated engine.</p>
+              )}
               {detail.carryover?.flagged && (
                 <p className="mb-4 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900" role="note">
                   <strong>Bank note:</strong> {detail.carryover.note}
