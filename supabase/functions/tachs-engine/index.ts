@@ -201,7 +201,11 @@ async function gradeAttempt(db: Client, attemptId: string) {
     .eq("id", attemptId).eq("status", "in_progress").select("id").maybeSingle();
   if (finished) {
     await db.from("tachs_attempt_events").insert({ attempt_id: attemptId, event_type: "graded", detail: { overall_accuracy: overall, band: band.key } });
-    if (!attempt.test_mode) await sendReportEmail(attemptId);
+    if (attempt.test_mode) {
+      await db.from("tachs_attempts").update({ email_status: "skipped", email_error: "TEST MODE attempt: no parent email is sent." }).eq("id", attemptId);
+    } else {
+      await sendReportEmail(attemptId);
+    }
   }
   return results;
 }
