@@ -117,7 +117,7 @@ export default function AdminTachs() {
 
   return (
     <div className="min-h-screen bg-background">
-      <SEO title="TACHS Pilot Attempts | Admin" description="Review D.E.Bs TACHS Readiness Diagnostic pilot attempts, section metrics, and report delivery." noIndex />
+      <SEO title="TACHS Pilot Attempts | Admin" description="Review D.E.Bs TACHS Readiness Diagnostic pilot attempts, section metrics, and report delivery." path="/admin/tachs" noIndex />
       <div className="container mx-auto max-w-7xl px-4 py-8 print:py-0">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3 print:hidden">
           <div>
