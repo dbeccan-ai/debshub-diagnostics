@@ -339,7 +339,17 @@ export async function loadAdminAttempts(): Promise<ListLoad<TachsAdminAttempt> &
 export async function loadAdminDetail(id: string): Promise<TachsAdminDetail> {
   try {
     const d = await tachsApi.adminDetail(id);
-    return { ...d, source: "engine" };
+    // Older engine builds return a pre-release preview shape; rebuild the parent preview + editor
+    // defaults locally from the stored results with the same shared pure module.
+    const stale = !d.parent_preview || (d.parent_preview as { kind?: string }).kind !== "parent_released";
+    const results = d.attempt.results as unknown as Record<string, unknown> | null;
+    const storedContent = (d.parent_report_content ?? (d.attempt as Record<string, unknown>).parent_report_content ?? null) as TachsParentReportContent | null;
+    return {
+      ...d, source: "engine",
+      parent_report_content: storedContent,
+      parent_report_defaults: d.parent_report_defaults ?? (results ? (defaultParentReportContent(results) as TachsParentReportContent) : null),
+      parent_preview: stale ? (results ? (parentReportView(results, storedContent, d.attempt.completed_at) as unknown as TachsParentReport) : null) : d.parent_preview,
+    };
   } catch (e) {
     // 404/500 from an older engine build: read the immutable snapshot directly.
     if (e instanceof TachsError && e.status === 403) throw e;
