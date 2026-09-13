@@ -298,7 +298,7 @@ export const SAMPLE_BANK: BankQuestion[] = [
     correct_key: "C", rationale: "Rows keep the shape; columns move from unshaded to gray to black. The missing figure is a black triangle." },
   { code: "FM-03", section_key: "figure_matrices", skill: "count", difficulty: 2,
     stem: "Which figure completes the matrix?",
-    visual: grid((i) => i === 8 ? null : dots((i % 3) + 1 + Math.floor(i / 3) - (Math.floor(i / 3) === 2 && i % 3 === 2 ? 0 : 0)).slice(0, Math.min(4, (i % 3) + 1 + (Math.floor(i / 3) > 0 ? 1 : 0)))),
+    visual: grid((i) => i === 8 ? null : dots(Math.min(4, (i % 3) + 1 + (Math.floor(i / 3) > 0 ? 1 : 0)))),
     visual_alt: "A grid of dot groups. Row 1 has 1, 2, 3 dots. Rows 2 and 3 have 2, 3, 4 dots, with the last cell of row 3 missing.",
     choices: [
       { key: "A", visual: choiceFig(dots(2)) }, { key: "B", visual: choiceFig(dots(3)) },
