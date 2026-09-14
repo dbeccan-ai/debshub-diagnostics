@@ -102,6 +102,8 @@ export type TachsTierKey = "green" | "yellow" | "red";
 export interface TachsParentSectionScore { section_key: TachsSectionKey; label: string; accuracy: number; tier: TachsTierKey; tier_badge: string; tier_label: string }
 export interface TachsParentProgramView {
   key: TachsProgramKey; name: string; duration_weeks: number; sessions_per_week: number; total_cents: number; price_label: string;
+  session_minutes?: number; total_sessions?: number; total_hours?: number; schedule_days?: string[] | null; schedule_label?: string;
+
   installments_label: string; focus: string[]; included: string[]; progress_monitoring: string; honesty_note: string | null;
   payment_url: string | null; enrollment_call_url: string;
   pricing?: PricingBreakdown;

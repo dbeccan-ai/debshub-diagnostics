@@ -24,7 +24,7 @@ export const TACHS_TIERS: Record<TachsTierKey, TachsTierInfo> = {
   red: { key: "red", badge: "Tier 3", label: "Priority Intervention Required", range: "0–65%", color: "#dc2626" },
 };
 
-export type TachsProgramKey = "tachs_strategy" | "tachs_skill_builder" | "tachs_intensive_phase1";
+export type TachsProgramKey = "tachs_strategy" | "tachs_skill_builder" | "tachs_intensive_phase1" | "tachs_8_week_intensive";
 
 // ---------- Fees & credit (configurable) ----------
 /** Stripe domestic online card assumptions. Gross-up: charge = (net + fixed) / (1 - rate), rounded to the nearest cent. */
@@ -37,10 +37,14 @@ export const DIAGNOSTIC_CREDIT_WINDOW_DAYS = 7;
 export const DIAGNOSTIC_FEE_NOT_CREDITED_CENTS = 554;
 export const CREDIT_TERMS =
   `A $175 Diagnostic Enrollment Credit is applied to tuition when enrollment is completed within ${DIAGNOSTIC_CREDIT_WINDOW_DAYS} calendar days of the reviewed-results release. The $5.54 diagnostic processing fee is not credited.`;
+/** Single short parent-facing note that replaces the older dense fee explanations. */
+export const SIMPLE_PRICING_NOTE =
+  "Enrollment must be completed by the credit deadline shown above for the Diagnostic Enrollment Credit to apply. The original $5.54 diagnostic processing fee is not credited. All amounts shown include card processing.";
 export const INSTALLMENT_FEE_NOTE =
   "Installment totals are slightly higher than paying in full because Stripe charges a fixed 30-cent fee on each separate transaction.";
 export const DOMESTIC_CARD_NOTE =
   "Totals assume a standard domestic online card (2.9% + $0.30). Any additional international-card or currency fees are not included.";
+
 
 /** Charge needed so D.E.Bs nets `netCents` after Stripe's percentage + fixed fee. */
 export const grossUpCents = (netCents: number): number =>
@@ -64,6 +68,9 @@ export interface PricingBreakdown {
   credit_terms: string;
   installment_fee_note: string;
   domestic_card_note: string;
+  /** Single short parent-facing note used by the simplified pricing presentation. */
+  simple_note: string;
+
 }
 
 /** Receipt-style pricing: tuition − credit = balance; fee grossed-up on the balance; installments each grossed-up. */
@@ -79,7 +86,7 @@ export function pricingBreakdown(input: { regular_tuition_cents: number; install
     fee_full_cents: totalFull - balance, total_full_cents: totalFull,
     installments: { count: input.installment_count, net_each_cents: netEach, charge_each_cents: chargeEach, total_charged_cents: totalCharged, fee_total_cents: totalCharged - netEach * input.installment_count },
     credit_expires_at: input.credit_expires_at ?? null,
-    credit_terms: CREDIT_TERMS, installment_fee_note: INSTALLMENT_FEE_NOTE, domestic_card_note: DOMESTIC_CARD_NOTE,
+    credit_terms: CREDIT_TERMS, installment_fee_note: INSTALLMENT_FEE_NOTE, domestic_card_note: DOMESTIC_CARD_NOTE, simple_note: SIMPLE_PRICING_NOTE,
   };
 }
 
@@ -89,6 +96,11 @@ export interface TachsProgram {
   name: string;
   duration_weeks: number;
   sessions_per_week: number;
+  /** Length of each consultant-led session in minutes. */
+  session_minutes: number;
+  /** Optional fixed weekly schedule (e.g. Wednesday and Saturday). */
+  schedule_days: string[] | null;
+
   /** Regular tuition (net to D.E.Bs, before credit and before processing fee). */
   total_cents: number;
   /** Installment plan: number of equal payments of the tuition balance. Informational until live checkout is approved. */
@@ -105,7 +117,8 @@ export interface TachsProgram {
 export const TACHS_PROGRAMS: Record<TachsProgramKey, TachsProgram> = {
   tachs_strategy: {
     key: "tachs_strategy", tier: "green", name: "TACHS Strategy & Acceleration",
-    duration_weeks: 6, sessions_per_week: 2, total_cents: 100_000, installments: { count: 3 },
+    duration_weeks: 6, sessions_per_week: 2, session_minutes: 60, schedule_days: null, total_cents: 100_000, installments: { count: 3 },
+
     focus: ["Advanced practice across all six TACHS sections", "Pacing and time management under exam conditions", "Higher-order reasoning in reading, writing and mathematics", "Targeted refinement of any section still below mastery"],
     included: ["12 live small-group or 1:1 sessions (2 per week for 6 weeks)", "Two timed progress checks with section-level feedback", "Weekly practice sets and pacing drills", "Final readiness summary for the family"],
     progress_monitoring: "Two progress checks (week 3 and week 6) reported to the family.",
@@ -114,7 +127,7 @@ export const TACHS_PROGRAMS: Record<TachsProgramKey, TachsProgram> = {
   },
   tachs_skill_builder: {
     key: "tachs_skill_builder", tier: "yellow", name: "TACHS Targeted Skill Builder",
-    duration_weeks: 10, sessions_per_week: 2, total_cents: 150_000, installments: { count: 5 },
+    duration_weeks: 10, sessions_per_week: 2, session_minutes: 60, schedule_days: null, total_cents: 150_000, installments: { count: 5 },
     focus: ["Close the specific section gaps identified in this diagnostic", "Vocabulary, reading and written-expression accuracy as indicated", "Mathematics fluency and multistep problem solving as indicated", "Ability (visual-spatial) reasoning strategies as indicated", "Pacing so accuracy holds under time"],
     included: ["20 live sessions (2 per week for 10 weeks)", "Two timed progress checks plus a final full-length reassessment", "Individualized weekly practice targeted to the developing sections", "Progress summaries shared with the family at each checkpoint"],
     progress_monitoring: "Progress checks at week 4 and week 8, then a full-length reassessment at week 10.",
@@ -123,11 +136,20 @@ export const TACHS_PROGRAMS: Record<TachsProgramKey, TachsProgram> = {
   },
   tachs_intensive_phase1: {
     key: "tachs_intensive_phase1", tier: "red", name: "TACHS Intensive Readiness — Phase 1",
-    duration_weeks: 16, sessions_per_week: 2, total_cents: 240_000, installments: { count: 5 },
+    duration_weeks: 16, sessions_per_week: 2, session_minutes: 60, schedule_days: null, total_cents: 240_000, installments: { count: 5 },
     focus: ["Foundational repair in the priority sections before timed practice", "Grade 8 and introductory Algebra I readiness", "Reading comprehension, written expression and academic vocabulary", "Visual-spatial reasoning (figure matrices, paper folding, classification)", "Pacing introduced once accuracy is stable"],
     included: ["32 live sessions (2 per week for 16 weeks)", "Baseline-to-progress reviews at weeks 4, 8 and 12", "Formal full-length reassessment at week 16", "Structured home practice plan and family check-ins"],
     progress_monitoring: "Baseline-to-progress reviews at weeks 4, 8 and 12, and a formal reassessment at week 16.",
     honesty_note: "Depending on the exam date and the week-16 reassessment, further preparation (a Phase 2) may be recommended. We will say so plainly rather than over-promise.",
+    payment_url: null,
+  },
+  tachs_8_week_intensive: {
+    key: "tachs_8_week_intensive", tier: "red", name: "TACHS 8-Week Intensive Readiness",
+    duration_weeks: 8, sessions_per_week: 2, session_minutes: 120, schedule_days: ["Wednesday", "Saturday"], total_cents: 150_000, installments: { count: 4 },
+    focus: ["Mathematics and Algebra I foundations as the largest block of instructional time", "Paper Folding and Figure Classification as priority visual-reasoning areas", "Targeted strengthening of Reading and Written Expression", "Maintenance practice for Figure Matrices", "Pacing built in once accuracy is stable, ahead of the exam date"],
+    included: ["16 live two-hour sessions (Wednesday and Saturday, 2 per week for 8 weeks) — 32 instructional hours", "Progress checks during the program with section-level feedback", "Individualized between-session practice targeted to the diagnosed priorities", "A final timed reassessment before the TACHS"],
+    progress_monitoring: "Progress checks at weeks 3 and 6, and a final timed reassessment at week 8 before the exam.",
+    honesty_note: "This is a compressed schedule chosen because the exam date is about eight weeks away. It covers the same priorities as our longer intensive in two-hour sessions rather than over sixteen weeks.",
     payment_url: null,
   },
 };
@@ -140,3 +162,10 @@ export const ENROLLMENT_CALL_URL = "https://calendar.app.google/dHKRRWnqASeUpp4c
 export const usd = (cents: number) => `$${(cents / 100).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
 /** Always two decimals — for receipt lines. */
 export const usd2 = (cents: number) => `$${(cents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+/** Total consultant-led sessions and instructional hours for a program. */
+export const programSessions = (p: TachsProgram): number => p.duration_weeks * p.sessions_per_week;
+export const programHours = (p: TachsProgram): number => Math.round((programSessions(p) * p.session_minutes) / 60);
+/** "8 weeks · 2 sessions per week · 120-minute sessions · 16 sessions · 32 instructional hours" */
+export const programScheduleLabel = (p: TachsProgram): string =>
+  `${p.duration_weeks} weeks · ${p.sessions_per_week} sessions per week${p.schedule_days ? ` (${p.schedule_days.join(" and ")})` : ""} · ${p.session_minutes}-minute sessions · ${programSessions(p)} sessions · ${programHours(p)} instructional hours`;

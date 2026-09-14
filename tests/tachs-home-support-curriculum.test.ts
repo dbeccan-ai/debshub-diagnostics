@@ -152,3 +152,57 @@ describe("Personalized TACHS Curriculum — admin only", () => {
     expect(internal).toContain("Generate Personalized TACHS Curriculum");
   });
 });
+
+describe("8-week intensive curriculum (admin-only)", () => {
+  const c = buildTachsCurriculum({ results: STORED_RESULTS, programKey: "tachs_8_week_intensive", studentName: "Mckenzie Gray", gradeLevel: 8 });
+  it("is 8 weeks, 16 two-hour Wednesday/Saturday sessions, 32 instructional hours", () => {
+    expect(c.weeks).toHaveLength(8);
+    expect(c.program).toMatchObject({ duration_weeks: 8, sessions_per_week: 2, session_minutes: 120, total_sessions: 16, total_hours: 32 });
+    const sessions = c.weeks.flatMap((w) => w.sessions);
+    expect(sessions).toHaveLength(16);
+    expect(sessions.map((s) => s.session)).toEqual(Array.from({ length: 16 }, (_, i) => i + 1));
+    for (const s of sessions) {
+      expect(s.minutes).toBe(120);
+      expect(["Wednesday", "Saturday"]).toContain(s.day_label);
+      expect(s.agenda.reduce((t, a) => t + a.minutes, 0)).toBe(120);
+      expect(s.agenda.length).toBeGreaterThanOrEqual(s.session <= 14 ? 6 : 4);
+      expect(s.exit_check).toBeTruthy();
+      expect(s.objectives.length).toBeGreaterThanOrEqual(2);
+    }
+    expect(CURRICULUM_MILESTONES.tachs_8_week_intensive).toEqual([3, 6, 8]);
+    expect(c.milestones.some((m) => m.week === 8 && /reassessment/i.test(m.kind + m.description))).toBe(true);
+  });
+  it("is driven by the stored gap pattern, weights mathematics and the weak visual sections, and sequences Algebra I", () => {
+    const ranked = [...c.section_profile].sort((a, b) => a.priority_rank - b.priority_rank).map((s) => s.section_key);
+    expect(ranked.slice(0, 3)).toEqual(expect.arrayContaining(["mathematics", "paper_folding"]));
+    const focus = c.weeks.flatMap((w) => w.focus_sections).join(" ");
+    expect(focus).toMatch(/Mathematics/);
+    expect(focus).toMatch(/Paper Folding/);
+    const algebra = c.weeks.filter((w) => w.algebra_focus).length;
+    expect(algebra).toBeGreaterThanOrEqual(6);
+    expect(c.workbook_specifications.join(" ")).toMatch(/originally authored by D\.E\.Bs/i);
+    expect(c.workbook_specifications.join(" ")).toMatch(/Do not copy or adapt questions from any commercial TACHS prep book/i);
+  });
+  it("download builders produce admin-only documents and never appear on parent surfaces", async () => {
+    const { curriculumMarkdown, curriculumFileStem } = await import("../supabase/functions/_shared/tachs-curriculum-doc.ts");
+    const md = curriculumMarkdown(c);
+    expect(md).toContain("ADMIN ONLY");
+    expect(md).toContain("Mckenzie Gray");
+    expect(md).toContain("TACHS 8-Week Intensive Readiness");
+    expect(md).toContain("Workbook development specifications");
+    expect(md).toMatch(/Session 16 — Saturday/);
+    expect(md).not.toMatch(/correct_key|rationale|"stem"/i);
+    expect(curriculumFileStem(c)).toBe("tachs-curriculum-mckenzie-gray-8-week");
+    // Parent-facing sources must not import the curriculum or its document builders.
+    for (const f of ["src/pages/TachsResults.tsx", "src/components/TachsHomeSupportPlan.tsx", "supabase/functions/_shared/tachs-report.ts", "supabase/functions/send-tachs-results/index.ts"]) {
+      expect(strip(readFileSync(f, "utf8"))).not.toMatch(/tachsCurriculum|tachs-curriculum|curriculumMarkdown|curriculumDocxBlob/);
+    }
+    // The download controls live only on the admin-guarded curriculum page.
+    const admin = readFileSync("src/pages/AdminTachsCurriculum.tsx", "utf8");
+    for (const t of ["curriculum-download-docx", "curriculum-download-md", "curriculum-regenerate", "curriculum-print"]) expect(admin).toContain(t);
+    expect(admin).toMatch(/has_role|user_roles|admin/i);
+    // Server endpoint still validates the admin role before reading attempt data.
+    const fn = readFileSync("supabase/functions/tachs-curriculum/index.ts", "utf8");
+    expect(fn.indexOf('eq("role", "admin")')).toBeLessThan(fn.indexOf('from("tachs_attempts")'));
+  });
+});
