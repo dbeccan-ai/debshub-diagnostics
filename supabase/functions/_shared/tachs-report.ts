@@ -16,7 +16,8 @@
 
 import {
   PROGRAM_FOR_TIER, PROGRAM_KEYS, TACHS_PROGRAMS, TACHS_TIERS, tachsTierFor, usd, usd2, ENROLLMENT_CALL_URL,
-  pricingBreakdown, addDaysIso, DIAGNOSTIC_CREDIT_WINDOW_DAYS, type PricingBreakdown, type TachsProgram, type TachsProgramKey, type TachsTierKey,
+  pricingBreakdown, addDaysIso, DIAGNOSTIC_CREDIT_WINDOW_DAYS, programSessions, programHours, programScheduleLabel,
+  type PricingBreakdown, type TachsProgram, type TachsProgramKey, type TachsTierKey,
 } from "./tachs-programs.ts";
 
 export const APP_URL = "https://debshub-diagnostics.lovable.app";
@@ -212,7 +213,9 @@ export function sanitizeHomeSupportPlan(input: unknown, fallback: HomeSupportPla
 // ---------- released parent report ----------
 export interface ParentSectionScore { section_key: string; label: string; accuracy: number; tier: TachsTierKey; tier_badge: string; tier_label: string }
 export interface ParentProgramView {
-  key: TachsProgramKey; name: string; duration_weeks: number; sessions_per_week: number; total_cents: number; price_label: string;
+  key: TachsProgramKey; name: string; duration_weeks: number; sessions_per_week: number; session_minutes: number;
+  total_sessions: number; total_hours: number; schedule_days: string[] | null; schedule_label: string;
+  total_cents: number; price_label: string;
   installments_label: string; focus: string[]; included: string[]; progress_monitoring: string; honesty_note: string | null;
   payment_url: string | null; enrollment_call_url: string;
   /** Receipt-style pricing with the conditional credit applied; live checkout links stay null. */
@@ -353,8 +356,10 @@ export function programView(key: TachsProgramKey, priceOverrideCents: number | n
   const total = priceOverrideCents ?? p.total_cents;
   const pricing = pricingBreakdown({ regular_tuition_cents: total, installment_count: p.installments.count, credit_applied: true, credit_expires_at: creditExpiresAt });
   return {
-    key: p.key, name: p.name, duration_weeks: p.duration_weeks, sessions_per_week: p.sessions_per_week, total_cents: total, price_label: usd(total),
-    installments_label: `${pricing.installments.count} payments of ${usd2(pricing.installments.charge_each_cents)} (each includes the processing fee)`,
+    key: p.key, name: p.name, duration_weeks: p.duration_weeks, sessions_per_week: p.sessions_per_week, session_minutes: p.session_minutes,
+    total_sessions: programSessions(p), total_hours: programHours(p), schedule_days: p.schedule_days ? [...p.schedule_days] : null, schedule_label: programScheduleLabel(p),
+    total_cents: total, price_label: usd(total),
+    installments_label: `${pricing.installments.count} payments of ${usd2(pricing.installments.charge_each_cents)}, including processing`,
     focus: [...p.focus], included: [...p.included], progress_monitoring: p.progress_monitoring, honesty_note: p.honesty_note,
     payment_url: p.payment_url, enrollment_call_url: ENROLLMENT_CALL_URL, pricing,
   };
@@ -488,25 +493,18 @@ export function pricingHtml(pr: PricingBreakdown): string {
   const row = (label: string, value: string, strong = false) =>
     `<tr><td style="padding:5px 0;color:#334155;${strong ? "font-weight:700;" : ""}">${esc(label)}</td><td style="padding:5px 0;text-align:right;${strong ? "font-weight:700;" : ""}">${esc(value)}</td></tr>`;
   const exp = fmtLongDate(pr.credit_expires_at);
+  const words = ["One", "Two", "Three", "Four", "Five", "Six"][pr.installments.count - 1] ?? String(pr.installments.count);
   return `
         <table role="table" style="width:100%;border-collapse:collapse;font-size:14px;margin-top:10px;border-top:1px solid #e2e8f0;">
-          <caption style="text-align:left;font-size:12px;color:#64748b;padding:6px 0;">Tuition, credit and processing fee are shown separately.</caption>
           <tbody>
             ${row("Regular tuition", usd2(pr.regular_tuition_cents))}
-            ${row(`Diagnostic Enrollment Credit${exp ? ` (enroll by ${exp})` : ""}`, `− ${usd2(pr.credit_cents)}`)}
-            ${row("Tuition balance", usd2(pr.balance_cents), true)}
-            ${row("Stripe processing fee (pay in full)", usd2(pr.fee_full_cents))}
-            ${row("Total checkout charge (pay in full)", usd2(pr.total_full_cents), true)}
+            ${row(`Diagnostic Enrollment Credit${exp ? ` (enroll by ${exp})` : ""}`, `\u2212 ${usd2(pr.credit_cents)}`)}
+            ${row("Tuition after credit", usd2(pr.balance_cents), true)}
+            ${row("Pay in full, including processing", usd2(pr.total_full_cents), true)}
+            ${row(`${words}-payment option, including processing`, `${pr.installments.count} \u00d7 ${usd2(pr.installments.charge_each_cents)} (${usd2(pr.installments.total_charged_cents)})`)}
           </tbody>
         </table>
-        <div style="margin-top:10px;font-weight:600;">Payment choices</div>
-        <ul style="margin:4px 0 0 18px;padding:0;color:#334155;">
-          <li style="margin:0 0 6px;"><strong>Pay in full:</strong> ${esc(usd2(pr.total_full_cents))} including the processing fee (tuition balance ${esc(usd2(pr.balance_cents))}).</li>
-          <li style="margin:0 0 6px;"><strong>Installments:</strong> ${esc(pr.installments.count)} payments of ${esc(usd2(pr.installments.charge_each_cents))}, each including the processing fee (each covers ${esc(usd2(pr.installments.net_each_cents))} of tuition; total charged ${esc(usd2(pr.installments.total_charged_cents))}).</li>
-        </ul>
-        <p style="font-size:12px;color:#475569;margin:8px 0 0;">${esc(pr.installment_fee_note)}</p>
-        <p style="font-size:12px;color:#475569;margin:6px 0 0;">${esc(pr.credit_terms)}${exp ? ` Credit valid through ${esc(exp)}.` : ""}</p>
-        <p style="font-size:12px;color:#475569;margin:6px 0 0;">${esc(pr.domestic_card_note)}</p>
+        <p style="font-size:12px;color:#475569;margin:8px 0 0;">${esc(pr.simple_note)}</p>
         <p style="font-size:12px;color:#475569;margin:6px 0 0;">Enrollment and payment are completed with your consultant on the enrollment call.</p>`;
 }
 
@@ -555,7 +553,7 @@ export function parentReportEmailHtml(input: { firstName: string; gradeLevel: nu
       <div style="border:2px solid #1C2D5A;border-radius:10px;padding:14px 16px;">
         <div style="font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#64748b;">Recommended service option</div>
         <div style="font-size:18px;font-weight:800;color:#1C2D5A;margin-top:2px;">${esc(p.name)}</div>
-        <div style="color:#334155;margin-top:4px;">${esc(p.duration_weeks)} weeks · ${esc(p.sessions_per_week)} sessions per week</div>
+        <div style="color:#334155;margin-top:4px;">${esc(p.schedule_label)}</div>
         ${pricingHtml(p.pricing)}
         <div style="margin-top:10px;font-weight:600;">Focus</div><ul style="margin:4px 0 0 18px;padding:0;color:#334155;">${li(p.focus)}</ul>
         <div style="margin-top:10px;font-weight:600;">What is included</div><ul style="margin:4px 0 0 18px;padding:0;color:#334155;">${li(p.included)}</ul>

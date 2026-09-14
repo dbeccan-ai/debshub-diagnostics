@@ -6,7 +6,7 @@
 // here is ever included in the parent page, parent email, parent print or the At-Home Support Plan.
 // If a family-safe summary is ever needed it must go through a separate consultant-controlled publish step.
 
-import { TACHS_PROGRAMS, TACHS_TIERS, tachsTierFor, type TachsProgramKey, type TachsTierKey } from "./tachs-programs.ts";
+import { TACHS_PROGRAMS, TACHS_TIERS, tachsTierFor, programSessions, programHours, programScheduleLabel, type TachsProgramKey, type TachsTierKey } from "./tachs-programs.ts";
 import { SECTION_LABELS, SECTION_ORDER, skillLabel } from "./tachs-report.ts";
 
 export interface CurriculumSkill { skill: string; label: string; presented: number; correct: number; accuracy: number }
@@ -14,16 +14,23 @@ export interface CurriculumSectionProfile {
   section_key: string; label: string; accuracy: number; tier: TachsTierKey; tier_badge: string; priority_rank: number;
   weakest_skills: CurriculumSkill[]; strongest_skills: CurriculumSkill[];
 }
+export interface CurriculumAgendaBlock { block: string; minutes: number; detail: string }
+export interface CurriculumSession {
+  session: number; week: number; day_label: string; minutes: number; section_focus: string;
+  objectives: string[]; agenda: CurriculumAgendaBlock[]; exit_check: string;
+}
 export interface CurriculumWeek {
   week: number; phase: string; focus_sections: string[]; focus_skills: string[]; objectives: string[];
-  lesson_sequence: string[]; independent_practice: string[]; home_reinforcement: string[]; progress_check: string | null;
+  lesson_sequence: string[]; sessions: CurriculumSession[]; algebra_focus: string | null;
+  independent_practice: string[]; home_reinforcement: string[]; progress_check: string | null;
 }
 export interface CurriculumMilestone { week: number; kind: "progress_check" | "final_reassessment"; description: string }
 export interface TachsCurriculum {
   admin_only: true;
   visibility: "ADMIN ONLY — never sent to families";
   title: string; student_name: string; grade_level: number | null; generated_at: string;
-  program: { key: TachsProgramKey; name: string; duration_weeks: number; sessions_per_week: number; total_sessions: number; tier_badge: string };
+  program: { key: TachsProgramKey; name: string; duration_weeks: number; sessions_per_week: number; session_minutes: number; total_sessions: number; total_hours: number; schedule_days: string[] | null; schedule_label: string; tier_badge: string };
+  workbook_specifications: string[];
   overall_accuracy: number;
   section_profile: CurriculumSectionProfile[];
   priorities: string[]; strengths: string[];
@@ -37,7 +44,20 @@ export const CURRICULUM_MILESTONES: Record<TachsProgramKey, number[]> = {
   tachs_strategy: [3, 6],
   tachs_skill_builder: [4, 8, 10],
   tachs_intensive_phase1: [4, 8, 12, 16],
+  tachs_8_week_intensive: [3, 6, 8],
 };
+
+/** Algebra I foundations sequence (grade 8 through introductory/mid Algebra I). Admin-only. */
+export const ALGEBRA_SEQUENCE: string[] = [
+  "Integer, fraction and rational-number operations; order of operations; properties of equality.",
+  "Ratios, rates, proportional reasoning and percent change applied to multistep problems.",
+  "Expressions: combining like terms, distributive property, evaluating and translating word phrases.",
+  "One- and two-step equations, then multistep equations with variables on both sides.",
+  "Inequalities: solving, reversing the sign, and representing solutions on a number line.",
+  "Linear relationships: tables, slope as rate of change, intercepts, and graphing y = mx + b.",
+  "Systems and modeling: writing an equation from a situation, substitution, and checking reasonableness.",
+  "Exponents, scientific notation, radicals and an introduction to quadratic patterns; timed mixed review.",
+];
 
 const SECTION_RIGOR: Record<string, { rigor: string; moves: string[]; practice: string[]; home: string[] }> = {
   reading: {
@@ -114,6 +134,20 @@ export function sectionProfile(results: Record<string, any>): CurriculumSectionP
 
 const targetFor = (accuracy: number) => Math.min(100, Math.max(accuracy + 10, tachsTierFor(accuracy) === "red" ? 70 : tachsTierFor(accuracy) === "yellow" ? 85 : 92));
 
+/** 120- (or 60-) minute session agenda, scaled from the program's session length. */
+function sessionAgenda(minutes: number, section: CurriculumSectionProfile, skillLabelText: string, rigor: string, move: string, timed: boolean): CurriculumAgendaBlock[] {
+  const k = minutes / 120;
+  const m = (base: number) => Math.max(5, Math.round((base * k) / 5) * 5);
+  return [
+    { block: "Objectives & warm-up", minutes: m(10), detail: `State the session target for ${section.label} — ${skillLabelText} — and complete a short retrieval warm-up from the previous session.` },
+    { block: "Explicit instruction", minutes: m(30), detail: `${move} Rigor: ${rigor}` },
+    { block: "Guided practice", minutes: m(25), detail: `Worked-together items in ${skillLabelText}, consultant fading support; every step verbalized and misconceptions corrected on the spot.` },
+    { block: "Independent practice", minutes: m(25), detail: `Student works a 10–12 item ${skillLabelText} set alone; consultant circulates and records error types for the next session.` },
+    { block: "Timed practice", minutes: m(20), detail: timed ? `Full section-pace set under the TACHS time target, followed by a pacing debrief.` : `Short 8-item set at a relaxed time target to begin building pace without losing accuracy.` },
+    { block: "Exit check & assignment", minutes: m(10), detail: `4-item exit check, then assign the between-session practice and home reinforcement.` },
+  ];
+}
+
 /**
  * Builds a structured program-aligned curriculum: Tier 1 = 6 weeks, Tier 2 = 10 weeks, Tier 3 = 16 weeks,
  * two consultant-led sessions per week. Weakest sections/skills get the most weeks; strengths are maintained.
@@ -122,9 +156,13 @@ export function buildTachsCurriculum(input: { results: Record<string, any>; prog
   const program = TACHS_PROGRAMS[input.programKey];
   const profile = sectionProfile(input.results);
   const byRank = [...profile].sort((a, b) => a.priority_rank - b.priority_rank);
-  const weight = (t: TachsTierKey) => (t === "red" ? 3 : t === "yellow" ? 2 : 1);
+  const weight = (s: CurriculumSectionProfile) => {
+    const base = s.tier === "red" ? 3 : s.tier === "yellow" ? 2 : 1;
+    // Mathematics (Algebra I foundations) carries the largest block of time whenever it is not yet mastered.
+    return s.section_key === "mathematics" && s.tier !== "green" ? base + 1 : base;
+  };
   const rotation: CurriculumSectionProfile[] = [];
-  for (const s of byRank) for (let i = 0; i < weight(s.tier); i++) rotation.push(s);
+  for (const s of byRank) for (let i = 0; i < weight(s); i++) rotation.push(s);
   const strengths = profile.filter((s) => s.tier === "green");
   const maintain = strengths.length ? strengths : [byRank[byRank.length - 1]];
   const milestones = CURRICULUM_MILESTONES[input.programKey];
@@ -167,6 +205,38 @@ export function buildTachsCurriculum(input: { results: Record<string, any>; prog
         ],
       independent_practice: isFinal ? ["Light review only: redo the two most recent error-analysis sets."] : [r1.practice[(w - 1) % r1.practice.length], r2.practice[w % r2.practice.length], `${keep.label}: one 10-item maintenance set.`],
       home_reinforcement: isFinal ? ["Rest, sleep and a light 10-minute refresher the day before each session."] : [r1.home[(w - 1) % r1.home.length], ...(r2.home.length ? [r2.home[w % r2.home.length]] : [])],
+      sessions: (() => {
+        const dayFor = (i: number) => program.schedule_days ? program.schedule_days[i % program.schedule_days.length] : `Session ${i + 1}`;
+        const num = (i: number) => (w - 1) * program.sessions_per_week + i + 1;
+        if (isFinal) return [primary, secondary].slice(0, program.sessions_per_week).map((_, i) => ({
+          session: num(i), week: w, day_label: dayFor(i), minutes: program.session_minutes, section_focus: i === 0 ? "Full-length reassessment — sections 1–3" : "Full-length reassessment — sections 4–6",
+          objectives: ["Complete the reassessment under exam timing with no coaching.", "Produce a section-by-section comparison against the diagnostic."],
+          agenda: [
+            { block: "Set-up & instructions", minutes: 10, detail: "Exam conditions, materials, timing rules explained." },
+            { block: "Timed reassessment", minutes: program.session_minutes - 40, detail: i === 0 ? "Reading, Written Expression and Mathematics under section time limits." : "Figure Matrices, Paper Folding and Figure Classification under section time limits." },
+            { block: "Scoring & review", minutes: 20, detail: "Immediate scoring and section-by-section comparison with the diagnostic." },
+            { block: "Next steps", minutes: 10, detail: "Consultant records findings for the family summary (released only through the normal report workflow)." },
+          ],
+          exit_check: "Section-level score sheet completed and filed with the attempt record.",
+        }));
+        const pairs = [{ s: primary, sk: sk1, r: r1, move: r1.moves[(w - 1) % r1.moves.length] }, { s: secondary, sk: sk2, r: r2, move: r2.moves[w % r2.moves.length] }];
+        return Array.from({ length: program.sessions_per_week }, (_, i) => {
+          const pr = pairs[i % pairs.length];
+          return {
+            session: num(i), week: w, day_label: dayFor(i), minutes: program.session_minutes, section_focus: `${pr.s.label} — ${pr.sk.label}`,
+            objectives: [
+              `Score at least ${targetFor(pr.sk.accuracy)}% on the in-session ${pr.sk.label} set (diagnostic: ${pr.sk.presented ? `${pr.sk.correct}/${pr.sk.presented}` : `${pr.sk.accuracy}%`}).`,
+              `Explain the reasoning for every item aloud without prompting.`,
+              ...(pr.s.section_key === "mathematics" ? [`Apply the Algebra I focus of this week: ${ALGEBRA_SEQUENCE[(w - 1) % ALGEBRA_SEQUENCE.length]}`] : []),
+              `Maintain ${keep.label} with a short spiral set.`,
+            ],
+            agenda: sessionAgenda(program.session_minutes, pr.s, pr.sk.label, pr.r.rigor, pr.move, timed),
+            exit_check: `4-item exit check in ${pr.sk.label}; 3 of 4 correct moves the skill to spiral review, otherwise it repeats next session.`,
+          };
+        });
+      })(),
+      algebra_focus: isFinal ? null : ALGEBRA_SEQUENCE[(w - 1) % ALGEBRA_SEQUENCE.length],
+
       progress_check: isFinal
         ? "Final full-length reassessment compared section-by-section against this diagnostic; consultant prepares the family summary through the normal report approval workflow."
         : isMilestone ? `Timed progress check (week ${w}): two priority sections plus one strength section; compare to the diagnostic and re-weight the remaining weeks.` : null,
@@ -178,16 +248,29 @@ export function buildTachsCurriculum(input: { results: Record<string, any>; prog
     visibility: "ADMIN ONLY — never sent to families",
     title: `Personalized TACHS Curriculum — ${input.studentName}`,
     student_name: input.studentName, grade_level: input.gradeLevel, generated_at: input.generatedAt ?? new Date().toISOString(),
-    program: { key: program.key, name: program.name, duration_weeks: program.duration_weeks, sessions_per_week: program.sessions_per_week, total_sessions: program.duration_weeks * program.sessions_per_week, tier_badge: TACHS_TIERS[program.tier].badge },
+    program: {
+      key: program.key, name: program.name, duration_weeks: program.duration_weeks, sessions_per_week: program.sessions_per_week,
+      session_minutes: program.session_minutes, total_sessions: programSessions(program), total_hours: programHours(program),
+      schedule_days: program.schedule_days ? [...program.schedule_days] : null, schedule_label: programScheduleLabel(program),
+      tier_badge: TACHS_TIERS[program.tier].badge,
+    },
     overall_accuracy: clampPct(input.results?.overall_accuracy),
     section_profile: profile,
     priorities: byRank.filter((s) => s.tier !== "green").map((s) => s.label),
     strengths: strengths.map((s) => s.label),
     weeks,
     milestones: milestones.map((wk) => ({ week: wk, kind: wk === finalWeek ? "final_reassessment" as const : "progress_check" as const, description: wk === finalWeek ? "Full-length reassessment and next-step conference." : "Timed progress check on priority sections plus one strength section." })),
+    workbook_specifications: [
+      `Build one workbook unit per week (${finalWeek} units) mirroring the weekly focus sections and skills listed in this document.`,
+      `Each unit contains: a one-page skill explainer, 12 guided items, 12 independent items, one ${program.session_minutes >= 120 ? "20" : "10"}-minute timed set, and a 4-item exit check with an answer key on a separate page.`,
+      "Mathematics units follow the Algebra I foundations sequence week by week and are written for no-calculator work.",
+      "Ability units (Figure Matrices, Paper Folding, Figure Classification) use five answer choices; academic units use four.",
+      "All items must be originally authored by D.E.Bs. Do not copy or adapt questions from any commercial TACHS prep book or released exam.",
+      "Include a between-session home practice page per unit and a progress-check record sheet at each milestone week.",
+    ],
     consultant_notes: [
       "Mathematics is taught at grade 8 through introductory-to-mid Algebra I rigor; ability sections use TACHS-style five-choice visual reasoning.",
-      "Weeks are weighted toward the weakest sections (Tier 3 ×3, Tier 2 ×2, Tier 1 ×1) while each week keeps one strength section active.",
+      "Weeks are weighted toward the weakest sections (Tier 3 ×3, Tier 2 ×2, Tier 1 ×1, with Mathematics carrying an extra rotation whenever it is below mastery) while each week keeps one strength section active.",
       "Skill-level targets, diagnostic counts and this document are internal. Share only the approved parent report and At-Home Support Plan with families.",
     ],
   };

@@ -6,11 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Loader2, Printer, RefreshCw } from "lucide-react";
+import { ArrowLeft, Download, FileText, Loader2, Printer, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { tachsCurriculumApi, loadAdminDetail, TachsError } from "@/lib/tachs";
 import { PROGRAM_KEYS, TACHS_PROGRAMS, type TachsProgramKey } from "@/lib/tachsPrograms";
 import { buildTachsCurriculum, type TachsCurriculum } from "@/lib/tachsCurriculum";
+import { curriculumDocxBlob, curriculumFileStem, curriculumMarkdown } from "@/lib/tachsCurriculumDoc";
 
 /**
  * ADMIN-ONLY: Personalized TACHS Curriculum for /admin/tachs/:attemptId/curriculum.
@@ -57,6 +58,24 @@ export default function AdminTachsCurriculum() {
     } finally { setLoading(false); }
   };
 
+  const saveBlob = (blob: Blob, filename: string) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = filename; document.body.appendChild(a); a.click();
+    a.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+  const downloadMarkdown = () => {
+    if (!curriculum) return;
+    saveBlob(new Blob([curriculumMarkdown(curriculum)], { type: "text/markdown;charset=utf-8" }), `${curriculumFileStem(curriculum)}.md`);
+    toast.success("Markdown/TXT curriculum downloaded (internal copy).");
+  };
+  const downloadDocx = async () => {
+    if (!curriculum) return;
+    try {
+      saveBlob(await curriculumDocxBlob(curriculum), `${curriculumFileStem(curriculum)}.docx`);
+      toast.success("DOCX curriculum downloaded (internal copy).");
+    } catch (e) { toast.error(e instanceof Error ? e.message : "Could not build the DOCX file."); }
+  };
+
   useEffect(() => { if (authorized && attemptId) void generate(null); }, [authorized, attemptId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!authorized) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>;
@@ -76,8 +95,10 @@ export default function AdminTachsCurriculum() {
               <SelectTrigger className="w-72" aria-label="Program"><SelectValue placeholder="Program" /></SelectTrigger>
               <SelectContent>{PROGRAM_KEYS.map((k) => <SelectItem key={k} value={k}>{TACHS_PROGRAMS[k].name} · {TACHS_PROGRAMS[k].duration_weeks} wks</SelectItem>)}</SelectContent>
             </Select>
-            <Button variant="outline" size="sm" disabled={loading} onClick={() => generate(programKey)}><RefreshCw className="mr-1 h-4 w-4" /> Regenerate</Button>
-            <Button size="sm" disabled={!curriculum} onClick={() => window.print()}><Printer className="mr-1 h-4 w-4" /> Print — internal copy</Button>
+            <Button variant="outline" size="sm" disabled={loading} onClick={() => generate(programKey)} data-testid="curriculum-regenerate"><RefreshCw className="mr-1 h-4 w-4" /> Generate / Regenerate</Button>
+            <Button variant="outline" size="sm" disabled={!curriculum} onClick={() => void downloadDocx()} data-testid="curriculum-download-docx"><Download className="mr-1 h-4 w-4" /> Download DOCX</Button>
+            <Button variant="outline" size="sm" disabled={!curriculum} onClick={downloadMarkdown} data-testid="curriculum-download-md"><FileText className="mr-1 h-4 w-4" /> Download Markdown / TXT</Button>
+            <Button size="sm" disabled={!curriculum} onClick={() => window.print()} data-testid="curriculum-print"><Printer className="mr-1 h-4 w-4" /> Print / Save as PDF</Button>
           </div>
         </div>
       </header>
@@ -92,7 +113,7 @@ export default function AdminTachsCurriculum() {
           <>
             <Card className="print-break">
               <CardHeader><CardTitle className="text-2xl">{curriculum.title}</CardTitle>
-                <p className="text-sm text-muted-foreground">{curriculum.grade_level ? `Grade ${curriculum.grade_level} · ` : ""}{curriculum.program.name} · {curriculum.program.duration_weeks} weeks · {curriculum.program.sessions_per_week} sessions/week ({curriculum.program.total_sessions} sessions) · overall {curriculum.overall_accuracy}% · generated {new Date(curriculum.generated_at).toLocaleString()}{source === "local" ? " · built locally from the internal snapshot" : ""}</p>
+                <p className="text-sm text-muted-foreground">{curriculum.grade_level ? `Grade ${curriculum.grade_level} · ` : ""}{curriculum.program.name} · {curriculum.program.schedule_label} · overall {curriculum.overall_accuracy}% · generated {new Date(curriculum.generated_at).toLocaleString()}{source === "local" ? " · built locally from the internal snapshot" : ""}</p>
               </CardHeader>
               <CardContent className="grid gap-4 text-sm md:grid-cols-2">
                 <div><h3 className="font-semibold">Priority sections</h3><p>{curriculum.priorities.join(", ") || "None — all sections Tier 1"}</p></div>
@@ -105,6 +126,7 @@ export default function AdminTachsCurriculum() {
                     ))}</TableBody></Table>
                 </div>
                 <div className="md:col-span-2"><h3 className="font-semibold">Milestones</h3><ul className="list-disc pl-5">{curriculum.milestones.map((m) => <li key={m.week}>Week {m.week}: {m.description}</li>)}</ul></div>
+                <div className="md:col-span-2"><h3 className="font-semibold">Workbook development specifications</h3><ul className="list-disc pl-5">{curriculum.workbook_specifications.map((n, i) => <li key={i}>{n}</li>)}</ul></div>
                 <div className="md:col-span-2"><h3 className="font-semibold">Consultant notes</h3><ul className="list-disc pl-5">{curriculum.consultant_notes.map((n, i) => <li key={i}>{n}</li>)}</ul></div>
               </CardContent>
             </Card>
@@ -117,6 +139,17 @@ export default function AdminTachsCurriculum() {
                   <div><h4 className="font-semibold">Consultant-led lesson sequence</h4><ol className="list-decimal pl-5">{w.lesson_sequence.map((o, i) => <li key={i}>{o}</li>)}</ol></div>
                   <div><h4 className="font-semibold">Independent practice</h4><ul className="list-disc pl-5">{w.independent_practice.map((o, i) => <li key={i}>{o}</li>)}</ul></div>
                   <div><h4 className="font-semibold">At-home reinforcement</h4><ul className="list-disc pl-5">{w.home_reinforcement.map((o, i) => <li key={i}>{o}</li>)}</ul></div>
+                  {w.algebra_focus && <p className="md:col-span-2 text-sm"><strong>Algebra I foundations:</strong> {w.algebra_focus}</p>}
+                  <div className="md:col-span-2 space-y-3">
+                    {w.sessions.map((sn) => (
+                      <div key={sn.session} className="rounded-md border p-3" data-testid="curriculum-session">
+                        <p className="font-semibold">Session {sn.session} — {sn.day_label} · {sn.minutes} minutes · {sn.section_focus}</p>
+                        <ul className="list-disc pl-5 text-xs mt-1">{sn.objectives.map((o, i) => <li key={i}>{o}</li>)}</ul>
+                        <ul className="list-disc pl-5 text-xs mt-1">{sn.agenda.map((a, i) => <li key={i}><strong>{a.block} ({a.minutes} min):</strong> {a.detail}</li>)}</ul>
+                        <p className="text-xs mt-1"><strong>Exit check:</strong> {sn.exit_check}</p>
+                      </div>
+                    ))}
+                  </div>
                   {w.progress_check && <p className="md:col-span-2 rounded-md border border-primary/40 bg-primary/5 p-2"><strong>Progress check:</strong> {w.progress_check}</p>}
                 </CardContent>
               </Card>

@@ -171,29 +171,23 @@ export default function TachsResults() {
             <CardHeader>
               <CardDescription className="uppercase tracking-wide text-xs">Recommended service option</CardDescription>
               <CardTitle className="text-2xl">{p.name}</CardTitle>
-              <p className="text-sm">{p.duration_weeks} weeks · {p.sessions_per_week} sessions per week · regular tuition <strong className="text-base">{p.price_label}</strong></p>
+              <p className="text-sm">{p.schedule_label ?? `${p.duration_weeks} weeks · ${p.sessions_per_week} sessions per week`} · regular tuition <strong className="text-base">{p.price_label}</strong></p>
             </CardHeader>
             <CardContent className="grid gap-4 text-sm md:grid-cols-2">
               <div className="md:col-span-2 rounded-md border p-3" data-testid="pricing-panel">
                 <h3 className="font-semibold mb-2">Pricing</h3>
                 <Table>
-                  <TableCaption className="text-left px-0">Tuition, credit and processing fee are shown separately.</TableCaption>
+                  <TableCaption className="text-left px-0">All amounts shown include card processing.</TableCaption>
                   <TableBody>
                     <TableRow><TableCell scope="row">Regular tuition</TableCell><TableCell className="text-right">{usd2(pricing.regular_tuition_cents)}</TableCell></TableRow>
                     <TableRow><TableCell scope="row">Diagnostic Enrollment Credit{longDate(pricing.credit_expires_at) ? ` (enroll by ${longDate(pricing.credit_expires_at)})` : ""}</TableCell><TableCell className="text-right">− {usd2(pricing.credit_cents)}</TableCell></TableRow>
-                    <TableRow className="font-semibold"><TableCell scope="row">Tuition balance</TableCell><TableCell className="text-right">{usd2(pricing.balance_cents)}</TableCell></TableRow>
-                    <TableRow><TableCell scope="row">Stripe processing fee (pay in full)</TableCell><TableCell className="text-right">{usd2(pricing.fee_full_cents)}</TableCell></TableRow>
-                    <TableRow className="font-semibold"><TableCell scope="row">Total checkout charge (pay in full)</TableCell><TableCell className="text-right">{usd2(pricing.total_full_cents)}</TableCell></TableRow>
+                    <TableRow className="font-semibold"><TableCell scope="row">Tuition after credit</TableCell><TableCell className="text-right">{usd2(pricing.balance_cents)}</TableCell></TableRow>
+                    <TableRow className="font-semibold"><TableCell scope="row">Pay in full, including processing</TableCell><TableCell className="text-right">{usd2(pricing.total_full_cents)}</TableCell></TableRow>
+                    <TableRow><TableCell scope="row">{["One", "Two", "Three", "Four", "Five", "Six"][pricing.installments.count - 1] ?? pricing.installments.count}-payment option, including processing</TableCell><TableCell className="text-right">{pricing.installments.count} × {usd2(pricing.installments.charge_each_cents)} ({usd2(pricing.installments.total_charged_cents)})</TableCell></TableRow>
                   </TableBody>
                 </Table>
-                <h4 className="font-semibold mt-3 mb-1">Payment choices</h4>
-                <ul className="list-disc pl-5 space-y-1">
-                  <li><strong>Pay in full:</strong> {usd2(pricing.total_full_cents)} including the processing fee (tuition balance {usd2(pricing.balance_cents)}).</li>
-                  <li><strong>Installments:</strong> {pricing.installments.count} payments of {usd2(pricing.installments.charge_each_cents)}, each including the processing fee (each covers {usd2(pricing.installments.net_each_cents)} of tuition; total charged {usd2(pricing.installments.total_charged_cents)}).</li>
-                </ul>
-                <p className="text-xs text-muted-foreground mt-2">{pricing.installment_fee_note}</p>
-                <p className="text-xs text-muted-foreground mt-1">{pricing.credit_terms}{longDate(pricing.credit_expires_at) ? ` Credit valid through ${longDate(pricing.credit_expires_at)}.` : ""}</p>
-                <p className="text-xs text-muted-foreground mt-1">{pricing.domestic_card_note}</p>
+                <p className="text-xs text-muted-foreground mt-2">{pricing.simple_note}</p>
+
               </div>
               <div>
                 <h3 className="font-semibold mb-1">Focus</h3>
