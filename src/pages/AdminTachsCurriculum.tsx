@@ -83,22 +83,12 @@ export default function AdminTachsCurriculum() {
   return (
     <div className="min-h-screen bg-background">
       <SEO title="TACHS Curriculum (Admin) | D.E.Bs" description="Consultant-only personalized TACHS curriculum." path={`/admin/tachs/${attemptId}/curriculum`} noIndex />
-      <style>{`@media print { .no-print { display: none !important; } .print-break { break-inside: avoid; } body { font-size: 11px; } }`}</style>
+      <style>{`@page { size: Letter portrait; margin: 0.55in; } @media print { .no-print { display: none !important; } .print-break { break-inside: avoid; } body { font-size: 11px; } }`}</style>
       <header className="border-b bg-card no-print">
         <div className="container mx-auto flex flex-wrap items-center justify-between gap-2 px-4 py-4">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="sm" onClick={() => navigate(`/admin/tachs/${attemptId}`)}><ArrowLeft className="mr-1 h-4 w-4" /> Back to attempt</Button>
-            <h1 className="text-xl font-bold text-primary">Personalized TACHS Curriculum</h1>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Select value={programKey ?? ""} onValueChange={(v) => { setProgramKey(v as TachsProgramKey); void generate(v as TachsProgramKey); }}>
-              <SelectTrigger className="w-72" aria-label="Program"><SelectValue placeholder="Program" /></SelectTrigger>
-              <SelectContent>{PROGRAM_KEYS.map((k) => <SelectItem key={k} value={k}>{TACHS_PROGRAMS[k].name} · {TACHS_PROGRAMS[k].duration_weeks} wks</SelectItem>)}</SelectContent>
-            </Select>
-            <Button variant="outline" size="sm" disabled={loading} onClick={() => generate(programKey)} data-testid="curriculum-regenerate"><RefreshCw className="mr-1 h-4 w-4" /> Generate / Regenerate</Button>
-            <Button variant="outline" size="sm" disabled={!curriculum} onClick={() => void downloadDocx()} data-testid="curriculum-download-docx"><Download className="mr-1 h-4 w-4" /> Download DOCX</Button>
-            <Button variant="outline" size="sm" disabled={!curriculum} onClick={downloadMarkdown} data-testid="curriculum-download-md"><FileText className="mr-1 h-4 w-4" /> Download Markdown / TXT</Button>
-            <Button size="sm" disabled={!curriculum} onClick={() => window.print()} data-testid="curriculum-print"><Printer className="mr-1 h-4 w-4" /> Print / Save as PDF</Button>
+            <h1 className="text-xl font-bold text-primary">Personalized TACHS Curriculum — Based on Identified Skill Gaps</h1>
           </div>
         </div>
       </header>
@@ -107,16 +97,33 @@ export default function AdminTachsCurriculum() {
         <div className="rounded-md border-2 border-destructive bg-destructive/5 p-4 text-sm font-bold" role="note" data-testid="curriculum-admin-banner">
           ADMIN ONLY — this curriculum uses internal skill metrics and is never sent to families. Share only the approved parent report and At-Home Support Plan.
         </div>
+        <section className="no-print space-y-3 rounded-md border bg-card p-4" aria-label="Curriculum controls">
+          <div className="flex flex-wrap items-end gap-3">
+            <label className="text-sm font-medium">Selected program
+              <Select value={programKey ?? ""} onValueChange={(v) => { setProgramKey(v as TachsProgramKey); void generate(v as TachsProgramKey); }}>
+                <SelectTrigger className="mt-1 w-72" aria-label="Program"><SelectValue placeholder="Program" /></SelectTrigger>
+                <SelectContent>{PROGRAM_KEYS.map((k) => <SelectItem key={k} value={k}>{TACHS_PROGRAMS[k].name} · {TACHS_PROGRAMS[k].duration_weeks} wks</SelectItem>)}</SelectContent>
+              </Select>
+            </label>
+            <Button disabled={loading} onClick={() => generate(programKey)} data-testid="curriculum-regenerate"><RefreshCw className="mr-1 h-4 w-4" /> Generate / Regenerate Curriculum</Button>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" disabled={!curriculum} onClick={() => void downloadDocx()} data-testid="curriculum-download-docx"><Download className="mr-1 h-4 w-4" /> Download Skill-Gap Curriculum — DOCX</Button>
+            <Button variant="outline" disabled={!curriculum} onClick={downloadMarkdown} data-testid="curriculum-download-md"><FileText className="mr-1 h-4 w-4" /> Download Skill-Gap Curriculum — Markdown/TXT</Button>
+            <Button variant="outline" disabled={!curriculum} onClick={() => window.print()} data-testid="curriculum-print"><Printer className="mr-1 h-4 w-4" /> Print / Save Curriculum as PDF</Button>
+          </div>
+          <p className="text-sm text-muted-foreground">Use the DOCX or text download as the source document for workbook creation.</p>
+        </section>
         {loading && <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Generating curriculum…</div>}
         {error && <Card className="border-destructive"><CardContent className="pt-6 text-sm">{error}</CardContent></Card>}
         {curriculum && !loading && (
           <>
             <Card className="print-break">
-              <CardHeader><CardTitle className="text-2xl">{curriculum.title}</CardTitle>
-                <p className="text-sm text-muted-foreground">{curriculum.grade_level ? `Grade ${curriculum.grade_level} · ` : ""}{curriculum.program.name} · {curriculum.program.schedule_label} · overall {curriculum.overall_accuracy}% · generated {new Date(curriculum.generated_at).toLocaleString()}{source === "local" ? " · built locally from the internal snapshot" : ""}</p>
+              <CardHeader><CardTitle className="text-2xl">{curriculum.student_name}</CardTitle>
+                <p className="text-sm text-muted-foreground">{curriculum.grade_level ? `Grade ${curriculum.grade_level} · ` : ""}Score {curriculum.overall_accuracy}% · {curriculum.program.tier_badge} · {curriculum.program.name} · {curriculum.program.duration_weeks} weeks · {curriculum.program.total_sessions} sessions · {curriculum.program.total_hours} hours{source === "local" ? " · built locally from the internal snapshot" : ""}</p>
               </CardHeader>
               <CardContent className="grid gap-4 text-sm md:grid-cols-2">
-                <div><h3 className="font-semibold">Priority sections</h3><p>{curriculum.priorities.join(", ") || "None — all sections Tier 1"}</p></div>
+                <div><h3 className="font-semibold">ADMIN ONLY priority summary</h3><p>{curriculum.priorities.join(", ") || "None — all sections Tier 1"}</p></div>
                 <div><h3 className="font-semibold">Strengths to maintain</h3><p>{curriculum.strengths.join(", ") || "None yet"}</p></div>
                 <div className="md:col-span-2 overflow-x-auto">
                   <Table><TableHeader><TableRow><TableHead>#</TableHead><TableHead>Section</TableHead><TableHead>Score</TableHead><TableHead>Tier</TableHead><TableHead>Weakest skills (internal)</TableHead></TableRow></TableHeader>

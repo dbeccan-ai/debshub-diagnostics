@@ -162,11 +162,18 @@ describe("admin report workspace separation", () => {
 
   it("has distinct safe and internal print boundaries", () => {
     expect(parent).toContain("Print Parent Report");
-    expect(parent).toContain('data-print-surface="parent"');
+    expect(parent).toContain('/parent-report/print?print=1');
     expect(parent).not.toMatch(/Print internal report|Print Internal Audit/);
     expect(internal).toContain("Print Internal Audit — not for families");
     expect(internal).toContain('data-print-surface="internal"');
-    expect(page).toMatch(/body\.printing-tachs-parent \[data-print-surface="parent"\]/);
+    expect(page).not.toMatch(/body\.printing-tachs-parent/);
+  });
+
+  it("makes the admin-only curriculum available from both report and list views", () => {
+    expect(parent).toContain("Generate / Download Skill-Gap Curriculum");
+    expect(parent).toContain('data-testid="parent-curriculum-action"');
+    expect(page).toContain("Curriculum</span>");
+    expect(page.match(/\/admin\/tachs\/\$\{[^}]+\}\/curriculum/g)?.length).toBeGreaterThanOrEqual(3);
   });
 
   it("separates approval from sending and requires an explicit safe-content confirmation", () => {

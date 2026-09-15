@@ -23,6 +23,7 @@ import AdminFollowUps from "./pages/AdminFollowUps";
 import AdminTachs from "./pages/AdminTachs";
 import AdminTachsContentAudit from "./pages/AdminTachsContentAudit";
 import AdminTachsCurriculum from "./pages/AdminTachsCurriculum";
+import AdminTachsParentPrint from "./pages/AdminTachsParentPrint";
 import Register from "./pages/Register";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import ManualGrading from "./pages/ManualGrading";
@@ -88,6 +89,7 @@ const App = () => (
             <Route path="/admin/tachs/content-audit" element={<AdminTachsContentAudit />} />
             <Route path="/admin/tachs" element={<AdminTachs />} />
             <Route path="/admin/tachs/:attemptId/curriculum" element={<AdminTachsCurriculum />} />
+            <Route path="/admin/tachs/:attemptId/parent-report/print" element={<AdminTachsParentPrint />} />
             <Route path="/admin/tachs/:attemptId" element={<AdminTachs />} />
             <Route path="/register" element={<Register />} />
             <Route path="/school-setup" element={<SchoolSetup />} />

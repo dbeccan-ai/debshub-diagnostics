@@ -217,8 +217,8 @@ export default function AdminTachs() {
     return <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${tone}`}>{v}</span>;
   };
 
-  /** "parent" and "home-plan" print only family-safe surfaces; "internal" is the admin-only audit. */
-  const printSurface = (surface: "parent" | "internal" | "home-plan") => {
+  /** "home-plan" prints the safe plan; "internal" prints the admin-only audit. Parent report uses its dedicated route. */
+  const printSurface = (surface: "internal" | "home-plan") => {
     const bodyClass = `printing-tachs-${surface}`;
     document.body.classList.add(bodyClass);
     const cleanup = () => document.body.classList.remove(bodyClass);
@@ -399,6 +399,7 @@ export default function AdminTachs() {
                       <TableCell className="whitespace-nowrap text-right">
                         <div className="flex justify-end gap-2">
                           <Button size="sm" variant="outline" onClick={() => openDetail(a.id)}>{a.status === "completed" && reportStatusOf(a) === "draft" ? "Review" : "Details"}</Button>
+                          {a.status === "completed" && <Button size="sm" variant="outline" onClick={() => navigate(`/admin/tachs/${a.id}/curriculum`)}><BookOpen className="h-4 w-4" /><span className="ml-1 hidden lg:inline">Curriculum</span></Button>}
                           <Button size="sm" variant="outline" disabled={!canSend(a) || busy === a.id} title={canSend(a) ? "Send the approved parent report" : "Review and approve the report first"} onClick={() => openDetail(a.id)}>
                             {busy === a.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
                             <span className="ml-1 hidden lg:inline">Send</span>
@@ -430,10 +431,6 @@ export default function AdminTachs() {
               </DialogHeader>
 
               <style>{`@media print {
-                body.printing-tachs-parent * { visibility: hidden !important; }
-                body.printing-tachs-parent [data-print-surface="parent"],
-                body.printing-tachs-parent [data-print-surface="parent"] * { visibility: visible !important; }
-                body.printing-tachs-parent [data-print-surface="parent"] { position: absolute; inset: 0; width: 100%; padding: 24px; background: white; }
                 body.printing-tachs-internal * { visibility: hidden !important; }
                 body.printing-tachs-internal [data-print-surface="internal"],
                 body.printing-tachs-internal [data-print-surface="internal"] * { visibility: visible !important; }
@@ -456,6 +453,15 @@ export default function AdminTachs() {
                     This tab shows exactly what Kecha will receive. Nothing in the Internal Diagnostic Audit tab is included.
                   </div>
 
+                  {detail.attempt.status === "completed" && (
+                    <section className="rounded-md border-2 border-primary bg-primary/5 p-4 print:hidden" data-testid="parent-curriculum-action">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div><h3 className="font-semibold">Admin-only skill-gap curriculum</h3><p className="text-sm text-muted-foreground">Generate the consultant workbook source from the stored diagnostic gaps. This is never included in the family report.</p></div>
+                        <Button onClick={() => navigate(`/admin/tachs/${detail.attempt.id}/curriculum`)}><BookOpen className="mr-1 h-4 w-4" /> Generate / Download Skill-Gap Curriculum</Button>
+                      </div>
+                    </section>
+                  )}
+
                   <div className="grid gap-3 md:grid-cols-[1fr_auto] print:hidden">
                     <section className="rounded-md border p-3" data-testid="delivery-status">
                       <h3 className="font-semibold">Delivery status</h3>
@@ -468,7 +474,7 @@ export default function AdminTachs() {
                       <Button size="sm" variant="outline" onClick={() => window.open(`/tachs/results/${detail.attempt.id}`, "_blank", "noopener,noreferrer")}>
                         Preview Parent Report
                       </Button>
-                      <Button size="sm" variant="outline" onClick={() => printSurface("parent")}><Printer className="mr-1 h-4 w-4" /> Print Parent Report</Button>
+                      <Button size="sm" variant="outline" onClick={() => window.open(`/admin/tachs/${detail.attempt.id}/parent-report/print?print=1`, "_blank", "noopener,noreferrer")}><Printer className="mr-1 h-4 w-4" /> Print Parent Report</Button>
                     </div>
                   </div>
 
