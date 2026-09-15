@@ -76,6 +76,7 @@ export default function AdminTachsParentPrint() {
           .print-section { break-before: auto !important; margin-top: 14pt !important; }
           .parent-print-sheet [data-testid="home-support-plan"] { border: 0 !important; box-shadow: none !important; }
           .parent-print-sheet [data-testid="home-support-plan"] > div { padding: 0 !important; }
+          .parent-print-sheet [data-testid="home-support-plan"] .grid > div { break-inside: avoid-page !important; page-break-inside: avoid !important; }
         }
         @media print and (orientation: landscape) {
           .parent-print-sheet { width: 100% !important; max-width: none !important; }

@@ -79,7 +79,8 @@
 - [x] TACHS At-Home Support Plan + admin-only curriculum — preview verified; backend deploy of tachs-engine, send-tachs-results, tachs-curriculum still pending owner authorization
 
 ## TACHS parent print and curriculum discoverability (authorized 2026-09-15)
-- [x] Dedicated parent-safe Letter print route (browser PDF verification pending)
+- [x] Dedicated parent-safe Letter print route; Chromium PDF verified centered and unclipped
 - [x] Curriculum actions in attempt list and parent-report tab
 - [x] Curriculum page summary and explicit DOCX/TXT/PDF controls
-- [ ] Full tests, typecheck, build, browser download QA, and frontend publication
+- [x] Full tests, typecheck, build, and browser download QA
+- [ ] Frontend publication
