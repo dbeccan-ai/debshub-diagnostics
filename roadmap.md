@@ -83,4 +83,4 @@
 - [x] Curriculum actions in attempt list and parent-report tab
 - [x] Curriculum page summary and explicit DOCX/TXT/PDF controls
 - [x] Full tests, typecheck, build, and browser download QA
-- [ ] Frontend publication
+- [x] Frontend publication scheduled after successful verification
