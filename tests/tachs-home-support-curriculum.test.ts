@@ -98,7 +98,8 @@ describe("parent-facing surfaces: home plan present, curriculum absent", () => {
     expect(admin).toContain('data-print-surface="home-plan"');
     expect(admin).toMatch(/body\.printing-tachs-home-plan \* \{ visibility: hidden !important; \}/);
     const parentTab = admin.slice(admin.indexOf('<TabsContent value="parent"'), admin.indexOf('<TabsContent value="internal"'));
-    expect(parentTab).not.toMatch(/curriculum/i);
+    expect(parentTab).toContain("Generate / Download Skill-Gap Curriculum");
+    expect(parentTab).toMatch(/print:hidden/);
   });
 });
 
@@ -150,6 +151,8 @@ describe("Personalized TACHS Curriculum — admin only", () => {
     const admin = readFileSync("src/pages/AdminTachs.tsx", "utf8");
     const internal = admin.slice(admin.indexOf('<TabsContent value="internal"'));
     expect(internal).toContain("Generate Personalized TACHS Curriculum");
+    expect(admin).toContain("Generate / Download Skill-Gap Curriculum");
+    expect(admin).toContain("Curriculum</span>");
   });
 });
 
@@ -200,9 +203,30 @@ describe("8-week intensive curriculum (admin-only)", () => {
     // The download controls live only on the admin-guarded curriculum page.
     const admin = readFileSync("src/pages/AdminTachsCurriculum.tsx", "utf8");
     for (const t of ["curriculum-download-docx", "curriculum-download-md", "curriculum-regenerate", "curriculum-print"]) expect(admin).toContain(t);
+    for (const label of ["Personalized TACHS Curriculum — Based on Identified Skill Gaps", "Generate / Regenerate Curriculum", "Download Skill-Gap Curriculum — DOCX", "Download Skill-Gap Curriculum — Markdown/TXT", "Print / Save Curriculum as PDF", "Use the DOCX or text download as the source document for workbook creation."]) expect(admin).toContain(label);
     expect(admin).toMatch(/has_role|user_roles|admin/i);
     // Server endpoint still validates the admin role before reading attempt data.
     const fn = readFileSync("supabase/functions/tachs-curriculum/index.ts", "utf8");
     expect(fn.indexOf('eq("role", "admin")')).toBeLessThan(fn.indexOf('from("tachs_attempts")'));
+  });
+});
+
+describe("dedicated parent-report print surface", () => {
+  const print = strip(readFileSync("src/pages/AdminTachsParentPrint.tsx", "utf8"));
+  it("is admin guarded, uses the safe parent preview, and is routed before the dynamic detail route", () => {
+    expect(print).toMatch(/eq\("role", "admin"\)/);
+    expect(print).toMatch(/const report = detail\.parent_preview/);
+    expect(print).not.toMatch(/audit|correct_key|rationale|selected_key|difficulty_path|payment_intent|checkout_session|report_notes|email_status|curriculum/i);
+    const app = readFileSync("src/App.tsx", "utf8");
+    expect(app).toContain('/admin/tachs/:attemptId/parent-report/print');
+    expect(app.indexOf('/admin/tachs/:attemptId/parent-report/print')).toBeLessThan(app.indexOf('path="/admin/tachs/:attemptId"'));
+  });
+  it("prints Letter portrait at full centered width with a 12pt minimum and controlled breaks", () => {
+    expect(print).toMatch(/@page \{ size: Letter portrait; margin: 0\.55in; \}/);
+    expect(print).toMatch(/body \{ font-size: 12pt !important/);
+    expect(print).toMatch(/\.parent-print-sheet \{ width: 100% !important; max-width: none !important; min-width: 0 !important; margin: 0 auto !important/);
+    expect(print).toMatch(/table \{ width: 100% !important; table-layout: fixed !important/);
+    expect(print).toMatch(/break-inside: avoid-page/);
+    expect(print).toContain('data-testid="parent-report-print-surface"');
   });
 });
