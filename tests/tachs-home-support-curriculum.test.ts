@@ -224,6 +224,7 @@ describe("dedicated parent-report print surface", () => {
   it("prints Letter portrait at full centered width with a 12pt minimum and controlled breaks", () => {
     expect(print).toMatch(/@page \{ size: Letter portrait; margin: 0\.55in; \}/);
     expect(print).toMatch(/body \{ font-size: 12pt !important/);
+    expect(print).toMatch(/body \.parent-print-sheet, body \.parent-print-sheet \* \{ visibility: visible !important/);
     expect(print).toMatch(/\.parent-print-sheet \{ width: 100% !important; max-width: none !important; min-width: 0 !important; margin: 0 auto !important/);
     expect(print).toMatch(/table \{ width: 100% !important; table-layout: fixed !important/);
     expect(print).toMatch(/break-inside: avoid-page/);

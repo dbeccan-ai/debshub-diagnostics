@@ -66,6 +66,7 @@ export default function AdminTachsParentPrint() {
         @media print {
           html, body, #root { width: 100% !important; min-width: 0 !important; margin: 0 !important; padding: 0 !important; overflow: visible !important; }
           body { font-size: 12pt !important; line-height: 1.35 !important; background: white !important; }
+          body .parent-print-sheet, body .parent-print-sheet * { visibility: visible !important; }
           .parent-print-toolbar { display: none !important; }
           .parent-print-sheet { width: 100% !important; max-width: none !important; min-width: 0 !important; margin: 0 auto !important; padding: 0 !important; border: 0 !important; box-shadow: none !important; transform: none !important; position: static !important; overflow: visible !important; }
           .parent-print-sheet table { width: 100% !important; table-layout: fixed !important; border-collapse: collapse !important; }
