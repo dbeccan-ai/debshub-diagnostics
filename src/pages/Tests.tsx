@@ -316,6 +316,28 @@ const Tests = () => {
               </CardContent>
             </Card>
             ); })()}
+
+            {/* SHSAT Readiness Card */}
+            <Card className="cursor-pointer hover:shadow-lg transition-all hover:border-primary group relative" onClick={() => navigate("/shsat")}>
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                <Badge variant="secondary" className="text-xs px-3">NEW · NYC SPECIALIZED HIGH SCHOOLS</Badge>
+              </div>
+              <CardHeader className="text-center pb-2">
+                <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
+                  <GraduationCap className="h-10 w-10 text-primary" />
+                </div>
+                <CardTitle className="text-2xl">SHSAT Readiness Diagnostic</CardTitle>
+                <CardDescription className="text-base">
+                  Identify foundation gaps, advanced application readiness, and test-performance needs before preparation begins.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="text-center space-y-2">
+                <div><Badge variant="secondary" className="text-sm">Grades 6–9 · ELA + Math</Badge></div>
+                <Button size="sm" className="w-full" onClick={(e) => { e.stopPropagation(); navigate("/shsat"); }}>
+                  Start SHSAT Readiness Check
+                </Button>
+              </CardContent>
+            </Card>
           </div>
         </main>
       </div>

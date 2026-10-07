@@ -84,3 +84,9 @@
 - [x] Curriculum page summary and explicit DOCX/TXT/PDF controls
 - [x] Full tests, typecheck, build, and browser download QA
 - [x] Frontend publication scheduled after successful verification
+
+## SHSAT Diagnostic Hub — Phase 1 (2026-10-07)
+- [x] Config (dates/structure/taxonomy) in `src/lib/shsatConfig.ts`
+- [x] Schema: shsat_taxonomy (52 seeded), shsat_items, shsat_intakes, shsat_settings
+- [x] /shsat landing + alert, /shsat/entry-gate, /shsat/next, /admin/shsat, Tests card
+- [ ] Proprietary item loading, prerequisite tagging, calibration, adaptive routing, simulation, parent report — awaiting owner content

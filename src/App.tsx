@@ -51,6 +51,10 @@ import TachsCheckout from "./pages/TachsCheckout";
 import TachsPaymentSuccess from "./pages/TachsPaymentSuccess";
 import TachsAttempt from "./pages/TachsAttempt";
 import TachsResults from "./pages/TachsResults";
+import ShsatLanding from "./pages/ShsatLanding";
+import ShsatEntryGate from "./pages/ShsatEntryGate";
+import ShsatNext from "./pages/ShsatNext";
+import AdminShsat from "./pages/AdminShsat";
 import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
@@ -114,6 +118,10 @@ const App = () => (
             <Route path="/tachs/test/:attemptId" element={<TachsAttempt />} />
 
             <Route path="/tachs/results/:attemptId" element={<TachsResults />} />
+            <Route path="/shsat" element={<ShsatLanding />} />
+            <Route path="/shsat/entry-gate" element={<ShsatEntryGate />} />
+            <Route path="/shsat/next" element={<ShsatNext />} />
+            <Route path="/admin/shsat" element={<AdminShsat />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

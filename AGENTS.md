@@ -1,0 +1,1 @@
+- SHSAT config (dates, structure, taxonomy) lives only in src/lib/shsatConfig.ts; SHSAT placement is manual-only until calibration (why: dates change yearly, cutoffs not yet calibrated).
