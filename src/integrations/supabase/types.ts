@@ -738,6 +738,242 @@ export type Database = {
         }
         Relationships: []
       }
+      shsat_intakes: {
+        Row: {
+          created_at: string
+          current_grade: string
+          current_school: string | null
+          ela_performance_band: string | null
+          id: string
+          math_performance_band: string | null
+          nyc_resident: boolean | null
+          parent_email: string
+          pathway: string
+          placement: string | null
+          placement_notes: string | null
+          placement_set_at: string | null
+          placement_set_by: string | null
+          prior_shsat_practice: boolean | null
+          school_id: string | null
+          shsat_registered: string | null
+          student_first_name: string
+          student_last_name: string
+          target_schools: string[]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_grade: string
+          current_school?: string | null
+          ela_performance_band?: string | null
+          id?: string
+          math_performance_band?: string | null
+          nyc_resident?: boolean | null
+          parent_email: string
+          pathway: string
+          placement?: string | null
+          placement_notes?: string | null
+          placement_set_at?: string | null
+          placement_set_by?: string | null
+          prior_shsat_practice?: boolean | null
+          school_id?: string | null
+          shsat_registered?: string | null
+          student_first_name: string
+          student_last_name: string
+          target_schools?: string[]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_grade?: string
+          current_school?: string | null
+          ela_performance_band?: string | null
+          id?: string
+          math_performance_band?: string | null
+          nyc_resident?: boolean | null
+          parent_email?: string
+          pathway?: string
+          placement?: string | null
+          placement_notes?: string | null
+          placement_set_at?: string | null
+          placement_set_by?: string | null
+          prior_shsat_practice?: boolean | null
+          school_id?: string | null
+          shsat_registered?: string | null
+          student_first_name?: string
+          student_last_name?: string
+          target_schools?: string[]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shsat_intakes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shsat_items: {
+        Row: {
+          adaptive_pool_eligible: boolean
+          calibration_status: string
+          choices: Json
+          code: string
+          cognitive_demand: string | null
+          correct_answer: string
+          created_at: string
+          created_by: string | null
+          difficulty_level: number | null
+          error_type_tags: string[]
+          explanation: string | null
+          grade_pathway: string
+          id: string
+          intervention_strand: string | null
+          is_active: boolean
+          item_format: string
+          passage_set_id: string | null
+          prerequisite_grade_band: string | null
+          prerequisite_skill: string | null
+          primary_domain: string
+          program: string
+          section: string
+          source_reference: Json
+          source_type: string
+          source_year: number | null
+          stem: string
+          tested_skill: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          adaptive_pool_eligible?: boolean
+          calibration_status?: string
+          choices?: Json
+          code: string
+          cognitive_demand?: string | null
+          correct_answer: string
+          created_at?: string
+          created_by?: string | null
+          difficulty_level?: number | null
+          error_type_tags?: string[]
+          explanation?: string | null
+          grade_pathway?: string
+          id?: string
+          intervention_strand?: string | null
+          is_active?: boolean
+          item_format?: string
+          passage_set_id?: string | null
+          prerequisite_grade_band?: string | null
+          prerequisite_skill?: string | null
+          primary_domain: string
+          program?: string
+          section: string
+          source_reference?: Json
+          source_type?: string
+          source_year?: number | null
+          stem: string
+          tested_skill: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          adaptive_pool_eligible?: boolean
+          calibration_status?: string
+          choices?: Json
+          code?: string
+          cognitive_demand?: string | null
+          correct_answer?: string
+          created_at?: string
+          created_by?: string | null
+          difficulty_level?: number | null
+          error_type_tags?: string[]
+          explanation?: string | null
+          grade_pathway?: string
+          id?: string
+          intervention_strand?: string | null
+          is_active?: boolean
+          item_format?: string
+          passage_set_id?: string | null
+          prerequisite_grade_band?: string | null
+          prerequisite_skill?: string | null
+          primary_domain?: string
+          program?: string
+          section?: string
+          source_reference?: Json
+          source_type?: string
+          source_year?: number | null
+          stem?: string
+          tested_skill?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: []
+      }
+      shsat_settings: {
+        Row: {
+          assessment_enabled: boolean
+          id: number
+          placement_rules_calibrated: boolean
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          assessment_enabled?: boolean
+          id?: number
+          placement_rules_calibrated?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          assessment_enabled?: boolean
+          id?: number
+          placement_rules_calibrated?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      shsat_taxonomy: {
+        Row: {
+          code: string
+          created_at: string
+          domain: string
+          id: string
+          is_active: boolean
+          section: string
+          skill: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          domain: string
+          id?: string
+          is_active?: boolean
+          section: string
+          skill: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          domain?: string
+          id?: string
+          is_active?: boolean
+          section?: string
+          skill?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       tachs_attempt_events: {
         Row: {
           actor_id: string | null
