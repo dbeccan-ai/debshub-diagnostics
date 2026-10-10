@@ -267,7 +267,7 @@ export function finalizeWeek(raw: any, spec: WeekSpec, subject: Subject, session
   if (items.length < TIER3_PLAN.min_items_per_week) e.push(`${W}: needs at least ${TIER3_PLAN.min_items_per_week} distinct items (got ${items.length})`);
   for (const r of ["guided", "independent", "review", "checkpoint"]) if (!roles.has(r)) e.push(`${W}: missing ${r} items`);
   // Subject guard
-  if (subject === "ela" && items.some((it) => /\d+\s*[+×÷*−-]\s*\d+\s*=/.test(it.prompt))) e.push(`${W}: math content in an ELA plan`);
+  if (subject === "ela" && items.some((it) => /\d+\s*[+×÷*]\s*\d+|\d+\s*[−-]\s*\d+\s*=|\bsolve for\b|\bequation\b/i.test(it.prompt))) e.push(`${W}: math content in an ELA plan`);
   if (subject === "math" && items.filter((it) => /\d/.test(it.prompt + (it.passage ?? ""))).length < Math.ceil(items.length / 2)) e.push(`${W}: Math plan items lack mathematical content`);
 
   if (e.length) return { week: null, errors: e };
