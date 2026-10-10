@@ -90,3 +90,8 @@
 - [x] Schema: shsat_taxonomy (52 seeded), shsat_items, shsat_intakes, shsat_settings
 - [x] /shsat landing + alert, /shsat/entry-gate, /shsat/next, /admin/shsat, Tests card
 - [ ] Proprietary item loading, prerequisite tagging, calibration, adaptive routing, simulation, parent report — awaiting owner content
+
+## General curriculum — Tier 3 intensive (2026-10-10)
+- [x] Shared config/validation, batched generation, v2 UI, tests
+- [ ] Deploy generate-curriculum (awaiting approval)
+- [ ] Persist plans + record checkpoint evidence (future)

@@ -5,6 +5,8 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { IntensiveCurriculumView } from "@/components/IntensiveCurriculumView";
+import type { IntensiveCurriculum } from "@/lib/generalCurriculum";
 import { 
   ArrowLeft, BookOpen, Target, CheckCircle, XCircle, 
   Lightbulb, Clock, Play, ChevronDown, ChevronUp, Loader2
@@ -71,6 +73,9 @@ const Curriculum = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<CurriculumData | null>(null);
+  const [intensive, setIntensive] = useState<IntensiveCurriculum | null>(null);
+  const [isStaff, setIsStaff] = useState(false);
+  const [reloadKey, setReloadKey] = useState<{ grade: number | null }>({ grade: null });
   const [expandedWeeks, setExpandedWeeks] = useState<number[]>([1]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
@@ -90,14 +95,26 @@ const Curriculum = () => {
 
         toast.loading("Generating your personalized curriculum...", { id: "curriculum" });
 
+        const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", user.id);
+        setIsStaff(!!roles?.some((r) => r.role === "admin" || r.role === "teacher"));
+
         const { data: result, error } = await supabase.functions.invoke("generate-curriculum", {
-          body: { attemptId },
+          body: { attemptId, ...(reloadKey.grade !== null ? { confirmedEnrolledGrade: reloadKey.grade } : {}) },
         });
 
-        if (error) throw new Error(error.message);
-        if (!result || !result.curriculum) throw new Error("Invalid curriculum data");
-
-        setData(result);
+        if (error) {
+          let msg = error.message;
+          try { msg = (await (error as any).context?.json())?.error || msg; } catch { /* keep message */ }
+          throw new Error(msg);
+        }
+        if (result?.schemaVersion === 2 && Array.isArray(result.weeks)) {
+          setIntensive(result);
+          setData(result);
+        } else {
+          if (!result || !result.curriculum) throw new Error("Invalid curriculum data");
+          setIntensive(null);
+          setData(result);
+        }
         toast.success("Curriculum ready!", { id: "curriculum" });
       } catch (err: any) {
         console.error("Error generating curriculum:", err);
@@ -109,7 +126,7 @@ const Curriculum = () => {
     };
 
     if (attemptId) generateCurriculum();
-  }, [attemptId, navigate]);
+  }, [attemptId, navigate, reloadKey]);
 
   const toggleWeek = (week: number) => {
     setExpandedWeeks(prev => 
@@ -184,6 +201,24 @@ const Curriculum = () => {
     );
   }
 
+  if (intensive) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-amber-50">
+        <header className="border-b border-slate-200 bg-white/80 print:hidden">
+          <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
+            <Button variant="ghost" size="sm" onClick={() => navigate(`/results/${attemptId}`)}><ArrowLeft className="mr-2 h-4 w-4" />Back to Results</Button>
+            <Badge className={getTierColor(data.tier)}>{data.tier}</Badge>
+          </div>
+        </header>
+        <main className="mx-auto max-w-5xl px-4 py-6">
+          <h1 className="mb-1 text-2xl font-bold text-slate-800">{data.studentName}'s Intensive Learning Plan</h1>
+          <p className="mb-6 text-slate-600">{data.testName} · Score {data.score}%</p>
+          <IntensiveCurriculumView plan={intensive} isStaff={isStaff} onConfirmGrade={(g) => { setLoading(true); setReloadKey({ grade: g }); }} />
+        </main>
+      </div>
+    );
+  }
+
   const currentQ = data.practiceQuestions[currentQuestion];
 
   return (
@@ -236,7 +271,7 @@ const Curriculum = () => {
           <div className="space-y-4">
             <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
               <BookOpen className="h-5 w-5 text-sky-600" />
-              4-Week Learning Plan
+              {data.curriculum.weeks.length}-Week Learning Plan
             </h2>
             
             {data.curriculum.weeks.map((week) => (
