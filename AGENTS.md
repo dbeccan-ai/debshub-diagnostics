@@ -1,1 +1,2 @@
 - SHSAT config (dates, structure, taxonomy) lives only in src/lib/shsatConfig.ts; SHSAT placement is manual-only until calibration (why: dates change yearly, cutoffs not yet calibrated).
+- General K-12 Math/ELA curriculum duration, phase map, grade resolution and output validation live only in supabase/functions/_shared/general-curriculum.ts (re-exported by src/lib/generalCurriculum.ts); Tier 3 uses the 15-week schema v2, Tier 1/2 keep the legacy plan (why: server prompt, validation and UI must agree).
