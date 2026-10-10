@@ -224,7 +224,7 @@ export function finalizeWeek(raw: any, spec: WeekSpec, subject: Subject, session
   for (const k of ["focus", "prerequisite_connection", "teaching_explanation", "guided_practice_notes", "independent_practice_notes", "retention_check", "reteaching_directions"]) if (!nonEmpty(raw[k])) e.push(`${W}: missing ${k}`);
   for (const k of ["objectives", "prerequisite_check", "cumulative_review"]) if (!Array.isArray(raw[k]) || !raw[k].filter(nonEmpty).length) e.push(`${W}: missing ${k}`);
   const we = raw.worked_example;
-  if (!we || !nonEmpty(we.problem) || !Array.isArray(we.steps) || !we.steps.length || !nonEmpty(String(we.answer ?? ""))) e.push(`${W}: missing worked example`);
+  if (!we || !nonEmpty(we.problem) || !Array.isArray(we.steps) || !we.steps.length || String(we.answer ?? "").trim() === "") e.push(`${W}: missing worked example`);
   const hp = raw.home_practice;
   if (!hp || !nonEmpty(hp.directions) || !Array.isArray(hp.activities) || !hp.activities.length) e.push(`${W}: missing home practice`);
   const cp = raw.checkpoint;
@@ -254,7 +254,7 @@ export function finalizeWeek(raw: any, spec: WeekSpec, subject: Subject, session
       if (!LETTERS.slice(0, opts.length).includes(ans)) e.push(`${tag}: answer key does not match an option`);
       items.push({ ...base(it, role, type), options: opts, correct_answer: ans });
     } else if (type === "short_answer") {
-      if (!nonEmpty(String(it.correct_answer ?? "")) && String(it.correct_answer ?? "").trim() === "") e.push(`${tag}: missing answer`);
+      if (String(it.correct_answer ?? "").trim() === "") e.push(`${tag}: missing answer`);
       items.push({ ...base(it, role, type), correct_answer: String(it.correct_answer ?? "").trim() });
     } else if (type === "writing") {
       if (!nonEmpty(it.exemplar)) e.push(`${tag}: writing task needs an exemplar`);
