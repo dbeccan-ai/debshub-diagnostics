@@ -238,6 +238,7 @@ export interface IntensiveCurriculum {
   schemaVersion: 2; plan_type: "tier3_intensive"; plan_label: string; subject: Subject;
   core_weeks: number; extension_weeks: number; grades: GradeResolution; sessions: SessionInfo;
   progression_target: ProgressionTarget; strands: StrandPlan[]; overview: string; weeks: IntensiveWeek[];
+  formal_retests: (FormalRetest & { evidence: RetestEvidence })[];
   formal_retests_note: string; limitations: string[];
 }
 
