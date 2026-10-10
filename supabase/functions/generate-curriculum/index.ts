@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import {
   CURRICULUM_SCHEMA_VERSION, TIER3_PLAN, DEFAULT_PROGRESSION_TARGET, tierFromScore, detectSubject, resolveGrades,
   buildStrandPlans, buildWeekSpecs, sessionInfo, finalizeWeek, validatePlan, buildBatchPrompt, gradeLabel,
-  type WeekSpec, type IntensiveCurriculum,
+  FORMAL_RETESTS, mapRetestEvidence, type WeekSpec, type IntensiveCurriculum,
 } from "../_shared/general-curriculum.ts";
 
 const corsHeaders = {
@@ -129,14 +129,26 @@ serve(async (req) => {
 
       // Staff (admin/teacher) may supply a confirmed enrolled grade; otherwise it stays unverified and is flagged.
       let confirmedEnrolledGrade: number | null = null;
-      if (body.confirmedEnrolledGrade !== undefined && body.confirmedEnrolledGrade !== null) {
-        const { data: staff } = await adminClient.from("user_roles").select("role").eq("user_id", user.id).in("role", ["admin", "teacher"]);
-        if (!staff?.length) return json({ error: "Only a teacher or admin can confirm the enrolled grade." }, 403);
-        confirmedEnrolledGrade = Number(body.confirmedEnrolledGrade);
-      }
+      let confirmedStartGrades: Record<string, number> | undefined;
+      const wantsStaffInput = (body.confirmedEnrolledGrade ?? null) !== null || (body.confirmedStartGrades && typeof body.confirmedStartGrades === "object");
+      const { data: staff } = await adminClient.from("user_roles").select("role").eq("user_id", user.id).in("role", ["admin", "teacher"]);
+      const isStaff = !!staff?.length;
+      if (wantsStaffInput && !isStaff) return json({ error: "Only a teacher or admin can confirm grades." }, 403);
+      if ((body.confirmedEnrolledGrade ?? null) !== null) confirmedEnrolledGrade = Number(body.confirmedEnrolledGrade);
+      if (body.confirmedStartGrades && typeof body.confirmedStartGrades === "object") confirmedStartGrades = Object.fromEntries(Object.entries(body.confirmedStartGrades).map(([k, v]) => [String(k), Number(v)]));
       const grades = resolveGrades({ testedGrade: attempt.grade_level, confirmedEnrolledGrade });
-      if (grades.anchor_grade === null) return json({ error: grades.notice }, 422);
-      const strands = buildStrandPlans(grades.anchor_grade, { skillStats, needsSupport, developing, mastered });
+      // Unverified enrolled grade: do not build a grade ladder; ask staff to confirm. Nothing is stored or overwritten.
+      if (grades.anchor_grade === null) return json({ needsEnrolledGradeConfirmation: true, schemaVersion: 2, notice: grades.notice, grades, canConfirm: isStaff, studentName, testName, gradeLevel: attempt.grade_level, tier: "Tier 3", score: attempt.score });
+
+      // Existing formal retests (follow_up_assessments, weeks 5/10/15) — read-only; never created here.
+      const { data: fu } = await adminClient.from("follow_up_assessments").select("id, week_number, status, unlock_date, result_attempt_id").eq("source_attempt_id", attempt.id);
+      const resultIds = (fu ?? []).map((r) => r.result_attempt_id).filter(Boolean) as string[];
+      const { data: resAttempts } = resultIds.length ? await adminClient.from("test_attempts").select("id, score, completed_at").in("id", resultIds) : { data: [] as { id: string; score: number | null; completed_at: string | null }[] };
+      const retests = mapRetestEvidence((fu ?? []).map((r) => {
+        const ra = (resAttempts ?? []).find((a) => a.id === r.result_attempt_id);
+        return { id: r.id, week_number: r.week_number, status: r.status, unlock_date: r.unlock_date, result_score: ra?.completed_at ? ra.score : null };
+      }));
+      const strands = buildStrandPlans(grades.anchor_grade, { skillStats, needsSupport, developing, mastered, confirmedStartGrades });
       if (!strands.length) return json({ error: "No skill evidence is recorded for this attempt, so an individualized plan cannot be generated yet." }, 422);
       const specs = buildWeekSpecs(grades.anchor_grade, strands);
       const sessions = sessionInfo(null); // no session schedule is configured for the general pathway
@@ -178,10 +190,11 @@ serve(async (req) => {
           schemaVersion: CURRICULUM_SCHEMA_VERSION as 2, plan_type: "tier3_intensive", plan_label: TIER3_PLAN.label, subject,
           core_weeks: TIER3_PLAN.core_weeks, extension_weeks: TIER3_PLAN.extension_weeks, grades, sessions,
           progression_target: { ...DEFAULT_PROGRESSION_TARGET }, strands,
-          overview: `${firstName}'s intensive ${subject === "ela" ? "ELA" : "Math"} plan rebuilds diagnosed prerequisite skills from ${specs[0].instructional_label} through ${gradeLabel(grades.anchor_grade)} application over 12 core weeks, with up to 3 optional extension weeks selected from the Week 12 reassessment. Grade phases are intended pacing; students progress only when checks show the progression target is met.`,
+          overview: `${firstName}'s intensive ${subject === "ela" ? "ELA" : "Math"} plan rebuilds diagnosed prerequisite skills from ${specs[0].instructional_label} through ${gradeLabel(grades.anchor_grade)} application over 12 core weeks, with up to 3 optional extension weeks selected from the Week 12 reassessment. Grade phases are intended pacing; students progress only when checks show the progression target is met. Formal diagnostic retests remain at Weeks 5, 10 and 15 (Week 15 happens even if extension instruction is not needed); weekly checks, phase checks and the Week 12 progress review are instructional only.`,
+          formal_retests: FORMAL_RETESTS.map((r) => ({ ...r, evidence: retests.find((x) => x.week === r.week)! })),
           weeks: results.flat(),
-          formal_retests_note: "Weekly and phase checks are instructional checkpoints. Formal diagnostic retests (follow-up assessments) remain on their existing schedule and are separate.",
-          limitations: ["No recorded checkpoint results yet: every week shows 'Awaiting evidence' until results are recorded.", "Covering three grade levels of prerequisites in 15 weeks is not guaranteed; the reassessment reports achieved skills and remaining gaps."],
+          formal_retests_note: "Formal retests are the Hub's existing scheduled follow-up assessments (Weeks 5, 10, 15). Results shown here come only from completed retests; recommendations guide instructor revision and never overwrite earlier work.",
+          limitations: ["No recorded checkpoint results yet: every week shows 'Awaiting evidence' until results are recorded.", strands.some((x) => x.status !== "mastered" && !x.start_confirmed) ? "Some skill starting grades are provisional: the diagnostic does not establish the grade level of each gap. An instructor should confirm starting grades." : "", "Covering three grade levels of prerequisites in 15 weeks is not guaranteed; the reassessment reports achieved skills and remaining gaps."],
         };
         // Cross-week duplicate check, with one bounded regeneration for offending batches.
         let planErrors = validatePlan(plan, specs);
@@ -193,6 +206,7 @@ serve(async (req) => {
           planErrors = validatePlan(plan, specs);
         }
         if (planErrors.length) return json({ error: `Generated plan failed validation (${planErrors.slice(0, 3).join("; ")}). Nothing was saved; please try again.` }, 502);
+        plan.limitations = plan.limitations.filter(Boolean);
         return json({ success: true, studentName, testName, gradeLevel: attempt.grade_level, tier: "Tier 3", score: attempt.score, ...plan });
       } catch (e) {
         const err = e as Error & { status?: number };

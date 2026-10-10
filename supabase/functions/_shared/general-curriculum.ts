@@ -44,9 +44,33 @@ export const PHASES: { key: PhaseKey; weeks: [number, number]; offset: number; l
   { key: "foundation", weeks: [1, 3], offset: 3, label: "Phase 1 — Prerequisite foundations (G−3)", check: "Phase check after Week 3" },
   { key: "related", weeks: [4, 6], offset: 2, label: "Phase 2 — Related skills (G−2)", check: "Phase check after Week 6" },
   { key: "bridge", weeks: [7, 9], offset: 1, label: "Phase 3 — Bridge skills (G−1)", check: "Phase check after Week 9" },
-  { key: "application", weeks: [10, 12], offset: 0, label: "Phase 4 — Grade-level application (G)", check: "Instructional reassessment after Week 12" },
-  { key: "extension", weeks: [13, 15], offset: 0, label: "Optional Extension — Differentiated reteaching, retention & transfer", check: "Final review after Week 15 (if extended)" },
+  { key: "application", weeks: [10, 12], offset: 0, label: "Phase 4 — Grade-level application (G)", check: "Week 12 instructional progress review" },
+  { key: "extension", weeks: [13, 15], offset: 0, label: "Optional Extension — Differentiated reteaching, retention & transfer", check: "Week 15 instructional final review (extension weeks optional)" },
 ];
+
+/**
+ * Formal diagnostic retests. AUTHORITATIVE schedule = the existing follow_up_assessments rows created by grade-test /
+ * src/lib/followUps.ts (getCheckpointsForWeeks(15) → 5, 10, 15; label "Week N Follow-Up"). The curriculum only
+ * REFERENCES them; it never creates assessments, reminders or a second schedule. All other checks are instructional.
+ */
+export const FORMAL_RETESTS = [
+  { week: 5, label: "Retest 1", compare_with: ["baseline"], purpose: "Compare with the baseline diagnostic; update strengths, unresolved gaps, instructional starting points and targets for Weeks 6–10." },
+  { week: 10, label: "Retest 2", compare_with: ["baseline", "week_5"], purpose: "Compare with the baseline AND the Week 5 retest; adjust targets for Weeks 11–15 and decide whether extension instruction is needed." },
+  { week: 15, label: "Retest 3", compare_with: ["baseline", "week_5", "week_10"], purpose: "Compare with the baseline and both prior retests; report retained mastery, grade-level application, remaining gaps and continued-support recommendations." },
+] as const;
+export type FormalRetest = (typeof FORMAL_RETESTS)[number];
+export const formalRetestForWeek = (w: number) => FORMAL_RETESTS.find((r) => r.week === w) ?? null;
+export interface RetestEvidence { week: number; label: string; status: "completed" | "scheduled" | "available" | "not_scheduled" | "cancelled"; unlock_date: string | null; score: number | null; follow_up_id: string | null }
+/** Maps existing follow-up rows (read-only) onto the formal milestones. Absent rows → not_scheduled; no score is ever invented. */
+export function mapRetestEvidence(rows: { id: string; week_number: number | null; status: string; unlock_date: string | null; result_score?: number | null }[]): RetestEvidence[] {
+  return FORMAL_RETESTS.map((r) => {
+    const row = rows.find((x) => x.week_number === r.week);
+    if (!row) return { week: r.week, label: r.label, status: "not_scheduled", unlock_date: null, score: null, follow_up_id: null };
+    const st = (["completed", "scheduled", "available", "cancelled"].includes(row.status) ? row.status : "scheduled") as RetestEvidence["status"];
+    const score = st === "completed" && Number.isFinite(row.result_score as number) ? Number(row.result_score) : null;
+    return { week: r.week, label: r.label, status: st, unlock_date: row.unlock_date, score, follow_up_id: row.id };
+  });
+}
 
 export type Subject = "math" | "ela";
 /** Uses the test taxonomy (test_type / name). Returns null when the subject cannot be determined. */
@@ -78,44 +102,46 @@ export function resolveGrades(input: { testedGrade: number | null | undefined; c
   if (enrolled !== null) return { tested_grade: tested, enrolled_grade: enrolled, enrolled_verified: true, anchor_grade: enrolled, notice: null };
   if (tested === null) return { tested_grade: null, enrolled_grade: null, enrolled_verified: false, anchor_grade: null, notice: "Enrolled grade could not be verified and no assessment grade is recorded. A teacher or admin must confirm the enrolled grade before a plan can be generated." };
   return {
-    tested_grade: tested, enrolled_grade: null, enrolled_verified: false, anchor_grade: tested,
-    notice: `Enrolled grade not verified. This plan is provisionally anchored to the assessed level (${gradeLabel(tested)}). If the student is enrolled in a different grade, a teacher or admin must confirm it and regenerate.`,
+    tested_grade: tested, enrolled_grade: null, enrolled_verified: false, anchor_grade: null,
+    notice: `Enrolled grade not verified (the assessment was taken at ${gradeLabel(tested)}, which may differ from the enrolled grade). A teacher or admin must confirm the enrolled grade before the grade progression can be generated.`,
   };
 }
 
 export interface SkillStat { correct: number; total: number; percentage: number }
 export interface StrandPlan {
   skill: string;
-  evidence_pct: number | null;
+  evidence_pct: number | null;          // accuracy on items at the TESTED grade (not a grade equivalence)
   status: "deficit" | "developing" | "mastered";
-  start_offset: number; // grades below G where instruction starts (3, 2, 1) — mastered strands are review-only
-  start_grade: number;
+  start_grade: number | null;           // instructor-confirmed starting grade; null = provisional
+  start_confirmed: boolean;
   evidence_note: string;
 }
-/** Individualized starting level per strand from diagnostic evidence. Mastered prerequisites are skipped. */
-export function buildStrandPlans(anchor: number, a: { skillStats?: Record<string, SkillStat>; needsSupport?: string[]; developing?: string[]; mastered?: string[] }): StrandPlan[] {
+/**
+ * Status comes from item accuracy at the tested grade (existing <50 / 50–69 / 70+ convention). A percentage is NEVER
+ * converted into a grade placement: unless a teacher/admin confirms a starting grade, the strand is provisional and
+ * follows the default G−3 → G pacing, flagged for instructor confirmation.
+ */
+export function buildStrandPlans(anchor: number, a: { skillStats?: Record<string, SkillStat>; needsSupport?: string[]; developing?: string[]; mastered?: string[]; confirmedStartGrades?: Record<string, number> }): StrandPlan[] {
   const out = new Map<string, StrandPlan>();
   const stats = a.skillStats ?? {};
+  const conf = a.confirmedStartGrades ?? {};
   const add = (skill: string, pct: number | null, fallback: StrandPlan["status"]) => {
     if (!skill || out.has(skill)) return;
-    let status = fallback, offset = 3;
-    if (pct !== null) {
-      if (pct >= 70) status = "mastered";
-      else if (pct >= 50) status = "developing";
-      else status = "deficit";
-    }
-    if (status === "deficit") offset = pct !== null && pct > 30 ? 2 : 3;
-    if (status === "developing") offset = 1;
-    if (status === "mastered") offset = 0;
+    let status = fallback;
+    if (pct !== null) status = pct >= 70 ? "mastered" : pct >= 50 ? "developing" : "deficit";
+    const c = conf[skill];
+    const confirmed = Number.isFinite(c) && c >= anchor - 3 && c <= anchor ? clampGrade(c) : null;
     out.set(skill, {
-      skill, evidence_pct: pct, status, start_offset: offset, start_grade: clampGrade(anchor - offset),
-      evidence_note: pct === null ? "Limited item evidence for this skill; starting at the earliest prerequisite level until checks confirm otherwise." : `${pct}% on diagnostic items for this skill.`,
+      skill, evidence_pct: pct, status, start_grade: status === "mastered" ? null : confirmed, start_confirmed: confirmed !== null,
+      evidence_note: status === "mastered" ? `${pct ?? "—"}% at the tested grade — demonstrated; review only.`
+        : confirmed !== null ? `Starting grade confirmed by instructor (${gradeLabel(confirmed)}).`
+        : `${pct !== null ? `${pct}% at the tested grade. ` : "Limited item evidence. "}Starting grade is provisional — the diagnostic cannot establish the grade level of this gap; instructor confirmation needed.`,
     });
   };
   for (const [k, v] of Object.entries(stats)) add(k, Number.isFinite(v?.percentage) ? Math.round(v.percentage) : null, "deficit");
-  for (const s of a.needsSupport ?? []) add(s, null, "deficit");
-  for (const s of a.developing ?? []) add(s, null, "developing");
-  for (const s of a.mastered ?? []) add(s, null, "mastered");
+  for (const x of a.needsSupport ?? []) add(x, null, "deficit");
+  for (const x of a.developing ?? []) add(x, null, "developing");
+  for (const x of a.mastered ?? []) add(x, null, "mastered");
   return [...out.values()].sort((x, y) => (x.evidence_pct ?? -1) - (y.evidence_pct ?? -1));
 }
 
@@ -131,8 +157,10 @@ export interface WeekSpec {
   adjusted: boolean;
   priority_skills: { skill: string; grade: number; grade_label: string }[];
   review_skills: string[];
-  checkpoint_kind: "weekly" | "phase_check" | "reassessment" | "final_review";
+  checkpoint_kind: "weekly" | "phase_check" | "progress_review" | "final_review";
   checkpoint_label: string;
+  formal_retest: FormalRetest | null; // existing scheduled follow-up at this week (5/10/15), separate from instructional checks
+  provisional_levels: boolean;
 }
 
 export function buildWeekSpecs(anchor: number, strands: StrandPlan[]): WeekSpec[] {
@@ -149,10 +177,11 @@ export function buildWeekSpecs(anchor: number, strands: StrandPlan[]): WeekSpec[
       active = (teach.length ? teach : strands).map((s) => ({ skill: s.skill, grade: G }));
     } else {
       // A strand is taught at max(phase level, its own start level); strands not yet due (start above phase) wait.
-      active = teach.filter((s) => s.start_grade <= phaseGrade).map((s) => ({ skill: s.skill, grade: phaseGrade }));
+      const start = (s: StrandPlan) => s.start_grade ?? clampGrade(G - 3);
+      active = teach.filter((s) => start(s) <= phaseGrade).map((s) => ({ skill: s.skill, grade: phaseGrade }));
       if (!active.length && teach.length) {
-        const minStart = Math.min(...teach.map((s) => Math.max(phaseGrade, s.start_grade)));
-        active = teach.filter((s) => Math.max(phaseGrade, s.start_grade) === minStart).map((s) => ({ skill: s.skill, grade: minStart }));
+        const minStart = Math.min(...teach.map((s) => Math.max(phaseGrade, start(s))));
+        active = teach.filter((s) => Math.max(phaseGrade, start(s)) === minStart).map((s) => ({ skill: s.skill, grade: minStart }));
       }
       if (!active.length) active = strands.map((s) => ({ skill: s.skill, grade: phaseGrade }));
     }
@@ -161,13 +190,14 @@ export function buildWeekSpecs(anchor: number, strands: StrandPlan[]): WeekSpec[
     const instructional = rot.length ? Math.min(...rot.map((r) => r.grade)) : phaseGrade;
     const earlier = specs.flatMap((s) => s.priority_skills.map((p) => p.skill));
     const review = [...new Set([...earlier.slice(-4), ...mastered.slice(0, 2)])].filter((s) => !rot.some((r) => r.skill === s)).slice(0, 4);
-    const kind: WeekSpec["checkpoint_kind"] = w === 15 ? "final_review" : w === 12 ? "reassessment" : w === 3 || w === 6 || w === 9 ? "phase_check" : "weekly";
+    const kind: WeekSpec["checkpoint_kind"] = w === 15 ? "final_review" : w === 12 ? "progress_review" : w === 3 || w === 6 || w === 9 ? "phase_check" : "weekly";
     specs.push({
       week: w, is_extension: w > TIER3_PLAN.core_weeks, phase: phase.key, phase_label: phase.label,
       phase_grade: phaseGrade, instructional_grade: instructional, instructional_label: gradeLabel(instructional),
       enrolled_or_anchor_label: gradeLabel(G), adjusted: instructional !== phaseGrade,
       priority_skills: rot.map((r) => ({ skill: r.skill, grade: r.grade, grade_label: gradeLabel(r.grade) })),
-      review_skills: review, checkpoint_kind: kind,
+      review_skills: review, checkpoint_kind: kind, formal_retest: formalRetestForWeek(w),
+      provisional_levels: teach.some((s) => !s.start_confirmed),
       checkpoint_label: kind === "weekly" ? `Week ${w} checkpoint` : phase.check,
     });
   }
@@ -197,6 +227,7 @@ export interface IntensiveWeek {
   reading_passage?: { title: string; text: string } | null;
   home_practice: { minutes: number; directions: string; activities: string[] };
   checkpoint: { label: string; kind: WeekSpec["checkpoint_kind"]; description: string; assessment_goal: string };
+  formal_retest: { week: number; label: string; purpose: string; teacher_directions: string } | null;
   retention_check: string; reteaching_directions: string; extension_selection?: string | null;
   sessions?: { session: number; focus: string }[] | null;
   items: PracticeItem[];
@@ -207,6 +238,7 @@ export interface IntensiveCurriculum {
   schemaVersion: 2; plan_type: "tier3_intensive"; plan_label: string; subject: Subject;
   core_weeks: number; extension_weeks: number; grades: GradeResolution; sessions: SessionInfo;
   progression_target: ProgressionTarget; strands: StrandPlan[]; overview: string; weeks: IntensiveWeek[];
+  formal_retests: (FormalRetest & { evidence: RetestEvidence })[];
   formal_retests_note: string; limitations: string[];
 }
 
@@ -229,6 +261,7 @@ export function finalizeWeek(raw: any, spec: WeekSpec, subject: Subject, session
   if (!hp || !nonEmpty(hp.directions) || !Array.isArray(hp.activities) || !hp.activities.length) e.push(`${W}: missing home practice`);
   const cp = raw.checkpoint;
   if (!cp || !nonEmpty(cp.description) || !nonEmpty(cp.assessment_goal)) e.push(`${W}: missing checkpoint`);
+  if (spec.formal_retest && !nonEmpty(raw.formal_retest_directions)) e.push(`${W}: missing formal retest directions`);
   if (spec.is_extension && !nonEmpty(raw.extension_selection)) e.push(`${W}: extension week must explain how targets are selected from reassessment`);
   const blob = JSON.stringify(raw);
   if (/https?:\/\/|www\./i.test(blob)) e.push(`${W}: contains external links (not allowed)`);
@@ -288,6 +321,7 @@ export function finalizeWeek(raw: any, spec: WeekSpec, subject: Subject, session
       reading_passage: raw.reading_passage && nonEmpty(raw.reading_passage.text) ? { title: String(raw.reading_passage.title ?? "Passage"), text: raw.reading_passage.text } : null,
       home_practice: { minutes: Number(hp.minutes) > 0 ? Number(hp.minutes) : 15, directions: hp.directions, activities: hp.activities.map(String) },
       checkpoint: { label: spec.checkpoint_label, kind: spec.checkpoint_kind, description: cp.description, assessment_goal: cp.assessment_goal },
+      formal_retest: spec.formal_retest ? { week: spec.formal_retest.week, label: spec.formal_retest.label, purpose: spec.formal_retest.purpose, teacher_directions: String(raw.formal_retest_directions) } : null,
       retention_check: raw.retention_check, reteaching_directions: raw.reteaching_directions,
       extension_selection: spec.is_extension ? raw.extension_selection : null, sessions, items, mastery_status: "awaiting_evidence",
     },
@@ -340,10 +374,12 @@ Rules:
 - Each item must be distinct and new; do not repeat prompts across weeks. No generic "practice this skill" filler.
 - Each week MUST include at least 12 items: ≥3 "guided", ≥3 "independent", ≥2 "review" (earlier weeks' skills), ≥3 "checkpoint", ≥1 "retention".
 - Item types: "multiple_choice" (4 options as plain strings without letter prefixes; correct_answer is the letter A-D), "short_answer" (exact answer), or "writing" (include "exemplar" and "rubric":[{"criterion","levels"}] with ≥3 criteria). ${ctx.subject === "ela" ? "Comprehension items must include the text they refer to in \"passage\" or use the week's reading_passage. Include at least one writing task per week." : ""}
-- Every item needs "explanation" and "hint" and "skill".`;
-  const weekSchema = `{"week":n,"instructional_grade":n,"focus":"","prerequisite_connection":"how this skill connects to the next prerequisite toward grade level","objectives":["measurable"],"prerequisite_check":["quick check prompts"],"teaching_explanation":"explicit teacher explanation","worked_example":{"problem":"","steps":[""],"answer":""},"guided_practice_notes":"scaffolds","independent_practice_notes":"how support is reduced","cumulative_review":["earlier skills reviewed"],"reading_passage":${ctx.subject === "ela" ? '{"title":"","text":"120-450 words at the instructional level"}' : "null"},"home_practice":{"minutes":15,"directions":"usable parent directions","activities":[""]},"checkpoint":{"description":"","assessment_goal":"measurable, e.g. 85% independent accuracy"},"retention_check":"","reteaching_directions":"specific steps if the checkpoint is missed","extension_selection":"(extension weeks only) how the teacher selects/replaces targets using the Week 12 reassessment","sessions":${ctx.sessionsPerWeek ? `[${Array.from({ length: ctx.sessionsPerWeek }, () => '{"focus":""}').join(",")}]` : "null"},"items":[{"role":"guided|independent|review|checkpoint|retention","type":"multiple_choice|short_answer|writing","skill":"","prompt":"","passage":null,"options":[],"correct_answer":"","explanation":"","hint":""}]}`;
-  const strands = ctx.strands.map((s) => `- ${s.skill}: ${s.status}${s.evidence_pct !== null ? ` (${s.evidence_pct}%)` : ""}; instruction starts at ${gradeLabel(s.start_grade)}`).join("\n");
-  const weeks = ctx.specs.map((s) => `Week ${s.week} [${s.is_extension ? "OPTIONAL EXTENSION" : "core"}] ${s.phase_label}; instructional_grade=${s.instructional_grade} (${s.instructional_label}); priority skills: ${s.priority_skills.map((p) => `${p.skill} @ ${p.grade_label}`).join("; ")}; cumulative review of: ${s.review_skills.join("; ") || "previous week"}; checkpoint: ${s.checkpoint_label}${s.checkpoint_kind !== "weekly" ? " (make the checkpoint a cumulative phase-level check)" : ""}.`).join("\n");
+- Every item needs "explanation" and "hint" and "skill".
+- Weekly/phase checks and the Week 12 progress review are INSTRUCTIONAL checks. Formal diagnostic retests occur ONLY at Weeks 5, 10 and 15 and are already scheduled; never create or schedule other formal retests.
+- Some starting levels are provisional (not established by evidence): do not claim a grade equivalence.`;
+  const weekSchema = `{"week":n,"instructional_grade":n,"focus":"","prerequisite_connection":"how this skill connects to the next prerequisite toward grade level","objectives":["measurable"],"prerequisite_check":["quick check prompts"],"teaching_explanation":"explicit teacher explanation","worked_example":{"problem":"","steps":[""],"answer":""},"guided_practice_notes":"scaffolds","independent_practice_notes":"how support is reduced","cumulative_review":["earlier skills reviewed"],"reading_passage":${ctx.subject === "ela" ? '{"title":"","text":"120-450 words at the instructional level"}' : "null"},"home_practice":{"minutes":15,"directions":"usable parent directions","activities":[""]},"checkpoint":{"description":"","assessment_goal":"measurable, e.g. 85% independent accuracy"},"retention_check":"","reteaching_directions":"specific steps if the checkpoint is missed","formal_retest_directions":"(Weeks 5, 10, 15 only) how to use the scheduled formal retest results","extension_selection":"(extension weeks only) how the teacher selects/replaces targets using the Week 12 reassessment","sessions":${ctx.sessionsPerWeek ? `[${Array.from({ length: ctx.sessionsPerWeek }, () => '{"focus":""}').join(",")}]` : "null"},"items":[{"role":"guided|independent|review|checkpoint|retention","type":"multiple_choice|short_answer|writing","skill":"","prompt":"","passage":null,"options":[],"correct_answer":"","explanation":"","hint":""}]}`;
+  const strands = ctx.strands.map((s) => `- ${s.skill}: ${s.status}${s.evidence_pct !== null ? ` (${s.evidence_pct}%)` : ""}; ${s.status === "mastered" ? "review only" : s.start_grade !== null ? `confirmed start ${gradeLabel(s.start_grade)}` : "starting grade PROVISIONAL (default pacing from G−3; no grade equivalence implied)"}`).join("\n");
+  const weeks = ctx.specs.map((s) => `Week ${s.week} [${s.is_extension ? "OPTIONAL EXTENSION" : "core"}] ${s.phase_label}; instructional_grade=${s.instructional_grade} (${s.instructional_label}); priority skills: ${s.priority_skills.map((p) => `${p.skill} @ ${p.grade_label}`).join("; ")}; cumulative review of: ${s.review_skills.join("; ") || "previous week"}; instructional checkpoint: ${s.checkpoint_label}${s.checkpoint_kind !== "weekly" ? " (cumulative instructional check — NOT a formal retest)" : ""}.${s.formal_retest ? ` FORMAL ${s.formal_retest.label.toUpperCase()} (already scheduled by the Hub) happens this week: write "formal_retest_directions" telling the teacher how to use it — ${s.formal_retest.purpose}` : ""}`).join("\n");
   const user = `Student: ${ctx.studentFirstName}. Enrolled/anchor level: ${ctx.anchorLabel}.${ctx.testedLabel ? ` Assessment taken at: ${ctx.testedLabel}.` : ""}
 Diagnosed strands (individualized starting levels; mastered strands are review-only and must not be retaught):
 ${strands}
