@@ -75,6 +75,8 @@ const Curriculum = () => {
   const [data, setData] = useState<CurriculumData | null>(null);
   const [intensive, setIntensive] = useState<IntensiveCurriculum | null>(null);
   const [isStaff, setIsStaff] = useState(false);
+  const [needsGrade, setNeedsGrade] = useState<{ notice: string; canConfirm: boolean } | null>(null);
+  const [gradeInput, setGradeInput] = useState("");
   const [reloadKey, setReloadKey] = useState<{ grade: number | null }>({ grade: null });
   const [expandedWeeks, setExpandedWeeks] = useState<number[]>([1]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -107,7 +109,12 @@ const Curriculum = () => {
           try { msg = (await (error as any).context?.json())?.error || msg; } catch { /* keep message */ }
           throw new Error(msg);
         }
-        if (result?.schemaVersion === 2 && Array.isArray(result.weeks)) {
+        if (result?.needsEnrolledGradeConfirmation) {
+          setIntensive(null);
+          setNeedsGrade(result);
+          setData(result);
+        } else if (result?.schemaVersion === 2 && Array.isArray(result.weeks)) {
+          setNeedsGrade(null);
           setIntensive(result);
           setData(result);
         } else {
@@ -197,6 +204,27 @@ const Curriculum = () => {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50">
         <p className="text-sm font-medium text-slate-600">Could not load curriculum</p>
+      </div>
+    );
+  }
+
+  if (needsGrade) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4">
+        <Card className="max-w-lg">
+          <CardHeader><CardTitle>Enrolled grade confirmation needed</CardTitle></CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            <p>{needsGrade.notice}</p>
+            <p>Formal retests at Weeks 5, 10 and 15 stay on their existing schedule.</p>
+            {needsGrade.canConfirm ? (
+              <div className="flex items-center gap-2">
+                <input aria-label="Enrolled grade" className="w-24 rounded border px-2 py-1" type="number" min={0} max={12} value={gradeInput} onChange={(e) => setGradeInput(e.target.value)} />
+                <Button size="sm" disabled={gradeInput === ""} onClick={() => { setLoading(true); setReloadKey({ grade: Number(gradeInput) }); }}>Confirm &amp; generate</Button>
+              </div>
+            ) : <p className="text-slate-600">Please ask your teacher or D.E.Bs admin to confirm the enrolled grade.</p>}
+            <Button variant="outline" size="sm" onClick={() => navigate(`/results/${attemptId}`)}>Back to Results</Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }

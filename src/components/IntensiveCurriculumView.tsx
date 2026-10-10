@@ -5,7 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AlertTriangle, BookOpen, ChevronDown, ChevronUp, Printer } from "lucide-react";
 import type { IntensiveCurriculum, IntensiveWeek, PracticeItem } from "@/lib/generalCurriculum";
-import { progressionStatus } from "@/lib/generalCurriculum";
+import { progressionStatus, gradeLabel, type RetestEvidence } from "@/lib/generalCurriculum";
+
+const RETEST_STATUS = (e?: RetestEvidence) => !e || e.status === "not_scheduled" ? "unavailable (not scheduled for this attempt)"
+  : e.status === "completed" ? (e.score !== null ? `completed — ${e.score}%` : "completed — result unavailable")
+  : e.status === "cancelled" ? "cancelled" : `pending${e.unlock_date ? ` (unlocks ${e.unlock_date})` : ""}`;
 
 const STATUS_LABEL = { ready_to_progress: "Ready to progress", needs_reteaching: "Needs reteaching", awaiting_evidence: "Awaiting evidence" } as const;
 
@@ -50,11 +54,19 @@ export function IntensiveCurriculumView({ plan, isStaff, onConfirmGrade }: { pla
             <span>% on {plan.progression_target.distinct_checks} different checks, including a later retention check. Writing is scored with the rubric.</span>
           </div>
           <p className="hidden print:block">Progression target: {target}% independent accuracy on {plan.progression_target.distinct_checks} different checks including a retention check.</p>
-          <p className="text-muted-foreground">{plan.formal_retests_note}</p>
+          <div data-testid="formal-retests" className="rounded-md border p-3">
+            <p className="font-semibold">Formal retests (part of the full 15-week pathway)</p>
+            <ul className="list-disc pl-5">
+              {(plan.formal_retests ?? []).map((r) => (
+                <li key={r.week}><strong>Week {r.week} {r.label}:</strong> {r.purpose} <span className="text-muted-foreground">— {RETEST_STATUS(r.evidence)}</span></li>
+              ))}
+            </ul>
+            <p className="text-muted-foreground">{plan.formal_retests_note}</p>
+          </div>
           <div>
             <p className="font-semibold">Starting points by skill</p>
             <ul className="list-disc pl-5">
-              {plan.strands.map((s) => <li key={s.skill}>{s.skill}: {s.status === "mastered" ? "already demonstrated — review only" : `instruction starts at ${s.start_grade === -1 ? "Pre-K foundations" : s.start_grade === 0 ? "Kindergarten" : `Grade ${s.start_grade}`}`} <span className="text-muted-foreground">({s.evidence_note})</span></li>)}
+              {plan.strands.map((s) => <li key={s.skill}>{s.skill}: {s.status === "mastered" ? "already demonstrated — review only" : s.start_confirmed ? `starts at ${gradeLabel(s.start_grade!)} (confirmed)` : "starting grade provisional — needs instructor confirmation"} <span className="text-muted-foreground">({s.evidence_note})</span></li>)}
             </ul>
           </div>
           <Button variant="outline" size="sm" className="print:hidden" onClick={() => { setOpen(plan.weeks.map((w) => w.week)); setTimeout(() => window.print(), 50); }}><Printer className="mr-2 h-4 w-4" />Print plan</Button>
@@ -99,6 +111,7 @@ function WeekCard({ w, expanded, toggle, target }: { w: IntensiveWeek; expanded:
                 <Badge variant={w.is_extension ? "outline" : "secondary"}>{w.is_extension ? "Optional extension" : "Core"}</Badge>
                 <Badge variant="outline">{w.instructional_label}</Badge>
                 <Badge variant="outline">{STATUS_LABEL[status]}</Badge>
+                {w.formal_retest && <Badge>Formal {w.formal_retest.label}</Badge>}
               </div>
               <CardTitle className="text-base">Week {w.week}: {w.focus}</CardTitle>
               <p className="text-xs text-muted-foreground">{w.phase_label} · toward {w.enrolled_or_anchor_label}</p>
@@ -130,7 +143,14 @@ function WeekCard({ w, expanded, toggle, target }: { w: IntensiveWeek; expanded:
             <p>{w.home_practice.directions}</p>
             <ul className="list-disc pl-5">{w.home_practice.activities.map((a, i) => <li key={i}>{a}</li>)}</ul>
           </div>
-          <p><strong>{w.checkpoint.label}:</strong> {w.checkpoint.description}</p>
+          {w.formal_retest && (
+            <div className="rounded-md border-2 border-primary p-3">
+              <p className="font-semibold">Week {w.formal_retest.week} formal {w.formal_retest.label} (already scheduled)</p>
+              <p>{w.formal_retest.purpose}</p>
+              <p><strong>Teacher directions:</strong> {w.formal_retest.teacher_directions}</p>
+            </div>
+          )}
+          <p><strong>{w.checkpoint.label} (instructional):</strong> {w.checkpoint.description}</p>
           <p><strong>Assessment goal:</strong> {w.checkpoint.assessment_goal}</p>
           <p><strong>Retention check:</strong> {w.retention_check}</p>
           <p><strong>If reteaching is needed:</strong> {w.reteaching_directions}</p>
