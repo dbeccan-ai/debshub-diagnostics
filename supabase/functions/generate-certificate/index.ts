@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { buildDiagnosticReport } from "../_shared/diagnostic-report.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -50,7 +51,7 @@ serve(async (req) => {
       .from("test_attempts")
       .select(`
         *,
-        tests (name, test_type),
+        tests (name, test_type, questions, updated_at),
         profiles (full_name)
       `)
       .eq("id", attemptId)
@@ -78,6 +79,15 @@ serve(async (req) => {
         );
       }
     }
+
+    // Subject-correct strengths/growth areas from the shared evidence model (in memory only; nothing is rewritten).
+    // When scoring needs verification, no skill lists are printed rather than repeating stale stored tags.
+    const { data: certResponses } = await serviceClient
+      .from("test_responses").select("question_id, answer, is_correct, points_awarded, max_points").eq("attempt_id", attemptId);
+    const evidence = buildDiagnosticReport({ attempt, test: attempt.tests ?? { name: null, test_type: null, questions: null }, responses: certResponses ?? [] });
+    const verifiedEvidence = evidence.verification.state === "verified";
+    attempt.strengths = verifiedEvidence ? evidence.strengths.filter((s) => !s.lowEvidence).slice(0, 5).map((s) => s.skill) : [];
+    attempt.weaknesses = verifiedEvidence ? evidence.priorityFocus.map((s) => s.skill) : [];
 
     // Determine tier badge color - Green for Tier 1, Yellow for Tier 2, Red for Tier 3
     const tierColors: { [key: string]: { border: string; bg: string; text: string; primary: string } } = {
