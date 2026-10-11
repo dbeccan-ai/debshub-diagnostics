@@ -83,8 +83,11 @@ ${foot(r)}${close}`;
 
   const c = r.counts;
   const legend = `<p class="sub">Status key (text label always printed): <strong>${STATUS_LABEL.strength}</strong> · <strong>${STATUS_LABEL.developing}</strong> · <strong>${STATUS_LABEL.priority}</strong>. Dashed lines on each bar mark ${SKILL_STATUS_THRESHOLDS.DEVELOPING}% and ${SKILL_STATUS_THRESHOLDS.STRENGTH}%.</p>`;
-  const skillRows = r.skills.map((s) => `<tr><td>${esc(s.skill === UNMAPPED_SKILL ? "Unmapped items (no skill tag)" : s.skill)}${s.skillSource === "inferred" ? `<br><span class="sub">skill inferred from wording</span>` : ""}</td><td>${esc(s.domain)}</td><td>${evidenceCell(s)}</td><td>${s.pct === null ? "—" : `${s.pct}%`}${bar(s.pct, s.status)}</td><td><span class="status" style="color:${statusColor(s.status)}">${statusWord(s.status)}</span>${s.evidenceNote ? `<br><span class="sub">${esc(s.evidenceNote)}</span>` : ""}</td><td>${esc(s.nextStep)}</td></tr>`).join("");
-  const domainRows = r.domains.map((d) => `<tr><td>${esc(d.domain)}</td><td>${d.notAssessed ? "—" : evidenceCell(d)}</td><td>${d.pct === null ? "—" : `${d.pct}%`}${d.notAssessed ? "" : bar(d.pct, d.status)}</td><td><span class="status" style="color:${statusColor(d.status)}">${d.notAssessed ? "Not assessed" : statusWord(d.status)}</span>${d.evidenceNote && !d.notAssessed ? `<br><span class="sub">${esc(d.evidenceNote)}</span>` : ""}</td></tr>`).join("");
+  const shortNote = (x: { scoredItems: number; lowEvidence: boolean }) => (x.lowEvidence ? `<br><span class="sub">Limited evidence (${x.scoredItems} item${x.scoredItems === 1 ? "" : "s"})*</span>` : "");
+  const shortStep = (t: string) => t.replace(/ Confirm with additional items before drawing conclusions\./, "");
+  const domainsInOrder = [...new Set(r.skills.map((s) => s.domain))];
+  const skillRows = domainsInOrder.map((d) => `<tr><th colspan="5">${esc(d)}</th></tr>` + r.skills.filter((s) => s.domain === d).map((s) => `<tr><td>${esc(s.skill === UNMAPPED_SKILL ? "Unmapped items (no skill tag)" : s.skill)}${s.skillSource === "inferred" ? `<br><span class="sub">inferred from wording</span>` : ""}</td><td>${evidenceCell(s)}</td><td>${s.pct === null ? "—" : `${s.pct}%`}${bar(s.pct, s.status)}</td><td><span class="status" style="color:${statusColor(s.status)}">${statusWord(s.status)}</span>${shortNote(s)}</td><td>${esc(shortStep(s.nextStep))}</td></tr>`).join("")).join("");
+  const domainRows = r.domains.map((d) => `<tr><td>${esc(d.domain)}</td><td>${d.notAssessed ? "—" : evidenceCell(d)}</td><td>${d.pct === null ? "—" : `${d.pct}%`}${d.notAssessed ? "" : bar(d.pct, d.status)}</td><td><span class="status" style="color:${statusColor(d.status)}">${d.notAssessed ? "Not assessed" : statusWord(d.status)}</span>${d.lowEvidence ? `<br><span class="sub">Limited evidence (${d.scoredItems} item${d.scoredItems === 1 ? "" : "s"})*</span>` : ""}</td></tr>`).join("");
 
   return `${open}${head(r, opts.logoUrl)}
 <section class="keep"><h2>1. Score summary</h2>
@@ -100,7 +103,8 @@ ${r.verification.notes.length ? `<ul class="sub">${r.verification.notes.map((n) 
 <section><h2>3. ${r.subject === "ela" ? "Domain" : "Section"} summary</h2>${legend}
 <table><thead><tr><th>${r.subject === "ela" ? "Domain" : "Section"}</th><th>Evidence</th><th>Accuracy</th><th>Status</th></tr></thead><tbody>${domainRows}</tbody></table></section>
 <section><h2>4. Skill-by-skill results</h2>
-<table><thead><tr><th>Skill</th><th>${r.subject === "ela" ? "Domain" : "Section"}</th><th>Evidence</th><th style="width:1.3in">Accuracy</th><th>Status</th><th>Next step</th></tr></thead><tbody>${skillRows}</tbody></table></section>
+<table><thead><tr><th style="width:1.7in">Skill</th><th style="width:1.1in">Evidence</th><th style="width:1.1in">Accuracy</th><th style="width:1.3in">Status</th><th>Next step</th></tr></thead><tbody>${skillRows}</tbody></table>
+<p class="sub">* Limited evidence: fewer than 3 scored items. A result such as 100% on one item is not proof of broad mastery (and 0% on one item is not proof of a broad gap); confirm with additional items.</p></section>
 <section class="keep"><h2>5. Priority focus</h2>${r.priorityFocus.length ? `<ol>${r.priorityFocus.map((s) => `<li><strong>${esc(s.skill)}</strong> (${s.pct}% on ${s.scoredItems} item${s.scoredItems === 1 ? "" : "s"}): ${esc(s.nextStep)}</li>`).join("")}</ol>` : `<p>No assessed skill is below ${SKILL_STATUS_THRESHOLDS.DEVELOPING}%; continue with the developing skills above.</p>`}</section>
 <section class="keep"><h2>6. What the ${esc(r.score.tier)} placement means</h2><p>${esc(r.tierExplanation)}</p></section>
 <section class="keep"><h2>7. Program length and formal retests</h2><p>Recommended: <strong>${esc(r.program.label)}</strong>. Formal diagnostic retests are built into the program at:</p>
