@@ -151,7 +151,9 @@ describe("retests", () => {
     const html = renderDiagnosticReportHtml(buildDiagnosticReport({ attempt: attempt(0), test: { name: "Math", test_type: "math", questions: [mc("a", "x")] }, responses: [no("a")] }));
     expect(html).toContain("Week 5 formal retest");
     expect(html).toContain("Week 15 formal retest");
-    expect(html.toLowerCase()).not.toContain("session");
+    expect(html.toLowerCase()).not.toContain("retest at session");
+    expect(html).toContain("15-week intensive program");
+    expect(html).toContain("afterschool support and separate Saturday intensive sessions");
   });
 });
 

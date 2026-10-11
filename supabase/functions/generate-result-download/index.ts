@@ -142,7 +142,7 @@ serve(async (req) => {
         student_name: attempt.profiles?.full_name || "Student",
         test_name: attempt.tests?.name || "Test",
         tier: report.score.tier,
-        strengths: report.strengths.filter((s) => !s.lowEvidence).slice(0, 5).map((s) => s.skill),
+        strengths: report.strengths.slice(0, 5).map((s) => s.skill),
         weaknesses: report.priorityFocus.map((s) => s.skill),
         certificate_url: `${supabaseUrl}/functions/v1/view-certificate?attemptId=${attemptId}`,
       }, { onConflict: "attempt_id" });

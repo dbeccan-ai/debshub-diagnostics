@@ -8,9 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { ArrowLeft, Download, CheckCircle, XCircle, TrendingUp, FileText, BookOpen, Share2, AlertTriangle } from "lucide-react";
 import { DiagnosticEvidenceReport, EvidenceUnavailable, useDiagnosticReport } from "@/components/DiagnosticEvidenceReport";
-import { formatReportDate } from "@/lib/diagnosticReport";
+import { formatReportDate, parentTierLabel } from "@/lib/diagnosticReport";
 import { getTierFromScore, TIER_LABELS } from "@/lib/tierConfig";
-import { RecommendedNextStepPanel, PlacementPathwayCard, InsightBox } from "@/components/TierComponents";
+import { RecommendedNextStepPanel, PlacementPathwayCard } from "@/components/TierComponents";
 
 interface SkillStat {
   total: number;
@@ -237,7 +237,7 @@ const Results = () => {
             {verified ? (
               <div className="mb-2 flex flex-col items-center gap-2">
                 <Badge className={`text-lg px-4 py-1 ${tierCfg.badgeClass}`}>{tierCfg.badge}</Badge>
-                <p className="text-xs font-medium">{tierCfg.label}</p>
+                <p className="text-xs font-medium">{parentTierLabel(verified?.score.tier ?? null)}</p>
               </div>
             ) : (
               <div className="mb-2 flex items-center justify-center gap-2 text-sm font-medium text-amber-700">
@@ -311,7 +311,7 @@ const Results = () => {
             )}
 
             {/* Insight box for overall score */}
-            {verified && <InsightBox score={overallScore} />}
+            
 
             {/* Desktop CTA after score summary */}
             {verified && <div className="mt-4 print:hidden">
@@ -377,7 +377,7 @@ const Results = () => {
                     📚 AI-Generated {isELA ? "ELA" : "Math"} Curriculum
                   </h3>
                   <p className="text-sm text-sky-700 mb-3">
-                    Get a personalized 4-week learning plan and practice questions built around your child's specific{" "}
+                    Get a personalized {verified?.score.tier === "Tier 3" ? "15-week" : "4-week"} learning plan and practice questions built around your child's specific{" "}
                     {prioritySkills.length > 0 ? (
                       <span>
                         priority areas:{" "}
@@ -411,7 +411,7 @@ const Results = () => {
           <CardContent className="space-y-4 text-sm text-slate-600">
             {verified ? (
               <div className={`p-4 rounded-lg border ${tierCfg.borderClass} ${tierCfg.bgClass}`}>
-                <p className={`font-bold text-base ${tierCfg.textClass} mb-1`}>{tierCfg.label}</p>
+                <p className={`font-bold text-base ${tierCfg.textClass} mb-1`}>{parentTierLabel(verified?.score.tier ?? null)}</p>
                 <p className={`text-sm ${tierCfg.textClass}`}>{verified.tierExplanation}</p>
               </div>
             ) : (

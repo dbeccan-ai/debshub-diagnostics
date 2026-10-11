@@ -1,11 +1,11 @@
 // Print-safe HTML for the general K-12 Math/ELA diagnostic report. Same section order for both subjects.
 // Charts are inline SVG (prints without "background graphics") and every value is also printed as text.
-import { type DiagnosticReport, type SkillSummary, type ResponseRow, STATUS_LABEL, SKILL_STATUS_THRESHOLDS, UNMAPPED_SKILL, BRAND_NAME, BRAND_TAGLINE, formatReportDate } from "./diagnostic-report.ts";
+import { type DiagnosticReport, type SkillSummary, type ResponseRow, STATUS_LABEL, SKILL_STATUS_THRESHOLDS, UNMAPPED_SKILL, BRAND_NAME, BRAND_TAGLINE, formatReportDate, parentReportNotes, parentSkillName, parentDomainName, parentNextStep } from "./diagnostic-report.ts";
 
 const NAVY = "#1C2D5A", YELLOW = "#FFDE59", RED = "#D72638", GREEN = "#1E7B3C", AMBER = "#8A5A00";
-const esc = (s: unknown) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]!));
+const esc = (s: unknown) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c] ?? c));
 const statusColor = (s: string) => (s === "strength" ? GREEN : s === "developing" ? AMBER : s === "priority" ? RED : "#555");
-const statusWord = (s: string) => (s === "strength" ? "Strength" : s === "developing" ? "Developing" : s === "priority" ? "Priority support" : "Not yet scored");
+const statusWord = (s: string) => (s === "strength" ? "Strength" : s === "developing" ? "Developing" : s === "priority" ? "Support needed" : "Not yet scored");
 const fmtDate = (d: string | null) => formatReportDate(d);
 const gradeTxt = (g: number | null) => (g === null || g === undefined ? "Not recorded" : g === 0 ? "Kindergarten" : `Grade ${g}`);
 
@@ -16,9 +16,9 @@ function bar(pct: number | null, status: string) {
 const evidenceCell = (s: { usesPoints: boolean; earned: number; possible: number; correctItems: number; scoredItems: number; pendingItems: number }) =>
   `${s.usesPoints ? `${s.earned}/${s.possible} pts` : `${s.correctItems}/${s.scoredItems} correct`}<br><span class="sub">${s.scoredItems} scored item${s.scoredItems === 1 ? "" : "s"}${s.pendingItems ? `, ${s.pendingItems} pending` : ""}</span>`;
 
-function list(items: SkillSummary[], empty: string) {
+function list(items: SkillSummary[], empty: string, subject: DiagnosticReport["subject"]) {
   if (!items.length) return `<p class="muted">${empty}</p>`;
-  return `<ul>${items.map((s) => `<li><strong>${esc(s.skill)}</strong> — ${s.pct}% (${s.usesPoints ? `${s.earned}/${s.possible} pts` : `${s.correctItems}/${s.scoredItems}`})${s.lowEvidence ? ` <em>· limited evidence</em>` : ""}</li>`).join("")}</ul>`;
+  return `<ul>${items.map((s) => `<li><strong>${esc(parentSkillName(s.skill))}</strong> — ${s.pct}% (${s.usesPoints ? `${s.earned}/${s.possible} pts` : `${s.correctItems}/${s.scoredItems}`})<br>${esc(parentNextStep(s, subject))}</li>`).join("")}</ul>`;
 }
 
 const CSS = `
@@ -63,7 +63,7 @@ function head(r: DiagnosticReport, logoUrl?: string | null, teacher = false) {
 <div><strong>Completed:</strong> ${fmtDate(r.completedAt)}</div><div><strong>Subject:</strong> ${esc(r.subjectLabel)}</div></div></section>`;
 }
 function foot(r: DiagnosticReport) {
-  return `<footer class="end"><strong>${BRAND_NAME}</strong> · <em>${BRAND_TAGLINE}</em><br>Contact · info@debslearnacademy.com · 347-364-1906 · www.debslearnacademy.com<br>Report generated ${formatReportDate(r.generatedAt, true)} (Eastern Time) · Report version ${esc(r.version)} · Attempt ${esc(r.test.attemptId.slice(0, 8))}</footer>`;
+  return `<footer class="end"><strong>${BRAND_NAME}</strong> · <em>${BRAND_TAGLINE}</em><br>Contact · info@debslearnacademy.com · 347-364-1906 · www.debslearnacademy.com<br>Report generated ${formatReportDate(r.generatedAt, true)} (Eastern Time)</footer>`;
 }
 
 export interface TeacherCopyOptions { responses: ResponseRow[] }
@@ -80,6 +80,8 @@ function teacherAppendix(r: DiagnosticReport, t: TeacherCopyOptions) {
   const word = (o: string, id: string) => (o === "unanswered" ? (optional.has(id) ? "Optional — not selected" : "No saved response") : o === "pending" ? "Awaiting review" : o === "partial" ? "Partial credit" : o === "correct" ? "Correct" : "Incorrect");
   const sections = [...new Set(r.items.map((i) => i.section ?? "Questions"))];
   return `<section class="newpage"><h2>8. Teacher appendix: item responses and answer key</h2>
+<h3>Internal audit notes — staff only</h3><ul>${[...(r.auditNotes ?? []), ...r.verification.notes.filter((n) => !parentReportNotes(r).includes(n))].map((n) => `<li>${esc(n)}</li>`).join("")}</ul>
+<table><thead><tr><th>Skill / domain</th><th>Provenance</th><th>Bank-quality / sampling note</th></tr></thead><tbody>${r.skills.map((s) => `<tr><td>${esc(s.skill)} / ${esc(s.domain)}</td><td>${s.skillSource === "inferred" ? "inferred from wording" : esc(s.skillSource)}</td><td>${esc(s.evidenceNote ?? "")}</td></tr>`).join("")}</tbody></table>
 <p class="sub">Outcomes come from the same saved evidence used in sections 1–7. Points are shown only for scored items.</p>
 ${sections.map((sec) => `<table><thead><tr><th colspan="5">${esc(sec)}</th></tr><tr><th style="width:0.5in">#</th><th>Question / skill</th><th style="width:1.6in">Student response</th><th style="width:1.3in">Answer key</th><th style="width:1.2in">Outcome</th></tr></thead><tbody>${r.items.filter((i) => (i.section ?? "Questions") === sec).map((i) => {
     const resp = byId.get(i.id);
@@ -104,17 +106,15 @@ export function renderDiagnosticReportHtml(r: DiagnosticReport, opts: { logoUrl?
 <tr><th>Stored overall score</th><td>${r.score.stored ?? "—"}%</td></tr>
 <tr><th>Recomputed from saved responses</th><td>${r.score.pct ?? "—"}% (${esc(r.score.basis)})</td></tr>
 <tr><th>Questions in bank / answered / scored / pending</th><td>${r.counts.totalItems} / ${r.counts.answered} / ${r.counts.scored} / ${r.counts.pending}</td></tr></tbody></table></section>
-${r.verification.notes.length ? `<section><h2>Notes</h2><ul>${r.verification.notes.map((n) => `<li>${esc(n)}</li>`).join("")}</ul></section>` : ""}
+${parentReportNotes(r).length ? `<section><h2>Notes</h2><ul>${parentReportNotes(r).map((n) => `<li>${esc(n)}</li>`).join("")}</ul></section>` : ""}
 ${coverageBlock(r)}${opts.teacher ? teacherAppendix(r, opts.teacher) : ""}${foot(r)}${close}`;
   }
 
   const c = r.counts;
   const legend = `<p class="sub">Status key (text label always printed): <strong>${STATUS_LABEL.strength}</strong> · <strong>${STATUS_LABEL.developing}</strong> · <strong>${STATUS_LABEL.priority}</strong>. Dashed lines on each bar mark ${SKILL_STATUS_THRESHOLDS.DEVELOPING}% and ${SKILL_STATUS_THRESHOLDS.STRENGTH}%.</p>`;
-  const shortNote = (x: { scoredItems: number; lowEvidence: boolean }) => (x.lowEvidence ? `<br><span class="sub">Limited evidence (${x.scoredItems} item${x.scoredItems === 1 ? "" : "s"})*</span>` : "");
-  const shortStep = (t: string) => t.replace(/ Confirm with additional items before drawing conclusions\./, "");
   const domainsInOrder = [...new Set(r.skills.map((s) => s.domain))];
-  const skillRows = domainsInOrder.map((d) => `<tr class="grp"><th colspan="5">${esc(d)}</th></tr>` + r.skills.filter((s) => s.domain === d).map((s) => `<tr><td>${esc(s.skill === UNMAPPED_SKILL ? "Unmapped items (no skill tag)" : s.skill)}${s.skillSource === "inferred" ? `<br><span class="sub">inferred from wording</span>` : ""}</td><td>${evidenceCell(s)}</td><td>${s.pct === null ? "—" : `${s.pct}%`}${bar(s.pct, s.status)}</td><td><span class="status" style="color:${statusColor(s.status)}">${statusWord(s.status)}</span>${shortNote(s)}</td><td>${esc(shortStep(s.nextStep))}</td></tr>`).join("")).join("");
-  const domainRows = r.domains.map((d) => `<tr><td>${esc(d.domain)}</td><td>${d.notAssessed ? "—" : evidenceCell(d)}</td><td>${d.pct === null ? "—" : `${d.pct}%`}${d.notAssessed ? "" : bar(d.pct, d.status)}</td><td><span class="status" style="color:${statusColor(d.status)}">${d.notAssessed ? "Not assessed" : statusWord(d.status)}</span>${d.lowEvidence ? `<br><span class="sub">Limited evidence (${d.scoredItems} item${d.scoredItems === 1 ? "" : "s"})*</span>` : ""}</td></tr>`).join("");
+  const skillRows = domainsInOrder.map((d) => `<tr class="grp"><th colspan="5">${esc(parentDomainName(d))}</th></tr>` + r.skills.filter((s) => s.domain === d).map((s) => `<tr><td>${esc(parentSkillName(s.skill))}</td><td>${evidenceCell(s)}</td><td>${s.pct === null ? "—" : `${s.pct}%`}${bar(s.pct, s.status)}</td><td><span class="status" style="color:${statusColor(s.status)}">${statusWord(s.status)}</span></td><td>${esc(parentNextStep(s, r.subject))}</td></tr>`).join("")).join("");
+  const domainRows = r.domains.map((d) => `<tr><td>${esc(parentDomainName(d.domain))}</td><td>${d.notAssessed ? "—" : evidenceCell(d)}</td><td>${d.pct === null ? "—" : `${d.pct}%`}${d.notAssessed ? "" : bar(d.pct, d.status)}</td><td><span class="status" style="color:${statusColor(d.status)}">${d.notAssessed ? "Not assessed" : statusWord(d.status)}</span></td></tr>`).join("");
 
   return `${open}${head(r, opts.logoUrl, !!opts.teacher)}
 <section><h2>1. Score summary</h2>
@@ -123,17 +123,17 @@ ${coverageBlock(r)}${opts.teacher ? teacherAppendix(r, opts.teacher) : ""}${foot
 <table><thead><tr><th>Questions on test</th><th>Fully correct</th><th>Partial credit</th><th>Incorrect</th><th>Awaiting review</th><th>No response</th></tr></thead>
 <tbody><tr><td>${c.totalItems}</td><td>${c.correct}</td><td>${c.partial}</td><td>${c.incorrect}</td><td>${c.pending}</td><td>${c.unanswered}</td></tr></tbody></table>
 ${coverageBlock(r)}
-${r.verification.notes.length ? `<ul class="sub">${r.verification.notes.map((n) => `<li>${esc(n)}</li>`).join("")}</ul>` : ""}</section>
-<section><h2>2. Strengths, developing skills and priority support</h2>
-<div class="keep"><strong style="color:${GREEN}">Strengths (${SKILL_STATUS_THRESHOLDS.STRENGTH}%+)</strong>${list(r.strengths, "No assessed skill reached 85% yet.")}</div>
-<div class="keep"><strong style="color:${AMBER}">Developing (${SKILL_STATUS_THRESHOLDS.DEVELOPING}–${SKILL_STATUS_THRESHOLDS.STRENGTH - 1}%)</strong>${list(r.developing, "No assessed skill fell in the developing range.")}</div>
-<div class="keep"><strong style="color:${RED}">Priority support (below ${SKILL_STATUS_THRESHOLDS.DEVELOPING}%)</strong>${list(r.priority, "No assessed skill fell below 66%.")}</div></section>
+${parentReportNotes(r).length ? `<ul class="sub">${parentReportNotes(r).map((n) => `<li>${esc(n)}</li>`).join("")}</ul>` : ""}</section>
+<section><h2>2. Strengths, developing skills and support needed</h2>
+<div class="keep"><strong style="color:${GREEN}">Strengths (${SKILL_STATUS_THRESHOLDS.STRENGTH}%+)</strong>${list(r.strengths, "No assessed skill reached 85% yet.", r.subject)}</div>
+<div class="keep"><strong style="color:${AMBER}">Developing (${SKILL_STATUS_THRESHOLDS.DEVELOPING}–${SKILL_STATUS_THRESHOLDS.STRENGTH - 1}%)</strong>${list(r.developing, "No assessed skill fell in the developing range.", r.subject)}</div>
+<div class="keep"><strong style="color:${RED}">Support needed (below ${SKILL_STATUS_THRESHOLDS.DEVELOPING}%)</strong>${list(r.priority, "No assessed skill fell below 66%.", r.subject)}</div></section>
 <section class="keep"><h2>3. ${r.subject === "ela" ? "Domain" : "Section"} summary</h2>${legend}
 <table><thead><tr><th>${r.subject === "ela" ? "Domain" : "Section"}</th><th>Evidence</th><th>Accuracy</th><th>Status</th></tr></thead><tbody>${domainRows}</tbody></table></section>
 <section class="newpage"><h2>4. Skill-by-skill results</h2>
 <table><thead><tr><th style="width:1.7in">Skill</th><th style="width:1.1in">Evidence</th><th style="width:1.1in">Accuracy</th><th style="width:1.3in">Status</th><th>Next step</th></tr></thead><tbody>${skillRows}</tbody></table>
-<p class="sub">* Limited evidence: fewer than 3 scored items. A result such as 100% on one item is not proof of broad mastery (and 0% on one item is not proof of a broad gap); confirm with additional items.</p></section>
-<section class="keep"><h2>5. Priority focus</h2>${r.priorityFocus.length ? `<ol>${r.priorityFocus.map((s) => `<li><strong>${esc(s.skill)}</strong> (${s.pct}% on ${s.scoredItems} item${s.scoredItems === 1 ? "" : "s"}): ${esc(s.nextStep)}</li>`).join("")}</ol>` : `<p>No assessed skill is below ${SKILL_STATUS_THRESHOLDS.DEVELOPING}%; continue with the developing skills above.</p>`}</section>
+</section>
+<section class="keep"><h2>5. Priority focus</h2>${r.priorityFocus.length ? `<ol>${r.priorityFocus.map((s) => `<li><strong>${esc(parentSkillName(s.skill))}</strong> (${s.pct}% on ${s.scoredItems} item${s.scoredItems === 1 ? "" : "s"}): ${esc(parentNextStep(s, r.subject))}</li>`).join("")}</ol>` : `<p>No assessed skill is below ${SKILL_STATUS_THRESHOLDS.DEVELOPING}%; continue with the developing skills above.</p>`}</section>
 <section class="keep"><h2>6. What the ${esc(r.score.tier)} placement means</h2><p>${esc(r.tierExplanation)}</p></section>
 <div class="keep"><section><h2>7. Program length and formal retests</h2><p>Recommended: <strong>${esc(r.program.label)}</strong>. Formal diagnostic retests are built into the program at:</p>
 <table><thead><tr><th>Retest</th><th>Status</th></tr></thead><tbody>${r.program.retests.map((t) => `<tr><td>${esc(t.label)}</td><td>${t.status === "not_scheduled" ? "Scheduled when the program starts" : esc(t.status)}${t.unlock_date ? ` (opens ${fmtDate(t.unlock_date)})` : ""}</td></tr>`).join("")}</tbody></table></section>
@@ -148,13 +148,19 @@ export function renderEmailSummaryHtml(r: DiagnosticReport): string {
   const box = (border: string, inner: string) => `<div style="border:2px solid ${border};border-left:8px solid ${border};padding:14px 16px;margin:16px 0;border-radius:4px;color:#111;font-size:15px;line-height:1.5">${inner}</div>`;
   if (r.verification.state === "requires_verification")
     return box(RED, `<strong style="color:${RED}">Scoring details require verification.</strong><br>Our staff are verifying this result before a final score, tier or skill summary is issued. You do not need to do anything; we will follow up.`);
-  const li = (xs: SkillSummary[]) => xs.slice(0, 5).map((s) => `<li>${esc(s.skill)} — ${s.pct}% (${s.usesPoints ? `${s.earned}/${s.possible} pts` : `${s.correctItems}/${s.scoredItems}`})${s.lowEvidence ? " · limited evidence" : ""}</li>`).join("");
+  const li = (xs: SkillSummary[]) => xs.slice(0, 5).map((s) => `<li>${esc(parentSkillName(s.skill))} — ${s.pct}% (${s.usesPoints ? `${s.earned}/${s.possible} pts` : `${s.correctItems}/${s.scoredItems}`})<br>${esc(parentNextStep(s, r.subject))}</li>`).join("");
   const cov = r.coverage?.state === "incomplete"
     ? box(RED, `<strong>Required work incomplete.</strong> ${esc(r.coverage.statement)} The score below reflects recorded scored items only.`) : "";
   return `${cov}${box(NAVY, `<div style="font-size:22px;font-weight:700;color:${NAVY}">${r.score.pct}% · ${esc(r.score.tier)}</div><div><strong>How this score was calculated:</strong> ${esc(r.score.basis)}</div>${r.counts.pending ? `<div>${r.counts.pending} response(s) still await teacher review and are not included.</div>` : ""}`)}
 ${r.strengths.length ? `<p style="margin:12px 0 4px"><strong style="color:${GREEN}">Strengths (${SKILL_STATUS_THRESHOLDS.STRENGTH}%+)</strong></p><ul>${li(r.strengths)}</ul>` : ""}
+${r.developing.length ? `<p><strong>Developing skills</strong></p><ul>${li(r.developing)}</ul>` : ""}
 ${r.priorityFocus.length ? `<p style="margin:12px 0 4px"><strong style="color:${RED}">Priority focus (below ${SKILL_STATUS_THRESHOLDS.DEVELOPING}%)</strong></p><ul>${li(r.priorityFocus)}</ul>` : ""}
 <p style="font-size:14px;color:#333">${esc(r.tierExplanation)}</p>
 <p style="font-size:14px;color:#333"><strong>${esc(r.program.label)}.</strong> Formal retests: ${r.program.retests.map((t) => `Week ${t.week}`).join(", ")}.</p>`;
 }
 export const EMAIL_FOOTER_HTML = `<p><strong>${BRAND_NAME}</strong></p><p><em>${BRAND_TAGLINE}</em></p>`;
+
+/** General certificate evidence uses the parent contract, including counts, points, review and completion. */
+export function renderGeneralCertificateHtml(r: DiagnosticReport, opts: { logoUrl?: string | null } = {}): string {
+  return renderDiagnosticReportHtml(r, opts).replace("<h1>", "<h1>Diagnostic performance certificate — ");
+}

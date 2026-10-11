@@ -1,5 +1,6 @@
 import diagnosticTests from "@/data/diagnostic-tests.json";
 import elaDiagnosticTests from "@/data/ela-diagnostic-tests.json";
+import type { CanonicalItemTags } from "../../supabase/functions/_shared/general-item-tags";
 
 interface Question {
   id: string;
@@ -7,6 +8,7 @@ interface Question {
   type: string;
   topic?: string;
   skill_tag?: string;
+  canonical_tags?: CanonicalItemTags;
   question_text?: string;
   question?: string;
   choices?: string[];

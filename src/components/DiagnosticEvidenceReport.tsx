@@ -3,9 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, Loader2, RefreshCw } from "lucide-react";
-import { STATUS_LABEL, UNMAPPED_SKILL, type DiagnosticReport } from "@/lib/diagnosticReport";
+import { STATUS_LABEL, parentSkillName, parentDomainName, parentNextStep, parentReportNotes, type DiagnosticReport } from "@/lib/diagnosticReport";
 
-const STATUS_TEXT: Record<string, string> = { strength: "Strength", developing: "Developing", priority: "Priority support", not_scored: "Not assessed" };
+const STATUS_TEXT: Record<string, string> = { strength: "Strength", developing: "Developing", priority: "Support needed", not_scored: "Not assessed" };
 const STATUS_CLASS: Record<string, string> = {
   strength: "bg-emerald-600", developing: "bg-amber-500", priority: "bg-red-600", not_scored: "bg-muted-foreground",
 };
@@ -85,7 +85,7 @@ export function DiagnosticEvidenceReport({ attemptId, report: given }: { attempt
           <p className="mt-1 text-sm">
             {c.totalItems} questions · {c.correct} correct · {c.partial} partial · {c.incorrect} incorrect · {c.pending} awaiting review · {c.unanswered} no response
           </p>
-          {report.verification.notes.map((n) => <p key={n} className="text-xs text-muted-foreground">{n}</p>)}
+          {parentReportNotes(report).map((n) => <p key={n} className="text-xs text-muted-foreground">{n}</p>)}
         </div>
         {cv?.state === "incomplete" && (
           <div role="alert" className="rounded-md border border-destructive p-3 text-sm">
@@ -96,18 +96,18 @@ export function DiagnosticEvidenceReport({ attemptId, report: given }: { attempt
         <p className="text-xs text-muted-foreground">{STATUS_LABEL.strength} · {STATUS_LABEL.developing} · {STATUS_LABEL.priority}</p>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead><tr className="border-b text-left"><th className="py-1 pr-2">Skill</th><th className="pr-2">{report.subject === "ela" ? "Domain" : "Section"}</th><th className="pr-2">Evidence</th><th className="w-32 pr-2">Accuracy</th><th>Status</th></tr></thead>
+            <thead><tr className="border-b text-left"><th className="py-1 pr-2">Skill</th><th className="pr-2">{report.subject === "ela" ? "Domain" : "Section"}</th><th className="pr-2">Evidence</th><th className="w-32 pr-2">Accuracy</th><th>Status / teaching</th></tr></thead>
             <tbody>
               {report.skills.map((s) => (
-                <tr key={`${s.domain}-${s.skill}`} className="border-b align-top">
-                  <td className="py-1 pr-2">{s.skill === UNMAPPED_SKILL ? "Unmapped items" : s.skill}{s.skillSource === "inferred" && <span className="block text-xs text-muted-foreground">inferred from wording</span>}</td>
-                  <td className="pr-2">{s.domain}</td>
+                <tr key={`${parentDomainName(s.domain)}-${s.skill}`} className="border-b align-top">
+                  <td className="py-1 pr-2">{parentSkillName(s.skill)}</td>
+                  <td className="pr-2">{parentDomainName(s.domain)}</td>
                   <td className="pr-2">{s.usesPoints ? `${s.earned}/${s.possible} pts` : `${s.correctItems}/${s.scoredItems}`}</td>
                   <td className="pr-2">
                     <span>{s.pct === null ? "—" : `${s.pct}%`}</span>
                     <div className="h-2 w-full rounded bg-muted"><div className={`h-2 rounded ${STATUS_CLASS[s.status]}`} style={{ width: `${s.pct ?? 0}%` }} /></div>
                   </td>
-                  <td><span className="font-medium">{STATUS_TEXT[s.status]}</span>{s.evidenceNote && <span className="block text-xs text-muted-foreground">{s.evidenceNote}</span>}</td>
+                  <td><span className="font-medium">{STATUS_TEXT[s.status]}</span><span className="block text-xs text-muted-foreground">{parentNextStep(s, report.subject)}</span></td>
                 </tr>
               ))}
             </tbody>

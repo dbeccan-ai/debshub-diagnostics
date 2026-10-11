@@ -4,6 +4,7 @@
 // Pure functions only: nothing here reads or writes the database.
 
 import { GENERAL_TIER_THRESHOLDS, TIER3_PLAN, detectSubject, tierFromScore, type GeneralTier } from "./general-curriculum.ts";
+import { readCanonicalTags } from "./general-item-tags.ts";
 
 export const REPORT_VERSION = "general-report-v2";
 export const BRAND_NAME = "D.E.Bs LEARNING ACADEMY LLC";
@@ -42,6 +43,7 @@ export interface NormalizedItem {
   domain: string;
   skill: string;
   skillSource: SkillSource;
+  secondarySkills?: string[];
   question: string;
   options: string[];
   correct_answer: string;
@@ -152,6 +154,9 @@ function explicitTag(q: any): string | null {
 }
 
 export function resolveItemSkill(q: any, subject: ReportSubject, section: string | null): { skill: string; skillSource: SkillSource; domain: string } {
+  const canonical = readCanonicalTags(q?.canonical_tags);
+  if (canonical && canonical.subject === subject)
+    return { skill: canonical.primary_skill, skillSource: "tag", domain: canonical.domain };
   const tag = explicitTag(q);
   if (subject === "ela") {
     if (tag) return { skill: formatSkillName(tag), skillSource: "tag", domain: elaDomainForTag(tag) ?? UNMAPPED_DOMAIN };
@@ -192,6 +197,7 @@ export function flattenTestItems(raw: any, subject: ReportSubject): { items: Nor
       id: explicit ?? path, idSource: explicit ? "explicit" : "derived", position: out.length + 1,
       rawType: String(q?.type ?? ""), scoring: isAutoScoredType(q?.type, q) ? "auto" : "manual",
       section: sec, subsection, ...r, choiceGroup: parseChoiceGroup(q, sec, subsection),
+      secondarySkills: readCanonicalTags(q?.canonical_tags)?.subject === subject ? readCanonicalTags(q?.canonical_tags)?.secondary_skills ?? [] : [],
       question: q?.question ?? q?.question_text ?? q?.text ?? "", options: q?.options ?? q?.choices ?? [],
       correct_answer: q?.correct_answer ?? q?.correctAnswer ?? "",
     });
@@ -277,9 +283,9 @@ function summarize(group: ScoredItem[], skill: string, domain: string, src: Skil
   };
 }
 
-export function nextStepFor(skill: string, status: SkillStatus, low: boolean, subject: ReportSubject): string {
+export function nextStepFor(skill: string, status: SkillStatus, _low: boolean, subject: ReportSubject): string {
   const s = skill === UNMAPPED_SKILL ? "these items" : skill.toLowerCase();
-  const confirm = low ? " Confirm with additional items before drawing conclusions." : "";
+  const confirm = ""; // Sparse sampling is a staff audit note, not a parent teaching recommendation.
   if (status === "priority") return `Reteach ${s} with modeled examples, then guided and independent practice${subject === "ela" ? " using short texts" : ""}.${confirm}`;
   if (status === "developing") return `Reinforce ${s} with targeted practice 2–3 times weekly.${confirm}`;
   if (status === "strength") return `Maintain ${s} with brief spiral review.${confirm}`;
@@ -292,7 +298,7 @@ export function nextStepFor(skill: string, status: SkillStatus, low: boolean, su
 export function programForTier(tier: GeneralTier): { weeks: number; label: string; retestWeeks: number[] } {
   if (tier === "Tier 1") return { weeks: 5, label: "5-week enrichment program", retestWeeks: [5] };
   if (tier === "Tier 2") return { weeks: 10, label: "10-week skill-building program", retestWeeks: [5, 10] };
-  return { weeks: TIER3_PLAN.total_weeks, label: `${TIER3_PLAN.core_weeks}-week intensive program plus up to ${TIER3_PLAN.extension_weeks} optional extension weeks`, retestWeeks: [5, 10, 15] };
+  return { weeks: TIER3_PLAN.total_weeks, label: "15-week intensive program: afterschool support and separate Saturday intensive sessions; attendance is individualized", retestWeeks: [5, 10, 15] };
 }
 export interface RetestRow { week_number: number | null; status: string; unlock_date: string | null }
 export function retestSchedule(tier: GeneralTier, rows: RetestRow[] = []) {
@@ -320,6 +326,7 @@ export interface DiagnosticReport {
   student: { name: string }; test: { name: string; attemptId: string };
   assessedGrade: number | null; enrolledGrade: number | null; completedAt: string | null; generatedAt: string;
   verification: { state: VerificationState; issues: string[]; notes: string[] };
+  auditNotes?: string[];
   counts: { totalItems: number; answered: number; unanswered: number; scored: number; pending: number; correct: number; partial: number; incorrect: number; autoScored: number; manualScored: number };
   coverage: Coverage;
   points: { earned: number; possible: number };
@@ -339,10 +346,15 @@ export function buildDiagnosticReport(input: ReportInput): DiagnosticReport {
   const { items, issues } = flattenTestItems(input.test.questions, subject);
   const issuesOut: string[] = [];
   const notes: string[] = [];
+  const auditNotes: string[] = [];
+  for (const i of items) {
+    // Invalid metadata never changes score arithmetic, but staff must see the bank-quality issue.
+    if (i.secondarySkills?.length) auditNotes.push(`${i.id}: secondary skills retained for instruction only: ${i.secondarySkills.join(", ")}; scored once under the primary skill.`);
+  }
   if (subject === "unknown") issuesOut.push("Test subject could not be determined from the test record; subject-specific skill analysis is unavailable.");
   if (items.length === 0) issuesOut.push("The test's question bank is missing, so responses cannot be mapped to questions.");
   if (issues.duplicateIds.length) issuesOut.push(`Duplicate question IDs in the bank: ${issues.duplicateIds.join(", ")}.`);
-  if (issues.missingIds) notes.push(`${issues.missingIds} question(s) have no explicit ID; deterministic positional IDs were used.`);
+  if (issues.missingIds) auditNotes.push(`${issues.missingIds} question(s) have no explicit ID; deterministic positional IDs were used.`);
   if (input.test.updated_at && input.attempt.completed_at && new Date(input.test.updated_at) > new Date(input.attempt.completed_at))
     issuesOut.push("The question bank was edited after this assessment was completed; the version used at assessment cannot be confirmed.");
 
@@ -410,8 +422,8 @@ export function buildDiagnosticReport(input: ReportInput): DiagnosticReport {
     return rest;
   }).filter(Boolean) as DiagnosticReport["domains"];
   const unmappedItems = scoredItems.filter((i) => i.skillSource === "unmapped" || i.domain === UNMAPPED_DOMAIN);
-  if (unmappedItems.length) notes.push(`${unmappedItems.length} question(s) have no recognised skill tag and are shown as unmapped rather than assigned a guessed skill.`);
-  if (skills.some((s) => s.skillSource === "inferred")) notes.push("Some skill names were inferred from question wording because the bank has no canonical skill tags; treat them as indicative.");
+  if (unmappedItems.length) auditNotes.push(`${unmappedItems.length} question(s) have no recognised skill tag and are shown as unmapped rather than assigned a guessed skill.`);
+  if (skills.some((s) => s.skillSource === "inferred")) auditNotes.push("Some skill names were inferred from wording because the bank has no canonical skill tags.");
 
   // Summary lists aggregate each skill across sections so one skill never appears as both strength and priority.
   const bySkill = new Map<string, ScoredItem[]>();
@@ -420,7 +432,7 @@ export function buildDiagnosticReport(input: ReportInput): DiagnosticReport {
   const strengths = mappedSkills.filter((s) => s.status === "strength");
   const developing = mappedSkills.filter((s) => s.status === "developing");
   const priority = mappedSkills.filter((s) => s.status === "priority");
-  const priorityFocus = [...priority].sort((a, b) => Number(a.lowEvidence) - Number(b.lowEvidence) || (a.pct ?? 0) - (b.pct ?? 0) || b.scoredItems - a.scoredItems).slice(0, 3);
+  const priorityFocus = [...priority].sort((a, b) => (a.pct ?? 0) - (b.pct ?? 0) || b.scoredItems - a.scoredItems).slice(0, 3);
 
   const tier = pct === null ? null : tierFromScore(pct);
   const prog = programForTier(tier ?? "Tier 3");
@@ -429,7 +441,7 @@ export function buildDiagnosticReport(input: ReportInput): DiagnosticReport {
     student: { name: input.studentName || "Student" }, test: { name: input.test.name || "Diagnostic", attemptId: input.attempt.id },
     assessedGrade: input.attempt.grade_level ?? null, enrolledGrade: input.enrolledGrade ?? null, completedAt: input.attempt.completed_at,
     generatedAt: input.generatedAt ?? new Date().toISOString(),
-    verification: { state: issuesOut.length ? "requires_verification" : "verified", issues: issuesOut, notes },
+    verification: { state: issuesOut.length ? "requires_verification" : "verified", issues: issuesOut, notes }, auditNotes,
     coverage,
     counts, points: { earned, possible }, score: { pct, stored, basis, tier },
     domains, skills, strengths, developing, priority, unmapped: { count: unmappedItems.length, questionIds: unmappedItems.map((i) => i.id) },
@@ -446,7 +458,7 @@ export function tierExplanation(tier: GeneralTier | null): string {
   const caveat = " A diagnostic score shows performance on the skills tested; on its own it does not establish an exact grade-level equivalent.";
   if (tier === "Tier 1") return "Your student answered most assessed items correctly (85% or higher) and is ready for enrichment and extension work." + caveat;
   if (tier === "Tier 2") return "Your student shows a solid base (66–84%) with specific skills that would benefit from targeted practice." + caveat;
-  if (tier === "Tier 3") return "Several assessed skills need focused, consistent support (below 66%). Instruction will begin with the prerequisite skills behind the gaps shown below." + caveat;
+  if (tier === "Tier 3") return "Performance on the assessed skills calls for focused, consistent support (below 66%). Instruction will target the support needs identified in this report, using modeled examples and guided practice." + caveat;
   return "An overall tier cannot be assigned until responses are scored.";
 }
 
@@ -467,4 +479,17 @@ export function buildSkillAnalysis(items: NormalizedItem[], responses: ResponseR
     (s.status === "strength" ? mastered : s.status === "developing" ? developing : needsSupport).push(skill);
   }
   return { version: SKILL_ANALYSIS_VERSION, subject, mastered: mastered.sort(), developing: developing.sort(), needsSupport: needsSupport.sort(), skillStats };
+}
+
+/** Parent-only presentation, preserving all material scoring/coverage notices. Internal flags stay on staff model. */
+export function parentReportNotes(r: DiagnosticReport): string[] {
+  return r.verification.notes.filter((n) => !/skill tag|canonical|inferred|unmapped|positional IDs/i.test(n));
+}
+export function parentSkillName(skill: string): string { return skill === UNMAPPED_SKILL ? "Other assessed questions" : skill; }
+export function parentDomainName(domain: string): string { return domain === UNMAPPED_DOMAIN ? "Other assessed questions" : domain; }
+export function parentNextStep(s: SkillSummary, subject: ReportSubject): string {
+  return nextStepFor(s.skill, s.status, false, subject);
+}
+export function parentTierLabel(tier: GeneralTier | null): string {
+  return tier === "Tier 1" ? "Strengths — enrichment" : tier === "Tier 2" ? "Developing skills — targeted practice" : "Support needed — targeted instruction";
 }
