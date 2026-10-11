@@ -46,6 +46,7 @@ interface Scores {
   transcript?: string;
   detectedErrors?: DetectedErrors;
   questionTranscripts?: Record<string, QuestionTranscript>;
+  readingDurationSeconds?: number;
 }
 
 interface VersionUnlockStatus {
@@ -555,12 +556,13 @@ const ReadingRecoveryDiagnostic = () => {
               version={passage.version}
               studentName={adminInfo.studentName}
               initialErrorCount={scores.oralReadingErrors}
-              onErrorCountConfirmed={(count, transcript, errors, suggestedStrategy) => {
+              onErrorCountConfirmed={(count, transcript, errors, suggestedStrategy, readingDurationSeconds) => {
                 setScores(prev => ({
                   ...prev,
                   oralReadingErrors: count,
                   transcript,
-                  detectedErrors: errors
+                  detectedErrors: errors,
+                  readingDurationSeconds: readingDurationSeconds ?? prev.readingDurationSeconds,
                 }));
                 // Auto-check the suggested decoding strategy
                 if (suggestedStrategy && passage?.decodingChecklist?.strategies) {
