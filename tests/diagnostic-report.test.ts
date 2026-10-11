@@ -113,7 +113,7 @@ describe("scoring states and reconciliation", () => {
   });
   it("all-graded MC uses item basis", () => {
     const x = buildDiagnosticReport({ attempt: attempt(50), test: { name: "Math", test_type: "math", questions: [mc("a", "x"), mc("b", "x")] }, responses: [ok("a"), no("b")] });
-    expect(x.score.basis).toBe("Correct ÷ scored questions: 1 of 2.");
+    expect(x.score.basis).toBe("Correct ÷ recorded scored questions: 1 of 2.");
   });
 });
 
