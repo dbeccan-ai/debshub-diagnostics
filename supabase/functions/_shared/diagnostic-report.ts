@@ -5,7 +5,17 @@
 
 import { GENERAL_TIER_THRESHOLDS, TIER3_PLAN, detectSubject, tierFromScore, type GeneralTier } from "./general-curriculum.ts";
 
-export const REPORT_VERSION = "general-report-v1";
+export const REPORT_VERSION = "general-report-v2";
+export const BRAND_NAME = "D.E.Bs LEARNING ACADEMY LLC";
+export const BRAND_TAGLINE = "Unlocking Brilliance Through Learning";
+/** Local reports display dates in the Academy's home time zone. */
+export const REPORT_TIME_ZONE = "America/New_York";
+export function formatReportDate(d: string | null | undefined, withTime = false): string {
+  if (!d) return "—";
+  const dt = new Date(d);
+  if (Number.isNaN(dt.getTime())) return "—";
+  return dt.toLocaleString("en-US", { year: "numeric", month: "long", day: "numeric", timeZone: REPORT_TIME_ZONE, ...(withTime ? { hour: "numeric", minute: "2-digit", timeZoneName: "short" } : {}) });
+}
 export const SKILL_ANALYSIS_VERSION = 2;
 /** Per-skill status uses the same authoritative 85/66 boundaries as the overall tier (tierConfig.ts). */
 export const SKILL_STATUS_THRESHOLDS = { STRENGTH: GENERAL_TIER_THRESHOLDS.GREEN, DEVELOPING: GENERAL_TIER_THRESHOLDS.YELLOW } as const;
