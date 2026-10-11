@@ -40,9 +40,17 @@ interface OralReadingAutoAssistProps {
   gradeBand: string;
   version: string;
   studentName: string;
-  onErrorCountConfirmed: (count: number, transcript: string, errors: DetectedErrors, suggestedStrategy?: string) => void;
+  onErrorCountConfirmed: (count: number, transcript: string, errors: DetectedErrors, suggestedStrategy?: string, readingDurationSeconds?: number) => void;
   initialErrorCount?: number;
 }
+
+// Pick the best recording format the device supports. Safari/iPad cannot
+// record audio/webm, so fall back to mp4/aac instead of failing silently.
+export const pickSupportedAudioMimeType = (): string => {
+  if (typeof MediaRecorder === "undefined" || !MediaRecorder.isTypeSupported) return "";
+  const candidates = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/aac", "audio/ogg"];
+  return candidates.find((t) => MediaRecorder.isTypeSupported(t)) ?? "";
+};
 
 // Analyze error patterns to suggest the most likely decoding strategy used
 const analyzeDecodingStrategy = (errors: DetectedErrors, totalWords: number): string | undefined => {
@@ -114,6 +122,8 @@ export const OralReadingAutoAssist = ({
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const recordingStartedAtRef = useRef<number | null>(null);
+  const [recordingDuration, setRecordingDuration] = useState<number | null>(null);
 
   useEffect(() => {
     return () => {
@@ -126,9 +136,14 @@ export const OralReadingAutoAssist = ({
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
+      const mimeType = pickSupportedAudioMimeType();
+      const mediaRecorder = mimeType
+        ? new MediaRecorder(stream, { mimeType })
+        : new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
+      recordingStartedAtRef.current = Date.now();
+      setRecordingDuration(null);
 
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
@@ -137,9 +152,13 @@ export const OralReadingAutoAssist = ({
       };
 
       mediaRecorder.onstop = () => {
-        const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+        const type = mediaRecorder.mimeType || mimeType || "audio/webm";
+        const blob = new Blob(audioChunksRef.current, { type });
         setAudioBlob(blob);
         setAudioUrl(URL.createObjectURL(blob));
+        if (recordingStartedAtRef.current) {
+          setRecordingDuration(Math.round((Date.now() - recordingStartedAtRef.current) / 1000));
+        }
         stream.getTracks().forEach(track => track.stop());
       };
 
@@ -148,7 +167,7 @@ export const OralReadingAutoAssist = ({
       toast.info("Recording started. Have the student read the passage aloud.");
     } catch (error) {
       console.error("Error accessing microphone:", error);
-      toast.error("Could not access microphone. Please check permissions.");
+      toast.error("Could not access microphone. Please check permissions and that your device has a working microphone.");
     }
   };
 
@@ -175,7 +194,8 @@ export const OralReadingAutoAssist = ({
       }
 
       const formData = new FormData();
-      formData.append("audio", audioBlob, "recording.webm");
+      const ext = audioBlob.type.includes("mp4") ? "mp4" : audioBlob.type.includes("ogg") ? "ogg" : audioBlob.type.includes("aac") ? "aac" : "webm";
+      formData.append("audio", audioBlob, `recording.${ext}`);
       formData.append("originalText", passageText);
 
       const response = await fetch(
@@ -230,7 +250,7 @@ export const OralReadingAutoAssist = ({
     if (transcript && editedErrors) {
       const wordCount = passageText.split(/\s+/).length;
       const suggestedStrategy = analyzeDecodingStrategy(editedErrors, wordCount);
-      onErrorCountConfirmed(confirmedErrorCount, transcript, editedErrors, suggestedStrategy);
+      onErrorCountConfirmed(confirmedErrorCount, transcript, editedErrors, suggestedStrategy, recordingDuration ?? undefined);
       toast.success("Errors confirmed and saved.");
     }
   };
@@ -246,6 +266,8 @@ export const OralReadingAutoAssist = ({
     setLanguageInfo(null);
     setEditedErrors(null);
     setSuggestedErrorCount(null);
+    setRecordingDuration(null);
+    recordingStartedAtRef.current = null;
   };
 
   const removeError = (type: "omissions" | "insertions", index: number) => {

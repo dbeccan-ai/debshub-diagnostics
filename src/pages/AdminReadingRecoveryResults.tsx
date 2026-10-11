@@ -151,7 +151,10 @@ const AdminReadingRecoveryResults = () => {
             <BookOpen className="h-5 w-5 text-emerald-600" />
             <h1 className="text-lg font-semibold text-slate-900">Reading Recovery Results</h1>
           </div>
-          <Button variant="outline" size="sm" onClick={fetchTranscripts}><RefreshCw className="mr-1 h-4 w-4" /> Refresh</Button>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => navigate("/admin/reading-recovery-cohort")}>Cohort View</Button>
+            <Button variant="outline" size="sm" onClick={fetchTranscripts}><RefreshCw className="mr-1 h-4 w-4" /> Refresh</Button>
+          </div>
         </div>
       </header>
 

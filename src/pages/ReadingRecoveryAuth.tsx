@@ -201,10 +201,18 @@ const ReadingRecoveryAuth = () => {
       }
 
       if (authData.user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("school_id")
+          .eq("id", authData.user.id)
+          .maybeSingle();
+
         const { error: enrollError } = await supabase
           .from("reading_recovery_enrollments")
           .insert({
             user_id: authData.user.id,
+            student_id: authData.user.id,
+            school_id: profile?.school_id ?? null,
             student_name: studentName,
             parent_email: parentEmail,
             grade_level: gradeLevel ? parseInt(gradeLevel) : null,
@@ -265,10 +273,18 @@ const ReadingRecoveryAuth = () => {
           .maybeSingle();
         
         if (!enrollment) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("school_id")
+            .eq("id", data.user.id)
+            .maybeSingle();
+
           const { error: enrollError } = await supabase
             .from("reading_recovery_enrollments")
             .insert({
               user_id: data.user.id,
+              student_id: data.user.id,
+              school_id: profile?.school_id ?? null,
               student_name: data.user.user_metadata?.full_name || "Student",
               parent_email: data.user.email || loginEmail,
             });
