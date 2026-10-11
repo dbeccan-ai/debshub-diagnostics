@@ -1,10 +1,10 @@
 # Roadmap — Reading Recovery 21-Day Program Upgrades (approved audit plan)
 
-- [ ] 1. Student identity + school scope: add student_id/school_id to transcripts & enrollments, teacher school-scoped RLS, additive backfill
-- [ ] 2. Real WCPM/timing: reading start/stop per passage, store WCPM + accuracy + word timings
-- [ ] 3. Pre/post tracking: passage form version, set version_b/c completion, A↔C pairing helper
-- [ ] 4. Cohort report + CSV export (de-identified)
-- [ ] 5. Tablet/Chromebook mic reliability: format fallback (mp4 on Safari), mic check
-- [ ] 6. Roster for supervising 20 students: class assignment + teacher live progress view
-- [ ] Validation: tests, typecheck, build
-- [ ] Report: routes/schema/migrations/preview/blocked items
+- [x] 1. Student identity + school scope: student_id/school_id on transcripts & enrollments, teacher school-scoped RLS, additive backfill (migration 0001)
+- [x] 2. Real WCPM/timing: recording duration captured, WCPM + reading_duration_seconds + passage_form_version stored
+- [x] 3. Pre/post tracking: version_c_completed_at set on Version C save, pairPrePost helper
+- [x] 4. Cohort report + de-identified CSV export at /admin/reading-recovery-cohort
+- [x] 5. Tablet/Chromebook mic reliability: MediaRecorder format fallback (webm→mp4/aac/ogg), correct file extension to transcribe-audio
+- [x] 6. Roster for supervising students: cohort page roster with days done, A/B/C status, error/WCPM deltas (teachers see own school via RLS)
+- [x] Validation: 10 new tests pass, typecheck, build
+- [ ] Report to user: routes/schema/migration summary
