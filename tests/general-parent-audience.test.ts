@@ -60,6 +60,14 @@ describe("general parent audience", () => {
     expect(r.strengths).toHaveLength(1);
     expect(r.strengths[0].lowEvidence).toBe(true);
   });
+  it("preserves 19/31 and 15.5/31 scoring independently of audience", () => {
+    for (const [earned, pct] of [[19, 61.29], [15.5, 50]]) {
+      const report = buildDiagnosticReport({ attempt: { ...attempt, score: pct }, test: { name: "Math", test_type: "math", questions: [{ id: "points", type: "open-ended", skill: "multi-step problems" }] }, responses: [{ question_id: "points", is_correct: false, points_awarded: earned, max_points: 31 }] });
+      expect(report.points).toEqual({ earned, possible: 31 });
+      expect(report.score.pct).toBe(pct);
+      for (const render of [renderDiagnosticReportHtml, renderEmailSummaryHtml, renderGeneralCertificateHtml]) expect(render(report)).toContain(`${earned} of 31 points`);
+    }
+  });
   it("parent Results avoids broad mastery insight and corrects Tier 3 duration", () => {
     const src = readFileSync("src/pages/Results.tsx", "utf8");
     expect(src).toContain("parentTierLabel");

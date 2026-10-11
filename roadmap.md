@@ -21,5 +21,5 @@
 - [x] Separate parent guidance from internal staff provenance/sparse-item audit; preserve material notices and points
 - [x] Audit actual 30-item Grade 5 Math bank versus different local 10-item bank; create reviewable source-preserving map
 - [x] Add canonical item schema and approval-gated pure future-bank configuration, without applying bank changes
-- [ ] Targeted/regression tests and synthetic parent/teacher/certificate visual checks
+- [x] Targeted/regression tests and synthetic parent/teacher/certificate visual checks (243 passed; 7-page parent / 13-page staff; no blank pages)
 - [ ] Owner approval and future-bank release (blocked: owner review; no production changes authorized)
