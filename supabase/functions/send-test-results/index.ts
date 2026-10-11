@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 import { Resend } from "https://esm.sh/resend@2.0.0";
+import { buildDiagnosticReport } from "../_shared/diagnostic-report.ts";
+import { EMAIL_FOOTER_HTML, renderEmailSummaryHtml } from "../_shared/diagnostic-report-html.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -60,7 +62,7 @@ serve(async (req) => {
       .from("test_attempts")
       .select(`
         *,
-        tests (name, test_type),
+        tests (name, test_type, questions, updated_at),
         profiles (full_name, parent_email)
       `)
       .eq("id", attemptId)
@@ -139,6 +141,14 @@ serve(async (req) => {
 
     const tierColor = tierColors[attempt.tier || "Tier 3"];
 
+    // Read-only evidence model shared with the parent PDF (never writes scores).
+    const { data: emailResponses } = await supabaseClient.from("test_responses").select("question_id, answer, is_correct, points_awarded, max_points").eq("attempt_id", attemptId);
+    const { data: emailFollowUps } = await supabaseClient.from("follow_up_assessments").select("week_number, status, unlock_date").eq("source_attempt_id", attemptId);
+    const emailReport = buildDiagnosticReport({
+      attempt, test: attempt.tests ?? { name: null, test_type: null, questions: null },
+      responses: emailResponses ?? [], studentName: attempt.profiles?.full_name, followUps: emailFollowUps ?? [],
+    });
+    const emailVerified = emailReport.verification.state === "verified";
     // Generate email HTML
     const emailHTML = `
 <!DOCTYPE html>
@@ -168,28 +178,15 @@ serve(async (req) => {
 <body>
   <div class="container">
     <div class="header">
-      <h1>D.E.Bs DIAGNOSTIC HUB</h1>
+      <h1>D.E.Bs LEARNING ACADEMY LLC</h1>
       <p>Unlocking Brilliance Through Learning</p>
     </div>
     <div class="content">
       <h2>Test Results for ${attempt.profiles?.full_name}</h2>
       <p>Dear Parent,</p>
       <p>Your child has completed the <strong>${attempt.tests?.name}</strong>. Here are the results:</p>
-      <div class="score-box">
-        <h2>Score: ${attempt.score}%</h2>
-        <p>Tier Placement: <span class="tier-badge">${attempt.tier}</span></p>
-      </div>
-      ${(attempt.strengths || []).length > 0 ? `
-      <div class="section">
-        <h3>🌟 Areas of Strength</h3>
-        <ul class="list">${(attempt.strengths || []).map((s: string) => `<li>${s}</li>`).join("")}</ul>
-      </div>` : ""}
-      ${(attempt.weaknesses || []).length > 0 ? `
-      <div class="section">
-        <h3>📚 Areas for Growth</h3>
-        <ul class="list">${(attempt.weaknesses || []).map((w: string) => `<li>${w}</li>`).join("")}</ul>
-      </div>` : ""}
-      ${attempt.tier === "Tier 3" ? `
+      ${renderEmailSummaryHtml(emailReport)}
+      ${emailVerified && emailReport.score.tier === "Tier 3" ? `
       <div class="tier3-message">
         <strong>Recommendation:</strong> Based on the results, we strongly recommend additional support. 
         Consider booking a tutor with D.E.Bs DIAGNOSTIC HUB to help your child improve.
@@ -201,7 +198,8 @@ serve(async (req) => {
       <p>Thank you for choosing D.E.Bs DIAGNOSTIC HUB. Contact us at 347-364-1906 or info@debslearnacademy.com with any questions.</p>
     </div>
     <div class="footer">
-      <p>© ${new Date().getFullYear()} D.E.Bs DIAGNOSTIC HUB</p>
+      ${EMAIL_FOOTER_HTML}
+      <p>© ${new Date().getFullYear()} D.E.Bs LEARNING ACADEMY LLC</p>
       <p>This email was sent automatically.</p>
     </div>
   </div>

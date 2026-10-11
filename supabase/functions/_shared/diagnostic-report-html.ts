@@ -139,3 +139,22 @@ ${r.verification.notes.length ? `<ul class="sub">${r.verification.notes.map((n) 
 <table><thead><tr><th>Retest</th><th>Status</th></tr></thead><tbody>${r.program.retests.map((t) => `<tr><td>${esc(t.label)}</td><td>${t.status === "not_scheduled" ? "Scheduled when the program starts" : esc(t.status)}${t.unlock_date ? ` (opens ${fmtDate(t.unlock_date)})` : ""}</td></tr>`).join("")}</tbody></table></section>
 ${opts.teacher ? `</div>${teacherAppendix(r, opts.teacher)}${foot(r)}` : `${foot(r)}</div>`}${close}`;
 }
+
+/**
+ * Email-safe summary block (inline styles) built from the SAME report model as the parent PDF.
+ * Used by send-test-results and finalize-grading templates. Never shows a tier when evidence needs verification.
+ */
+export function renderEmailSummaryHtml(r: DiagnosticReport): string {
+  const box = (border: string, inner: string) => `<div style="border:2px solid ${border};border-left:8px solid ${border};padding:14px 16px;margin:16px 0;border-radius:4px;color:#111;font-size:15px;line-height:1.5">${inner}</div>`;
+  if (r.verification.state === "requires_verification")
+    return box(RED, `<strong style="color:${RED}">Scoring details require verification.</strong><br>Our staff are verifying this result before a final score, tier or skill summary is issued. You do not need to do anything; we will follow up.`);
+  const li = (xs: SkillSummary[]) => xs.slice(0, 5).map((s) => `<li>${esc(s.skill)} — ${s.pct}% (${s.usesPoints ? `${s.earned}/${s.possible} pts` : `${s.correctItems}/${s.scoredItems}`})${s.lowEvidence ? " · limited evidence" : ""}</li>`).join("");
+  const cov = r.coverage?.state === "incomplete"
+    ? box(RED, `<strong>Required work incomplete.</strong> ${esc(r.coverage.statement)} The score below reflects recorded scored items only.`) : "";
+  return `${cov}${box(NAVY, `<div style="font-size:22px;font-weight:700;color:${NAVY}">${r.score.pct}% · ${esc(r.score.tier)}</div><div><strong>How this score was calculated:</strong> ${esc(r.score.basis)}</div>${r.counts.pending ? `<div>${r.counts.pending} response(s) still await teacher review and are not included.</div>` : ""}`)}
+${r.strengths.length ? `<p style="margin:12px 0 4px"><strong style="color:${GREEN}">Strengths (${SKILL_STATUS_THRESHOLDS.STRENGTH}%+)</strong></p><ul>${li(r.strengths)}</ul>` : ""}
+${r.priorityFocus.length ? `<p style="margin:12px 0 4px"><strong style="color:${RED}">Priority focus (below ${SKILL_STATUS_THRESHOLDS.DEVELOPING}%)</strong></p><ul>${li(r.priorityFocus)}</ul>` : ""}
+<p style="font-size:14px;color:#333">${esc(r.tierExplanation)}</p>
+<p style="font-size:14px;color:#333"><strong>${esc(r.program.label)}.</strong> Formal retests: ${r.program.retests.map((t) => `Week ${t.week}`).join(", ")}.</p>`;
+}
+export const EMAIL_FOOTER_HTML = `<p><strong>${BRAND_NAME}</strong></p><p><em>${BRAND_TAGLINE}</em></p>`;
