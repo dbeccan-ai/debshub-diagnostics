@@ -559,12 +559,17 @@ export type Database = {
           grade_level: number | null
           id: string
           original_text: string
+          passage_form_version: string | null
           passage_title: string
+          reading_duration_seconds: number | null
+          school_id: string | null
+          student_id: string | null
           student_name: string
           transcript: string | null
           updated_at: string
           user_id: string
           version: string
+          wcpm: number | null
           word_timings: Json | null
         }
         Insert: {
@@ -587,12 +592,17 @@ export type Database = {
           grade_level?: number | null
           id?: string
           original_text: string
+          passage_form_version?: string | null
           passage_title: string
+          reading_duration_seconds?: number | null
+          school_id?: string | null
+          student_id?: string | null
           student_name: string
           transcript?: string | null
           updated_at?: string
           user_id: string
           version: string
+          wcpm?: number | null
           word_timings?: Json | null
         }
         Update: {
@@ -615,15 +625,35 @@ export type Database = {
           grade_level?: number | null
           id?: string
           original_text?: string
+          passage_form_version?: string | null
           passage_title?: string
+          reading_duration_seconds?: number | null
+          school_id?: string | null
+          student_id?: string | null
           student_name?: string
           transcript?: string | null
           updated_at?: string
           user_id?: string
           version?: string
+          wcpm?: number | null
           word_timings?: Json | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "reading_diagnostic_transcripts_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reading_diagnostic_transcripts_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       reading_recovery_enrollments: {
         Row: {
@@ -634,11 +664,14 @@ export type Database = {
           parent_email: string
           parent_name: string | null
           reading_challenges: string[] | null
+          school_id: string | null
+          student_id: string | null
           student_name: string
           updated_at: string
           user_id: string
           version_a_completed_at: string | null
           version_b_completed_at: string | null
+          version_c_completed_at: string | null
         }
         Insert: {
           enrolled_at?: string
@@ -648,11 +681,14 @@ export type Database = {
           parent_email: string
           parent_name?: string | null
           reading_challenges?: string[] | null
+          school_id?: string | null
+          student_id?: string | null
           student_name: string
           updated_at?: string
           user_id: string
           version_a_completed_at?: string | null
           version_b_completed_at?: string | null
+          version_c_completed_at?: string | null
         }
         Update: {
           enrolled_at?: string
@@ -662,13 +698,31 @@ export type Database = {
           parent_email?: string
           parent_name?: string | null
           reading_challenges?: string[] | null
+          school_id?: string | null
+          student_id?: string | null
           student_name?: string
           updated_at?: string
           user_id?: string
           version_a_completed_at?: string | null
           version_b_completed_at?: string | null
+          version_c_completed_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "reading_recovery_enrollments_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reading_recovery_enrollments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       reading_recovery_progress: {
         Row: {
