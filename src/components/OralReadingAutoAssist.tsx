@@ -134,9 +134,14 @@ export const OralReadingAutoAssist = ({
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
+      const mimeType = pickSupportedAudioMimeType();
+      const mediaRecorder = mimeType
+        ? new MediaRecorder(stream, { mimeType })
+        : new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
+      recordingStartedAtRef.current = Date.now();
+      setRecordingDuration(null);
 
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
@@ -145,9 +150,13 @@ export const OralReadingAutoAssist = ({
       };
 
       mediaRecorder.onstop = () => {
-        const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+        const type = mediaRecorder.mimeType || mimeType || "audio/webm";
+        const blob = new Blob(audioChunksRef.current, { type });
         setAudioBlob(blob);
         setAudioUrl(URL.createObjectURL(blob));
+        if (recordingStartedAtRef.current) {
+          setRecordingDuration(Math.round((Date.now() - recordingStartedAtRef.current) / 1000));
+        }
         stream.getTracks().forEach(track => track.stop());
       };
 
@@ -156,7 +165,7 @@ export const OralReadingAutoAssist = ({
       toast.info("Recording started. Have the student read the passage aloud.");
     } catch (error) {
       console.error("Error accessing microphone:", error);
-      toast.error("Could not access microphone. Please check permissions.");
+      toast.error("Could not access microphone. Please check permissions and that your device has a working microphone.");
     }
   };
 
