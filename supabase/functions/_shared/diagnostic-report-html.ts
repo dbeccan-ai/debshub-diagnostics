@@ -35,6 +35,8 @@ h1 { color: ${NAVY}; font-size: 18pt; margin: 6px 0 4px; }
 h2 { color: ${NAVY}; font-size: 14pt; margin: 18px 0 6px; border-bottom: 2px solid ${NAVY}; padding-bottom: 2px; break-after: avoid; page-break-after: avoid; }
 section { break-inside: auto; }
 .keep { break-inside: avoid; page-break-inside: avoid; }
+.newpage { break-before: page; page-break-before: always; }
+tr.grp, tr.grp th { break-after: avoid; page-break-after: avoid; }
 table { width: 100%; border-collapse: collapse; margin: 4px 0 8px; font-size: 12pt; }
 thead { display: table-header-group; }
 tr { break-inside: avoid; page-break-inside: avoid; }
@@ -86,7 +88,7 @@ ${foot(r)}${close}`;
   const shortNote = (x: { scoredItems: number; lowEvidence: boolean }) => (x.lowEvidence ? `<br><span class="sub">Limited evidence (${x.scoredItems} item${x.scoredItems === 1 ? "" : "s"})*</span>` : "");
   const shortStep = (t: string) => t.replace(/ Confirm with additional items before drawing conclusions\./, "");
   const domainsInOrder = [...new Set(r.skills.map((s) => s.domain))];
-  const skillRows = domainsInOrder.map((d) => `<tr><th colspan="5">${esc(d)}</th></tr>` + r.skills.filter((s) => s.domain === d).map((s) => `<tr><td>${esc(s.skill === UNMAPPED_SKILL ? "Unmapped items (no skill tag)" : s.skill)}${s.skillSource === "inferred" ? `<br><span class="sub">inferred from wording</span>` : ""}</td><td>${evidenceCell(s)}</td><td>${s.pct === null ? "—" : `${s.pct}%`}${bar(s.pct, s.status)}</td><td><span class="status" style="color:${statusColor(s.status)}">${statusWord(s.status)}</span>${shortNote(s)}</td><td>${esc(shortStep(s.nextStep))}</td></tr>`).join("")).join("");
+  const skillRows = domainsInOrder.map((d) => `<tr class="grp"><th colspan="5">${esc(d)}</th></tr>` + r.skills.filter((s) => s.domain === d).map((s) => `<tr><td>${esc(s.skill === UNMAPPED_SKILL ? "Unmapped items (no skill tag)" : s.skill)}${s.skillSource === "inferred" ? `<br><span class="sub">inferred from wording</span>` : ""}</td><td>${evidenceCell(s)}</td><td>${s.pct === null ? "—" : `${s.pct}%`}${bar(s.pct, s.status)}</td><td><span class="status" style="color:${statusColor(s.status)}">${statusWord(s.status)}</span>${shortNote(s)}</td><td>${esc(shortStep(s.nextStep))}</td></tr>`).join("")).join("");
   const domainRows = r.domains.map((d) => `<tr><td>${esc(d.domain)}</td><td>${d.notAssessed ? "—" : evidenceCell(d)}</td><td>${d.pct === null ? "—" : `${d.pct}%`}${d.notAssessed ? "" : bar(d.pct, d.status)}</td><td><span class="status" style="color:${statusColor(d.status)}">${d.notAssessed ? "Not assessed" : statusWord(d.status)}</span>${d.lowEvidence ? `<br><span class="sub">Limited evidence (${d.scoredItems} item${d.scoredItems === 1 ? "" : "s"})*</span>` : ""}</td></tr>`).join("");
 
   return `${open}${head(r, opts.logoUrl)}
@@ -102,7 +104,7 @@ ${r.verification.notes.length ? `<ul class="sub">${r.verification.notes.map((n) 
 <div class="keep"><strong style="color:${RED}">Priority support (below ${SKILL_STATUS_THRESHOLDS.DEVELOPING}%)</strong>${list(r.priority, "No assessed skill fell below 66%.")}</div></section>
 <section><h2>3. ${r.subject === "ela" ? "Domain" : "Section"} summary</h2>${legend}
 <table><thead><tr><th>${r.subject === "ela" ? "Domain" : "Section"}</th><th>Evidence</th><th>Accuracy</th><th>Status</th></tr></thead><tbody>${domainRows}</tbody></table></section>
-<section><h2>4. Skill-by-skill results</h2>
+<section class="newpage"><h2>4. Skill-by-skill results</h2>
 <table><thead><tr><th style="width:1.7in">Skill</th><th style="width:1.1in">Evidence</th><th style="width:1.1in">Accuracy</th><th style="width:1.3in">Status</th><th>Next step</th></tr></thead><tbody>${skillRows}</tbody></table>
 <p class="sub">* Limited evidence: fewer than 3 scored items. A result such as 100% on one item is not proof of broad mastery (and 0% on one item is not proof of a broad gap); confirm with additional items.</p></section>
 <section class="keep"><h2>5. Priority focus</h2>${r.priorityFocus.length ? `<ol>${r.priorityFocus.map((s) => `<li><strong>${esc(s.skill)}</strong> (${s.pct}% on ${s.scoredItems} item${s.scoredItems === 1 ? "" : "s"}): ${esc(s.nextStep)}</li>`).join("")}</ol>` : `<p>No assessed skill is below ${SKILL_STATUS_THRESHOLDS.DEVELOPING}%; continue with the developing skills above.</p>`}</section>
