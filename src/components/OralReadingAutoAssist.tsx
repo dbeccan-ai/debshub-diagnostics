@@ -266,6 +266,8 @@ export const OralReadingAutoAssist = ({
     setLanguageInfo(null);
     setEditedErrors(null);
     setSuggestedErrorCount(null);
+    setRecordingDuration(null);
+    recordingStartedAtRef.current = null;
   };
 
   const removeError = (type: "omissions" | "insertions", index: number) => {

@@ -357,6 +357,8 @@ const ReadingRecoveryDiagnostic = () => {
               ? { version_a_completed_at: new Date().toISOString() }
               : passage.version === "B"
               ? { version_b_completed_at: new Date().toISOString() }
+              : passage.version === "C"
+              ? { version_c_completed_at: new Date().toISOString() }
               : null;
             
             if (updateField) {
