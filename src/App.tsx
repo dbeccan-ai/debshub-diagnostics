@@ -18,6 +18,7 @@ import AdminPendingReviews from "./pages/AdminPendingReviews";
 import AdminInvitations from "./pages/AdminInvitations";
 import AdminAllResults from "./pages/AdminAllResults";
 import AdminReadingRecoveryResults from "./pages/AdminReadingRecoveryResults";
+import AdminReadingRecoveryCohort from "./pages/AdminReadingRecoveryCohort";
 import AdminUserLogins from "./pages/AdminUserLogins";
 import AdminFollowUps from "./pages/AdminFollowUps";
 import AdminTachs from "./pages/AdminTachs";
@@ -87,6 +88,7 @@ const App = () => (
             <Route path="/admin/invitations" element={<AdminInvitations />} />
             <Route path="/admin/all-results" element={<AdminAllResults />} />
             <Route path="/admin/reading-recovery-results" element={<AdminReadingRecoveryResults />} />
+            <Route path="/admin/reading-recovery-cohort" element={<AdminReadingRecoveryCohort />} />
             <Route path="/admin/user-logins" element={<AdminUserLogins />} />
             <Route path="/admin/follow-ups" element={<AdminFollowUps />} />
             {/* Static content-audit route is declared before the dynamic :attemptId route so it is never swallowed. */}
