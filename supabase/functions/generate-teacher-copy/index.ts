@@ -78,8 +78,10 @@ serve(async (req) => {
     
     const isAdmin = !!adminRole;
 
-    // Verify ownership or admin access
-    if (attempt.user_id !== user.id && !isAdmin) {
+    // Answer keys / audit provenance are staff-only, never exposed to student owners.
+    const { data: teacherRole } = await supabaseAdmin.from("user_roles").select("role").eq("user_id", user.id).eq("role", "teacher").maybeSingle();
+    const { data: visibleAttempt } = await supabaseUser.from("test_attempts").select("id").eq("id", attemptId).maybeSingle();
+    if ((!isAdmin && !teacherRole) || !visibleAttempt) {
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
