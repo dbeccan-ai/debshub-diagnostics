@@ -6,18 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 import { toast } from "sonner";
-import { ArrowLeft, Download, CheckCircle, XCircle, TrendingUp, RefreshCw, FileText, BookOpen, Share2 } from "lucide-react";
-import ELASectionReport from "@/components/ELASectionReport";
-import { DiagnosticEvidenceReport } from "@/components/DiagnosticEvidenceReport";
-import { getTierFromScore, TIER_LABELS, TIER_THRESHOLDS } from "@/lib/tierConfig";
-import {
-  TierStatusBadge,
-  SkillRow,
-  RecommendedNextStepPanel,
-  PlacementPathwayCard,
-  TierClassificationBlocks,
-  InsightBox,
-} from "@/components/TierComponents";
+import { ArrowLeft, Download, CheckCircle, XCircle, TrendingUp, FileText, BookOpen, Share2, AlertTriangle } from "lucide-react";
+import { DiagnosticEvidenceReport, EvidenceUnavailable, useDiagnosticReport } from "@/components/DiagnosticEvidenceReport";
+import { formatReportDate } from "@/lib/diagnosticReport";
+import { getTierFromScore, TIER_LABELS } from "@/lib/tierConfig";
+import { RecommendedNextStepPanel, PlacementPathwayCard, InsightBox } from "@/components/TierComponents";
 
 interface SkillStat {
   total: number;
@@ -59,7 +52,7 @@ const Results = () => {
   const navigate = useNavigate();
   const [attempt, setAttempt] = useState<TestAttempt | null>(null);
   const [loading, setLoading] = useState(true);
-  const [regrading, setRegrading] = useState(false);
+  const { state: evidence, retry: retryEvidence } = useDiagnosticReport(attemptId);
   const [followUpInfo, setFollowUpInfo] = useState<{
     label: string;
     baselineScore: number | null;
@@ -131,24 +124,6 @@ const Results = () => {
     if (attemptId) fetchResults();
   }, [attemptId, navigate]);
 
-  const handleRegrade = async () => {
-    if (!attemptId) return;
-    setRegrading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("regrade-test", {
-        body: { attemptId, dryRun: false },
-      });
-      if (error) throw new Error(error.message);
-      toast.success("Skill analysis updated!");
-      await fetchResults();
-    } catch (err) {
-      console.error("Regrade error:", err);
-      toast.error("Failed to refresh skill analysis");
-    } finally {
-      setRegrading(false);
-    }
-  };
-
   const handleDownload = async () => {
     try {
       toast.loading("Generating PDF...", { id: "pdf-download" });
@@ -214,30 +189,24 @@ const Results = () => {
     );
   }
 
-  const rawSkillAnalysis = attempt.skill_analysis as Partial<SkillAnalysis> | null;
-  const skillAnalysis: SkillAnalysis = {
-    mastered: rawSkillAnalysis?.mastered || attempt.strengths || [],
-    needsSupport: rawSkillAnalysis?.needsSupport || attempt.weaknesses || [],
-    developing: rawSkillAnalysis?.developing || [],
-    skillStats: rawSkillAnalysis?.skillStats || {}
-  };
-
-  const incorrectAnswers = (attempt.total_questions || 0) - (attempt.correct_answers || 0);
-  const overallScore = attempt.score || 0;
+  // The verified evidence model (shared with the parent PDF/teacher copy) replaces the stored counts, skill blocks and
+  // interpretations. While it is loading, unavailable or requires verification, only the recorded score is shown,
+  // clearly labelled, and no skill breakdown or tier interpretation is presented.
+  const model = evidence.status === "ready" ? evidence.report : null;
+  const verified = model && model.verification.state === "verified" ? model : null;
+  const overallScore = verified?.score.pct ?? attempt.score ?? 0;
   const overallTier = getTierFromScore(overallScore);
   const tierCfg = TIER_LABELS[overallTier];
-  
-  const skillKeys = Object.keys(skillAnalysis.skillStats);
-  const hasOnlyGenericSkills = skillKeys.length > 0 && 
-    skillKeys.every(key => key.toLowerCase().includes('general'));
-  
-  const hasSkillData = (skillKeys.length > 0 && !hasOnlyGenericSkills) || 
-                       skillAnalysis.mastered.length > 0 || 
-                       skillAnalysis.needsSupport.length > 0 ||
-                       skillAnalysis.developing.length > 0;
-  
-  const needsSkillRefresh = !hasSkillData || hasOnlyGenericSkills;
-  const isELA = attempt.tests?.test_type === "ela" || attempt.tests?.name?.toLowerCase().includes("ela");
+  const prioritySkills = verified ? verified.priority.map((s) => s.skill) : [];
+  const developingSkills = verified ? verified.developing.map((s) => s.skill) : [];
+  const isELA = verified ? verified.subject === "ela" : attempt.tests?.test_type === "ela";
+  const scoreCaption = verified
+    ? verified.score.basis
+    : model
+      ? "Recorded score — scoring details require verification"
+      : evidence.status === "loading"
+        ? "Recorded score — checking against saved answers…"
+        : "Recorded score — not re-checked against saved answers";
 
   return (
     <div className="min-h-screen bg-slate-50">
