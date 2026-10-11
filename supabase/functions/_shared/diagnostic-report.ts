@@ -348,7 +348,10 @@ export function buildDiagnosticReport(input: ReportInput): DiagnosticReport {
   if (unmappedItems.length) notes.push(`${unmappedItems.length} question(s) have no recognised skill tag and are shown as unmapped rather than assigned a guessed skill.`);
   if (skills.some((s) => s.skillSource === "inferred")) notes.push("Some skill names were inferred from question wording because the bank has no canonical skill tags; treat them as indicative.");
 
-  const mappedSkills = skills.filter((s) => s.skill !== UNMAPPED_SKILL);
+  // Summary lists aggregate each skill across sections so one skill never appears as both strength and priority.
+  const bySkill = new Map<string, ScoredItem[]>();
+  for (const i of scoredItems) if (i.skill !== UNMAPPED_SKILL) bySkill.set(i.skill, [...(bySkill.get(i.skill) ?? []), i]);
+  const mappedSkills = [...bySkill.entries()].map(([sk, g]) => summarize(g, sk, [...new Set(g.map((i) => i.domain))].join(" / "), g[0].skillSource, subject)).sort((a, b) => (b.pct ?? -1) - (a.pct ?? -1));
   const strengths = mappedSkills.filter((s) => s.status === "strength");
   const developing = mappedSkills.filter((s) => s.status === "developing");
   const priority = mappedSkills.filter((s) => s.status === "priority");

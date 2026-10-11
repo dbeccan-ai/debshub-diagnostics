@@ -5,7 +5,7 @@ import { type DiagnosticReport, type SkillSummary, STATUS_LABEL, SKILL_STATUS_TH
 const NAVY = "#1C2D5A", YELLOW = "#FFDE59", RED = "#D72638", GREEN = "#1E7B3C", AMBER = "#8A5A00";
 const esc = (s: unknown) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]!));
 const statusColor = (s: string) => (s === "strength" ? GREEN : s === "developing" ? AMBER : s === "priority" ? RED : "#555");
-const statusWord = (s: string) => (s === "strength" ? "Strength" : s === "developing" ? "Developing" : s === "priority" ? "Priority support" : "Not assessed");
+const statusWord = (s: string) => (s === "strength" ? "Strength" : s === "developing" ? "Developing" : s === "priority" ? "Priority support" : "Not yet scored");
 const fmtDate = (d: string | null) => (d ? new Date(d).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" }) : "—");
 const gradeTxt = (g: number | null) => (g === null || g === undefined ? "Not recorded" : g === 0 ? "Kindergarten" : `Grade ${g}`);
 

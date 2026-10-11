@@ -174,3 +174,13 @@ describe("grading paths share the contract", () => {
     });
   }
 });
+
+describe("summary lists", () => {
+  it("a skill appearing in two sections is listed once with combined evidence", () => {
+    const bank = [mc("a", "time", { section: "S1" }), mc("b", "time", { section: "S2" })];
+    const r = buildDiagnosticReport({ attempt: attempt(50), test: { name: "Math", test_type: "math", questions: bank }, responses: [ok("a"), no("b")] });
+    const all = [...r.strengths, ...r.developing, ...r.priority].map((s) => s.skill);
+    expect(all.filter((s) => s === "Time")).toHaveLength(1);
+    expect(r.priority.find((s) => s.skill === "Time")).toMatchObject({ correctItems: 1, scoredItems: 2, pct: 50 });
+  });
+});
