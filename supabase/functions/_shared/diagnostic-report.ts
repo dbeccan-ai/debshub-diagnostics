@@ -389,7 +389,6 @@ export function buildDiagnosticReport(input: ReportInput): DiagnosticReport {
     notes.push(`Stored "correct answers" (${input.attempt.correct_answers}) differs from fully-correct scored items (${counts.correct}); counts below are recomputed from saved responses.`);
   const coverage = assessCoverage(scoredItems);
   if (coverage.optionalNotSelected) notes.push(`${coverage.optionalNotSelected} question(s) in "choose" groups were not selected after the required number was answered; they are optional and not part of the score.`);
-  if (coverage.missingRequired) notes.push(`Required work is incomplete: ${coverage.statement} The score is based only on recorded scored items; missing required work was not scored as zero and no answers were invented.`);
   if (counts.pending) notes.push(`${counts.pending} response(s) await teacher review and are excluded from all percentages until scored.`);
 
   const usesPoints = scored.some((i) => i.possible !== 1 || i.outcome === "partial");

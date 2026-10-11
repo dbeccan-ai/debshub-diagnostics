@@ -217,7 +217,7 @@ describe("required choice-group coverage", () => {
     expect(r.score.pct).toBe(75);
     expect(r.score.basis).toMatch(/recorded scored items/);
     expect(r.score.basis).toMatch(/required work is incomplete/);
-    expect(r.verification.notes.join(" ")).toMatch(/requires 3 of 5 responses but only 1 was saved/);
+    expect(r.coverage.statement).toMatch(/requires 3 of 5 responses but only 1 was saved/);
     expect(r.tierExplanation).toMatch(/recorded scored items only/);
     const html = renderDiagnosticReportHtml(r);
     expect(html).toContain("Required work incomplete");

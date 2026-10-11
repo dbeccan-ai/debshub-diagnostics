@@ -117,7 +117,7 @@ ${coverageBlock(r)}${opts.teacher ? teacherAppendix(r, opts.teacher) : ""}${foot
   const domainRows = r.domains.map((d) => `<tr><td>${esc(d.domain)}</td><td>${d.notAssessed ? "—" : evidenceCell(d)}</td><td>${d.pct === null ? "—" : `${d.pct}%`}${d.notAssessed ? "" : bar(d.pct, d.status)}</td><td><span class="status" style="color:${statusColor(d.status)}">${d.notAssessed ? "Not assessed" : statusWord(d.status)}</span>${d.lowEvidence ? `<br><span class="sub">Limited evidence (${d.scoredItems} item${d.scoredItems === 1 ? "" : "s"})*</span>` : ""}</td></tr>`).join("");
 
   return `${open}${head(r, opts.logoUrl, !!opts.teacher)}
-<section class="keep"><h2>1. Score summary</h2>
+<section><h2>1. Score summary</h2>
 <div class="callout"><span class="score-big">${r.score.pct}%</span> &nbsp; <strong>${esc(r.score.tier)}</strong>
 <p><strong>How this score was calculated:</strong> ${esc(r.score.basis)}</p></div>
 <table><thead><tr><th>Questions on test</th><th>Fully correct</th><th>Partial credit</th><th>Incorrect</th><th>Awaiting review</th><th>No response</th></tr></thead>
