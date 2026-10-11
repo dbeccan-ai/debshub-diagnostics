@@ -18,6 +18,7 @@ import {
   Download,
 } from "lucide-react";
 import { getTierFromScore, TIER_LABELS } from "@/lib/tierConfig";
+import { elaDomainForTag } from "@/lib/diagnosticReport";
 import {
   InsightBox,
   TierStatusBadge,
@@ -381,7 +382,7 @@ export default function ELASectionReport({
               <div className="space-y-3 mb-4">
                 {sections.map((s) => {
                   const sectionSkills = Object.entries(skillStats)
-                    .filter(([skill]) => isELASkill(skill) && mapSkillToSection(skill) === s.section)
+                    .filter(([skill, st]) => isELASkill(skill) && mapSkillToSection(skill, st as any) === s.section)
                     .map(([skill]) => skill);
                   return (
                     <div key={s.section}>
@@ -561,7 +562,7 @@ export default function ELASectionReport({
               {/* Skill-by-skill rows for this section — filtered to ELA skills only */}
               {(() => {
                 const sectionSkillEntries = Object.entries(skillStats)
-                  .filter(([skill]) => isELASkill(skill) && mapSkillToSection(skill) === sectionName);
+                  .filter(([skill, st]) => isELASkill(skill) && mapSkillToSection(skill, st as any) === sectionName);
                 if (sectionSkillEntries.length === 0) return null;
                 return (
                   <div className="bg-slate-50 rounded-lg p-4">
@@ -602,7 +603,7 @@ export default function ELASectionReport({
               const schoolStrats = getSchoolStrategies(section.section);
 
               const failedSkills = Object.entries(skillStats)
-                .filter(([skill, stats]) => isELASkill(skill) && mapSkillToSection(skill) === section.section && stats.percentage < 70)
+                .filter(([skill, stats]) => isELASkill(skill) && mapSkillToSection(skill, stats as any) === section.section && stats.percentage < 66)
                 .map(([skill, stats]) => ({ skill, ...stats }));
 
               const curriculumWeeks = getCurriculumWeeks(section.section, failedSkills.map(s => s.skill));
