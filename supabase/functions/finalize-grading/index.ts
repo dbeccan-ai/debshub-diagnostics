@@ -7,7 +7,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-import { buildSkillAnalysis, detectReportSubject, flattenTestItems } from "../_shared/diagnostic-report.ts";
+import { buildDiagnosticReport, buildSkillAnalysis, detectReportSubject, flattenTestItems } from "../_shared/diagnostic-report.ts";
+import { EMAIL_FOOTER_HTML, renderEmailSummaryHtml } from "../_shared/diagnostic-report-html.ts";
 import { tierFromScore } from "../_shared/general-curriculum.ts";
 
 serve(async (req) => {
@@ -171,6 +172,14 @@ serve(async (req) => {
         .eq('attempt_id', attemptId)
         .maybeSingle();
 
+      // Email summary uses the same evidence model as the parent report (in-memory; uses the freshly finalized values).
+      const emailReport = buildDiagnosticReport({
+        attempt: { ...attempt, score: Math.round(score * 100) / 100, correct_answers: correctCount, total_questions: totalCount },
+        test: attempt.tests ?? { name: null, test_type: null, questions: null },
+        responses: responses ?? [],
+        studentName: attempt.profiles?.full_name,
+      });
+      const emailVerified = emailReport.verification.state === 'verified';
       const emailHTML = `
 <!DOCTYPE html>
 <html>
@@ -197,28 +206,15 @@ serve(async (req) => {
 <body>
   <div class="container">
     <div class="header">
-      <h1>D.E.Bs DIAGNOSTIC HUB</h1>
+      <h1>D.E.Bs LEARNING ACADEMY LLC</h1>
       <p>Unlocking Brilliance Through Learning</p>
     </div>
     <div class="content">
       <h2>Final Test Results for ${attempt.profiles?.full_name}</h2>
       <p>Dear Parent,</p>
       <p>Your child's <strong>${attempt.tests?.name}</strong> has been fully graded. Here are the final results:</p>
-      <div class="score-box">
-        <h2 style="margin: 0; color: ${tierColor.primary};">Score: ${Math.round(score)}%</h2>
-        <p>Tier Placement: <span class="tier-badge">${tier}</span></p>
-      </div>
-      ${mastered.length > 0 ? `
-      <div class="section">
-        <h3>🌟 Areas of Strength</h3>
-        <ul class="list">${mastered.slice(0, 5).map(s => `<li>${s}</li>`).join('')}</ul>
-      </div>` : ''}
-      ${needsSupport.length > 0 ? `
-      <div class="section">
-        <h3>📚 Areas for Growth</h3>
-        <ul class="list">${needsSupport.slice(0, 5).map(w => `<li>${w}</li>`).join('')}</ul>
-      </div>` : ''}
-      ${tier === 'Tier 3' ? `
+      ${renderEmailSummaryHtml(emailReport)}
+      ${!emailVerified ? '' : tier === 'Tier 3' ? `
       <div style="background: #fee2e2; border-left: 4px solid #dc2626; padding: 20px; margin: 20px 0; border-radius: 5px;">
         <h3 style="color: #991b1b; margin-top: 0;">⚠️ Immediate Action Required</h3>
         <p style="color: #7f1d1d; margin: 0 0 12px;">Your child's results indicate foundational skill gaps that require <strong>targeted intervention now</strong>. Without structured support, these gaps compound each year — making recovery significantly harder in later grades.</p>
@@ -243,7 +239,8 @@ serve(async (req) => {
       <p>Contact us at 347-364-1906 or info@debslearnacademy.com with any questions.</p>
     </div>
     <div class="footer">
-      <p>© ${new Date().getFullYear()} D.E.Bs DIAGNOSTIC HUB</p>
+      ${EMAIL_FOOTER_HTML}
+      <p>© ${new Date().getFullYear()} D.E.Bs LEARNING ACADEMY LLC</p>
     </div>
   </div>
 </body>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
+import { BRAND_NAME, BRAND_TAGLINE, formatReportDate } from "@/lib/diagnosticReport";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -178,6 +179,12 @@ export default function ELAResults() {
   const gradeNum = grade?.replace("grade-", "") || "";
   const [result, setResult] = useState<ELAResultData | null>(null);
   const [commitments, setCommitments] = useState<Record<string, boolean>>({});
+  const [searchParams] = useSearchParams();
+  // A persisted attempt always uses the shared verified evidence contract on the main results page.
+  const persistedAttempt = searchParams.get("attempt");
+  useEffect(() => {
+    if (persistedAttempt && /^[0-9a-f-]{36}$/i.test(persistedAttempt)) navigate(`/results/${persistedAttempt}`, { replace: true });
+  }, [persistedAttempt, navigate]);
 
   useEffect(() => {
     const stored = localStorage.getItem(`ela-results-grade-${gradeNum}`);
@@ -216,12 +223,12 @@ a{color:#1C2D5A;}
 @media print{body{margin:20px;}}
 </style></head>
 <body>
-<p style="text-align:center;font-size:12px;letter-spacing:2px;color:#64748b;text-transform:uppercase;">D.E.Bs DIAGNOSTIC HUB — Unlocking Brilliance Through Learning</p>
+<p style="text-align:center;font-size:12pt;letter-spacing:2px;color:#1C2D5A;text-transform:uppercase;"><strong>${BRAND_NAME}</strong> — ${BRAND_TAGLINE}</p>\n<p style="border:2px solid #D72638;padding:8px 10px;font-size:12pt;"><strong>Session-only practice result.</strong> This result was calculated in this browser and was not saved as a diagnostic attempt. It is not a verified diagnostic report: answers were not reviewed by staff, item-level skill evidence is limited to section totals, and no formal retest schedule is attached.</p>
 <h1>📋 ELA Diagnostic Results</h1>
 <p><span class="badge">${tierCfg.badge} — ${tierCfg.label}</span></p>
 <table>
   <tr><th>Student</th><td>${result.studentName}</td><th>Grade</th><td>Grade ${result.gradeLevel}</td></tr>
-  <tr><th>Test Type</th><td>ELA Diagnostic</td><th>Date</th><td>${new Date(result.completedAt).toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"})}</td></tr>
+  <tr><th>Test Type</th><td>ELA Diagnostic</td><th>Date</th><td>${formatReportDate(result.completedAt)}</td></tr>
   <tr><th>Overall Score</th><td>${result.overallPercent}%</td><th>Correct</th><td>${result.overallCorrect} / ${result.overallTotal}</td></tr>
 </table>
 ${result.sectionBreakdown.length > 0 ? `
@@ -239,8 +246,8 @@ ${result.sectionBreakdown.length > 0 ? `
   <li>🌐 Website: <a href="https://www.debslearnacademy.com">www.debslearnacademy.com</a></li>
 </ul>
 <div class="footer">
-  <p><strong>D.E.Bs Diagnostic Hub</strong> — Supporting every learner from foundational skills to academic excellence.</p>
-  <p>Generated: ${new Date().toLocaleDateString("en-US",{weekday:"long",year:"numeric",month:"long",day:"numeric"})}</p>
+  <p><strong>${BRAND_NAME}</strong> — <em>${BRAND_TAGLINE}</em></p>
+  <p>Generated: ${formatReportDate(new Date().toISOString(), true)} (Eastern Time)</p>
 </div>
 <script>window.onload=()=>{setTimeout(()=>window.print(),400);}</script>
 </body></html>`;
@@ -312,6 +319,10 @@ ${result.sectionBreakdown.length > 0 ? `
       </header>
 
       <main className="mx-auto max-w-4xl px-4 py-6 sm:px-6 space-y-6">
+        <div role="note" className="rounded-md border-2 border-destructive p-4 text-sm">
+          <p className="font-semibold text-destructive">Session-only practice result — not a verified diagnostic report</p>
+          <p>This result was calculated in this browser and not saved as a diagnostic attempt. It hasn't been reviewed by staff, skill evidence is limited to section totals, and no formal retest schedule is attached. For a verified report, take the saved diagnostic from your dashboard.</p>
+        </div>
 
         {/* ── Section 2: Score Overview Card ── */}
         <Card className="border-slate-200">

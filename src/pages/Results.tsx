@@ -6,18 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 import { toast } from "sonner";
-import { ArrowLeft, Download, CheckCircle, XCircle, TrendingUp, RefreshCw, FileText, BookOpen, Share2 } from "lucide-react";
-import ELASectionReport from "@/components/ELASectionReport";
-import { DiagnosticEvidenceReport } from "@/components/DiagnosticEvidenceReport";
-import { getTierFromScore, TIER_LABELS, TIER_THRESHOLDS } from "@/lib/tierConfig";
-import {
-  TierStatusBadge,
-  SkillRow,
-  RecommendedNextStepPanel,
-  PlacementPathwayCard,
-  TierClassificationBlocks,
-  InsightBox,
-} from "@/components/TierComponents";
+import { ArrowLeft, Download, CheckCircle, XCircle, TrendingUp, FileText, BookOpen, Share2, AlertTriangle } from "lucide-react";
+import { DiagnosticEvidenceReport, EvidenceUnavailable, useDiagnosticReport } from "@/components/DiagnosticEvidenceReport";
+import { formatReportDate } from "@/lib/diagnosticReport";
+import { getTierFromScore, TIER_LABELS } from "@/lib/tierConfig";
+import { RecommendedNextStepPanel, PlacementPathwayCard, InsightBox } from "@/components/TierComponents";
 
 interface SkillStat {
   total: number;
@@ -59,7 +52,7 @@ const Results = () => {
   const navigate = useNavigate();
   const [attempt, setAttempt] = useState<TestAttempt | null>(null);
   const [loading, setLoading] = useState(true);
-  const [regrading, setRegrading] = useState(false);
+  const { state: evidence, retry: retryEvidence } = useDiagnosticReport(attemptId);
   const [followUpInfo, setFollowUpInfo] = useState<{
     label: string;
     baselineScore: number | null;
@@ -131,24 +124,6 @@ const Results = () => {
     if (attemptId) fetchResults();
   }, [attemptId, navigate]);
 
-  const handleRegrade = async () => {
-    if (!attemptId) return;
-    setRegrading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("regrade-test", {
-        body: { attemptId, dryRun: false },
-      });
-      if (error) throw new Error(error.message);
-      toast.success("Skill analysis updated!");
-      await fetchResults();
-    } catch (err) {
-      console.error("Regrade error:", err);
-      toast.error("Failed to refresh skill analysis");
-    } finally {
-      setRegrading(false);
-    }
-  };
-
   const handleDownload = async () => {
     try {
       toast.loading("Generating PDF...", { id: "pdf-download" });
@@ -214,30 +189,24 @@ const Results = () => {
     );
   }
 
-  const rawSkillAnalysis = attempt.skill_analysis as Partial<SkillAnalysis> | null;
-  const skillAnalysis: SkillAnalysis = {
-    mastered: rawSkillAnalysis?.mastered || attempt.strengths || [],
-    needsSupport: rawSkillAnalysis?.needsSupport || attempt.weaknesses || [],
-    developing: rawSkillAnalysis?.developing || [],
-    skillStats: rawSkillAnalysis?.skillStats || {}
-  };
-
-  const incorrectAnswers = (attempt.total_questions || 0) - (attempt.correct_answers || 0);
-  const overallScore = attempt.score || 0;
+  // The verified evidence model (shared with the parent PDF/teacher copy) replaces the stored counts, skill blocks and
+  // interpretations. While it is loading, unavailable or requires verification, only the recorded score is shown,
+  // clearly labelled, and no skill breakdown or tier interpretation is presented.
+  const model = evidence.status === "ready" ? evidence.report : null;
+  const verified = model && model.verification.state === "verified" ? model : null;
+  const overallScore = verified?.score.pct ?? attempt.score ?? 0;
   const overallTier = getTierFromScore(overallScore);
   const tierCfg = TIER_LABELS[overallTier];
-  
-  const skillKeys = Object.keys(skillAnalysis.skillStats);
-  const hasOnlyGenericSkills = skillKeys.length > 0 && 
-    skillKeys.every(key => key.toLowerCase().includes('general'));
-  
-  const hasSkillData = (skillKeys.length > 0 && !hasOnlyGenericSkills) || 
-                       skillAnalysis.mastered.length > 0 || 
-                       skillAnalysis.needsSupport.length > 0 ||
-                       skillAnalysis.developing.length > 0;
-  
-  const needsSkillRefresh = !hasSkillData || hasOnlyGenericSkills;
-  const isELA = attempt.tests?.test_type === "ela" || attempt.tests?.name?.toLowerCase().includes("ela");
+  const prioritySkills = verified ? verified.priority.map((s) => s.skill) : [];
+  const developingSkills = verified ? verified.developing.map((s) => s.skill) : [];
+  const isELA = verified ? verified.subject === "ela" : attempt.tests?.test_type === "ela";
+  const scoreCaption = verified
+    ? verified.score.basis
+    : model
+      ? "Recorded score — scoring details require verification"
+      : evidence.status === "loading"
+        ? "Recorded score — checking against saved answers…"
+        : "Recorded score — not re-checked against saved answers";
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -265,18 +234,23 @@ const Results = () => {
         {/* Score Overview */}
         <Card className="mb-6 border-slate-200">
           <CardHeader className="text-center pb-2">
-            <div className="mb-2 flex flex-col items-center gap-2">
-              <Badge className={`text-lg px-4 py-1 ${tierCfg.badgeClass}`}>
-                {tierCfg.badge}
-              </Badge>
-              <p className="text-xs font-medium">{tierCfg.label}</p>
-            </div>
+            {verified ? (
+              <div className="mb-2 flex flex-col items-center gap-2">
+                <Badge className={`text-lg px-4 py-1 ${tierCfg.badgeClass}`}>{tierCfg.badge}</Badge>
+                <p className="text-xs font-medium">{tierCfg.label}</p>
+              </div>
+            ) : (
+              <div className="mb-2 flex items-center justify-center gap-2 text-sm font-medium text-amber-700">
+                <AlertTriangle className="h-4 w-4" /> Tier shown once the score is verified
+              </div>
+            )}
             <CardTitle className="text-3xl font-bold text-slate-900">
-              {attempt.score}%
+              {overallScore}%
             </CardTitle>
-            <p className="text-sm text-slate-500 mt-1">
-              {attempt.correct_answers} of {attempt.total_questions} questions correct
-            </p>
+            <p className="text-sm text-slate-500 mt-1">{scoreCaption}</p>
+            {verified?.coverage.state === "incomplete" && (
+              <p className="mt-1 text-sm font-medium text-red-700">Required work incomplete — score reflects recorded scored items only.</p>
+            )}
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-4 text-center border-t border-slate-100 pt-4">
@@ -292,11 +266,11 @@ const Results = () => {
             <div className="grid grid-cols-2 gap-4 text-center mt-4">
               <div>
                 <p className="text-lg font-semibold text-slate-700">Grade {attempt.grade_level}</p>
-                <p className="text-xs text-slate-500">Grade Level</p>
+                <p className="text-xs text-slate-500">Assessed grade (test level)</p>
               </div>
               <div>
                 <p className="text-lg font-semibold text-slate-700">
-                  {attempt.completed_at ? new Date(attempt.completed_at).toLocaleDateString() : "—"}
+                  {formatReportDate(attempt.completed_at)}
                 </p>
                 <p className="text-xs text-slate-500">Completed</p>
               </div>
@@ -313,7 +287,7 @@ const Results = () => {
                     <p className="text-xs text-slate-500">
                       Baseline
                       {followUpInfo.baselineDate
-                        ? ` · ${new Date(followUpInfo.baselineDate).toLocaleDateString()}`
+                        ? ` · ${formatReportDate(followUpInfo.baselineDate)}`
                         : ""}
                     </p>
                   </div>
@@ -337,209 +311,57 @@ const Results = () => {
             )}
 
             {/* Insight box for overall score */}
-            <InsightBox score={overallScore} />
+            {verified && <InsightBox score={overallScore} />}
 
             {/* Desktop CTA after score summary */}
-            <div className="mt-4 print:hidden">
+            {verified && <div className="mt-4 print:hidden">
               <RecommendedNextStepPanel
                 overallScore={overallScore}
                 attemptId={attemptId}
                 onNavigate={navigate}
-                subject={attempt.tests?.test_type === "ela" ? "ELA" : "Math"}
+                subject={isELA ? "ELA" : "Math"}
                 studentName={attempt.profiles?.full_name || undefined}
-                prioritySkills={skillAnalysis.needsSupport}
-                developingSkills={skillAnalysis.developing}
+                prioritySkills={prioritySkills}
+                developingSkills={developingSkills}
               />
-            </div>
+            </div>}
           </CardContent>
         </Card>
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
-          <Card className="border-emerald-200 bg-emerald-50">
-            <CardContent className="pt-4 text-center">
-              <CheckCircle className="h-8 w-8 text-emerald-600 mx-auto mb-2" />
-              <p className="text-2xl font-bold text-emerald-700">{attempt.correct_answers}</p>
-              <p className="text-xs text-emerald-600">Correct</p>
-            </CardContent>
-          </Card>
-          <Card className="border-red-200 bg-red-50">
-            <CardContent className="pt-4 text-center">
-              <XCircle className="h-8 w-8 text-red-600 mx-auto mb-2" />
-              <p className="text-2xl font-bold text-red-700">{incorrectAnswers}</p>
-              <p className="text-xs text-red-600">Incorrect</p>
-            </CardContent>
-          </Card>
-          <Card className="border-amber-200 bg-amber-50">
-            <CardContent className="pt-4 text-center">
-              <TrendingUp className="h-8 w-8 text-amber-600 mx-auto mb-2" />
-              <p className="text-2xl font-bold text-amber-700">{Object.keys(skillAnalysis.skillStats).length}</p>
-              <p className="text-xs text-amber-600">Skills Tested</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="mb-6"><DiagnosticEvidenceReport attemptId={attempt.id} /></div>
-
-        {/* ELA: show only the ELA section report; non-ELA: show generic skill blocks */}
-        {isELA ? (
-          hasSkillData ? (
-            <div className="mb-6">
-              <ELASectionReport
-                skillStats={skillAnalysis.skillStats}
-                mastered={skillAnalysis.mastered}
-                needsSupport={skillAnalysis.needsSupport}
-                developing={skillAnalysis.developing}
-                tier={attempt.tier}
-                studentName={attempt.profiles?.full_name || "Student"}
-                gradLevel={attempt.grade_level}
-                completedAt={attempt.completed_at}
-                score={attempt.score}
-                totalQuestions={attempt.total_questions}
-                correctAnswers={attempt.correct_answers}
-                testName={attempt.tests?.name || "ELA Diagnostic"}
-              />
-            </div>
-          ) : (
-            <Card className="border-slate-200 mb-6">
-              <CardContent className="pt-6 text-center text-sm text-slate-500">
-                <p>ELA skill breakdown is not yet available for this result.</p>
-                <Button size="sm" variant="outline" onClick={handleRegrade} disabled={regrading} className="mt-3 text-xs">
-                  <RefreshCw className={`mr-2 h-3 w-3 ${regrading ? 'animate-spin' : ''}`} />
-                  {regrading ? 'Refreshing...' : 'Generate ELA Breakdown'}
-                </Button>
+        {verified && (
+          <div className="grid grid-cols-3 gap-4 mb-6">
+            <Card className="border-emerald-200 bg-emerald-50">
+              <CardContent className="pt-4 text-center">
+                <CheckCircle className="h-8 w-8 text-emerald-600 mx-auto mb-2" />
+                <p className="text-2xl font-bold text-emerald-700">{verified.counts.correct}</p>
+                <p className="text-xs text-emerald-600">Fully correct{verified.counts.partial ? ` (+${verified.counts.partial} partial)` : ""}</p>
               </CardContent>
             </Card>
-          )
-        ) : (
-          <>
-            {/* Math / Generic: Classification blocks with new tier labels */}
-            <div className="mb-6 space-y-4">
-              {hasSkillData && (
-                <>
-                  {/* Build section-like data from individual skills for classification */}
-                  {(() => {
-                    const skillSections = Object.entries(skillAnalysis.skillStats).map(([skill, stats]) => ({
-                      section: skill,
-                      correct: stats.correct,
-                      total: stats.total,
-                      percent: stats.percentage,
-                    }));
-                    return skillSections.length > 0 ? <TierClassificationBlocks sections={skillSections} /> : null;
-                  })()}
-                </>
-              )}
-
-                {!hasSkillData && (
-                  <>
-                    {/* Fallback to old mastered/needsSupport arrays with new labels */}
-                    {skillAnalysis.needsSupport.length > 0 && (
-                      <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                        <p className="font-semibold text-red-800 mb-1 text-sm">🔴 Priority Intervention Required</p>
-                        <p className="text-xs text-red-600 mb-3">Without structured intervention now, these gaps compound each year — affecting confidence and performance well into secondary school.</p>
-                        <ul className="space-y-1">
-                          {skillAnalysis.needsSupport.map((skill, idx) => (
-                            <li key={idx} className="text-sm text-red-800 flex items-center gap-2">
-                              <span className="w-1.5 h-1.5 bg-red-500 rounded-full" /> {skill}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                    {skillAnalysis.developing.length > 0 && (
-                      <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                        <p className="font-semibold text-amber-800 mb-1 text-sm">🟡 Strengthening Zone</p>
-                        <p className="text-xs text-amber-600 mb-3">This is the critical window — skills here respond quickly to targeted practice before gaps solidify.</p>
-                        <ul className="space-y-1">
-                          {skillAnalysis.developing.map((skill, idx) => (
-                            <li key={idx} className="text-sm text-amber-800 flex items-center gap-2">
-                              <span className="w-1.5 h-1.5 bg-amber-500 rounded-full" /> {skill}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                    {skillAnalysis.mastered.length > 0 && (
-                      <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
-                        <p className="font-semibold text-emerald-800 mb-1 text-sm">🟢 Demonstrated Mastery</p>
-                        <p className="text-xs text-emerald-600 mb-3">Strong foundation — maintain with enrichment challenges so mastery stays ahead as content advances.</p>
-                        <ul className="space-y-1">
-                          {skillAnalysis.mastered.map((skill, idx) => (
-                            <li key={idx} className="text-sm text-emerald-800 flex items-center gap-2">
-                              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full" /> {skill}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </>
-                )}
-            </div>
-
-            {/* Skill-by-skill with status pills and action recommendations */}
-            {Object.keys(skillAnalysis.skillStats).length > 0 && (
-              <Card className="border-slate-200 mb-6">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-semibold text-slate-800">Skill-by-Skill Performance</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {Object.entries(skillAnalysis.skillStats).map(([skill, stats]) => (
-                    <SkillRow key={skill} skill={skill} correct={stats.correct} total={stats.total} percentage={stats.percentage} />
-                  ))}
-                </CardContent>
-              </Card>
-            )}
-          </>
+            <Card className="border-red-200 bg-red-50">
+              <CardContent className="pt-4 text-center">
+                <XCircle className="h-8 w-8 text-red-600 mx-auto mb-2" />
+                <p className="text-2xl font-bold text-red-700">{verified.counts.incorrect}</p>
+                <p className="text-xs text-red-600">Incorrect (of {verified.counts.scored} scored)</p>
+              </CardContent>
+            </Card>
+            <Card className="border-amber-200 bg-amber-50">
+              <CardContent className="pt-4 text-center">
+                <TrendingUp className="h-8 w-8 text-amber-600 mx-auto mb-2" />
+                <p className="text-2xl font-bold text-amber-700">{verified.skills.filter((s) => s.scoredItems > 0).length}</p>
+                <p className="text-xs text-amber-600">Skills with scored evidence</p>
+              </CardContent>
+            </Card>
+          </div>
         )}
 
-        {/* Skills Assessed card - only for non-ELA tests */}
-        {!isELA && (
-          <Card className="border-slate-200 mb-6">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold text-slate-800 flex items-center justify-between">
-                <span>Skills Assessed in This Diagnostic</span>
-                {needsSkillRefresh && (
-                  <Button size="sm" variant="outline" onClick={handleRegrade} disabled={regrading} className="text-xs">
-                    <RefreshCw className={`mr-2 h-3 w-3 ${regrading ? 'animate-spin' : ''}`} />
-                    {regrading ? 'Refreshing...' : 'Refresh Skills'}
-                  </Button>
-                )}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4 text-sm text-slate-600">
-              {hasSkillData ? (
-                <>
-                  <p>
-                    This diagnostic test assessed your student's understanding of the following {Object.keys(skillAnalysis.skillStats).length || (skillAnalysis.mastered.length + skillAnalysis.needsSupport.length + skillAnalysis.developing.length)} skills:
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {Object.keys(skillAnalysis.skillStats).length > 0 ? (
-                      Object.keys(skillAnalysis.skillStats).map((skill) => (
-                        <Badge key={skill} variant="outline" className="text-xs bg-slate-50 text-slate-700 border-slate-300">
-                          {skill}
-                        </Badge>
-                      ))
-                    ) : (
-                      [...skillAnalysis.mastered, ...skillAnalysis.developing, ...skillAnalysis.needsSupport].map((skill, idx) => (
-                        <Badge key={idx} variant="outline" className="text-xs bg-slate-50 text-slate-700 border-slate-300">
-                          {skill}
-                        </Badge>
-                      ))
-                    )}
-                  </div>
-                </>
-              ) : (
-                <p className="text-slate-500 italic">
-                  Click "Refresh Skills" to generate detailed skill analysis for this test attempt.
-                </p>
-              )}
-            </CardContent>
-          </Card>
-        )}
+        {/* Single source of skill evidence: the shared report model (replaces stored skill_analysis blocks). */}
+        <div className="mb-6">
+          {model ? <DiagnosticEvidenceReport report={model} /> : <EvidenceUnavailable state={evidence} onRetry={retryEvidence} />}
+        </div>
 
         {/* Placement Pathway */}
         <div className="mb-6">
-          <PlacementPathwayCard overallScore={overallScore} />
+          {verified && <PlacementPathwayCard overallScore={overallScore} />}
         </div>
 
         {/* Generate Curriculum CTA */}
@@ -556,10 +378,10 @@ const Results = () => {
                   </h3>
                   <p className="text-sm text-sky-700 mb-3">
                     Get a personalized 4-week learning plan and practice questions built around your child's specific{" "}
-                    {skillAnalysis.needsSupport.length > 0 ? (
+                    {prioritySkills.length > 0 ? (
                       <span>
                         priority areas:{" "}
-                        <strong>{skillAnalysis.needsSupport.slice(0, 3).join(", ")}{skillAnalysis.needsSupport.length > 3 ? ` +${skillAnalysis.needsSupport.length - 3} more` : ""}</strong>
+                        <strong>{prioritySkills.slice(0, 3).join(", ")}{prioritySkills.length > 3 ? ` +${prioritySkills.length - 3} more` : ""}</strong>
                       </span>
                     ) : (
                       "performance data"
@@ -583,17 +405,22 @@ const Results = () => {
         <Card className="border-slate-200 mb-6">
           <CardHeader className="pb-2">
           <CardTitle className="text-sm font-semibold text-slate-800">
-              Understanding Your {tierCfg.badge} Placement
+              {verified ? `Understanding Your ${tierCfg.badge} Placement` : "Placement"}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-sm text-slate-600">
-            <div className={`p-4 rounded-lg border ${tierCfg.borderClass} ${tierCfg.bgClass}`}>
-              <p className={`font-bold text-base ${tierCfg.textClass} mb-1`}>{tierCfg.label}</p>
-              <p className={`text-sm ${tierCfg.textClass}`}>{tierCfg.helper}</p>
-            </div>
+            {verified ? (
+              <div className={`p-4 rounded-lg border ${tierCfg.borderClass} ${tierCfg.bgClass}`}>
+                <p className={`font-bold text-base ${tierCfg.textClass} mb-1`}>{tierCfg.label}</p>
+                <p className={`text-sm ${tierCfg.textClass}`}>{verified.tierExplanation}</p>
+              </div>
+            ) : (
+              <p className="text-sm">A placement explanation is shown once the score has been verified against the saved answers.</p>
+            )}
             
             <div className="border-t border-slate-100 pt-4 mt-4">
-              <p className="font-bold text-[#1C2D5A] mb-1 text-sm">Contact D.E.Bs DIAGNOSTIC HUB</p>
+              <p className="font-bold text-[#1C2D5A] mb-1 text-sm">D.E.Bs LEARNING ACADEMY LLC</p>
+              <p className="text-xs italic text-slate-500 mb-1">Unlocking Brilliance Through Learning</p>
               <p className="text-xs text-slate-600">
                 📧 <a href="mailto:info@debslearnacademy.com" className="text-blue-600 underline hover:text-blue-800">info@debslearnacademy.com</a>{" "}
                 | 📞 <a href="tel:+13473641906" className="text-blue-600 underline hover:text-blue-800">347-364-1906</a>
@@ -605,14 +432,14 @@ const Results = () => {
 
         {/* Bottom CTA (mobile repeat) */}
         <div className="print:hidden sm:hidden mb-6">
-          <RecommendedNextStepPanel
+          {verified && <RecommendedNextStepPanel
             overallScore={overallScore}
             attemptId={attemptId}
             onNavigate={navigate}
             subject={isELA ? "ELA" : "Math"}
-            prioritySkills={skillAnalysis.needsSupport}
-            developingSkills={skillAnalysis.developing}
-          />
+            prioritySkills={prioritySkills}
+            developingSkills={developingSkills}
+          />}
         </div>
       </main>
     </div>

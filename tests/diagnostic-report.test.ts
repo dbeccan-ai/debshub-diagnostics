@@ -113,7 +113,7 @@ describe("scoring states and reconciliation", () => {
   });
   it("all-graded MC uses item basis", () => {
     const x = buildDiagnosticReport({ attempt: attempt(50), test: { name: "Math", test_type: "math", questions: [mc("a", "x"), mc("b", "x")] }, responses: [ok("a"), no("b")] });
-    expect(x.score.basis).toBe("Correct ÷ scored questions: 1 of 2.");
+    expect(x.score.basis).toBe("Correct ÷ recorded scored questions: 1 of 2.");
   });
 });
 
@@ -182,5 +182,102 @@ describe("summary lists", () => {
     const all = [...r.strengths, ...r.developing, ...r.priority].map((s) => s.skill);
     expect(all.filter((s) => s === "Time")).toHaveLength(1);
     expect(r.priority.find((s) => s.skill === "Time")).toMatchObject({ correctItems: 1, scoredItems: 2, pct: 50 });
+  });
+});
+
+/* ───────── Required-work coverage, teacher copy, emails, branding (synthetic only) ───────── */
+import { assessCoverage, parseChoiceGroup, formatReportDate, BRAND_NAME, BRAND_TAGLINE } from "../supabase/functions/_shared/diagnostic-report.ts";
+import { renderTeacherCopyHtml, renderEmailSummaryHtml } from "../supabase/functions/_shared/diagnostic-report-html.ts";
+
+const SEC = "Section III - Multi-Step Word Problems (Choose 3 out of 5)";
+const open5 = ["p1", "p2", "p3", "p4", "p5"].map((id) => ({ id, type: "open-ended", section: SEC, skill: "multi-step problems", question: `Word problem ${id}` }));
+const mcA = [mc("m1", "place value", { section: "Section I" }), mc("m2", "place value", { section: "Section I" }), mc("m3", "fractions", { section: "Section I" })];
+const pts = (id: string, earned: number, max: number): ResponseRow => ({ question_id: id, answer: "work", is_correct: earned >= max, points_awarded: earned, max_points: max });
+
+describe("required choice-group coverage", () => {
+  it("reads 'Choose 3 out of 5' from the section title", () => {
+    expect(parseChoiceGroup({}, SEC, null)).toMatchObject({ required: 3, size: 5, source: "title" });
+    expect(parseChoiceGroup({}, "Section I", null)).toBeNull();
+    expect(parseChoiceGroup({ required_count: 2, choice_group: "g" }, "X", null)).toMatchObject({ key: "g", required: 2, source: "metadata" });
+  });
+  it("completed optional selection: 3 of 5 answered → complete; 2 unselected are optional, not missing", () => {
+    const r = buildDiagnosticReport({ attempt: attempt(null), test: { name: "G5 Math", test_type: "math", questions: [...mcA, ...open5] }, responses: [...mcA.map((q) => ok(q.id)), pts("p1", 2, 3), ok("p2"), no("p3")] });
+    expect(r.coverage.state).toBe("complete");
+    expect(r.coverage.optionalNotSelectedIds.sort()).toEqual(["p4", "p5"]);
+    expect(r.coverage.missingRequired).toBe(0);
+    expect(r.score.basis).not.toMatch(/incomplete/);
+  });
+  it("under-selected required group (Tejani shape: 1 of 3 required) → incomplete, partial credit preserved, score unchanged", () => {
+    const responses = [...mcA.map((q) => ok(q.id)), pts("p4", 1.5, 3)];
+    const r = buildDiagnosticReport({ attempt: attempt(null), test: { name: "G5 Math", test_type: "math", questions: [...mcA, ...open5] }, responses });
+    expect(r.coverage.state).toBe("incomplete");
+    expect(r.coverage.choiceGroups[0]).toMatchObject({ required: 3, size: 5, answered: 1, missingRequired: 2, status: "under_selected" });
+    expect(r.coverage.optionalNotSelected).toBe(0); // none can be called optional when the requirement is unmet
+    expect(r.points).toEqual({ earned: 4.5, possible: 6 }); // missing work never scored as zero / invented
+    expect(r.score.pct).toBe(75);
+    expect(r.score.basis).toMatch(/recorded scored items/);
+    expect(r.score.basis).toMatch(/required work is incomplete/);
+    expect(r.coverage.statement).toMatch(/requires 3 of 5 responses but only 1 was saved/);
+    expect(r.tierExplanation).toMatch(/recorded scored items only/);
+    const html = renderDiagnosticReportHtml(r);
+    expect(html).toContain("Required work incomplete");
+    expect(html).toMatch(/2 required responses missing/);
+  });
+  it("ordinary missing mandatory item → incomplete with that question listed", () => {
+    const r = buildDiagnosticReport({ attempt: attempt(null), test: { name: "G5 Math", test_type: "math", questions: mcA }, responses: [ok("m1"), ok("m2")] });
+    expect(r.coverage.state).toBe("incomplete");
+    expect(r.coverage.missingMandatoryIds).toEqual(["m3"]);
+    expect(r.score.pct).toBe(100);
+  });
+  it("score arithmetic agreement is not treated as proof of completion", () => {
+    const r = buildDiagnosticReport({ attempt: attempt(75), test: { name: "G5 Math", test_type: "math", questions: [...mcA, ...open5] }, responses: [...mcA.map((q) => ok(q.id)), pts("p4", 1.5, 3)] });
+    expect(r.verification.state).toBe("verified"); // stored 75% reconciles…
+    expect(r.coverage.state).toBe("incomplete"); // …but required work is still incomplete
+  });
+  it("pending manual responses count as answered for coverage but stay out of the score", () => {
+    const c = assessCoverage([{ id: "a", outcome: "pending", choiceGroup: { key: "g", required: 1, size: 2, source: "title" } }, { id: "b", outcome: "unanswered", choiceGroup: { key: "g", required: 1, size: 2, source: "title" } }]);
+    expect(c.state).toBe("complete");
+  });
+});
+
+describe("teacher copy and email share the parent evidence", () => {
+  const bank = [...mcA, ...open5];
+  const responses = [...mcA.map((q) => ok(q.id)), pts("p4", 1.5, 3)];
+  const r = buildDiagnosticReport({ attempt: attempt(null), test: { name: "G5 Math", test_type: "math", questions: bank }, responses });
+  const parent = renderDiagnosticReportHtml(r);
+  const teacher = renderTeacherCopyHtml(r, { responses });
+  it("teacher copy contains every parent section heading plus an answer-key appendix", () => {
+    for (const h of parent.match(/<h2>[^<]+<\/h2>/g)!) expect(teacher).toContain(h);
+    expect(teacher).toContain("Teacher appendix");
+    expect(teacher).toContain("Answer key");
+    expect(parent).not.toContain("Answer key");
+    expect(teacher).toContain("No saved response"); // not "Optional" since group is under-selected
+    expect(teacher).toContain("1.5/3 pts");
+  });
+  it("email summary uses the model's score basis, 85/66 tiers, weeks 5/10/15 and hides tier when unverified", () => {
+    const e = renderEmailSummaryHtml(r);
+    expect(e).toContain(r.score.basis.replace(/÷/g, "÷"));
+    expect(e).toContain("Required work incomplete");
+    const bad = buildDiagnosticReport({ attempt: attempt(10), test: { name: "G5 Math", test_type: "math", questions: bank }, responses });
+    const eb = renderEmailSummaryHtml(bad);
+    expect(eb).toContain("require verification");
+    expect(eb).not.toMatch(/Tier [123]/);
+  });
+});
+
+describe("brand and time zone", () => {
+  it("uses exact legal brand and tagline, never 'Learn Academy'", () => {
+    const html = renderDiagnosticReportHtml(buildDiagnosticReport({ attempt: attempt(null), test: { name: "ELA", test_type: "ela", questions: elaBank }, responses: elaBank.map((q) => ok(q.id)) }));
+    expect(BRAND_NAME).toBe("D.E.Bs LEARNING ACADEMY LLC");
+    expect(BRAND_TAGLINE).toBe("Unlocking Brilliance Through Learning");
+    expect(html).toContain(BRAND_NAME);
+    expect(html).toContain(BRAND_TAGLINE);
+    expect(html).not.toMatch(/Learn Academy/);
+    for (const f of ["supabase/functions/_shared/diagnostic-report-html.ts", "supabase/functions/send-test-results/index.ts", "supabase/functions/finalize-grading/index.ts", "src/pages/ELAResults.tsx"])
+      expect(readFileSync(f, "utf8")).not.toMatch(/D\.E\.Bs Learn Academy(?! logo)/);
+  });
+  it("formats dates in America/New_York (late-evening ET stays on the ET date)", () => {
+    expect(formatReportDate("2026-10-12T02:30:00Z")).toBe("October 11, 2026");
+    expect(formatReportDate(null)).toBe("—");
   });
 });
