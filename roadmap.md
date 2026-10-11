@@ -7,4 +7,4 @@
 - [x] 5. Tablet/Chromebook mic reliability: MediaRecorder format fallback (webm→mp4/aac/ogg), correct file extension to transcribe-audio
 - [x] 6. Roster for supervising students: cohort page roster with days done, A/B/C status, error/WCPM deltas (teachers see own school via RLS)
 - [x] Validation: 10 new tests pass, typecheck, build
-- [ ] Report to user: routes/schema/migration summary
+- [x] Report to user: routes/schema/migration summary
