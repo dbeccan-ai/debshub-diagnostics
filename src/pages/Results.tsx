@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { ArrowLeft, Download, CheckCircle, XCircle, TrendingUp, RefreshCw, FileText, BookOpen, Share2 } from "lucide-react";
 import ELASectionReport from "@/components/ELASectionReport";
+import { DiagnosticEvidenceReport } from "@/components/DiagnosticEvidenceReport";
 import { getTierFromScore, TIER_LABELS, TIER_THRESHOLDS } from "@/lib/tierConfig";
 import {
   TierStatusBadge,
@@ -135,7 +136,7 @@ const Results = () => {
     setRegrading(true);
     try {
       const { data, error } = await supabase.functions.invoke("regrade-test", {
-        body: { attemptId },
+        body: { attemptId, dryRun: false },
       });
       if (error) throw new Error(error.message);
       toast.success("Skill analysis updated!");
@@ -377,6 +378,8 @@ const Results = () => {
             </CardContent>
           </Card>
         </div>
+
+        <div className="mb-6"><DiagnosticEvidenceReport attemptId={attempt.id} /></div>
 
         {/* ELA: show only the ELA section report; non-ELA: show generic skill blocks */}
         {isELA ? (

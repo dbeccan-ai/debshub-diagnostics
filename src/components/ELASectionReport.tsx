@@ -18,6 +18,7 @@ import {
   Download,
 } from "lucide-react";
 import { getTierFromScore, TIER_LABELS } from "@/lib/tierConfig";
+import { elaDomainForTag } from "@/lib/diagnosticReport";
 import {
   InsightBox,
   TierStatusBadge,
@@ -70,45 +71,30 @@ const ELA_SECTIONS = [
   "Spelling",
   "Grammar & Language Conventions",
   "Writing",
+  "Foundational Skills",
+  "Unmapped",
 ];
 
-const ELA_SKILL_KEYWORDS = ["reading", "comprehension", "main idea", "inference", "summary", "author", "passage", "text structure", "central idea", "literary", "rhetoric", "theme", "character", "plot", "setting", "point of view", "compare", "story", "detail", "vocab", "synonym", "antonym", "context clue", "word meaning", "word structure", "prefix", "suffix", "root", "figurative", "idiom", "connotation", "denotation", "word", "definition", "meaning", "spell", "homophone", "homograph", "grammar", "punctuation", "verb", "subject", "pronoun", "adjective", "adverb", "sentence", "clause", "conjunction", "tense", "agreement", "capitalization", "comma", "apostrophe", "possessive", "parts of speech", "modifier", "contraction", "writ", "essay", "narrative", "opinion", "persuasive", "argument", "composition", "paragraph", "draft", "ela", "english", "language arts", "phonics", "fluency", "decoding", "blending"];
-
-// Strict math exclusion — any skill with these keywords is NOT an ELA skill
-const MATH_EXCLUDE_KEYWORDS = ["general math", "number", "arithmetic", "algebra", "geometry", "fraction", "decimal", "multiply", "division", "addition", "subtraction", "measurement", "place value", "rounding", "equation", "calculus", "statistics", "probability", "integer", "ratio", "percent", "data analysis"];
-
-function isMathSkill(skill: string): boolean {
-  const s = skill.toLowerCase();
-  return MATH_EXCLUDE_KEYWORDS.some((kw) => s.includes(kw));
-}
+// Skill → section uses the shared report taxonomy (explicit tag words only). Skills that cannot be resolved are
+// shown as "Unmapped" — never silently assigned to Grammar — and non-ELA (math) skills are excluded entirely.
+const DOMAIN_TO_SECTION: Record<string, string> = {
+  "Reading Comprehension": "Reading Comprehension",
+  "Vocabulary": "Vocabulary",
+  "Spelling": "Spelling",
+  "Grammar & Conventions": "Grammar & Language Conventions",
+  "Writing": "Writing",
+  "Foundational Skills": "Foundational Skills",
+};
+const MATH_SKILL_RE = /general math|rounding|multiplication|division|fraction|decimal|place value|perimeter|\barea\b|volume|angle|measurement|money|algebra|geometry|order of operations|data & graphs|reading graphs|comparing numbers/i;
 
 function isELASkill(skill: string): boolean {
-  // Explicitly exclude math skills
-  if (isMathSkill(skill)) return false;
-  const s = skill.toLowerCase();
-  // Accept if matches any ELA keyword OR has no strong math signal (benefit of the doubt for ELA tests)
-  return ELA_SKILL_KEYWORDS.some((kw) => s.includes(kw)) || true;
+  return !MATH_SKILL_RE.test(skill);
 }
 
-function mapSkillToSection(skill: string): string {
-  const s = skill.toLowerCase();
-  // Spelling first (most specific)
-  if (s.includes("spell") || s.includes("homophone") || s.includes("homograph") || s.includes("phonics") || s.includes("phoneme") || s.includes("syllable") || s.includes("word pattern"))
-    return "Spelling";
-  // Grammar & Language Conventions
-  if (s.includes("grammar") || s.includes("punctuation") || s.includes("verb") || s.includes("subject") || s.includes("pronoun") || s.includes("adjective") || s.includes("adverb") || s.includes("sentence") || s.includes("clause") || s.includes("conjunction") || s.includes("tense") || s.includes("agreement") || s.includes("capitalization") || s.includes("comma") || s.includes("apostrophe") || s.includes("possessive") || s.includes("parts of speech") || s.includes("modifier") || s.includes("contraction") || s.includes("preposition") || s.includes("noun") || s.includes("article") || s.includes("plural") || s.includes("singular"))
-    return "Grammar & Language Conventions";
-  // Vocabulary
-  if (s.includes("vocab") || s.includes("synonym") || s.includes("antonym") || s.includes("context clue") || s.includes("word meaning") || s.includes("word structure") || s.includes("prefix") || s.includes("suffix") || s.includes("root") || s.includes("figurative") || s.includes("idiom") || s.includes("connotation") || s.includes("denotation") || s.includes("word") || s.includes("definition") || s.includes("meaning") || s.includes("compound") || s.includes("multiple meaning") || s.includes("word choice"))
-    return "Vocabulary";
-  // Writing
-  if (s.includes("writ") || s.includes("essay") || s.includes("narrative") || s.includes("opinion") || s.includes("persuasive") || s.includes("argument") || s.includes("composition") || s.includes("paragraph") || s.includes("draft") || s.includes("descriptive") || s.includes("procedural") || s.includes("prompt"))
-    return "Writing";
-  // Reading Comprehension (catch-all for ELA)
-  if (s.includes("reading") || s.includes("comprehension") || s.includes("main idea") || s.includes("inference") || s.includes("summary") || s.includes("author") || s.includes("passage") || s.includes("text structure") || s.includes("central idea") || s.includes("literary") || s.includes("rhetoric") || s.includes("theme") || s.includes("character") || s.includes("plot") || s.includes("setting") || s.includes("point of view") || s.includes("compare") || s.includes("story") || s.includes("detail") || s.includes("text evidence") || s.includes("cause") || s.includes("sequence") || s.includes("genre") || s.includes("predict") || s.includes("tone") || s.includes("mood"))
-    return "Reading Comprehension";
-  // Default to Grammar for any unmatched ELA skill
-  return "Grammar & Language Conventions";
+function mapSkillToSection(skill: string, stats?: SkillStat & { domain?: string }): string {
+  if (stats?.domain && DOMAIN_TO_SECTION[stats.domain]) return DOMAIN_TO_SECTION[stats.domain];
+  const d = elaDomainForTag(skill);
+  return d ? DOMAIN_TO_SECTION[d] : "Unmapped";
 }
 
 function buildSectionResults(skillStats: Record<string, SkillStat>): SectionResult[] {
@@ -118,7 +104,7 @@ function buildSectionResults(skillStats: Record<string, SkillStat>): SectionResu
   Object.entries(skillStats).forEach(([skill, stats]) => {
     // Skip non-ELA skills (e.g., "General Math")
     if (!isELASkill(skill)) return;
-    const section = mapSkillToSection(skill);
+    const section = mapSkillToSection(skill, stats as SkillStat & { domain?: string });
     if (!sectionMap[section]) sectionMap[section] = { correct: 0, total: 0, skills: {} };
     sectionMap[section].correct += stats.correct;
     sectionMap[section].total += stats.total;
@@ -396,7 +382,7 @@ export default function ELASectionReport({
               <div className="space-y-3 mb-4">
                 {sections.map((s) => {
                   const sectionSkills = Object.entries(skillStats)
-                    .filter(([skill]) => isELASkill(skill) && mapSkillToSection(skill) === s.section)
+                    .filter(([skill, st]) => isELASkill(skill) && mapSkillToSection(skill, st as any) === s.section)
                     .map(([skill]) => skill);
                   return (
                     <div key={s.section}>
@@ -576,7 +562,7 @@ export default function ELASectionReport({
               {/* Skill-by-skill rows for this section — filtered to ELA skills only */}
               {(() => {
                 const sectionSkillEntries = Object.entries(skillStats)
-                  .filter(([skill]) => isELASkill(skill) && mapSkillToSection(skill) === sectionName);
+                  .filter(([skill, st]) => isELASkill(skill) && mapSkillToSection(skill, st as any) === sectionName);
                 if (sectionSkillEntries.length === 0) return null;
                 return (
                   <div className="bg-slate-50 rounded-lg p-4">
@@ -617,7 +603,7 @@ export default function ELASectionReport({
               const schoolStrats = getSchoolStrategies(section.section);
 
               const failedSkills = Object.entries(skillStats)
-                .filter(([skill, stats]) => isELASkill(skill) && mapSkillToSection(skill) === section.section && stats.percentage < 70)
+                .filter(([skill, stats]) => isELASkill(skill) && mapSkillToSection(skill, stats as any) === section.section && stats.percentage < 66)
                 .map(([skill, stats]) => ({ skill, ...stats }));
 
               const curriculumWeeks = getCurriculumWeeks(section.section, failedSkills.map(s => s.skill));

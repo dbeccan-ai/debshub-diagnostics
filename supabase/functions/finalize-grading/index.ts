@@ -7,71 +7,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Skill inference patterns
-const skillPatterns: [RegExp, string][] = [
-  [/round(ed|ing)?/i, 'Rounding'],
-  [/multipli|×|times/i, 'Multiplication'],
-  [/divid|÷|quotient/i, 'Division'],
-  [/fraction|\/\d/i, 'Fractions'],
-  [/decimal|hundredths?|tenths?|\d\.\d/i, 'Decimals'],
-  [/greater|less|compar/i, 'Comparing Numbers'],
-  [/volume|cm³|cubic/i, 'Volume'],
-  [/area|cm²|square\s+(cm|meter|inch|feet)/i, 'Area'],
-  [/pattern|sequence|next\s+number/i, 'Patterns'],
-  [/graph|bar|chart|frequency/i, 'Reading Graphs'],
-  [/angle|°|degree|right\s+angle/i, 'Angles'],
-  [/perimeter/i, 'Perimeter'],
-  [/time|hour|minute|second|clock/i, 'Time'],
-  [/money|\$|cent|dollar|spend|cost|price|buy/i, 'Money'],
-  [/measurement|meter|centimeter|inch|feet|convert/i, 'Measurement'],
-  [/place\s+value|digit.*place/i, 'Place Value'],
-];
-
-function inferSkillFromQuestion(question: any): string {
-  const text = `${question.question || question.question_text || ''} ${question.section || ''}`.toLowerCase();
-  if (question.topic && question.topic !== 'general') return formatSkillName(question.topic);
-  if (question.skill_tag && question.skill_tag !== 'general') return formatSkillName(question.skill_tag);
-  for (const [pattern, skill] of skillPatterns) {
-    if (pattern.test(text)) return skill;
-  }
-  return 'General Math';
-}
-
-function formatSkillName(skill: string): string {
-  return skill.replace(/[_-]/g, ' ').replace(/\b\w/g, char => char.toUpperCase()).trim();
-}
-
-function normalizeQuestions(rawQuestions: any): any[] {
-  if (!rawQuestions) return [];
-  if (Array.isArray(rawQuestions)) {
-    if (rawQuestions[0]?.question || rawQuestions[0]?.question_text || rawQuestions[0]?.id) {
-      return rawQuestions.map(normalizeQuestion);
-    }
-    if (rawQuestions[0]?.questions) {
-      return rawQuestions.flatMap((section: any) => (section.questions || []).map(normalizeQuestion));
-    }
-    if (rawQuestions[0]?.sections) {
-      return rawQuestions.flatMap((item: any) =>
-        (item.sections || []).flatMap((section: any) => (section.questions || []).map(normalizeQuestion))
-      );
-    }
-  }
-  if (rawQuestions.sections) {
-    return rawQuestions.sections.flatMap((section: any) => (section.questions || []).map(normalizeQuestion));
-  }
-  return [];
-}
-
-function normalizeQuestion(q: any): any {
-  const normalized = {
-    id: q.id || `q-${Math.random().toString(36).substr(2, 9)}`,
-    question: q.question || q.question_text || '',
-    type: q.type || 'multiple-choice',
-    topic: q.topic || q.skill_tag || '',
-  };
-  normalized.topic = inferSkillFromQuestion({ ...q, ...normalized });
-  return normalized;
-}
+import { buildSkillAnalysis, detectReportSubject, flattenTestItems } from "../_shared/diagnostic-report.ts";
+import { tierFromScore } from "../_shared/general-curriculum.ts";
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -165,54 +102,28 @@ serve(async (req) => {
       );
     }
 
-    // Normalize questions for skill analysis
-    const questions = normalizeQuestions(attempt.tests?.questions);
-    
-    // Build skill stats — supports partial credit via points_awarded / max_points
-    interface SkillStat { total: number; correct: number; percentage: number; }
-    const skillStats: Record<string, SkillStat> = {};
+    // Shared subject-aware skill analysis (points-based; ELA never receives Math tags; unmapped items flagged).
+    const subject = detectReportSubject(attempt.tests?.test_type, attempt.tests?.name);
+    const { items } = flattenTestItems(attempt.tests?.questions, subject);
+    const skillAnalysis = buildSkillAnalysis(items, responses || [], subject);
+    const mastered = skillAnalysis.mastered;
+    const needsSupport = skillAnalysis.needsSupport;
     let pointsEarned = 0;
     let pointsPossible = 0;
     let correctCount = 0;
     let totalCount = 0;
-
     for (const response of responses || []) {
-      const question = questions.find((q: any) => q.id === response.question_id);
-      const skill = question?.topic || 'General Math';
-
       const max = typeof response.max_points === 'number' && response.max_points > 0 ? response.max_points : 1;
       const earned = typeof response.points_awarded === 'number'
-        ? response.points_awarded
+        ? Math.max(0, Math.min(max, response.points_awarded))
         : (response.is_correct ? max : 0);
-
-      if (!skillStats[skill]) {
-        skillStats[skill] = { total: 0, correct: 0, percentage: 0 };
-      }
-
-      skillStats[skill].total += max;
-      skillStats[skill].correct += earned;
       pointsPossible += max;
       pointsEarned += earned;
       totalCount++;
       if (response.is_correct) correctCount++;
     }
-
-    // Calculate percentages and categorize
-    const mastered: string[] = [];
-    const needsSupport: string[] = [];
-    const developing: string[] = [];
-
-    for (const [skill, stats] of Object.entries(skillStats)) {
-      stats.percentage = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0;
-      if (stats.percentage >= 70) mastered.push(skill);
-      else if (stats.percentage < 50) needsSupport.push(skill);
-      else developing.push(skill);
-    }
-
-    const skillAnalysis = { mastered: mastered.sort(), needsSupport: needsSupport.sort(), developing: developing.sort(), skillStats };
     const score = pointsPossible > 0 ? (pointsEarned / pointsPossible) * 100 : 0;
-    // Correct thresholds: Tier 1 = 85%+, Tier 2 = 66–84%, Tier 3 = ≤65%
-    const tier = score >= 85 ? 'Tier 1' : score >= 66 ? 'Tier 2' : 'Tier 3';
+    const tier = tierFromScore(score);
 
     console.log(`Finalized: ${correctCount}/${totalCount} = ${score.toFixed(1)}% (${tier})`);
 

@@ -1,0 +1,186 @@
+// General K-12 diagnostic report contract — synthetic fixtures only (no real student data).
+import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import {
+  buildDiagnosticReport, buildSkillAnalysis, flattenTestItems, classifySkill, detectReportSubject, evidenceLabel,
+  programForTier, retestSchedule, SKILL_STATUS_THRESHOLDS, UNMAPPED_SKILL, type ResponseRow,
+} from "../supabase/functions/_shared/diagnostic-report.ts";
+import { renderDiagnosticReportHtml } from "../supabase/functions/_shared/diagnostic-report-html.ts";
+import { TIER_THRESHOLDS } from "../src/lib/tierConfig";
+import { getCheckpointsForWeeks, getProgramWeeksForTier } from "../src/lib/followUps";
+
+const mc = (id: string, skill: string | null, extra: any = {}) => ({ id, type: "multiple_choice", ...(skill ? { skill } : {}), question: `Q ${id}`, options: ["A", "B"], correct_answer: "A", ...extra });
+const wr = (id: string, skill: string) => ({ id, type: "extended_response", skill, question: `Write ${id}` });
+const ok = (id: string): ResponseRow => ({ question_id: id, is_correct: true });
+const no = (id: string): ResponseRow => ({ question_id: id, is_correct: false });
+const attempt = (score: number | null, extra: any = {}) => ({ id: "00000000-synthetic", score, correct_answers: null, total_questions: null, completed_at: "2026-10-01T00:00:00Z", grade_level: 5, ...extra });
+
+const elaBank = [mc("e1", "vocabulary"), mc("e2", "punctuation"), mc("e3", "main idea"), mc("e4", "spelling"), mc("e5", "made up thing"), mc("e6", null), wr("w1", "opinion writing")];
+
+describe("subject detection", () => {
+  it("unknown subject stays unknown (never defaults to math)", () => {
+    expect(detectReportSubject("science", "Grade 5 Science")).toBe("unknown");
+    expect(detectReportSubject(null, null)).toBe("unknown");
+    expect(detectReportSubject("ela", "Grade 5 ELA Diagnostic Test")).toBe("ela");
+    expect(detectReportSubject("math", null)).toBe("math");
+  });
+  it("unknown subject report requires verification", () => {
+    const r = buildDiagnosticReport({ attempt: attempt(100), test: { name: "X", test_type: "science", questions: [mc("a", null)] }, responses: [ok("a")] });
+    expect(r.verification.state).toBe("requires_verification");
+    expect(r.skills.every((s) => s.skill === UNMAPPED_SKILL)).toBe(true);
+  });
+});
+
+describe("ELA skill analysis", () => {
+  const r = buildDiagnosticReport({ attempt: attempt(null), test: { name: "Grade 5 ELA", test_type: "ela", questions: elaBank }, responses: elaBank.map((q) => ok(q.id)) });
+  it("never contains math skills even when question text mentions numbers", () => {
+    const bank = [mc("x", null, { question: "Round 7,206 to the nearest hundred and explain the fraction 3/4" })];
+    const rep = buildDiagnosticReport({ attempt: attempt(null), test: { name: "ELA", test_type: "ela", questions: bank }, responses: [ok("x")] });
+    expect(rep.skills.map((s) => s.skill)).toEqual([UNMAPPED_SKILL]);
+    const sa = buildSkillAnalysis(flattenTestItems(bank, "ela").items, [ok("x")], "ela");
+    expect(Object.keys(sa.skillStats)).not.toContain("Rounding");
+    expect(Object.keys(sa.skillStats)).not.toContain("General Math");
+  });
+  it("maps explicit tags to domains; unknown tag and missing tag are flagged unmapped, not Grammar", () => {
+    const by = Object.fromEntries(r.skills.map((s) => [s.skill, s.domain]));
+    expect(by["Vocabulary"]).toBe("Vocabulary");
+    expect(by["Punctuation"]).toBe("Grammar & Conventions");
+    expect(by["Main Idea"]).toBe("Reading Comprehension");
+    expect(by["Spelling"]).toBe("Spelling");
+    expect(by["Opinion Writing"]).toBe("Writing");
+    expect(by["Made Up Thing"]).toBe("Unmapped");
+    expect(by[UNMAPPED_SKILL]).toBe("Unmapped");
+    expect(r.unmapped.count).toBe(2);
+  });
+  it("domains not assessed are labelled not assessed", () => {
+    const fs = r.domains.find((d) => d.domain === "Foundational Skills")!;
+    expect(fs.notAssessed).toBe(true);
+    expect(fs.status).toBe("not_scored");
+  });
+});
+
+describe("item shapes and stable IDs", () => {
+  it("flattens nested sections and subsections preserving section metadata", () => {
+    const raw = { sections: [{ section_title: "Part A", questions: [mc("a1", "theme")], subsections: [{ title: "A.2", questions: [mc("a2", "tone")] }] }, { section_title: "Part B", questions: [{ type: "multiple_choice", options: ["x"], correct_answer: "x", skill: "genre" }] }] };
+    const { items, issues } = flattenTestItems(raw, "ela");
+    expect(items.map((i) => i.id)).toEqual(["a1", "a2", "s2-q1"]);
+    expect(items.map((i) => i.section)).toEqual(["Part A", "Part A", "Part B"]);
+    expect(items[1].subsection).toBe("A.2");
+    expect(issues.missingIds).toBe(1);
+    expect(flattenTestItems(raw, "ela").items.map((i) => i.id)).toEqual(items.map((i) => i.id)); // deterministic
+  });
+  it("detects duplicate IDs and unmatched responses", () => {
+    const r = buildDiagnosticReport({ attempt: attempt(100), test: { name: "Math", test_type: "math", questions: [mc("d", "fractions"), mc("d", "decimals")] }, responses: [ok("d"), ok("ghost")] });
+    expect(r.verification.state).toBe("requires_verification");
+    expect(r.verification.issues.join(" ")).toMatch(/Duplicate question IDs/);
+    expect(r.verification.issues.join(" ")).toMatch(/do not match any question/);
+  });
+  it("flags a bank edited after the attempt", () => {
+    const r = buildDiagnosticReport({ attempt: attempt(100), test: { name: "Math", test_type: "math", questions: [mc("a", "fractions")], updated_at: "2026-12-01T00:00:00Z" }, responses: [ok("a")] });
+    expect(r.verification.issues.join(" ")).toMatch(/edited after/);
+  });
+});
+
+describe("scoring states and reconciliation", () => {
+  const bank = [mc("m1", "fractions"), mc("m2", "fractions"), mc("m3", "decimals"), { id: "o1", type: "open-ended", topic: "word problems", question: "Explain" }, { id: "o2", type: "open-ended", topic: "word problems", question: "Explain" }, mc("m4", "decimals")];
+  const responses: ResponseRow[] = [ok("m1"), no("m2"), ok("m3"), { question_id: "o1", is_correct: false, points_awarded: 1, max_points: 2 }, { question_id: "o2", is_correct: null }];
+  const r = buildDiagnosticReport({ attempt: attempt(60, { correct_answers: 2 }), test: { name: "Math", test_type: "math", questions: bank }, responses });
+  it("separates correct / partial / incorrect / pending / unanswered", () => {
+    expect(r.counts).toMatchObject({ totalItems: 6, scored: 4, correct: 2, partial: 1, incorrect: 1, pending: 1, unanswered: 1 });
+    expect(r.counts.correct + r.counts.partial + r.counts.incorrect).toBe(r.counts.scored);
+    expect(r.counts.scored + r.counts.pending + r.counts.unanswered).toBe(r.counts.totalItems);
+  });
+  it("uses points for partial credit; pending is not scored zero", () => {
+    expect(r.points).toEqual({ earned: 3, possible: 5 });
+    expect(r.score.pct).toBe(60);
+    expect(r.score.basis).toMatch(/3 of 5 points/);
+    const wp = r.skills.find((s) => s.skill === "Word Problems")!;
+    expect(wp).toMatchObject({ earned: 1, possible: 2, pct: 50, pendingItems: 1, usesPoints: true });
+    expect(r.verification.state).toBe("verified");
+  });
+  it("all-pending skill is not scored", () => {
+    const x = buildDiagnosticReport({ attempt: attempt(null), test: { name: "Math", test_type: "math", questions: [{ id: "o", type: "open-ended", topic: "area", question: "?" }] }, responses: [{ question_id: "o", is_correct: null }] });
+    expect(x.skills[0].status).toBe("not_scored");
+    expect(x.score.pct).toBeNull();
+    expect(x.score.tier).toBeNull();
+  });
+  it("conflicting stored score requires verification and renders the warning, not a final report", () => {
+    const bad = buildDiagnosticReport({ attempt: attempt(95), test: { name: "Math", test_type: "math", questions: bank }, responses });
+    expect(bad.verification.state).toBe("requires_verification");
+    const html = renderDiagnosticReportHtml(bad);
+    expect(html).toContain("Scoring details require verification");
+    expect(html).not.toContain("Skill-by-skill results");
+  });
+  it("all-graded MC uses item basis", () => {
+    const x = buildDiagnosticReport({ attempt: attempt(50), test: { name: "Math", test_type: "math", questions: [mc("a", "x"), mc("b", "x")] }, responses: [ok("a"), no("b")] });
+    expect(x.score.basis).toBe("Correct ÷ scored questions: 1 of 2.");
+  });
+});
+
+describe("thresholds and evidence", () => {
+  it("uses exact 85/66 boundaries matching tierConfig", () => {
+    expect(SKILL_STATUS_THRESHOLDS).toEqual({ STRENGTH: TIER_THRESHOLDS.GREEN, DEVELOPING: TIER_THRESHOLDS.YELLOW });
+    expect(classifySkill(85)).toBe("strength");
+    expect(classifySkill(84.99)).toBe("developing");
+    expect(classifySkill(66)).toBe("developing");
+    expect(classifySkill(65.99)).toBe("priority");
+    expect(classifySkill(null)).toBe("not_scored");
+  });
+  it("labels 1/1 as limited evidence, not mastery", () => {
+    expect(evidenceLabel(1, 100)).toBe("Limited evidence: 100% on 1 assessed item — not proof of broad mastery");
+    expect(evidenceLabel(3, 100)).toBeNull();
+  });
+  it("report never prints 70/50 legends", () => {
+    const html = renderDiagnosticReportHtml(buildDiagnosticReport({ attempt: attempt(50), test: { name: "Math", test_type: "math", questions: [mc("a", "x"), mc("b", "x")] }, responses: [ok("a"), no("b")] }));
+    expect(html).not.toMatch(/70%\+|50[–-]69%|&lt;50%/);
+    expect(html).toContain("Strength (85%+)");
+  });
+});
+
+describe("retests", () => {
+  it("Tier 3 = weeks 5/10/15, never sessions, mirrors followUps.ts", () => {
+    expect(programForTier("Tier 3").retestWeeks).toEqual([5, 10, 15]);
+    for (const t of ["Tier 1", "Tier 2", "Tier 3"] as const)
+      expect(programForTier(t).retestWeeks).toEqual(getCheckpointsForWeeks(getProgramWeeksForTier(t)));
+  });
+  it("duplicate follow-up rows never produce duplicate retests", () => {
+    const s = retestSchedule("Tier 3", [{ week_number: 5, status: "scheduled", unlock_date: "2026-11-01" }, { week_number: 5, status: "scheduled", unlock_date: "2026-11-01" }]);
+    expect(s.map((x) => x.week)).toEqual([5, 10, 15]);
+  });
+  it("rendered report says weeks, not sessions", () => {
+    const html = renderDiagnosticReportHtml(buildDiagnosticReport({ attempt: attempt(0), test: { name: "Math", test_type: "math", questions: [mc("a", "x")] }, responses: [no("a")] }));
+    expect(html).toContain("Week 5 formal retest");
+    expect(html).toContain("Week 15 formal retest");
+    expect(html.toLowerCase()).not.toContain("session");
+  });
+});
+
+describe("Math / ELA parity", () => {
+  it("both subjects render identical section structure", () => {
+    const heads = (html: string) => [...html.matchAll(/<h2>(\d)\./g)].map((m) => m[1]).join(",");
+    const e = renderDiagnosticReportHtml(buildDiagnosticReport({ attempt: attempt(null), test: { name: "ELA", test_type: "ela", questions: elaBank }, responses: elaBank.map((q) => ok(q.id)) }));
+    const m = renderDiagnosticReportHtml(buildDiagnosticReport({ attempt: attempt(null), test: { name: "Math", test_type: "math", questions: [mc("a", "fractions")] }, responses: [ok("a")] }));
+    expect(heads(e)).toBe("1,2,3,4,5,6,7");
+    expect(heads(m)).toBe(heads(e));
+  });
+});
+
+describe("grading paths share the contract", () => {
+  for (const f of ["grade-test", "finalize-grading", "regrade-test", "generate-result-download"]) {
+    it(`${f} imports the shared report module and has no Math default`, () => {
+      const src = readFileSync(`supabase/functions/${f}/index.ts`, "utf8");
+      expect(src).toContain("_shared/diagnostic-report");
+      expect(src).not.toMatch(/'General Math'|"General Math"/);
+    });
+  }
+});
+
+describe("summary lists", () => {
+  it("a skill appearing in two sections is listed once with combined evidence", () => {
+    const bank = [mc("a", "time", { section: "S1" }), mc("b", "time", { section: "S2" })];
+    const r = buildDiagnosticReport({ attempt: attempt(50), test: { name: "Math", test_type: "math", questions: bank }, responses: [ok("a"), no("b")] });
+    const all = [...r.strengths, ...r.developing, ...r.priority].map((s) => s.skill);
+    expect(all.filter((s) => s === "Time")).toHaveLength(1);
+    expect(r.priority.find((s) => s.skill === "Time")).toMatchObject({ correctItems: 1, scoredItems: 2, pct: 50 });
+  });
+});
