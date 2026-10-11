@@ -8,3 +8,11 @@
 - [x] 6. Roster for supervising students: cohort page roster with days done, A/B/C status, error/WCPM deltas (teachers see own school via RLS)
 - [x] Validation: 10 new tests pass, typecheck, build
 - [x] Report to user: routes/schema/migration summary
+
+# Roadmap — General K-12 report consistency (ERMA review)
+- [x] Read-only root-cause audit of the two Grade 5 attempts
+- [x] Shared evidence/scoring contract + print-safe report
+- [x] Grading, regrade (dry-run), certificate, download use shared contract
+- [x] Tests + synthetic/real-preview PDF render checks
+- [ ] Deploy backend functions + publish (awaiting owner review)
+- [ ] Optional: apply Tejani skill-analysis repair (admin, after review)
