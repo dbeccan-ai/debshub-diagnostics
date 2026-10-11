@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { buildDiagnosticReport } from "../supabase/functions/_shared/diagnostic-report";
 import { validateStaffReportContext, OWNER_CONTEXT_ATTEMPTS } from "../supabase/functions/_shared/general-report-context";
-import { renderDiagnosticReportHtml, renderTeacherCopyHtml } from "../supabase/functions/_shared/diagnostic-report-html";
+import { renderDiagnosticReportHtml, renderTeacherCopyHtml, renderEmailSummaryHtml, renderGeneralCertificateHtml } from "../supabase/functions/_shared/diagnostic-report-html";
 import { resolveGrades, buildWeekSpecs } from "../supabase/functions/_shared/general-curriculum";
 
 const identity = { attemptId: OWNER_CONTEXT_ATTEMPTS[0], studentId: "student", studentName: "Tejani Thomas", assessedGrade: 5 };
@@ -31,7 +31,16 @@ describe("staff-confirmed context in standard reports", () => {
       expect(html).toContain("Diagnostic starting level:</strong> Grade 5.");
       expect(html).toContain("97.5 attendance hours"); expect(html).toContain("initially one hour per subject");
       expect(html).not.toMatch(/limited evidence|inferred from wording|principal|will repeat|Grade 5 student/i);
-      expect(html).toContain("not evidence of separately administered or completed Grade 4 or Grade 3 tests");
+      expect(html).toContain("The diagnostic began at Grade 5 to identify prerequisite skills needed for Grade 6 learning.");
+      expect(html).not.toContain("As discussed before testing");
+      expect(html).not.toContain("not evidence of separately administered");
+      const contextSection = html.split('<h2>Assessment context</h2>')[1].split('</section>')[0];
+      expect(contextSection).not.toMatch(/promotion|retention|Earlier prerequisite|instructional plan/);
+      expect(html).toContain("do not constitute a promotion or retention decision");
+      expect(renderEmailSummaryHtml(r)).toContain("As discussed before testing, Tijani");
+      expect(renderEmailSummaryHtml(plain)).not.toContain("Tijani");
+      expect(renderTeacherCopyHtml(r, { responses })).not.toContain("As discussed before testing");
+      expect(renderGeneralCertificateHtml(r)).not.toContain("As discussed before testing");
       expect(renderTeacherCopyHtml(r, { responses })).toContain("97.5 attendance hours");
       expect(renderDiagnosticReportHtml(plain)).not.toMatch(/Tijani|97.5|45 afterschool/);
     });

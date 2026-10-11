@@ -65,7 +65,7 @@ function head(r: DiagnosticReport, logoUrl?: string | null, teacher = false) {
 export function renderAssessmentContextHtml(r: DiagnosticReport): string {
   const c = r.assessmentContext;
   if (!c) return "";
-  return `<section><h2>Assessment context</h2><p><strong>Current enrolled grade:</strong> ${gradeTxt(r.enrolledGrade)}.<br><strong>Diagnostic starting level:</strong> ${gradeTxt(r.assessedGrade)}.</p>${c.explanation ? `<p>${esc(c.explanation)}</p>` : ""}<p>${esc(c.coverage)}</p><p>${esc(c.purpose)}</p></section>`;
+  return `<section><h2>Assessment context</h2><p><strong>Current enrolled grade:</strong> ${gradeTxt(r.enrolledGrade)}.<br><strong>Diagnostic starting level:</strong> ${gradeTxt(r.assessedGrade)}.</p>${c.explanation ? `<p>${esc(c.explanation)}</p>` : `<p>${esc(c.coverage)}</p><p>${esc(c.purpose)}</p>`}</section>`;
 }
 function foot(r: DiagnosticReport) {
   return `<footer class="end"><strong>${BRAND_NAME}</strong> · <em>${BRAND_TAGLINE}</em><br>Contact · info@debslearnacademy.com · 347-364-1906 · www.debslearnacademy.com<br>Report generated ${formatReportDate(r.generatedAt, true)} (Eastern Time)</footer>`;
@@ -140,7 +140,7 @@ ${parentReportNotes(r).length ? `<ul class="sub">${parentReportNotes(r).map((n) 
 </section>
 <section class="keep"><h2>5. Priority focus</h2>${r.priorityFocus.length ? `<ol>${r.priorityFocus.map((s) => `<li><strong>${esc(parentSkillName(s.skill))}</strong> (${s.pct}% on ${s.scoredItems} item${s.scoredItems === 1 ? "" : "s"}): ${esc(parentNextStep(s, r.subject))}</li>`).join("")}</ol>` : `<p>No assessed skill is below ${SKILL_STATUS_THRESHOLDS.DEVELOPING}%; continue with the developing skills above.</p>`}</section>
 <section class="keep"><h2>6. What the ${esc(r.score.tier)} placement means</h2><p>${esc(r.tierExplanation)}</p></section>
-<div class="keep"><section><h2>7. Program length and formal retests</h2>${r.assessmentContext?.learningTarget ? `<p>${esc(r.assessmentContext.learningTarget)}</p><p>${esc(r.assessmentContext.attendance)}</p>` : ""}<p>Recommended: <strong>${esc(r.program.label)}</strong>. Formal diagnostic retests are built into the program at:</p>
+<div class="keep"><section><h2>7. Program length and formal retests</h2>${r.assessmentContext?.learningTarget ? `<p>${esc(r.assessmentContext.purpose)}</p><p>${esc(r.assessmentContext.learningTarget)}</p><p>${esc(r.assessmentContext.attendance)}</p>` : ""}<p>Recommended: <strong>${esc(r.program.label)}</strong>. Formal diagnostic retests are built into the program at:</p>
 <table><thead><tr><th>Retest</th><th>Status</th></tr></thead><tbody>${r.program.retests.map((t) => `<tr><td>${esc(t.label)}</td><td>${t.status === "not_scheduled" ? "Scheduled when the program starts" : esc(t.status)}${t.unlock_date ? ` (opens ${fmtDate(t.unlock_date)})` : ""}</td></tr>`).join("")}</tbody></table></section>
 ${opts.teacher ? `</div>${teacherAppendix(r, opts.teacher)}${foot(r)}` : `${foot(r)}</div>`}${close}`;
 }
@@ -151,12 +151,13 @@ ${opts.teacher ? `</div>${teacherAppendix(r, opts.teacher)}${foot(r)}` : `${foot
  */
 export function renderEmailSummaryHtml(r: DiagnosticReport): string {
   const box = (border: string, inner: string) => `<div style="border:2px solid ${border};border-left:8px solid ${border};padding:14px 16px;margin:16px 0;border-radius:4px;color:#111;font-size:15px;line-height:1.5">${inner}</div>`;
+  const context = r.assessmentContext?.parentExplanation ? `<p><strong>Current enrolled grade:</strong> ${gradeTxt(r.enrolledGrade)}.<br><strong>Diagnostic starting level:</strong> ${gradeTxt(r.assessedGrade)}.</p><p>${esc(r.assessmentContext.parentExplanation)}</p><p>${esc(r.assessmentContext.purpose)}</p>` : "";
   if (r.verification.state === "requires_verification")
-    return box(RED, `<strong style="color:${RED}">Scoring details require verification.</strong><br>Our staff are verifying this result before a final score, tier or skill summary is issued. You do not need to do anything; we will follow up.`);
+    return context + box(RED, `<strong style="color:${RED}">Scoring details require verification.</strong><br>Our staff are verifying this result before a final score, tier or skill summary is issued. You do not need to do anything; we will follow up.`);
   const li = (xs: SkillSummary[]) => xs.slice(0, 5).map((s) => `<li>${esc(parentSkillName(s.skill))} — ${s.pct}% (${s.usesPoints ? `${s.earned}/${s.possible} pts` : `${s.correctItems}/${s.scoredItems}`})<br>${esc(parentNextStep(s, r.subject))}</li>`).join("");
   const cov = r.coverage?.state === "incomplete"
     ? box(RED, `<strong>Required work incomplete.</strong> ${esc(r.coverage.statement)} The score below reflects recorded scored items only.`) : "";
-  return `${cov}${box(NAVY, `<div style="font-size:22px;font-weight:700;color:${NAVY}">${r.score.pct}% · ${esc(r.score.tier)}</div><div><strong>How this score was calculated:</strong> ${esc(r.score.basis)}</div>${r.counts.pending ? `<div>${r.counts.pending} response(s) still await teacher review and are not included.</div>` : ""}`)}
+  return `${context}${cov}${box(NAVY, `<div style="font-size:22px;font-weight:700;color:${NAVY}">${r.score.pct}% · ${esc(r.score.tier)}</div><div><strong>How this score was calculated:</strong> ${esc(r.score.basis)}</div>${r.counts.pending ? `<div>${r.counts.pending} response(s) still await teacher review and are not included.</div>` : ""}`)}
 ${r.strengths.length ? `<p style="margin:12px 0 4px"><strong style="color:${GREEN}">Strengths (${SKILL_STATUS_THRESHOLDS.STRENGTH}%+)</strong></p><ul>${li(r.strengths)}</ul>` : ""}
 ${r.developing.length ? `<p><strong>Developing skills</strong></p><ul>${li(r.developing)}</ul>` : ""}
 ${r.priorityFocus.length ? `<p style="margin:12px 0 4px"><strong style="color:${RED}">Priority focus (below ${SKILL_STATUS_THRESHOLDS.DEVELOPING}%)</strong></p><ul>${li(r.priorityFocus)}</ul>` : ""}

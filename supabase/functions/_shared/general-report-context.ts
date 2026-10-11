@@ -8,6 +8,7 @@ export interface StaffReportContext {
 export interface AssessmentContext {
   confirmedBy: string;
   explanation: string | null;
+  parentExplanation: string | null;
   coverage: string;
   purpose: string;
   learningTarget: string | null;
@@ -27,7 +28,8 @@ export function assessmentContext(c: StaffReportContext, confirmedBy: string): A
   const individual = c.ownerConfirmedStartingPlan;
   return {
     confirmedBy,
-    explanation: individual ? "As discussed before testing, Tijani's diagnostic began with Grade 5 skills because he is at the beginning of Grade 6. This allows us to check the foundations needed for current-year learning and identify the specific skills to strengthen before progressing into Grade 6 work. Earlier prerequisite skills are reviewed where needed to guide instruction." : null,
+    explanation: individual ? "The diagnostic began at Grade 5 to identify prerequisite skills needed for Grade 6 learning." : null,
+    parentExplanation: individual ? "As discussed before testing, Tijani's diagnostic began with Grade 5 skills because he is at the beginning of Grade 6. This allows us to check the foundations needed for current-year learning and identify the specific skills to strengthen before progressing into Grade 6 work. Earlier prerequisite skills are reviewed where needed to guide instruction." : null,
     coverage: individual ? "This report presents the recorded Grade 5 diagnostic. The intended prerequisite pathway is an instructional plan, not evidence of separately administered or completed Grade 4 or Grade 3 tests. Earlier skills are identified as assessed only where the question or test information establishes that coverage." : "The assessment level identifies the diagnostic taken, not the student's current enrolled grade or an exact grade equivalent.",
     purpose: `These results guide ${individual ? "Tijani's" : "the student's"} learning plan and progress monitoring; they do not constitute a promotion or retention decision.`,
     learningTarget: individual ? "Over 15 weeks, address identified Grade 3–5 prerequisites as appropriate and progress toward Grade 6 application. Formal retests remain at Weeks 5, 10 and 15." : null,

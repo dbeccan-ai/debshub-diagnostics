@@ -29,3 +29,7 @@
 - [x] Add authorized, attempt-scoped report-context input and standard parent context/program wording
 - [x] Test identity scope, unchanged points/coverage, curriculum grade resolution and parent/staff parity (249 tests pass)
 - [x] Visually inspect standard Math and ELA reports (7/8 pages, no blanks); authenticated controls verified; document regeneration and no-deployment limits
+
+# Roadmap — Concise official assessment context refinement
+- [x] Shorten official context while preserving confirmed/assessed grades and separate fuller parent email rationale
+- [x] All 249 regression tests passed; standard Math/ELA PDFs visually inspected with concise context, unchanged points/missing-work notices, no blank pages; preview build OK; no release or communications
