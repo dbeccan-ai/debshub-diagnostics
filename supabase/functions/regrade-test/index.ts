@@ -121,6 +121,11 @@ serve(async (req) => {
       return new Response(JSON.stringify({ success: true, dryRun: true, comparison, proposedSkillAnalysis: proposed }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
+    const { data: applyAdmin } = await supabaseAdmin.from('user_roles').select('role').eq('user_id', user.id).eq('role', 'admin').maybeSingle();
+    if (!applyAdmin) {
+      return new Response(JSON.stringify({ error: 'Only admins can apply a skill-analysis repair', comparison }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
     if (report.verification.state !== 'verified') {
       return new Response(JSON.stringify({ error: 'Scoring details require verification; derived analysis was not changed.', comparison }),
         { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
