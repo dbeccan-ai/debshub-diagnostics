@@ -6,19 +6,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface SkillStat {
-  total: number;
-  correct: number;
-  percentage: number;
-  questionIds: string[];
-}
-
-interface SkillAnalysis {
-  mastered: string[];           // Skills with 70%+ correct
-  needsSupport: string[];       // Skills with <50% correct
-  developing: string[];         // Skills with 50-69% correct
-  skillStats: Record<string, SkillStat>;  // Detailed per-skill stats
-}
+import { buildSkillAnalysis, detectReportSubject, flattenTestItems } from "../_shared/diagnostic-report.ts";
+import { tierFromScore } from "../_shared/general-curriculum.ts";
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -144,99 +133,40 @@ serve(async (req) => {
       );
     }
 
-    // Normalize questions to a flat array with correct answers
-    const testType = test.test_type || test.name || '';
-    const questions = normalizeQuestions(test.questions, testType);
-    const isELA = testType.toLowerCase().includes('ela') || testType.toLowerCase().includes('english') || testType.toLowerCase().includes('reading');
-    console.log(`Processing ${questions.length} questions for grading (type: ${testType})`);
+    // Shared, subject-aware normalisation (deterministic IDs, explicit skill tags, no Math default for ELA/unknown).
+    const subject = detectReportSubject(test.test_type, test.name);
+    const { items: questions, issues: bankIssues } = flattenTestItems(test.questions, subject);
+    if (bankIssues.duplicateIds.length) console.warn(`Duplicate question IDs in test ${test.id}: ${bankIssues.duplicateIds.join(', ')}`);
+    console.log(`Processing ${questions.length} questions for grading (subject: ${subject})`);
 
-    // Grade each answer with detailed skill tracking
     const gradedResponses: any[] = [];
     let correctCount = 0;
-    const skillStats: Record<string, SkillStat> = {};
-
-    for (const [questionId, answer] of Object.entries(answers)) {
-      const question = questions.find((q: any) => q.id === questionId);
-      
-      if (!question) {
-        console.warn(`Question ${questionId} not found in test`);
-        continue;
-      }
-
-      const questionType = normalizeQuestionType(question.type);
-      let isCorrect: boolean | null = null;
-
-      // Auto-grade multiple choice questions only
-      if (questionType === 'multiple-choice') {
-        const correctAnswer = question.correct_answer || question.correctAnswer;
-        const options = question.options || [];
-        isCorrect = isAnswerCorrect(answer as string, correctAnswer, options);
+    const answerMap = answers as Record<string, string>;
+    for (const questionId of Object.keys(answerMap)) {
+      if (!questions.some((q) => q.id === questionId)) console.warn(`Question ${questionId} not found in test`);
+    }
+    for (const question of questions) {
+      const has = Object.prototype.hasOwnProperty.call(answerMap, question.id) && String(answerMap[question.id] ?? '').trim() !== '';
+      if (question.scoring === 'auto') {
+        // Auto-scored items are always recorded; a blank answer is scored incorrect (same basis as the stored score).
+        const isCorrect = has ? isAnswerCorrect(answerMap[question.id], question.correct_answer, question.options) : false;
         if (isCorrect) correctCount++;
-      }
-      // Written responses (word-problem, multi-step, short-answer, long-answer) 
-      // stay null for manual review by admin
-
-      // Track detailed skill performance (topic is already inferred during normalization)
-      const skill = question.topic;
-      
-      if (!skillStats[skill]) {
-        skillStats[skill] = { 
-          total: 0, 
-          correct: 0, 
-          percentage: 0,
-          questionIds: []
-        };
-      }
-      
-      skillStats[skill].total++;
-      skillStats[skill].questionIds.push(questionId);
-      
-      // Only count as correct if explicitly true (not null)
-      if (isCorrect === true) {
-        skillStats[skill].correct++;
-      }
-
-      gradedResponses.push({
-        attempt_id: attemptId,
-        question_id: questionId,
-        answer: answer as string,
-        is_correct: isCorrect
-      });
-    }
-
-    // Calculate percentages and categorize skills
-    const mastered: string[] = [];
-    const needsSupport: string[] = [];
-    const developing: string[] = [];
-
-    for (const [skill, stats] of Object.entries(skillStats)) {
-      stats.percentage = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0;
-      
-      if (stats.percentage >= 85) {
-        mastered.push(skill);
-      } else if (stats.percentage < 66) {
-        needsSupport.push(skill);
-      } else {
-        developing.push(skill);
+        gradedResponses.push({ attempt_id: attemptId, question_id: question.id, answer: has ? answerMap[question.id] : '', is_correct: isCorrect });
+      } else if (has) {
+        // Written responses stay null (pending) for teacher review; never scored zero.
+        gradedResponses.push({ attempt_id: attemptId, question_id: question.id, answer: answerMap[question.id], is_correct: null });
       }
     }
 
-    // Build skill analysis object
-    const skillAnalysis: SkillAnalysis = {
-      mastered: mastered.sort(),
-      needsSupport: needsSupport.sort(),
-      developing: developing.sort(),
-      skillStats
-    };
+    const skillAnalysis = buildSkillAnalysis(questions, gradedResponses, subject);
+    const mastered = skillAnalysis.mastered;
+    const needsSupport = skillAnalysis.needsSupport;
+    const developing = skillAnalysis.developing;
 
-    // Calculate overall score and tier
-    const totalQuestions = questions.filter((q: any) => 
-      normalizeQuestionType(q.type) === 'multiple-choice'
-    ).length;
-    
+    // Initial score: auto-scored items only (written items pending review are excluded, not zero).
+    const totalQuestions = questions.filter((q) => q.scoring === 'auto').length;
     const score = totalQuestions > 0 ? (correctCount / totalQuestions) * 100 : 0;
-    // Correct thresholds: Tier 1 = 85%+, Tier 2 = 66–84%, Tier 3 = ≤65%
-    const tier = score >= 85 ? 'Tier 1' : score >= 66 ? 'Tier 2' : 'Tier 3';
+    const tier = tierFromScore(score);
 
     console.log(`Grading complete: ${correctCount}/${totalQuestions} = ${score.toFixed(1)}% (${tier})`);
     console.log(`Skills mastered: ${mastered.length}, developing: ${developing.length}, needs support: ${needsSupport.length}`);
@@ -466,166 +396,6 @@ const elaSkillPatterns: [RegExp, string][] = [
 ];
 
 // Preserve granular ELA skill names — the UI groups them into sections
-function mapToElaCoreSkill(skill: string): string {
-  const s = skill.toLowerCase().replace(/[_-]/g, ' ');
-  // Only fall back to a broad category if truly generic
-  if (!s || s === 'general' || s === 'general ela') return 'Reading Comprehension';
-  return formatSkillName(skill);
-}
-
-// Map ELA section titles to the 4 core skill categories
-function mapElaSectionToSkill(section: string): string | null {
-  const s = section.toLowerCase();
-  if (s.includes('letter') || s.includes('sound') || s.includes('phonics') || s.includes('phonemic')) return 'Vocabulary';
-  if (s.includes('grammar') || s.includes('language') || s.includes('convention') || s.includes('writing')) return 'Grammar';
-  if (s.includes('spell')) return 'Spelling';
-  if (s.includes('reading') || s.includes('comprehension') || s.includes('passage') || s.includes('literature') || s.includes('informational')) return 'Reading Comprehension';
-  if (s.includes('vocabulary') || s.includes('word')) return 'Vocabulary';
-  return null;
-}
-
-function inferSkillFromQuestion(question: any, testType: string): string {
-  const questionText = question.question || question.question_text || '';
-  const sectionName = question.section || '';
-  const optionsText = (question.options || question.choices || []).join(' ');
-  const text = `${questionText} ${sectionName} ${optionsText}`.toLowerCase();
-  
-  const isELA = testType?.toLowerCase().includes('ela') || testType?.toLowerCase().includes('english') || testType?.toLowerCase().includes('reading');
-  
-  if (!isELA) {
-    // Check for explicit topic/skill_tag first
-    if (question.topic && question.topic !== 'general') {
-      return formatSkillName(question.topic);
-    }
-    if (question.skill_tag && question.skill_tag !== 'general') {
-      return formatSkillName(question.skill_tag);
-    }
-    
-    for (const [pattern, skill] of mathSkillPatterns) {
-      if (pattern.test(text)) {
-        return skill;
-      }
-    }
-    
-    if (question.section) {
-      if (question.section.includes('Word Problem')) return 'Word Problems';
-      return formatSkillName(question.section);
-    }
-    return 'General Math';
-  }
-  
-  // ELA: Check explicit skill/topic field first and map to core category
-  const explicitSkill = question.skill || question.topic || question.skill_tag || '';
-  if (explicitSkill && explicitSkill !== 'general') {
-    return mapToElaCoreSkill(explicitSkill);
-  }
-  
-  // ELA: Try matching question text against patterns for comprehension subtypes first
-  if (text.includes('infer') || text.includes('conclude') || text.includes('suggest') || text.includes('imply'))
-    return 'Inferential Comprehension';
-  if (text.includes('main idea') || text.includes('detail') || text.includes('according to') || text.includes('stated'))
-    return 'Literal Comprehension';
-  if (text.includes('author') || text.includes('purpose') || text.includes('tone') || text.includes('theme') || text.includes('analyze') || text.includes('evaluate'))
-    return 'Analytical Comprehension';
-
-  // ELA: Try matching question text against general patterns
-  for (const [pattern, skill] of elaSkillPatterns) {
-    if (pattern.test(text)) {
-      return skill;
-    }
-  }
-  
-  // ELA: Fall back to section name mapping
-  if (sectionName) {
-    const mapped = mapElaSectionToSkill(sectionName);
-    if (mapped) return mapped;
-  }
-  
-  return 'Reading Comprehension';
-}
-
-// Format skill name for display (capitalize and clean up)
-function formatSkillName(skill: string): string {
-  return skill
-    .replace(/[_-]/g, ' ')
-    .replace(/\b\w/g, char => char.toUpperCase())
-    .trim();
-}
-
-// Normalize all questions from any test format into a flat array
-function normalizeQuestions(questions: any, testType: string): any[] {
-  if (!questions) return [];
-  
-  // Format: { sections: [ { section_title, questions: [...] }, ... ] }
-  // This is the primary format used by Grade 4+ diagnostics stored in the DB
-  if (typeof questions === 'object' && !Array.isArray(questions) && Array.isArray(questions.sections)) {
-    return questions.sections.flatMap((section: any) =>
-      (section.questions || []).map((q: any) => normalizeQuestion({
-        ...q,
-        section: section.section_title || section.name || section.title || q.section || ''
-      }, testType))
-    );
-  }
-
-  // Format: { all_diagnostics: [...] } — JSON file structure, grab matching grade
-  if (typeof questions === 'object' && !Array.isArray(questions) && Array.isArray(questions.all_diagnostics)) {
-    return questions.all_diagnostics.flatMap((diagnostic: any) =>
-      (diagnostic.sections || []).flatMap((section: any) =>
-        (section.questions || []).map((q: any) => normalizeQuestion({
-          ...q,
-          section: section.section_title || section.name || q.section || ''
-        }, testType))
-      )
-    );
-  }
-
-  // Format: flat array of question objects or array of section objects
-  if (Array.isArray(questions)) {
-    // Array of section objects (each with a questions sub-array)
-    if (questions.length > 0 && questions[0]?.questions && Array.isArray(questions[0].questions)) {
-      return questions.flatMap((section: any) =>
-        (section.questions || []).map((q: any) => normalizeQuestion({
-          ...q,
-          section: section.section_title || section.name || section.title || q.section || ''
-        }, testType))
-      );
-    }
-    // Flat array of question objects
-    return questions.map((q: any) => normalizeQuestion(q, testType));
-  }
-  
-  // Format: object with sections as keys: { "Section 1": [...], "Section 2": [...] }
-  if (typeof questions === 'object') {
-    return Object.entries(questions).flatMap(([sectionName, sectionQuestions]: [string, any]) => {
-      if (Array.isArray(sectionQuestions)) {
-        return sectionQuestions.map((q: any) => normalizeQuestion({ ...q, section: q.section || sectionName }, testType));
-      }
-      return [];
-    });
-  }
-  
-  return [];
-}
-
-// Normalize a single question
-function normalizeQuestion(q: any, testType: string): any {
-  const normalized = {
-    id: q.id || `q-${Math.random().toString(36).substr(2, 9)}`,
-    question: q.question || q.question_text || q.text || '',
-    type: q.type || 'multiple-choice',
-    options: q.options || q.choices || [],
-    correct_answer: q.correct_answer || q.correctAnswer || '',
-    section: q.section || '',
-    topic: q.topic || q.skill_tag || q.skill || '',
-    skill: q.skill || '',
-    explanation: q.explanation || ''
-  };
-  // Infer skill after normalization using test type
-  normalized.topic = inferSkillFromQuestion({ ...q, ...normalized }, testType);
-  return normalized;
-}
-
-// Normalize question type
 function normalizeQuestionType(type: string): string {
   if (!type) return 'multiple-choice';
   const normalized = type.toLowerCase().replace(/[_\s]/g, '-');
