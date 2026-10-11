@@ -35,6 +35,8 @@ export interface NormalizedItem {
   question: string;
   options: string[];
   correct_answer: string;
+  /** "Choose N of M" group membership, read from explicit item/section metadata or the section title. */
+  choiceGroup: ChoiceGroup | null;
 }
 export interface ItemIssues { duplicateIds: string[]; missingIds: number; }
 
@@ -129,7 +131,7 @@ export function flattenTestItems(raw: any, subject: ReportSubject): { items: Nor
     out.push({
       id: explicit ?? path, idSource: explicit ? "explicit" : "derived", position: out.length + 1,
       rawType: String(q?.type ?? ""), scoring: isAutoScoredType(q?.type, q) ? "auto" : "manual",
-      section: sec, subsection, ...r,
+      section: sec, subsection, ...r, choiceGroup: parseChoiceGroup(q, sec, subsection),
       question: q?.question ?? q?.question_text ?? q?.text ?? "", options: q?.options ?? q?.choices ?? [],
       correct_answer: q?.correct_answer ?? q?.correctAnswer ?? "",
     });
@@ -259,6 +261,7 @@ export interface DiagnosticReport {
   assessedGrade: number | null; enrolledGrade: number | null; completedAt: string | null; generatedAt: string;
   verification: { state: VerificationState; issues: string[]; notes: string[] };
   counts: { totalItems: number; answered: number; unanswered: number; scored: number; pending: number; correct: number; partial: number; incorrect: number; autoScored: number; manualScored: number };
+  coverage: Coverage;
   points: { earned: number; possible: number };
   score: { pct: number | null; stored: number | null; basis: string; tier: GeneralTier | null };
   domains: (Omit<SkillSummary, "skill" | "nextStep" | "skillSource" | "questionIds"> & { notAssessed?: boolean })[];
@@ -324,13 +327,16 @@ export function buildDiagnosticReport(input: ReportInput): DiagnosticReport {
     issuesOut.push(`Stored score ${stored}% does not match the saved item evidence (${earned}/${possible} points = ${pct}%).`);
   if (input.attempt.correct_answers !== null && input.attempt.correct_answers !== undefined && input.attempt.correct_answers !== counts.correct)
     notes.push(`Stored "correct answers" (${input.attempt.correct_answers}) differs from fully-correct scored items (${counts.correct}); counts below are recomputed from saved responses.`);
-  if (counts.unanswered) notes.push(`${counts.unanswered} question(s) have no saved response and are not part of the score; their point value was never recorded.`);
+  const coverage = assessCoverage(scoredItems);
+  if (coverage.optionalNotSelected) notes.push(`${coverage.optionalNotSelected} question(s) in "choose" groups were not selected after the required number was answered; they are optional and not part of the score.`);
+  if (coverage.missingRequired) notes.push(`Required work is incomplete: ${coverage.statement} The score is based only on recorded scored items; missing required work was not scored as zero and no answers were invented.`);
   if (counts.pending) notes.push(`${counts.pending} response(s) await teacher review and are excluded from all percentages until scored.`);
 
   const usesPoints = scored.some((i) => i.possible !== 1 || i.outcome === "partial");
-  const basis = usesPoints
-    ? `Points earned ÷ points possible on scored items: ${earned} of ${possible} points across ${counts.scored} scored question(s) (${counts.correct} fully correct, ${counts.partial} partial credit, ${counts.incorrect} incorrect).`
-    : `Correct ÷ scored questions: ${counts.correct} of ${counts.scored}.`;
+  const coverageSuffix = coverage.state === "incomplete" ? " Score reflects recorded scored items only; required work is incomplete (see coverage)." : "";
+  const basis = (usesPoints
+    ? `Points earned ÷ points possible on recorded scored items: ${earned} of ${possible} points across ${counts.scored} scored question(s) (${counts.correct} fully correct, ${counts.partial} partial credit, ${counts.incorrect} incorrect).`
+    : `Correct ÷ recorded scored questions: ${counts.correct} of ${counts.scored}.`) + coverageSuffix;
 
   // Skills
   const groups = new Map<string, ScoredItem[]>();
@@ -365,6 +371,7 @@ export function buildDiagnosticReport(input: ReportInput): DiagnosticReport {
     assessedGrade: input.attempt.grade_level ?? null, enrolledGrade: input.enrolledGrade ?? null, completedAt: input.attempt.completed_at,
     generatedAt: input.generatedAt ?? new Date().toISOString(),
     verification: { state: issuesOut.length ? "requires_verification" : "verified", issues: issuesOut, notes },
+    coverage,
     counts, points: { earned, possible }, score: { pct, stored, basis, tier },
     domains, skills, strengths, developing, priority, unmapped: { count: unmappedItems.length, questionIds: unmappedItems.map((i) => i.id) },
     priorityFocus, tierExplanation: tierExplanation(tier),
