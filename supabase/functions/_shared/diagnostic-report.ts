@@ -5,6 +5,7 @@
 
 import { GENERAL_TIER_THRESHOLDS, TIER3_PLAN, detectSubject, tierFromScore, type GeneralTier } from "./general-curriculum.ts";
 import { readCanonicalTags } from "./general-item-tags.ts";
+import { type AssessmentContext, type StaffReportContext, assessmentContext } from "./general-report-context.ts";
 
 export const REPORT_VERSION = "general-report-v2";
 export const BRAND_NAME = "D.E.Bs LEARNING ACADEMY LLC";
@@ -316,6 +317,8 @@ export interface ReportInput {
   responses: ResponseRow[];
   studentName?: string | null;
   enrolledGrade?: number | null;
+  staffContext?: StaffReportContext | null;
+  staffConfirmedBy?: string;
   followUps?: RetestRow[];
   generatedAt?: string;
 }
@@ -325,6 +328,7 @@ export interface DiagnosticReport {
   version: string; subject: ReportSubject; subjectLabel: string;
   student: { name: string }; test: { name: string; attemptId: string };
   assessedGrade: number | null; enrolledGrade: number | null; completedAt: string | null; generatedAt: string;
+  assessmentContext?: AssessmentContext | null;
   verification: { state: VerificationState; issues: string[]; notes: string[] };
   auditNotes?: string[];
   counts: { totalItems: number; answered: number; unanswered: number; scored: number; pending: number; correct: number; partial: number; incorrect: number; autoScored: number; manualScored: number };
@@ -439,7 +443,8 @@ export function buildDiagnosticReport(input: ReportInput): DiagnosticReport {
   return {
     version: REPORT_VERSION, subject, subjectLabel: subject === "ela" ? "English Language Arts" : subject === "math" ? "Mathematics" : "Subject unknown",
     student: { name: input.studentName || "Student" }, test: { name: input.test.name || "Diagnostic", attemptId: input.attempt.id },
-    assessedGrade: input.attempt.grade_level ?? null, enrolledGrade: input.enrolledGrade ?? null, completedAt: input.attempt.completed_at,
+    assessedGrade: input.attempt.grade_level ?? null, enrolledGrade: input.staffContext?.enrolledGrade ?? input.enrolledGrade ?? null, completedAt: input.attempt.completed_at,
+    assessmentContext: input.staffContext ? assessmentContext(input.staffContext, input.staffConfirmedBy ?? "Authorized staff") : null,
     generatedAt: input.generatedAt ?? new Date().toISOString(),
     verification: { state: issuesOut.length ? "requires_verification" : "verified", issues: issuesOut, notes }, auditNotes,
     coverage,

@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { buildDiagnosticReport } from "../_shared/diagnostic-report.ts";
 import { renderTeacherCopyHtml } from "../_shared/diagnostic-report-html.ts";
+import { validateStaffReportContext } from "../_shared/general-report-context.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -39,7 +40,7 @@ serve(async (req) => {
       );
     }
 
-    const { attemptId } = await req.json();
+    const { attemptId, reportContext } = await req.json();
     
     if (!attemptId) {
       return new Response(
@@ -99,11 +100,14 @@ serve(async (req) => {
       .select('week_number, status, unlock_date')
       .eq('source_attempt_id', attemptId);
 
+    const staffContext = validateStaffReportContext(reportContext, { attemptId: attempt.id, studentId: attempt.user_id, studentName: attempt.profiles?.full_name ?? "", assessedGrade: attempt.grade_level }, isAdmin || !!teacherRole);
     const report = buildDiagnosticReport({
       attempt,
       test: attempt.tests ?? { name: null, test_type: null, questions: null },
       responses: responses ?? [],
       studentName: attempt.profiles?.full_name,
+      staffContext,
+      staffConfirmedBy: "Authenticated staff",
       followUps: followUps ?? [],
     });
     const origin = req.headers.get('origin');

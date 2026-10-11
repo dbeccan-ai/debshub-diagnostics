@@ -60,7 +60,12 @@ function head(r: DiagnosticReport, logoUrl?: string | null, teacher = false) {
 <section class="keep"><div class="grid">
 <div><strong>Student:</strong> ${esc(r.student.name)}</div><div><strong>Assessment:</strong> ${esc(r.test.name)}</div>
 <div><strong>Assessed grade (test level):</strong> ${gradeTxt(r.assessedGrade)}</div><div><strong>Enrolled grade:</strong> ${r.enrolledGrade === null ? "Not confirmed by staff" : gradeTxt(r.enrolledGrade)}</div>
-<div><strong>Completed:</strong> ${fmtDate(r.completedAt)}</div><div><strong>Subject:</strong> ${esc(r.subjectLabel)}</div></div></section>`;
+<div><strong>Completed:</strong> ${fmtDate(r.completedAt)}</div><div><strong>Subject:</strong> ${esc(r.subjectLabel)}</div></div></section>${renderAssessmentContextHtml(r)}`;
+}
+export function renderAssessmentContextHtml(r: DiagnosticReport): string {
+  const c = r.assessmentContext;
+  if (!c) return "";
+  return `<section><h2>Assessment context</h2><p><strong>Current enrolled grade:</strong> ${gradeTxt(r.enrolledGrade)}.<br><strong>Diagnostic starting level:</strong> ${gradeTxt(r.assessedGrade)}.</p>${c.explanation ? `<p>${esc(c.explanation)}</p>` : ""}<p>${esc(c.coverage)}</p><p>${esc(c.purpose)}</p></section>`;
 }
 function foot(r: DiagnosticReport) {
   return `<footer class="end"><strong>${BRAND_NAME}</strong> · <em>${BRAND_TAGLINE}</em><br>Contact · info@debslearnacademy.com · 347-364-1906 · www.debslearnacademy.com<br>Report generated ${formatReportDate(r.generatedAt, true)} (Eastern Time)</footer>`;
@@ -135,7 +140,7 @@ ${parentReportNotes(r).length ? `<ul class="sub">${parentReportNotes(r).map((n) 
 </section>
 <section class="keep"><h2>5. Priority focus</h2>${r.priorityFocus.length ? `<ol>${r.priorityFocus.map((s) => `<li><strong>${esc(parentSkillName(s.skill))}</strong> (${s.pct}% on ${s.scoredItems} item${s.scoredItems === 1 ? "" : "s"}): ${esc(parentNextStep(s, r.subject))}</li>`).join("")}</ol>` : `<p>No assessed skill is below ${SKILL_STATUS_THRESHOLDS.DEVELOPING}%; continue with the developing skills above.</p>`}</section>
 <section class="keep"><h2>6. What the ${esc(r.score.tier)} placement means</h2><p>${esc(r.tierExplanation)}</p></section>
-<div class="keep"><section><h2>7. Program length and formal retests</h2><p>Recommended: <strong>${esc(r.program.label)}</strong>. Formal diagnostic retests are built into the program at:</p>
+<div class="keep"><section><h2>7. Program length and formal retests</h2>${r.assessmentContext?.learningTarget ? `<p>${esc(r.assessmentContext.learningTarget)}</p><p>${esc(r.assessmentContext.attendance)}</p>` : ""}<p>Recommended: <strong>${esc(r.program.label)}</strong>. Formal diagnostic retests are built into the program at:</p>
 <table><thead><tr><th>Retest</th><th>Status</th></tr></thead><tbody>${r.program.retests.map((t) => `<tr><td>${esc(t.label)}</td><td>${t.status === "not_scheduled" ? "Scheduled when the program starts" : esc(t.status)}${t.unlock_date ? ` (opens ${fmtDate(t.unlock_date)})` : ""}</td></tr>`).join("")}</tbody></table></section>
 ${opts.teacher ? `</div>${teacherAppendix(r, opts.teacher)}${foot(r)}` : `${foot(r)}</div>`}${close}`;
 }
