@@ -155,7 +155,7 @@ export function flattenTestItems(raw: any, subject: ReportSubject): { items: Nor
 
 export interface ResponseRow { question_id: string; answer?: string | null; is_correct: boolean | null; points_awarded?: number | null; max_points?: number | null }
 export type ItemOutcome = "correct" | "partial" | "incorrect" | "pending" | "unanswered";
-export interface ScoredItem extends NormalizedItem { outcome: ItemOutcome; earned: number | null; possible: number | null }
+export interface ScoredItem extends NormalizedItem { outcome: ItemOutcome; earned: number | null; possible: number | null; blank?: boolean }
 
 export function scoreItem(item: NormalizedItem, r: ResponseRow | undefined): ScoredItem {
   if (!r) return { ...item, outcome: "unanswered", earned: null, possible: null };
@@ -164,7 +164,7 @@ export function scoreItem(item: NormalizedItem, r: ResponseRow | undefined): Sco
   const raw = typeof r.points_awarded === "number" ? r.points_awarded : r.is_correct ? possible : 0;
   const earned = Math.max(0, Math.min(possible, raw));
   const outcome: ItemOutcome = earned >= possible ? "correct" : earned > 0 ? "partial" : "incorrect";
-  return { ...item, outcome, earned, possible };
+  return { ...item, outcome, earned, possible, blank: r.answer === "" };
 }
 
 /* ───────────── Classification ───────────── */
@@ -313,7 +313,14 @@ export function buildDiagnosticReport(input: ReportInput): DiagnosticReport {
 
   const pct = possible > 0 ? round2((earned / possible) * 100) : null;
   const stored = input.attempt.score === null || input.attempt.score === undefined ? null : Number(input.attempt.score);
-  if (pct !== null && stored !== null && Math.abs(pct - stored) > 0.05)
+  const autoItems = scoredItems.filter((i) => i.scoring === "auto");
+  const autoPct = autoItems.length ? round2((autoItems.filter((i) => i.outcome === "correct").length / autoItems.length) * 100) : null;
+  const storedMatchesInitialBasis = counts.pending > 0 && autoPct !== null && stored !== null && Math.abs(autoPct - stored) <= 0.05;
+  if (storedMatchesInitialBasis)
+    notes.push(`Stored score ${stored}% is the initial automatic score on multiple-choice items only; written responses are still awaiting review, so the report shows the evidence-based score from scored items.`);
+  const blanks = scored.filter((i) => i.blank).length;
+  if (blanks) notes.push(`${blanks} multiple-choice question(s) were left blank and are scored as incorrect.`);
+  if (pct !== null && stored !== null && Math.abs(pct - stored) > 0.05 && !storedMatchesInitialBasis)
     issuesOut.push(`Stored score ${stored}% does not match the saved item evidence (${earned}/${possible} points = ${pct}%).`);
   if (input.attempt.correct_answers !== null && input.attempt.correct_answers !== undefined && input.attempt.correct_answers !== counts.correct)
     notes.push(`Stored "correct answers" (${input.attempt.correct_answers}) differs from fully-correct scored items (${counts.correct}); counts below are recomputed from saved responses.`);
