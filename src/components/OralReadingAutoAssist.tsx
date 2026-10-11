@@ -194,7 +194,8 @@ export const OralReadingAutoAssist = ({
       }
 
       const formData = new FormData();
-      formData.append("audio", audioBlob, "recording.webm");
+      const ext = audioBlob.type.includes("mp4") ? "mp4" : audioBlob.type.includes("ogg") ? "ogg" : audioBlob.type.includes("aac") ? "aac" : "webm";
+      formData.append("audio", audioBlob, `recording.${ext}`);
       formData.append("originalText", passageText);
 
       const response = await fetch(
@@ -249,7 +250,7 @@ export const OralReadingAutoAssist = ({
     if (transcript && editedErrors) {
       const wordCount = passageText.split(/\s+/).length;
       const suggestedStrategy = analyzeDecodingStrategy(editedErrors, wordCount);
-      onErrorCountConfirmed(confirmedErrorCount, transcript, editedErrors, suggestedStrategy);
+      onErrorCountConfirmed(confirmedErrorCount, transcript, editedErrors, suggestedStrategy, recordingDuration ?? undefined);
       toast.success("Errors confirmed and saved.");
     }
   };
