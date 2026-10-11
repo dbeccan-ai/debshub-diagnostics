@@ -4,6 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { OWNER_CONTEXT_ATTEMPTS, type StaffReportContext } from "../../supabase/functions/_shared/general-report-context";
 
 import { toast } from "sonner";
 import { ArrowLeft, Download, CheckCircle, XCircle, TrendingUp, FileText, BookOpen, Share2, AlertTriangle } from "lucide-react";
@@ -28,6 +32,7 @@ interface SkillAnalysis {
 
 interface TestAttempt {
   id: string;
+  user_id: string;
   score: number | null;
   tier: string | null;
   total_questions: number | null;
@@ -52,7 +57,12 @@ const Results = () => {
   const navigate = useNavigate();
   const [attempt, setAttempt] = useState<TestAttempt | null>(null);
   const [loading, setLoading] = useState(true);
-  const { state: evidence, retry: retryEvidence } = useDiagnosticReport(attemptId);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [gradeInput, setGradeInput] = useState("");
+  const [ownerPlan, setOwnerPlan] = useState(false);
+  const [reportContext, setReportContext] = useState<StaffReportContext | null>(null);
+  const scopedContext = reportContext?.attemptId === attemptId ? reportContext : null;
+  const { state: evidence, retry: retryEvidence } = useDiagnosticReport(attemptId, scopedContext);
   const [followUpInfo, setFollowUpInfo] = useState<{
     label: string;
     baselineScore: number | null;
@@ -76,11 +86,12 @@ const Results = () => {
         .maybeSingle();
       
       const isAdmin = !!roleData;
+      setIsAdmin(isAdmin);
 
       let query = supabase
         .from("test_attempts")
         .select(`
-          id, score, tier, total_questions, correct_answers, completed_at,
+          id, user_id, score, tier, total_questions, correct_answers, completed_at,
           grade_level, strengths, weaknesses, skill_analysis, follow_up_id,
           tests:test_id (name, test_type),
           profiles:user_id (full_name)
@@ -128,7 +139,7 @@ const Results = () => {
     try {
       toast.loading("Generating PDF...", { id: "pdf-download" });
       const { data, error } = await supabase.functions.invoke("generate-result-download", {
-        body: { attemptId, format: "pdf" },
+        body: { attemptId, format: "pdf", reportContext: scopedContext },
       });
       if (error) throw new Error(error.message);
       const htmlContent = data?.html;
@@ -150,7 +161,7 @@ const Results = () => {
     try {
       toast.loading("Generating teacher copy...", { id: "teacher-copy" });
       const { data, error } = await supabase.functions.invoke("generate-teacher-copy", {
-        body: { attemptId },
+        body: { attemptId, reportContext: scopedContext },
       });
       if (error) throw new Error(error.message);
       const htmlContent = data?.html;
@@ -231,6 +242,19 @@ const Results = () => {
       </header>
 
       <main className="mx-auto max-w-4xl px-4 py-6 sm:px-6">
+        {isAdmin && <section className="mb-6 space-y-3 print:hidden" aria-label="Staff assessment context">
+          <h2 className="font-semibold">Staff-confirmed enrolled grade</h2>
+          <div className="flex flex-wrap items-end gap-3">
+            <div><Label htmlFor="confirmed-grade">Current enrolled grade (0 = Kindergarten)</Label><Input id="confirmed-grade" type="number" min={0} max={12} value={gradeInput} onChange={(e) => setGradeInput(e.target.value)} className="w-48" /></div>
+            <Button variant="outline" onClick={() => {
+              const grade = Number(gradeInput);
+              if (!gradeInput || !Number.isInteger(grade) || grade < 0 || grade > 12) { toast.error("Enter a grade from 0 to 12"); return; }
+              setReportContext({ attemptId: attempt.id, studentId: attempt.user_id, enrolledGrade: grade, ownerConfirmedStartingPlan: ownerPlan });
+            }}>Confirm report context</Button>
+          </div>
+          {OWNER_CONTEXT_ATTEMPTS.includes(attempt.id) && attempt.profiles?.full_name === "Tejani Thomas" && <div className="flex items-center gap-2"><Checkbox id="owner-plan" checked={ownerPlan} onCheckedChange={(v) => setOwnerPlan(v === true)} /><Label htmlFor="owner-plan">Use Dahalia Beccan’s confirmed Grade 6 / Grade 5 starting plan and individual attendance schedule</Label></div>}
+          <p className="text-sm text-muted-foreground">Confirmation applies to this open report and its downloads only. After reopening, confirm again; shared links do not carry this context. The original assessment grade is unchanged.</p>
+        </section>}
         {/* Score Overview */}
         <Card className="mb-6 border-slate-200">
           <CardHeader className="text-center pb-2">
@@ -276,6 +300,12 @@ const Results = () => {
               </div>
             </div>
 
+            {model?.assessmentContext && <section className="mt-4 space-y-2" aria-label="Assessment context">
+              <h2 className="font-semibold">Assessment context</h2>
+              <p>Current enrolled grade: {model.enrolledGrade === 0 ? "Kindergarten" : `Grade ${model.enrolledGrade}`}.<br />Diagnostic starting level: Grade {model.assessedGrade}.</p>
+              {model.assessmentContext.explanation && <p>{model.assessmentContext.explanation}</p>}
+              <p>{model.assessmentContext.coverage}</p><p>{model.assessmentContext.purpose}</p>
+            </section>}
             {followUpInfo && followUpInfo.baselineScore !== null && (
               <div className="mt-4 rounded-lg border-2 border-sky-200 bg-sky-50 p-4">
                 <p className="text-sm font-bold text-sky-900">

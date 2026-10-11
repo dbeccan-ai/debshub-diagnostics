@@ -8,6 +8,7 @@ const corsHeaders = {
 
 import { buildDiagnosticReport } from "../_shared/diagnostic-report.ts";
 import { renderDiagnosticReportHtml } from "../_shared/diagnostic-report-html.ts";
+import { validateStaffReportContext } from "../_shared/general-report-context.ts";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -15,7 +16,7 @@ serve(async (req) => {
   }
 
   try {
-    const { attemptId, format, mode } = await req.json();
+    const { attemptId, format, mode, reportContext } = await req.json();
 
     if (!attemptId || !format) {
       throw new Error("Missing attemptId or format");
@@ -92,6 +93,7 @@ serve(async (req) => {
     if (!attempt.completed_at) {
       throw new Error("Test is not completed yet");
     }
+    const staffContext = validateStaffReportContext(reportContext, { attemptId: attempt.id, studentId: attempt.user_id, studentName: attempt.profiles?.full_name ?? "", assessedGrade: attempt.grade_level }, isAdmin);
 
     // Read-only evidence model (never writes scores, never regrades).
     const { data: responses } = await supabaseClient
@@ -108,6 +110,8 @@ serve(async (req) => {
       test: attempt.tests ?? { name: null, test_type: null, questions: null },
       responses: responses ?? [],
       studentName: attempt.profiles?.full_name,
+      staffContext,
+      staffConfirmedBy: "Authenticated admin",
       followUps: followUps ?? [],
     });
     // Strip answer keys / item text before returning the model to the browser.
@@ -122,6 +126,9 @@ serve(async (req) => {
     const origin = req.headers.get("origin");
     const logoUrl = origin && /^https:\/\/[a-z0-9.-]+$/i.test(origin) ? `${origin}/icon-512.png` : "https://debshub-diagnostics.lovable.app/icon-512.png";
     const resultHTML = renderDiagnosticReportHtml(report, { logoUrl });
+
+    // Staff-context regeneration is request-only: no storage or certificate mutation.
+    if (staffContext) return new Response(JSON.stringify({ success: true, html: resultHTML, format, report: publicReport }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
     const fileName = `result-${attemptId}.html`;
     const { error: uploadError } = await supabaseClient.storage

@@ -23,3 +23,9 @@
 - [x] Add canonical item schema and approval-gated pure future-bank configuration, without applying bank changes
 - [x] Targeted/regression tests and synthetic parent/teacher/certificate visual checks (244 passed; 7-page parent / 13-page staff; no blank pages)
 - [ ] Owner approval and future-bank release (blocked: owner review; no production changes authorized)
+
+# Roadmap — Confirmed enrollment context in standard reports
+- [x] Verify both Tejani attempts share identity; separate staff-confirmed enrollment from historical assessment level
+- [x] Add authorized, attempt-scoped report-context input and standard parent context/program wording
+- [x] Test identity scope, unchanged points/coverage, curriculum grade resolution and parent/staff parity (249 tests pass)
+- [x] Visually inspect standard Math and ELA reports (7/8 pages, no blanks); authenticated controls verified; document regeneration and no-deployment limits
