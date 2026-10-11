@@ -30,6 +30,7 @@ export function useDiagnosticReport(attemptId: string | undefined, reportContext
       .then(({ data, error }) => {
         if (!alive) return;
         if (error || !data?.report || !data.report.verification) setState({ status: "error", message: error?.message || "The verified analysis service did not return a report." });
+        else if (reportContext && (data.report.enrolledGrade !== reportContext.enrolledGrade || !data.report.assessmentContext || data.report.test?.attemptId !== reportContext.attemptId)) setState({ status: "error", message: "The report service has not returned the staff-confirmed context. Confirmation has not been discarded; retry after the updated report service is released." });
         else setState({ status: "ready", report: data.report as DiagnosticReport });
       })
       .catch((e) => alive && setState({ status: "error", message: e?.message || "Network error" }));
