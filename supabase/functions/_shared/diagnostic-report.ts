@@ -424,7 +424,7 @@ export function buildDiagnosticReport(input: ReportInput): DiagnosticReport {
     coverage,
     counts, points: { earned, possible }, score: { pct, stored, basis, tier },
     domains, skills, strengths, developing, priority, unmapped: { count: unmappedItems.length, questionIds: unmappedItems.map((i) => i.id) },
-    priorityFocus, tierExplanation: tierExplanation(tier),
+    priorityFocus, tierExplanation: tierExplanation(tier) + (coverage.state === "incomplete" && tier ? " This tier reflects recorded scored items only, because some required work has no saved response." : ""),
     program: { weeks: prog.weeks, label: prog.label, retests: retestSchedule(tier ?? "Tier 3", input.followUps) },
     items: scoredItems,
   };
