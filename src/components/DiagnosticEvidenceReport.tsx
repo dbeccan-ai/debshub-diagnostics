@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, Loader2, RefreshCw } from "lucide-react";
 import { STATUS_LABEL, parentSkillName, parentDomainName, parentNextStep, parentReportNotes, type DiagnosticReport } from "@/lib/diagnosticReport";
+import { type StaffReportContext } from "../../supabase/functions/_shared/general-report-context";
 
 const STATUS_TEXT: Record<string, string> = { strength: "Strength", developing: "Developing", priority: "Support needed", not_scored: "Not assessed" };
 const STATUS_CLASS: Record<string, string> = {
@@ -16,7 +17,7 @@ export type EvidenceState =
   | { status: "ready"; report: DiagnosticReport };
 
 /** Loads the read-only evidence model (same as parent PDF). Never regrades or writes scores. */
-export function useDiagnosticReport(attemptId: string | undefined) {
+export function useDiagnosticReport(attemptId: string | undefined, reportContext?: StaffReportContext | null) {
   const [state, setState] = useState<EvidenceState>({ status: "loading" });
   const [nonce, setNonce] = useState(0);
   const retry = useCallback(() => setNonce((n) => n + 1), []);
@@ -25,7 +26,7 @@ export function useDiagnosticReport(attemptId: string | undefined) {
     let alive = true;
     setState({ status: "loading" });
     supabase.functions
-      .invoke("generate-result-download", { body: { attemptId, format: "json", mode: "model" } })
+      .invoke("generate-result-download", { body: { attemptId, format: "json", mode: "model", reportContext } })
       .then(({ data, error }) => {
         if (!alive) return;
         if (error || !data?.report || !data.report.verification) setState({ status: "error", message: error?.message || "The verified analysis service did not return a report." });
@@ -33,7 +34,7 @@ export function useDiagnosticReport(attemptId: string | undefined) {
       })
       .catch((e) => alive && setState({ status: "error", message: e?.message || "Network error" }));
     return () => { alive = false; };
-  }, [attemptId, nonce]);
+  }, [attemptId, nonce, reportContext]);
   return { state, retry };
 }
 
@@ -117,6 +118,7 @@ export function DiagnosticEvidenceReport({ attemptId, report: given }: { attempt
         <p className="text-sm">
           <strong>{report.program.label}.</strong> Formal retests: {report.program.retests.map((r) => `Week ${r.week}`).join(", ")}.
         </p>
+        {report.assessmentContext?.learningTarget && <><p className="text-sm">{report.assessmentContext.learningTarget}</p><p className="text-sm">{report.assessmentContext.attendance}</p></>}
       </CardContent>
     </Card>
   );
