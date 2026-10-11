@@ -102,14 +102,14 @@ ${r.verification.notes.length ? `<ul class="sub">${r.verification.notes.map((n) 
 <div class="keep"><strong style="color:${GREEN}">Strengths (${SKILL_STATUS_THRESHOLDS.STRENGTH}%+)</strong>${list(r.strengths, "No assessed skill reached 85% yet.")}</div>
 <div class="keep"><strong style="color:${AMBER}">Developing (${SKILL_STATUS_THRESHOLDS.DEVELOPING}–${SKILL_STATUS_THRESHOLDS.STRENGTH - 1}%)</strong>${list(r.developing, "No assessed skill fell in the developing range.")}</div>
 <div class="keep"><strong style="color:${RED}">Priority support (below ${SKILL_STATUS_THRESHOLDS.DEVELOPING}%)</strong>${list(r.priority, "No assessed skill fell below 66%.")}</div></section>
-<section><h2>3. ${r.subject === "ela" ? "Domain" : "Section"} summary</h2>${legend}
+<section class="keep"><h2>3. ${r.subject === "ela" ? "Domain" : "Section"} summary</h2>${legend}
 <table><thead><tr><th>${r.subject === "ela" ? "Domain" : "Section"}</th><th>Evidence</th><th>Accuracy</th><th>Status</th></tr></thead><tbody>${domainRows}</tbody></table></section>
 <section class="newpage"><h2>4. Skill-by-skill results</h2>
 <table><thead><tr><th style="width:1.7in">Skill</th><th style="width:1.1in">Evidence</th><th style="width:1.1in">Accuracy</th><th style="width:1.3in">Status</th><th>Next step</th></tr></thead><tbody>${skillRows}</tbody></table>
 <p class="sub">* Limited evidence: fewer than 3 scored items. A result such as 100% on one item is not proof of broad mastery (and 0% on one item is not proof of a broad gap); confirm with additional items.</p></section>
 <section class="keep"><h2>5. Priority focus</h2>${r.priorityFocus.length ? `<ol>${r.priorityFocus.map((s) => `<li><strong>${esc(s.skill)}</strong> (${s.pct}% on ${s.scoredItems} item${s.scoredItems === 1 ? "" : "s"}): ${esc(s.nextStep)}</li>`).join("")}</ol>` : `<p>No assessed skill is below ${SKILL_STATUS_THRESHOLDS.DEVELOPING}%; continue with the developing skills above.</p>`}</section>
 <section class="keep"><h2>6. What the ${esc(r.score.tier)} placement means</h2><p>${esc(r.tierExplanation)}</p></section>
-<section class="keep"><h2>7. Program length and formal retests</h2><p>Recommended: <strong>${esc(r.program.label)}</strong>. Formal diagnostic retests are built into the program at:</p>
+<div class="keep"><section><h2>7. Program length and formal retests</h2><p>Recommended: <strong>${esc(r.program.label)}</strong>. Formal diagnostic retests are built into the program at:</p>
 <table><thead><tr><th>Retest</th><th>Status</th></tr></thead><tbody>${r.program.retests.map((t) => `<tr><td>${esc(t.label)}</td><td>${t.status === "not_scheduled" ? "Scheduled when the program starts" : esc(t.status)}${t.unlock_date ? ` (opens ${fmtDate(t.unlock_date)})` : ""}</td></tr>`).join("")}</tbody></table></section>
-${foot(r)}${close}`;
+${foot(r)}</div>${close}`;
 }
