@@ -145,6 +145,7 @@ const ReadingRecoveryDiagnostic = () => {
       }
       
       if (isMounted) setEnrollmentId(enrollment.id);
+      if (isMounted) setSchoolId(enrollment.school_id ?? null);
       
       // Calculate version unlock status (admins bypass all restrictions)
       if (userIsAdmin) {
@@ -293,15 +294,25 @@ const ReadingRecoveryDiagnostic = () => {
         }));
 
         // Save the transcript with full metadata including comprehension Q&A
+        const readingSeconds = scores.readingDurationSeconds ?? null;
+        const wcpm = readingSeconds && readingSeconds > 0
+          ? Math.round((passage.metadata.wordCount / readingSeconds) * 60)
+          : null;
+
         const { data, error } = await supabase
           .from("reading_diagnostic_transcripts")
           .insert([{
             user_id: userId,
+            student_id: userId,
+            school_id: schoolId,
             student_name: adminInfo.studentName,
             passage_title: passage.title,
             grade_band: passage.grade,
             grade_level: gradeToNumber(passage.grade),
             version: passage.version,
+            passage_form_version: passage.version,
+            reading_duration_seconds: readingSeconds,
+            wcpm,
             original_text: passage.text,
             transcript: scores.transcript || null,
             detected_errors: scores.detectedErrors ? {
