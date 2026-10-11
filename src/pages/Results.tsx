@@ -304,7 +304,7 @@ const Results = () => {
               <h2 className="font-semibold">Assessment context</h2>
               <p>Current enrolled grade: {model.enrolledGrade === 0 ? "Kindergarten" : `Grade ${model.enrolledGrade}`}.<br />Diagnostic starting level: Grade {model.assessedGrade}.</p>
               {model.assessmentContext.explanation && <p>{model.assessmentContext.explanation}</p>}
-              <p>{model.assessmentContext.coverage}</p><p>{model.assessmentContext.purpose}</p>
+              {!model.assessmentContext.explanation && <><p>{model.assessmentContext.coverage}</p><p>{model.assessmentContext.purpose}</p></>}
             </section>}
             {followUpInfo && followUpInfo.baselineScore !== null && (
               <div className="mt-4 rounded-lg border-2 border-sky-200 bg-sky-50 p-4">
