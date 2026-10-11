@@ -16,7 +16,20 @@
         "primary_skill": "Round whole numbers to the nearest hundred",
         "secondary_skills": []
       },
-      "staff_review_notes": []
+      "staff_review_notes": [],
+      "expected_original": {
+        "correct_answer": "7,200",
+        "id": "q1",
+        "options": [
+          "7,100",
+          "7,200",
+          "7,210",
+          "7,300"
+        ],
+        "question": "What is 7,206 rounded to the nearest hundred?",
+        "section": "Section I - Multiple Choice (No Calculator)",
+        "type": "multiple-choice"
+      }
     },
     {
       "id": "q2",
@@ -30,7 +43,20 @@
           "Multiplication facts"
         ]
       },
-      "staff_review_notes": []
+      "staff_review_notes": [],
+      "expected_original": {
+        "correct_answer": "2,070",
+        "id": "q2",
+        "options": [
+          "2,170",
+          "2,070",
+          "2,060",
+          "2,090"
+        ],
+        "question": "What is 345 × 6?",
+        "section": "Section I - Multiple Choice (No Calculator)",
+        "type": "multiple-choice"
+      }
     },
     {
       "id": "q3",
@@ -44,7 +70,20 @@
           "Multiplication facts"
         ]
       },
-      "staff_review_notes": []
+      "staff_review_notes": [],
+      "expected_original": {
+        "correct_answer": "152",
+        "id": "q3",
+        "options": [
+          "152",
+          "142",
+          "162",
+          "132"
+        ],
+        "question": "What is 1,824 ÷ 12?",
+        "section": "Section I - Multiple Choice (No Calculator)",
+        "type": "multiple-choice"
+      }
     },
     {
       "id": "q4",
@@ -60,7 +99,20 @@
       },
       "staff_review_notes": [
         "Multiple equivalent choices (3/6 and 1/2); preserve key, flag for separate author review."
-      ]
+      ],
+      "expected_original": {
+        "correct_answer": "1/2",
+        "id": "q4",
+        "options": [
+          "3/6",
+          "1/2",
+          "4/6",
+          "2/3"
+        ],
+        "question": "Which fraction is equivalent to 2/4?",
+        "section": "Section I - Multiple Choice (No Calculator)",
+        "type": "multiple-choice"
+      }
     },
     {
       "id": "q5",
@@ -76,7 +128,20 @@
       },
       "staff_review_notes": [
         "Multiple equivalent choices (4/4 and 1); preserve key, flag for separate author review."
-      ]
+      ],
+      "expected_original": {
+        "correct_answer": "1",
+        "id": "q5",
+        "options": [
+          "1/2",
+          "4/4",
+          "1",
+          "3/8"
+        ],
+        "question": "What is 1/4 + 3/4?",
+        "section": "Section I - Multiple Choice (No Calculator)",
+        "type": "multiple-choice"
+      }
     },
     {
       "id": "q6",
@@ -90,7 +155,20 @@
           "Simplify fractions"
         ]
       },
-      "staff_review_notes": []
+      "staff_review_notes": [],
+      "expected_original": {
+        "correct_answer": "6/15",
+        "id": "q6",
+        "options": [
+          "6/15",
+          "1/2",
+          "5/6",
+          "9/15"
+        ],
+        "question": "What is 2/3 × 3/5?",
+        "section": "Section I - Multiple Choice (No Calculator)",
+        "type": "multiple-choice"
+      }
     },
     {
       "id": "q7",
@@ -102,7 +180,20 @@
         "primary_skill": "Identify decimal place value",
         "secondary_skills": []
       },
-      "staff_review_notes": []
+      "staff_review_notes": [],
+      "expected_original": {
+        "correct_answer": "7",
+        "id": "q7",
+        "options": [
+          "3",
+          "4",
+          "7",
+          "0"
+        ],
+        "question": "In 3.47, what digit is in the hundredths place?",
+        "section": "Section I - Multiple Choice (No Calculator)",
+        "type": "multiple-choice"
+      }
     },
     {
       "id": "q8",
@@ -116,7 +207,20 @@
           "Decimal place value"
         ]
       },
-      "staff_review_notes": []
+      "staff_review_notes": [],
+      "expected_original": {
+        "correct_answer": "0.65",
+        "id": "q8",
+        "options": [
+          "0.56",
+          "0.65",
+          "They are equal",
+          "Cannot be compared"
+        ],
+        "question": "Which is greater: 0.56 or 0.65?",
+        "section": "Section I - Multiple Choice (No Calculator)",
+        "type": "multiple-choice"
+      }
     },
     {
       "id": "q9",
@@ -130,7 +234,20 @@
           "Multiply whole numbers"
         ]
       },
-      "staff_review_notes": []
+      "staff_review_notes": [],
+      "expected_original": {
+        "correct_answer": "30 cm³",
+        "id": "q9",
+        "options": [
+          "10 cm³",
+          "30 cm³",
+          "15 cm³",
+          "60 cm³"
+        ],
+        "question": "What is the volume of a box that is 5 cm long, 2 cm wide, and 3 cm high?",
+        "section": "Section I - Multiple Choice (No Calculator)",
+        "type": "multiple-choice"
+      }
     },
     {
       "id": "q10",
@@ -142,7 +259,20 @@
         "primary_skill": "Extend additive number patterns",
         "secondary_skills": []
       },
-      "staff_review_notes": []
+      "staff_review_notes": [],
+      "expected_original": {
+        "correct_answer": "20",
+        "id": "q10",
+        "options": [
+          "20",
+          "25",
+          "18",
+          "30"
+        ],
+        "question": "What is the next number in this pattern: 5, 10, 15, ___?",
+        "section": "Section I - Multiple Choice (No Calculator)",
+        "type": "multiple-choice"
+      }
     },
     {
       "id": "q11",
@@ -154,7 +284,20 @@
         "primary_skill": "Interpret bar-graph frequency",
         "secondary_skills": []
       },
-      "staff_review_notes": []
+      "staff_review_notes": [],
+      "expected_original": {
+        "correct_answer": "Greatest frequency",
+        "id": "q11",
+        "options": [
+          "Least frequency",
+          "Average",
+          "Greatest frequency",
+          "Total"
+        ],
+        "question": "What does the tallest bar in a bar graph represent?",
+        "section": "Section I - Multiple Choice (No Calculator)",
+        "type": "multiple-choice"
+      }
     },
     {
       "id": "q12",
@@ -166,7 +309,20 @@
         "primary_skill": "Identify right angles",
         "secondary_skills": []
       },
-      "staff_review_notes": []
+      "staff_review_notes": [],
+      "expected_original": {
+        "correct_answer": "90°",
+        "id": "q12",
+        "options": [
+          "45°",
+          "60°",
+          "90°",
+          "120°"
+        ],
+        "question": "Which angle is a right angle?",
+        "section": "Section I - Multiple Choice (No Calculator)",
+        "type": "multiple-choice"
+      }
     },
     {
       "id": "q13",
@@ -180,7 +336,20 @@
           "Multiply whole numbers"
         ]
       },
-      "staff_review_notes": []
+      "staff_review_notes": [],
+      "expected_original": {
+        "correct_answer": "36 cm²",
+        "id": "q13",
+        "options": [
+          "36 cm²",
+          "24 cm²",
+          "12 cm²",
+          "30 cm²"
+        ],
+        "question": "What is the area of a square with side 6 cm?",
+        "section": "Section I - Multiple Choice (No Calculator)",
+        "type": "multiple-choice"
+      }
     },
     {
       "id": "q14",
@@ -194,7 +363,20 @@
           "Multiply whole numbers"
         ]
       },
-      "staff_review_notes": []
+      "staff_review_notes": [],
+      "expected_original": {
+        "correct_answer": "180",
+        "id": "q14",
+        "options": [
+          "120",
+          "90",
+          "180",
+          "200"
+        ],
+        "question": "How many minutes are in 3 hours?",
+        "section": "Section I - Multiple Choice (No Calculator)",
+        "type": "multiple-choice"
+      }
     },
     {
       "id": "q15",
@@ -208,7 +390,20 @@
           "Money arithmetic"
         ]
       },
-      "staff_review_notes": []
+      "staff_review_notes": [],
+      "expected_original": {
+        "correct_answer": "$2.50",
+        "id": "q15",
+        "options": [
+          "$2.50",
+          "$3.00",
+          "$1.50",
+          "$2.75"
+        ],
+        "question": "If you buy 2 pens for $1.25 each, how much do you spend?",
+        "section": "Section I - Multiple Choice (No Calculator)",
+        "type": "multiple-choice"
+      }
     },
     {
       "id": "q16",
@@ -222,7 +417,20 @@
           "Multiplication facts"
         ]
       },
-      "staff_review_notes": []
+      "staff_review_notes": [],
+      "expected_original": {
+        "correct_answer": "48",
+        "id": "q16",
+        "options": [
+          "36",
+          "42",
+          "48",
+          "54"
+        ],
+        "question": "Each box has 8 toys. How many toys in 6 boxes?",
+        "section": "Section I - Multiple Choice (No Calculator)",
+        "type": "multiple-choice"
+      }
     },
     {
       "id": "q17",
@@ -237,7 +445,20 @@
           "Add whole numbers"
         ]
       },
-      "staff_review_notes": []
+      "staff_review_notes": [],
+      "expected_original": {
+        "correct_answer": "28",
+        "id": "q17",
+        "options": [
+          "40",
+          "28",
+          "32",
+          "36"
+        ],
+        "question": "What is 12 + 8 × 2?",
+        "section": "Section I - Multiple Choice (No Calculator)",
+        "type": "multiple-choice"
+      }
     },
     {
       "id": "q18",
@@ -251,7 +472,20 @@
           "Add fractions with like denominators"
         ]
       },
-      "staff_review_notes": []
+      "staff_review_notes": [],
+      "expected_original": {
+        "correct_answer": "5/8",
+        "id": "q18",
+        "options": [
+          "5/8",
+          "6/8",
+          "1/2",
+          "1"
+        ],
+        "question": "Maria ate 2/8 of a pizza and John ate 3/8. How much did they eat together?",
+        "section": "Section I - Multiple Choice (No Calculator)",
+        "type": "multiple-choice"
+      }
     },
     {
       "id": "q19",
@@ -263,7 +497,20 @@
         "primary_skill": "Convert meters to centimeters",
         "secondary_skills": []
       },
-      "staff_review_notes": []
+      "staff_review_notes": [],
+      "expected_original": {
+        "correct_answer": "100",
+        "id": "q19",
+        "options": [
+          "10",
+          "100",
+          "1,000",
+          "1"
+        ],
+        "question": "How many centimeters are in a meter?",
+        "section": "Section I - Multiple Choice (No Calculator)",
+        "type": "multiple-choice"
+      }
     },
     {
       "id": "q20",
@@ -277,7 +524,20 @@
           "Division facts"
         ]
       },
-      "staff_review_notes": []
+      "staff_review_notes": [],
+      "expected_original": {
+        "correct_answer": "4",
+        "id": "q20",
+        "options": [
+          "3",
+          "6",
+          "4",
+          "5"
+        ],
+        "question": "You have 24 apples and want to put 6 in each basket. How many baskets can you fill?",
+        "section": "Section I - Multiple Choice (No Calculator)",
+        "type": "multiple-choice"
+      }
     },
     {
       "id": "q21",
@@ -292,7 +552,14 @@
           "Subtract whole numbers"
         ]
       },
-      "staff_review_notes": []
+      "staff_review_notes": [],
+      "expected_original": {
+        "correct_answer": "26",
+        "id": "q21",
+        "question": "Jenna buys 3 packs of stickers. Each pack contains 12 stickers. She gives 10 stickers to her friend. How many does she have left?",
+        "section": "Section II - Two-Step Word Problems (Calculator Allowed)",
+        "type": "open-ended"
+      }
     },
     {
       "id": "q22",
@@ -309,7 +576,14 @@
       },
       "staff_review_notes": [
         "Wording requests successive distances; stored key 300 totals both. Preserve key; clarify only in separately approved new content."
-      ]
+      ],
+      "expected_original": {
+        "correct_answer": "300",
+        "id": "q22",
+        "question": "A car travels 60 miles in one hour. How far does it travel in 3 hours, and then how much farther does it go in the next 2 hours?",
+        "section": "Section II - Two-Step Word Problems (Calculator Allowed)",
+        "type": "open-ended"
+      }
     },
     {
       "id": "q23",
@@ -324,7 +598,14 @@
           "Add money amounts"
         ]
       },
-      "staff_review_notes": []
+      "staff_review_notes": [],
+      "expected_original": {
+        "correct_answer": "17",
+        "id": "q23",
+        "question": "Sam buys 2 books for $7 each and a notebook for $3. How much does he spend in total?",
+        "section": "Section II - Two-Step Word Problems (Calculator Allowed)",
+        "type": "open-ended"
+      }
     },
     {
       "id": "q24",
@@ -339,7 +620,14 @@
           "Subtract whole numbers"
         ]
       },
-      "staff_review_notes": []
+      "staff_review_notes": [],
+      "expected_original": {
+        "correct_answer": "22",
+        "id": "q24",
+        "question": "A baker makes 4 batches of cookies. Each batch has 18 cookies. He sells 50 cookies. How many are left?",
+        "section": "Section II - Two-Step Word Problems (Calculator Allowed)",
+        "type": "open-ended"
+      }
     },
     {
       "id": "q25",
@@ -354,7 +642,14 @@
           "Add money amounts"
         ]
       },
-      "staff_review_notes": []
+      "staff_review_notes": [],
+      "expected_original": {
+        "correct_answer": "30",
+        "id": "q25",
+        "question": "Mia saves $5 each week. After 4 weeks, she gets an extra $10 from her grandma. How much money does she have in total?",
+        "section": "Section II - Two-Step Word Problems (Calculator Allowed)",
+        "type": "open-ended"
+      }
     },
     {
       "id": "q26",
@@ -369,7 +664,14 @@
           "Subtract whole numbers"
         ]
       },
-      "staff_review_notes": []
+      "staff_review_notes": [],
+      "expected_original": {
+        "correct_answer": "54",
+        "id": "q26",
+        "question": "A classroom has 6 rows with 5 desks in each. If each desk has 2 students, how many students are there? Then, 6 students leave. How many are left?",
+        "section": "Section III - Multi-Step Word Problems (Choose 3 out of 5)",
+        "type": "open-ended"
+      }
     },
     {
       "id": "q27",
@@ -385,7 +687,14 @@
           "Select relevant information"
         ]
       },
-      "staff_review_notes": []
+      "staff_review_notes": [],
+      "expected_original": {
+        "correct_answer": "13",
+        "id": "q27",
+        "question": "Lisa runs 2 miles every day for 5 days. She then rests for 2 days and runs 3 more miles. What is the total distance she runs?",
+        "section": "Section III - Multi-Step Word Problems (Choose 3 out of 5)",
+        "type": "open-ended"
+      }
     },
     {
       "id": "q28",
@@ -400,7 +709,14 @@
           "Multiply whole numbers"
         ]
       },
-      "staff_review_notes": []
+      "staff_review_notes": [],
+      "expected_original": {
+        "correct_answer": "27",
+        "id": "q28",
+        "question": "A box contains 4 pens, 3 pencils, and 2 erasers. If you buy 3 such boxes, how many items do you have in total?",
+        "section": "Section III - Multi-Step Word Problems (Choose 3 out of 5)",
+        "type": "open-ended"
+      }
     },
     {
       "id": "q29",
@@ -415,7 +731,14 @@
           "Subtract money amounts"
         ]
       },
-      "staff_review_notes": []
+      "staff_review_notes": [],
+      "expected_original": {
+        "correct_answer": "13",
+        "id": "q29",
+        "question": "A toy costs $15. You have $40. After buying the toy, you also buy 2 comic books for $6 each. How much money do you have left?",
+        "section": "Section III - Multi-Step Word Problems (Choose 3 out of 5)",
+        "type": "open-ended"
+      }
     },
     {
       "id": "q30",
@@ -429,7 +752,14 @@
           "Multiply three factors"
         ]
       },
-      "staff_review_notes": []
+      "staff_review_notes": [],
+      "expected_original": {
+        "correct_answer": "720",
+        "id": "q30",
+        "question": "A farmer has 4 fields. Each field has 12 rows of corn. Each row has 15 corn plants. How many total corn plants does the farmer have?",
+        "section": "Section III - Multi-Step Word Problems (Choose 3 out of 5)",
+        "type": "open-ended"
+      }
     }
   ]
 }
