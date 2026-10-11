@@ -16,3 +16,10 @@
 - [x] Tests + synthetic/real-preview PDF render checks
 - [ ] Deploy backend functions + publish (awaiting owner review)
 - [ ] Optional: apply Tejani skill-analysis repair (admin, after review)
+
+# Roadmap — Parent guidance and future canonical tags
+- [x] Separate parent guidance from internal staff provenance/sparse-item audit; preserve material notices and points
+- [x] Audit actual 30-item Grade 5 Math bank versus different local 10-item bank; create reviewable source-preserving map
+- [x] Add canonical item schema and approval-gated pure future-bank configuration, without applying bank changes
+- [ ] Targeted/regression tests and synthetic parent/teacher/certificate visual checks
+- [ ] Owner approval and future-bank release (blocked: owner review; no production changes authorized)
