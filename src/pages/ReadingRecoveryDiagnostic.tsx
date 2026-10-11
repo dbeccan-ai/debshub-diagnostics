@@ -60,6 +60,7 @@ const ReadingRecoveryDiagnostic = () => {
   const [authLoading, setAuthLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
   const [enrollmentId, setEnrollmentId] = useState<string | null>(null);
+  const [schoolId, setSchoolId] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [step, setStep] = useState<Step>(1);
   const [savedTranscriptId, setSavedTranscriptId] = useState<string | null>(null);
@@ -134,7 +135,7 @@ const ReadingRecoveryDiagnostic = () => {
       // Check enrollment and get version completion dates
       const { data: enrollment } = await supabase
         .from("reading_recovery_enrollments")
-        .select("id, version_a_completed_at, version_b_completed_at")
+        .select("id, version_a_completed_at, version_b_completed_at, school_id")
         .eq("user_id", currentUserId)
         .maybeSingle();
       
