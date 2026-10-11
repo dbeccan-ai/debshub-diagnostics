@@ -40,9 +40,17 @@ interface OralReadingAutoAssistProps {
   gradeBand: string;
   version: string;
   studentName: string;
-  onErrorCountConfirmed: (count: number, transcript: string, errors: DetectedErrors, suggestedStrategy?: string) => void;
+  onErrorCountConfirmed: (count: number, transcript: string, errors: DetectedErrors, suggestedStrategy?: string, readingDurationSeconds?: number) => void;
   initialErrorCount?: number;
 }
+
+// Pick the best recording format the device supports. Safari/iPad cannot
+// record audio/webm, so fall back to mp4/aac instead of failing silently.
+export const pickSupportedAudioMimeType = (): string => {
+  if (typeof MediaRecorder === "undefined" || !MediaRecorder.isTypeSupported) return "";
+  const candidates = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/aac", "audio/ogg"];
+  return candidates.find((t) => MediaRecorder.isTypeSupported(t)) ?? "";
+};
 
 // Analyze error patterns to suggest the most likely decoding strategy used
 const analyzeDecodingStrategy = (errors: DetectedErrors, totalWords: number): string | undefined => {
