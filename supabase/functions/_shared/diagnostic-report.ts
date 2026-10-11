@@ -326,6 +326,7 @@ export interface DiagnosticReport {
   student: { name: string }; test: { name: string; attemptId: string };
   assessedGrade: number | null; enrolledGrade: number | null; completedAt: string | null; generatedAt: string;
   verification: { state: VerificationState; issues: string[]; notes: string[] };
+  auditNotes?: string[];
   counts: { totalItems: number; answered: number; unanswered: number; scored: number; pending: number; correct: number; partial: number; incorrect: number; autoScored: number; manualScored: number };
   coverage: Coverage;
   points: { earned: number; possible: number };
@@ -478,4 +479,17 @@ export function buildSkillAnalysis(items: NormalizedItem[], responses: ResponseR
     (s.status === "strength" ? mastered : s.status === "developing" ? developing : needsSupport).push(skill);
   }
   return { version: SKILL_ANALYSIS_VERSION, subject, mastered: mastered.sort(), developing: developing.sort(), needsSupport: needsSupport.sort(), skillStats };
+}
+
+/** Parent-only presentation, preserving all material scoring/coverage notices. Internal flags stay on staff model. */
+export function parentReportNotes(r: DiagnosticReport): string[] {
+  return r.verification.notes.filter((n) => !/skill tag|canonical|inferred|unmapped|positional IDs/i.test(n));
+}
+export function parentSkillName(skill: string): string { return skill === UNMAPPED_SKILL ? "Other assessed questions" : skill; }
+export function parentDomainName(domain: string): string { return domain === UNMAPPED_DOMAIN ? "Other assessed questions" : domain; }
+export function parentNextStep(s: SkillSummary, subject: ReportSubject): string {
+  return nextStepFor(s.skill, s.status, false, subject);
+}
+export function parentTierLabel(tier: GeneralTier | null): string {
+  return tier === "Tier 1" ? "Strengths — enrichment" : tier === "Tier 2" ? "Developing skills — targeted practice" : "Support needed — targeted instruction";
 }

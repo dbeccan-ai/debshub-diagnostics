@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
-import { buildDiagnosticReport } from "../_shared/diagnostic-report.ts";
+import { detectReportSubject, buildDiagnosticReport } from "../_shared/diagnostic-report.ts";
+
+import { renderGeneralCertificateHtml } from "../_shared/diagnostic-report-html.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -86,7 +88,7 @@ serve(async (req) => {
       .from("test_responses").select("question_id, answer, is_correct, points_awarded, max_points").eq("attempt_id", attemptId);
     const evidence = buildDiagnosticReport({ attempt, test: attempt.tests ?? { name: null, test_type: null, questions: null }, responses: certResponses ?? [] });
     const verifiedEvidence = evidence.verification.state === "verified";
-    attempt.strengths = verifiedEvidence ? evidence.strengths.filter((s) => !s.lowEvidence).slice(0, 5).map((s) => s.skill) : [];
+    attempt.strengths = verifiedEvidence ? evidence.strengths.slice(0, 5).map((s) => s.skill) : [];
     attempt.weaknesses = verifiedEvidence ? evidence.priorityFocus.map((s) => s.skill) : [];
 
     // Determine tier badge color - Green for Tier 1, Yellow for Tier 2, Red for Tier 3
@@ -99,7 +101,7 @@ serve(async (req) => {
     const tierColor = tierColors[attempt.tier || "Tier 3"];
 
     // Generate certificate HTML
-    const certificateHTML = `
+    const legacyCertificateHTML = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -243,6 +245,11 @@ serve(async (req) => {
 </body>
 </html>
     `;
+
+    const general = detectReportSubject(attempt.tests?.test_type, attempt.tests?.name) !== "unknown";
+    const origin = req.headers.get("origin");
+    const logoUrl = origin && /^https:\/\/[a-z0-9.-]+$/i.test(origin) ? `${origin}/icon-512.png` : "https://debshub-diagnostics.lovable.app/icon-512.png";
+    const certificateHTML = general ? renderGeneralCertificateHtml(evidence, { logoUrl }) : legacyCertificateHTML;
 
     // Store certificate in storage
     const fileName = `certificate-${attemptId}.html`;
