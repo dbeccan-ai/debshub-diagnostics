@@ -32,4 +32,4 @@
 
 # Roadmap — Concise official assessment context refinement
 - [x] Shorten official context while preserving confirmed/assessed grades and separate fuller parent email rationale
-- [ ] Regression tests and visual inspection of standard Math/ELA context; no release or communications
+- [x] All 249 regression tests passed; standard Math/ELA PDFs visually inspected with concise context, unchanged points/missing-work notices, no blank pages; preview build OK; no release or communications
