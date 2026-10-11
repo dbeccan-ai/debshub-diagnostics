@@ -122,6 +122,8 @@ export const OralReadingAutoAssist = ({
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const recordingStartedAtRef = useRef<number | null>(null);
+  const [recordingDuration, setRecordingDuration] = useState<number | null>(null);
 
   useEffect(() => {
     return () => {
