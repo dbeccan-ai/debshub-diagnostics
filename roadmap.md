@@ -33,3 +33,5 @@
 # Roadmap — Concise official assessment context refinement
 - [x] Shorten official context while preserving confirmed/assessed grades and separate fuller parent email rationale
 - [x] All 249 regression tests passed; standard Math/ELA PDFs visually inspected with concise context, unchanged points/missing-work notices, no blank pages; preview build OK; no release or communications
+
+- [x] Grant Mckenzie Gray one $0 TACHS retest access (Oct 17, 2026) via admin grant; no reset/emails/start
